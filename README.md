@@ -26,4 +26,4 @@ Xtra Kernel Manager is an advanced kernel management application designed to opt
 
 ## Contact
 If you have any questions or issues, feel free to contact us:
-- Telegram: [Telegram Group](https://t.me/xxmanager)
+- Telegram: [Telegram Group](https://t.me/xkmanager)
