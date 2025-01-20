@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/greenlight"
     android:padding="16dp">
 
     <TextView
@@ -124,7 +125,8 @@
         android:text="Core 7: N/A"
         android:textSize="18sp"
         tools:layout_editor_absoluteX="243dp"
-        tools:layout_editor_absoluteY="169dp" />
+        tools:layout_editor_absoluteY="169dp"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/cpuGov"
@@ -136,7 +138,8 @@
         app:layout_constraintEnd_toStartOf="@+id/cpuMax"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore3" />
+        app:layout_constraintTop_toBottomOf="@id/cpuCore3"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/cpuMax"
@@ -148,7 +151,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.64"
         app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore7" />
+        app:layout_constraintTop_toBottomOf="@id/cpuCore7"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/kernelName"
@@ -158,7 +162,8 @@
         android:text="Kernel Name: N/A"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuGov" />
+        app:layout_constraintTop_toBottomOf="@id/cpuGov"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/rootStatus"
@@ -166,26 +171,28 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="36dp"
-        android:text="Root Status: N/A"
+        android:text="Root Access : N/A"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/kernelName" />
+        app:layout_constraintTop_toBottomOf="@id/kernelName"
+        tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/rootProvider"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:text="Root Provider: N/A"
+        android:text="RootManager : N/A"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rootStatus" />
+        app:layout_constraintTop_toBottomOf="@id/rootStatus"
+        tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/btnOpenSettings"
         android:layout_width="150dp"
         android:layout_height="45dp"
-        android:text="CPU"
+        android:text="CPU / GPU"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -193,5 +200,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rootProvider"
         app:layout_constraintVertical_bias="0.95"
-        tools:ignore="TouchTargetSizeCheck" />
+        tools:ignore="HardcodedText,TouchTargetSizeCheck" />
 </androidx.constraintlayout.widget.ConstraintLayout>
