@@ -20,6 +20,9 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var btnOpenSettings: Button
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var runnable: Runnable
+    private lateinit var cpuTemperatureText: TextView
+    private lateinit var socTemperatureText: TextView
+
 
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +45,8 @@ class HomeActivity : AppCompatActivity() {
         cpuGovText = findViewById(R.id.cpuGov)
         cpuMaxText = findViewById(R.id.cpuMax)
         btnOpenSettings = findViewById(R.id.btnOpenSettings)
+        cpuTemperatureText = findViewById(R.id.cpuTemperature)
+        socTemperatureText = findViewById(R.id.socTemperature)
 
         displayKernelName()
         displayRootMethod()
@@ -49,7 +54,8 @@ class HomeActivity : AppCompatActivity() {
         runnable = Runnable {
             displayCpuInfo()
             displayCpuMaxClockSpeed()
-            handler.postDelayed(runnable, 1000)
+            displayTemperatures()
+            handler.postDelayed(runnable, 100)
         }
         handler.post(runnable)
 
@@ -156,6 +162,22 @@ class HomeActivity : AppCompatActivity() {
         } catch (e: Exception) {
             "KernelSU/KernelSU-Next"
         }
+    }
+    private fun getTemperature(path: String): String {
+        return try {
+            val process = Runtime.getRuntime().exec("cat $path")
+            val result = process.inputStream.bufferedReader().readText().trim().toFloatOrNull() ?: 0f
+            val temperatureCelsius = result / 1000.0f
+            "%.1f°C".format(temperatureCelsius)
+        } catch (e: Exception) {
+            "N/A"
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun displayTemperatures() {
+        cpuTemperatureText.text = "Temp CPU: ${getTemperature("/sys/class/thermal/thermal_zone0/temp")}"
+        socTemperatureText.text = "Temp SOC: ${getTemperature("/sys/class/thermal/thermal_zone1/temp")}"
     }
 
     override fun onDestroy() {
