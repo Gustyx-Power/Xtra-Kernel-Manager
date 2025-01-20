@@ -154,7 +154,7 @@ class HomeActivity : AppCompatActivity() {
             }
             process?.inputStream?.bufferedReader()?.readText()?.trim()?.ifEmpty { "KernelSU" } ?: "KernelSU"
         } catch (e: Exception) {
-            "KernelSU"
+            "KernelSU/KernelSU-Next"
         }
     }
 
