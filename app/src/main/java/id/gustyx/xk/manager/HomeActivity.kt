@@ -114,21 +114,22 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun displayRootMethod() {
         var rootStatus = "N/A"
         var rootProvider = "N/A"
         if (File("/sbin/.magisk").exists()) {
-            rootStatus = "Granted"
+            rootStatus = "Granted Succesfully"
             rootProvider = getMagiskVersion()
         } else if (File("/system/xbin/su").exists() || File("/system/bin/su").exists()) {
-            rootStatus = "Granted"
+            rootStatus = "Granted Succesfully"
             rootProvider = getKernelSUVersion()
         } else if (File("/sys/kernel/debug/kernelsu").exists() || File("/data/adb/modules/Kernelsu").exists() || File("/su/bin/kernelsu").exists()) {
-            rootStatus = "Granted"
+            rootStatus = "Granted Succesfully"
             rootProvider = getKernelSUVersion()
         }
         rootStatusText.text = "Root Access: $rootStatus"
-        rootProviderText.text = "Root Manager: $rootProvider"
+        rootProviderText.text = "Superuser By: $rootProvider"
     }
 
     private fun getMagiskVersion(): String {
