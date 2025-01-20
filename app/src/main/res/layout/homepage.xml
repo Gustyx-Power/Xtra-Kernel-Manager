@@ -3,190 +3,228 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/greenlight"
-    android:padding="16dp">
+    android:background="@color/greenlight" >
 
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="CPU Status"
-        android:textSize="24sp"
-        android:textStyle="bold"
+
+
+
+    <ImageView
+        android:id="@+id/xkmheader"
+        android:layout_width="467dp"
+        android:layout_height="85dp"
+        android:src="@drawable/header_xkm"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.019"
+        tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds" />
+
+    <ImageView
+        android:id="@+id/shapecpu"
+        android:layout_width="402dp"
+        android:layout_height="206dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/cpus_shape"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.666"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/xkmheader"
         app:layout_constraintVertical_bias="0.0"
-        tools:ignore="HardcodedText" />
+        tools:ignore="ContentDescription,HardcodedText" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.5" />
+        app:layout_constraintGuide_percent="0.54" />
 
     <TextView
         android:id="@+id/cpuCore0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 0: N/A"
+        android:layout_marginStart="84dp"
+        android:layout_marginTop="35dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="64dp"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintStart_toStartOf="@+id/shapecpu"
+        app:layout_constraintTop_toTopOf="@+id/shapecpu"
+        tools:ignore="HardcodedText,MissingConstraints" />
 
     <TextView
         android:id="@+id/cpuCore1"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 1: N/A"
+        android:layout_marginStart="84dp"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="104dp"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintStart_toStartOf="@+id/shapecpu"
+        app:layout_constraintTop_toBottomOf="@+id/cpuCore0"
+        tools:ignore="HardcodedText,MissingConstraints" />
 
     <TextView
         android:id="@+id/cpuCore2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 2: N/A"
+        android:layout_marginStart="84dp"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="137dp"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintStart_toStartOf="@+id/shapecpu"
+        app:layout_constraintTop_toBottomOf="@+id/cpuCore1"
+        tools:ignore="HardcodedText,MissingConstraints" />
 
     <TextView
         android:id="@+id/cpuCore3"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 3: N/A"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="177dp"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintStart_toStartOf="@+id/cpuCore2"
+        app:layout_constraintTop_toBottomOf="@+id/cpuCore2"
+        tools:ignore="HardcodedText,MissingConstraints" />
 
     <TextView
         android:id="@+id/cpuCore4"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 4: N/A"
+        android:layout_marginTop="35dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="241dp"
-        tools:layout_editor_absoluteY="64dp"
-        tools:ignore="HardcodedText" />
+        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+        app:layout_constraintHorizontal_bias="0.61"
+        app:layout_constraintStart_toEndOf="@+id/cpuCore0"
+        app:layout_constraintTop_toTopOf="@+id/shapecpu"
+        tools:ignore="HardcodedText,MissingConstraints" />
 
     <TextView
         android:id="@+id/cpuCore5"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 5: N/A"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="243dp"
-        tools:layout_editor_absoluteY="104dp"
+        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+        app:layout_constraintHorizontal_bias="0.61"
+        app:layout_constraintStart_toEndOf="@+id/cpuCore1"
+        app:layout_constraintTop_toBottomOf="@id/cpuCore4"
         tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/cpuCore6"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 6: N/A"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="243dp"
-        tools:layout_editor_absoluteY="136dp"
+        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+        app:layout_constraintHorizontal_bias="0.61"
+        app:layout_constraintStart_toEndOf="@+id/cpuCore2"
+        app:layout_constraintTop_toBottomOf="@id/cpuCore5"
         tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/cpuCore7"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Core 7: N/A"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/inter"
+        android:text="N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        tools:layout_editor_absoluteX="243dp"
-        tools:layout_editor_absoluteY="169dp"
+        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+        app:layout_constraintHorizontal_bias="0.61"
+        app:layout_constraintStart_toEndOf="@+id/cpuCore3"
+        app:layout_constraintTop_toBottomOf="@id/cpuCore6"
         tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/cpuGov"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
-        android:text="CPU Gov: N/A"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/cpuMax"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore3"
-        tools:ignore="HardcodedText" />
+        android:layout_width="143dp"
+        android:layout_height="34dp"
+        android:layout_marginStart="12dp"
+        android:fontFamily="@font/inter"
+        android:text="CPU Governor : N/A"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
+        app:layout_constraintStart_toStartOf="@+id/shapecpu"
+        app:layout_constraintTop_toBottomOf="@+id/cpuCore3"
+        app:layout_constraintVertical_bias="1.0"
+        tools:ignore="HardcodedText,MissingConstraints,TextSizeCheck" />
 
     <TextView
         android:id="@+id/cpuMax"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="176dp"
+        android:fontFamily="@font/inter"
         android:text="CPU Max: N/A"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.64"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore7"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
+        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+        app:layout_constraintHorizontal_bias="0.816"
+        app:layout_constraintStart_toEndOf="@+id/cpuGov"
+        app:layout_constraintTop_toBottomOf="@+id/xkmheader"
+        app:layout_constraintVertical_bias="0.071"
         tools:ignore="HardcodedText" />
 
     <TextView
         android:id="@+id/kernelName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="68dp"
+        android:fontFamily="@font/inter"
         android:text="Kernel Name: N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cpuGov"
-        tools:ignore="HardcodedText" />
+        tools:ignore="HardcodedText,MissingConstraints,TextContrastCheck"
+        tools:layout_editor_absoluteX="25dp"
+        tools:layout_editor_absoluteY="484dp" />
 
     <TextView
         android:id="@+id/rootStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="156dp"
+        android:fontFamily="@font/inter"
         android:text="Root Access : N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/kernelName"
-        tools:ignore="HardcodedText" />
+        tools:ignore="HardcodedText,TextContrastCheck" />
 
     <TextView
         android:id="@+id/rootProvider"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="140dp"
+        android:fontFamily="@font/inter"
         android:text="RootManager : N/A"
+        android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rootStatus"
-        tools:ignore="HardcodedText" />
+        tools:ignore="HardcodedText,TextContrastCheck,VisualLintBounds" />
 
     <Button
         android:id="@+id/btnOpenSettings"
@@ -200,7 +238,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rootProvider"
         app:layout_constraintVertical_bias="0.95"
-        tools:ignore="HardcodedText,TouchTargetSizeCheck" />
+        tools:ignore="HardcodedText,TouchTargetSizeCheck,VisualLintBounds" />
+
     <ImageView
         android:id="@+id/shapetemp"
         android:layout_width="402dp"
