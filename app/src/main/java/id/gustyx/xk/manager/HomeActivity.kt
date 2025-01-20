@@ -22,6 +22,8 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var runnable: Runnable
     private lateinit var cpuTemperatureText: TextView
     private lateinit var socTemperatureText: TextView
+    private lateinit var gpuFrequencyText: TextView
+    private lateinit var gpuMaxFrequencyText: TextView
 
 
     @SuppressLint("MissingInflatedId")
@@ -47,6 +49,9 @@ class HomeActivity : AppCompatActivity() {
         btnOpenSettings = findViewById(R.id.btnOpenSettings)
         cpuTemperatureText = findViewById(R.id.cpuTemperature)
         socTemperatureText = findViewById(R.id.socTemperature)
+        gpuFrequencyText = findViewById(R.id.gpuFrequency)
+        gpuMaxFrequencyText = findViewById(R.id.gpuMaxFrequency)
+
 
         displayKernelName()
         displayRootMethod()
@@ -55,6 +60,7 @@ class HomeActivity : AppCompatActivity() {
             displayCpuInfo()
             displayCpuMaxClockSpeed()
             displayTemperatures()
+            displayGpuFrequencies()
             handler.postDelayed(runnable, 100)
         }
         handler.post(runnable)
@@ -173,6 +179,64 @@ class HomeActivity : AppCompatActivity() {
             "N/A"
         }
     }
+
+    private fun executeCommandAsRoot(command: String): String {
+        return try {
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+            val result = process.inputStream.bufferedReader().readText().trim()
+            result
+        } catch (e: Exception) {
+            "N/A"
+        }
+    }
+
+    private fun getGpuFrequency(): String {
+        val paths = listOf(
+            "/sys/class/kgsl/kgsl-3d0/gpuclk",
+            "/sys/class/drm/card0/device/gpuclk"
+        )
+        for (path in paths) {
+            try {
+                val result = executeCommandAsRoot("cat $path").toLongOrNull() ?: 0L
+                if (result > 0) {
+                    val frequencyMHz = result / 1000
+                    return "$frequencyMHz MHz"
+                }
+            } catch (e: Exception) {
+                continue
+            }
+        }
+        return "N/A"
+    }
+
+    private fun getGpuMaxFrequency(): String {
+        val paths = listOf(
+            "/sys/class/kgsl/kgsl-3d0/max_gpuclk",
+            "/sys/class/drm/card0/device/max_gpuclk"
+        )
+        for (path in paths) {
+            try {
+                val result = executeCommandAsRoot("cat $path").toLongOrNull() ?: 0L
+                if (result > 0) {
+                    val frequencyMHz = result / 1000
+                    return "$frequencyMHz MHz"
+                }
+            } catch (e: Exception) {
+                continue
+            }
+        }
+        return "N/A"
+    }
+
+
+    @SuppressLint("SetTextI18n")
+    private fun displayGpuFrequencies() {
+        gpuFrequencyText.text = "GPU Freq: ${getGpuFrequency()}"
+        gpuMaxFrequencyText.text = "GPU Max Freq: ${getGpuMaxFrequency()}"
+    }
+
+
+
 
     @SuppressLint("SetTextI18n")
     private fun displayTemperatures() {
