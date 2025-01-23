@@ -280,4 +280,46 @@
         app:layout_constraintTop_toTopOf="@+id/shapetemp"
         tools:ignore="HardcodedText,SmallSp" />
 
+    <ImageView
+        android:id="@+id/shapegputemp"
+        android:layout_width="402dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="48dp"
+        android:background="@drawable/shape_cputemp_gpu"
+        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/shapecpu"
+        app:layout_constraintTop_toBottomOf="@+id/shapecpu"
+        tools:ignore="ContentDescription,MissingConstraints" />
+
+    <TextView
+        android:id="@+id/gpuFrequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/inter"
+        android:text="GPU Freq: N/A"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        app:layout_constraintStart_toStartOf="@+id/shapegputemp"
+        app:layout_constraintTop_toTopOf="@+id/shapegputemp"
+        tools:ignore="HardcodedText,SmallSp" />
+
+    <TextView
+        android:id="@+id/gpuMaxFrequency"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/inter"
+        android:text="GPU Max Freq: N/A"
+        android:textColor="@color/white"
+        android:textSize="10sp"
+        app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
+        app:layout_constraintHorizontal_bias="0.958"
+        app:layout_constraintStart_toStartOf="@+id/shapegputemp"
+        app:layout_constraintTop_toTopOf="@+id/shapegputemp"
+        tools:ignore="HardcodedText,SmallSp" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
