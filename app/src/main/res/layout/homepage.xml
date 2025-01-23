@@ -280,6 +280,7 @@
         app:layout_constraintTop_toTopOf="@+id/shapetemp"
         tools:ignore="HardcodedText,SmallSp" />
 
+
     <ImageView
         android:id="@+id/shapegputemp"
         android:layout_width="402dp"
@@ -320,6 +321,61 @@
         app:layout_constraintStart_toStartOf="@+id/shapegputemp"
         app:layout_constraintTop_toTopOf="@+id/shapegputemp"
         tools:ignore="HardcodedText,SmallSp" />
+
+
+    <ImageView
+        android:id="@+id/rootshape"
+        android:layout_width="407dp"
+        android:layout_height="125dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/shape_root"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/shapegputemp"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/rootStatus"
+        android:layout_width="231dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/inter"
+        android:text="Root Access: N/A"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/shapegputemp"
+        tools:ignore="HardcodedText,MissingConstraints,TextContrastCheck" />
+
+    <TextView
+        android:id="@+id/rootProvider"
+        android:layout_width="210dp"
+        android:layout_height="58dp"
+        android:layout_marginTop="72dp"
+        android:layout_marginEnd="108dp"
+        android:fontFamily="@font/inter"
+        android:text="RootManager : N/A"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="@+id/rootshape"
+        app:layout_constraintHorizontal_bias="0.024"
+        app:layout_constraintStart_toStartOf="@+id/rootStatus"
+        app:layout_constraintTop_toTopOf="@+id/rootshape"
+        tools:ignore="HardcodedText,TextContrastCheck,VisualLintBounds" />
+
+    <ImageView
+        android:id="@+id/rootProviderLogo"
+        android:layout_width="84dp"
+        android:layout_height="90dp"
+        android:layout_marginTop="8dp"
+        android:contentDescription="Root Provider Logo"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.14"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/rootshape"
+        tools:ignore="HardcodedText" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

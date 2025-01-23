@@ -5,7 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
@@ -24,6 +26,8 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var socTemperatureText: TextView
     private lateinit var gpuFrequencyText: TextView
     private lateinit var gpuMaxFrequencyText: TextView
+    private lateinit var rootProviderLogo: ImageView
+
 
 
     @SuppressLint("MissingInflatedId")
@@ -51,6 +55,7 @@ class HomeActivity : AppCompatActivity() {
         socTemperatureText = findViewById(R.id.socTemperature)
         gpuFrequencyText = findViewById(R.id.gpuFrequency)
         gpuMaxFrequencyText = findViewById(R.id.gpuMaxFrequency)
+        rootProviderLogo = findViewById(R.id.rootProviderLogo)
 
 
         displayKernelName()
@@ -243,6 +248,21 @@ class HomeActivity : AppCompatActivity() {
         cpuTemperatureText.text = "Temp CPU: ${getTemperature("/sys/class/thermal/thermal_zone0/temp")}"
         socTemperatureText.text = "Temp SOC: ${getTemperature("/sys/class/thermal/thermal_zone1/temp")}"
     }
+
+    private fun setRootProviderLogo(provider: String) {
+        val logoResId = when (provider) {
+            "Magisk" -> R.drawable.magisk_logo
+            "KernelSU" -> R.drawable.kernelsu_logo
+            else -> 0
+        }
+        if (logoResId != 0) {
+            rootProviderLogo.setImageResource(logoResId)
+            rootProviderLogo.visibility = View.VISIBLE
+        } else {
+            rootProviderLogo.visibility = View.GONE
+        }
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()
