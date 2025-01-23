@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import java.io.File
 
-class ClockspeedActivity : AppCompatActivity() {
+class CpuActivity : AppCompatActivity() {
     private lateinit var littleMaxFreqSpinner: Spinner
     private lateinit var littleMinFreqSpinner: Spinner
     private lateinit var bigMaxFreqSpinner: Spinner
@@ -31,7 +31,7 @@ class ClockspeedActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         supportActionBar?.hide()
-        setContentView(R.layout.clockspeed)
+        setContentView(R.layout.cpu)
 
         littleMaxFreqSpinner = findViewById(R.id.littleMaxFreqSpinner)
         littleMinFreqSpinner = findViewById(R.id.littleMinFreqSpinner)
