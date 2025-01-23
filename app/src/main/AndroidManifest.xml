@@ -34,7 +34,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ClockspeedActivity"
+        <activity android:name=".CpuActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             tools:ignore="DiscouragedApi,LockedOrientationActivity,MissingClass" />
