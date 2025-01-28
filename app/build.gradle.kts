@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "id.gustyx.xk.manager"
+    namespace = "id.xtramanagersoftware.xk.manager"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "id.gustyx.xk.manager"
+        applicationId = "id.xtramanagersoftware.xk.manager"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
