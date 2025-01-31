@@ -510,9 +510,19 @@ class HomeActivity : AppCompatActivity() {
         val upMinutes = TimeUnit.MILLISECONDS.toMinutes(uptimeMillis) % 60
         val uptimeFormatted = String.format("%d days, %d hours, %d minutes", upDays, upHours, upMinutes)
         uptimeText.text = "Uptime: $uptimeFormatted"
+        val upSeconds = TimeUnit.MILLISECONDS.toSeconds(uptimeMillis) % 60
+        val percentage = calculateUptimePercentage(uptimeMillis, SystemClock.uptimeMillis())
+        val uptimeFormatted = String.format("%dd %dh %dm %ds", upDays, upHours, upMinutes, upSeconds)
+        uptimeText.text = "Uptime: $uptimeFormatted ($percentage%)"
 
     }
-
+    private fun calculateUptimePercentage(activeTime: Long, totalTime: Long): Int {
+        return if (totalTime > 0) {
+            ((activeTime.toDouble() / totalTime.toDouble()) * 100).toInt()
+        } else {
+            0
+        }
+    }
 
     private fun getAndroidVersionName(): String {
         return when (Build.VERSION.SDK_INT) {
