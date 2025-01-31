@@ -86,8 +86,6 @@ class HomeActivity : AppCompatActivity() {
         setAndroidLogo()
         displaySystemInfo()
         displayDeviceName()
-        displayDeepSleepTime()
-        displayUptime()
         displaySocModel()
 
 
@@ -184,7 +182,7 @@ class HomeActivity : AppCompatActivity() {
        if (File("/system/xbin/su").exists() || File("/system/bin/su").exists()) {
             rootStatus = "Granted"
             rootProvider = getSU()
-            setRootProviderLogo("KernelSU")
+            setRootProviderLogo("Superuser")
 
         } else {
             setRootProviderLogo("")
@@ -287,8 +285,7 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setRootProviderLogo(provider: String) {
         val logoResId = when (provider) {
-            "Magisk" -> R.drawable.magisk_logo
-            "KernelSU" -> R.drawable.kernelsu_logo
+            "Superuser" -> R.drawable.brokenandroid
             else -> 0
         }
         if (logoResId != 0) {
