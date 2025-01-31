@@ -97,7 +97,9 @@ class HomeActivity : AppCompatActivity() {
             displayCpuMaxClockSpeed()
             displayTemperatures()
             displayGpuFrequencies()
-            handler.postDelayed(runnable, 100)
+            displayUptime()
+            displayDeepSleepTime()
+            handler.postDelayed(runnable, 1000)
         }
         handler.post(runnable)
 
