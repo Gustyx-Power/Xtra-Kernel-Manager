@@ -508,8 +508,6 @@ class HomeActivity : AppCompatActivity() {
         val upDays = TimeUnit.MILLISECONDS.toDays(uptimeMillis)
         val upHours = TimeUnit.MILLISECONDS.toHours(uptimeMillis) % 24
         val upMinutes = TimeUnit.MILLISECONDS.toMinutes(uptimeMillis) % 60
-        val uptimeFormatted = String.format("%d days, %d hours, %d minutes", upDays, upHours, upMinutes)
-        uptimeText.text = "Uptime: $uptimeFormatted"
         val upSeconds = TimeUnit.MILLISECONDS.toSeconds(uptimeMillis) % 60
         val percentage = calculateUptimePercentage(uptimeMillis, SystemClock.uptimeMillis())
         val uptimeFormatted = String.format("%dd %dh %dm %ds", upDays, upHours, upMinutes, upSeconds)
@@ -567,24 +565,39 @@ class HomeActivity : AppCompatActivity() {
     }
 
 
-    private fun getDeepSleepTime(): Long {
-        var idleTime: Long = 0
-        try {
-            val statFile = RandomAccessFile("/proc/stat", "r")
-            var load = statFile.readLine()
-            while (load != null) {
-                if (load.startsWith("cpu ")) {
-                    val toks = load.split(" +".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-                    idleTime = toks[4].toLong()
-                    break
-                }
-                load = statFile.readLine()
-            }
-            statFile.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
+    private fun getDurationBreakdown(millis: Long): String {
+        @Suppress("NAME_SHADOWING") var millis = millis
+        val sb = StringBuilder(64)
+        if (millis <= 0) {
+            sb.append("0 min 0 s")
+            return sb.toString()
         }
-        return idleTime
+
+        val days = TimeUnit.MILLISECONDS.toDays(millis)
+        millis -= TimeUnit.DAYS.toMillis(days)
+        val hours = TimeUnit.MILLISECONDS.toHours(millis)
+        millis -= TimeUnit.HOURS.toMillis(hours)
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(millis)
+        millis -= TimeUnit.MINUTES.toMillis(minutes)
+        val seconds = TimeUnit.MILLISECONDS.toSeconds(millis)
+
+        if (days > 0) {
+            sb.append(days)
+            sb.append("d ")
+        }
+        if (hours > 0) {
+            sb.append(hours)
+            sb.append("h ")
+        }
+        if (minutes > 0) {
+            sb.append(String.format("%02d", minutes))
+            sb.append("min ")
+        }
+        if (seconds > 0) {
+            sb.append(String.format("%02d", seconds))
+            sb.append("s")
+        }
+        return sb.toString()
     }
 
     private fun calculatePercentage(deepSleepTime: Long, totalTime: Long): Int {
@@ -595,40 +608,13 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun formatTime(deepSleepMillis: Long, totalMillis: Long): String {
-        val seconds = deepSleepMillis / 1000
-        val minutes = seconds / 60
-        val hours = minutes / 60
-        val remainingMinutes = minutes % 60
-        val remainingSeconds = seconds % 60
-        val percentage = calculatePercentage(deepSleepMillis, totalMillis)
-
-        return String.format("%dh, %dm, %ds (%d%%)", hours, remainingMinutes, remainingSeconds, percentage)
-    }
-
-
-
-    private fun getUptimeMillis(): Long {
-        var uptime: Long = 0
-        try {
-            val uptimeFile = RandomAccessFile("/proc/uptime", "r")
-            val uptimeLine = uptimeFile.readLine()
-            val toks = uptimeLine.split(" +".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            uptime = (toks[0].toDouble() * 1000).toLong()
-            uptimeFile.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        return uptime
-    }
-
     @SuppressLint("SetTextI18n")
     private fun displayDeepSleepTime() {
-        val deepSleepTime = getDeepSleepTime()
-        val uptimeMillis = getUptimeMillis()
-        val formattedTime = formatTime(deepSleepTime * 10, uptimeMillis)
-        deepSleepTimeText.text = "Deep Sleep : $formattedTime"
+        val deepSleepTime = SystemClock.elapsedRealtime() - SystemClock.uptimeMillis()
+        val formattedTime = getDurationBreakdown(deepSleepTime)
+        val uptimeMillis = SystemClock.elapsedRealtime()
+        val percentage = calculatePercentage(deepSleepTime, uptimeMillis)
+        deepSleepTimeText.text = "Deepsleep: $formattedTime ($percentage%)"
     }
 
 
