@@ -10,528 +10,540 @@
         android:id="@+id/xkmheader"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="0dp"
-        android:src="@drawable/header_xkm"
-        app:layout_constraintDimensionRatio="389:110"
+        android:background="@drawable/header_xkm"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds" />
+        app:layout_constraintDimensionRatio="389:110"
+        tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds,ImageContrastCheck" />
 
-    <ImageView
-        android:id="@+id/shapecpu"
+
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="4dp"
-        android:background="@drawable/cpus_shape"
-        app:layout_constraintDimensionRatio="201:103"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
         app:layout_constraintTop_toBottomOf="@id/xkmheader"
-        tools:ignore="ContentDescription,HardcodedText,VisualLintBounds" />
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <TextView
-        android:id="@+id/cpuCore0"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="84dp"
-        android:layout_marginTop="35dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/shapecpu"
-        app:layout_constraintTop_toTopOf="@+id/shapecpu"
-        tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/cpuCore1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="84dp"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/shapecpu"
-        app:layout_constraintTop_toBottomOf="@+id/cpuCore0"
-        tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap,TextContrastCheck" />
 
-    <TextView
-        android:id="@+id/cpuCore2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="84dp"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/shapecpu"
-        app:layout_constraintTop_toBottomOf="@+id/cpuCore1"
-        tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
+            <ImageView
+                android:id="@+id/shapecpu"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/cpus_shape"
+                app:layout_constraintDimensionRatio="201:103"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription,HardcodedText,VisualLintBounds" />
 
-    <TextView
-        android:id="@+id/cpuCore3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/cpuCore2"
-        app:layout_constraintTop_toBottomOf="@+id/cpuCore2"
-        tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
+            <TextView
+                android:id="@+id/cpuCore0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="84dp"
+                android:layout_marginTop="35dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="@+id/shapecpu"
+                app:layout_constraintTop_toTopOf="@+id/shapecpu"
+                tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
 
-    <TextView
-        android:id="@+id/cpuCore4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="35dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
-        app:layout_constraintHorizontal_bias="0.61"
-        app:layout_constraintStart_toEndOf="@+id/cpuCore0"
-        app:layout_constraintTop_toTopOf="@+id/shapecpu"
-        tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
+            <TextView
+                android:id="@+id/cpuCore1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="84dp"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="@+id/shapecpu"
+                app:layout_constraintTop_toBottomOf="@+id/cpuCore0"
+                tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap,TextContrastCheck" />
 
-    <TextView
-        android:id="@+id/cpuCore5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
-        app:layout_constraintHorizontal_bias="0.61"
-        app:layout_constraintStart_toEndOf="@+id/cpuCore1"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore4"
-        tools:ignore="HardcodedText,VisualLintOverlap" />
+            <TextView
+                android:id="@+id/cpuCore2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="84dp"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="@+id/shapecpu"
+                app:layout_constraintTop_toBottomOf="@+id/cpuCore1"
+                tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
 
-    <TextView
-        android:id="@+id/cpuCore6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
-        app:layout_constraintHorizontal_bias="0.61"
-        app:layout_constraintStart_toEndOf="@+id/cpuCore2"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore5"
-        tools:ignore="HardcodedText,VisualLintOverlap" />
+            <TextView
+                android:id="@+id/cpuCore3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="@+id/cpuCore2"
+                app:layout_constraintTop_toBottomOf="@+id/cpuCore2"
+                tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
 
-    <TextView
-        android:id="@+id/cpuCore7"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="N/A"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapecpu"
-        app:layout_constraintHorizontal_bias="0.61"
-        app:layout_constraintStart_toEndOf="@+id/cpuCore3"
-        app:layout_constraintTop_toBottomOf="@id/cpuCore6"
-        tools:ignore="HardcodedText,VisualLintOverlap" />
+            <TextView
+                android:id="@+id/cpuCore4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="35dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+                app:layout_constraintHorizontal_bias="0.61"
+                app:layout_constraintStart_toEndOf="@+id/cpuCore0"
+                app:layout_constraintTop_toTopOf="@+id/shapecpu"
+                tools:ignore="HardcodedText,MissingConstraints,VisualLintOverlap" />
 
-    <TextView
-        android:id="@+id/cpuGov"
+            <TextView
+                android:id="@+id/cpuCore5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+                app:layout_constraintHorizontal_bias="0.61"
+                app:layout_constraintStart_toEndOf="@+id/cpuCore1"
+                app:layout_constraintTop_toBottomOf="@id/cpuCore4"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/cpuCore6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+                app:layout_constraintHorizontal_bias="0.61"
+                app:layout_constraintStart_toEndOf="@+id/cpuCore2"
+                app:layout_constraintTop_toBottomOf="@id/cpuCore5"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/cpuCore7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter"
+                android:text="N/A"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapecpu"
+                app:layout_constraintHorizontal_bias="0.61"
+                app:layout_constraintStart_toEndOf="@+id/cpuCore3"
+                app:layout_constraintTop_toBottomOf="@id/cpuCore6"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/cpuGov"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="200dp"
+                android:fontFamily="@font/inter"
+                android:text="CPU Governor : N/A"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
+                app:layout_constraintDimensionRatio="210:23"
+                app:layout_constraintEnd_toEndOf="@id/shapecpu"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@+id/shapecpu"
+                app:layout_constraintTop_toBottomOf="@+id/cpuCore3"
+                app:layout_constraintVertical_bias="0.642"
+                tools:ignore="HardcodedText,MissingConstraints,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
+
+            <TextView
+                android:id="@+id/cpuMax"
+                android:layout_width="144dp"
+                android:layout_height="20dp"
+                android:layout_marginStart="20dp"
+                android:fontFamily="@font/inter"
+                android:text="CPU Max: N/A"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
+                app:layout_constraintDimensionRatio="180:30"
+                app:layout_constraintEnd_toEndOf="@id/shapecpu"
+                app:layout_constraintHorizontal_bias="0.722"
+                app:layout_constraintStart_toEndOf="@id/cpuGov"
+                app:layout_constraintTop_toTopOf="@id/cpuCore7"
+                app:layout_constraintVertical_bias="0.83"
+                tools:ignore="HardcodedText,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
+
+            <ImageView
+                android:id="@+id/shapetemp"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="0dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/shape_cputemp"
+                app:layout_constraintDimensionRatio="397:36"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@+id/shapecpu"
+                tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds" />
+
+            <TextView
+                android:id="@+id/cpuTemperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/inter"
+                android:text="Temp CPU: N/A"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                app:layout_constraintStart_toStartOf="@+id/shapetemp"
+                app:layout_constraintTop_toTopOf="@+id/shapetemp"
+                tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
+
+            <TextView
+                android:id="@+id/socTemperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/inter"
+                android:text="Temp SOC: N/A"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapetemp"
+                app:layout_constraintHorizontal_bias="0.96"
+                app:layout_constraintStart_toStartOf="@+id/shapetemp"
+                app:layout_constraintTop_toTopOf="@+id/shapetemp"
+                tools:ignore="HardcodedText,SmallSp,VisualLintBounds,VisualLintOverlap" />
+
+            <ImageView
+                android:id="@+id/shapegputemp"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="208dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/shape_gpu"
+                app:layout_constraintBottom_toTopOf="@id/shapeSys"
+                app:layout_constraintDimensionRatio="79:64"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@id/rootshape"
+                app:layout_constraintVertical_bias="0.0"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/gpuFrequency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="32dp"
+                android:fontFamily="@font/inter"
+                android:text="GPU Freq: N/A"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                app:layout_constraintStart_toStartOf="@+id/shapegputemp"
+                app:layout_constraintTop_toTopOf="@+id/shapegputemp"
+                tools:ignore="HardcodedText,SmallSp,VisualLintBounds" />
+
+            <TextView
+                android:id="@+id/gpuMaxFrequency"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                android:fontFamily="@font/inter"
+                android:text="GPU Max Freq: N/A"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
+                app:layout_constraintHorizontal_bias="0.102"
+                app:layout_constraintStart_toStartOf="@+id/shapegputemp"
+                app:layout_constraintTop_toTopOf="@+id/shapegputemp"
+                tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
+
+            <ImageView
+                android:id="@+id/rootshape"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_root"
+                app:layout_constraintDimensionRatio="401:119"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@+id/shapetemp"
+                tools:ignore="ContentDescription,VisualLintBounds" />
+
+            <TextView
+                android:id="@+id/rootProvider"
+                android:layout_width="226dp"
+                android:layout_height="38dp"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/inter"
+                android:text="RootManager : N/A"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@+id/rootStatus"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/rootStatus"
+                app:layout_constraintTop_toBottomOf="@+id/rootStatus"
+                tools:ignore="HardcodedText,TextContrastCheck,VisualLintBounds,TextSizeCheck,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/rootStatus"
+                android:layout_width="216dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="40dp"
+                android:layout_marginEnd="20dp"
+                android:fontFamily="@font/inter"
+                android:text="Root Access: N/A"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@id/rootshape"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/rootshape"
+                app:layout_constraintTop_toTopOf="@+id/rootshape"
+                tools:ignore="HardcodedText,TextContrastCheck,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
+
+            <ImageView
+                android:id="@+id/rootProviderLogo"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="20dp"
+                android:contentDescription="Root Provider Logo"
+                android:textSize="18sp"
+                app:layout_constraintBottom_toBottomOf="@id/rootshape"
+                app:layout_constraintDimensionRatio="14:15"
+                app:layout_constraintEnd_toEndOf="@id/rootshape"
+                app:layout_constraintHorizontal_bias="0.104"
+                app:layout_constraintStart_toStartOf="@id/rootshape"
+                app:layout_constraintTop_toTopOf="@id/rootshape"
+                app:layout_constraintVertical_bias="0.172"
+                tools:ignore="HardcodedText,VisualLintBounds" />
+            <ImageView
+                android:id="@+id/shapeRam"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintTop_toBottomOf="@id/rootshape"
+                app:layout_constraintBottom_toTopOf="@id/shapeBattery"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintEnd_toStartOf="@id/shapegputemp"
+                app:layout_constraintDimensionRatio="230:75"
+                android:background="@drawable/shape_ram"
+                tools:layout_editor_absoluteX="13dp"
+                tools:layout_editor_absoluteY="473dp"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/shapeBattery"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@drawable/shape_battery"
+                app:layout_constraintTop_toBottomOf="@id/shapeRam"
+                app:layout_constraintEnd_toStartOf="@id/shapegputemp"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintBottom_toTopOf="@id/shapeSys"
+                app:layout_constraintDimensionRatio="227:73"
+                tools:layout_editor_absoluteX="15dp"
+                tools:layout_editor_absoluteY="547dp"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/shapeSys"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="450dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_sysinfo"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="196:110"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.644"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/kernelName"
+                android:layout_width="278dp"
+                android:layout_height="53dp"
+                android:layout_marginTop="76dp"
+                android:fontFamily="@font/inter"
+                android:text="Kernel Name: N/A"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapeSys"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/androidVersion"
+                app:layout_constraintTop_toTopOf="@+id/shapeSys"
+                tools:ignore="HardcodedText,MissingConstraints,SmallSp,TextContrastCheck" />
+
+            <ImageView
+                android:id="@+id/androidLogo"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginEnd="290dp"
+                android:contentDescription="Android Logo"
+                android:src="@drawable/ic_android_logo"
+                app:layout_constraintDimensionRatio="1:1"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toTopOf="@id/shapeSys"
+                tools:ignore="HardcodedText,VisualLintBounds" />
+
+            <TextView
+                android:id="@+id/deviceName"
+                android:layout_width="270dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="@font/interbold"
+                android:text="Device Name: N/A"
+                android:textColor="@color/customyellow"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@+id/shapeSys"
+                app:layout_constraintEnd_toEndOf="@+id/shapeSys"
+                app:layout_constraintHorizontal_bias="0.507"
+                app:layout_constraintStart_toEndOf="@+id/androidLogo"
+                app:layout_constraintTop_toTopOf="@+id/shapeSys"
+                app:layout_constraintVertical_bias="0.064"
+                tools:ignore="HardcodedText,TextSizeCheck,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/androidVersion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="56dp"
+                android:fontFamily="@font/inter"
+                android:text="Android Version: N/A"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapeSys"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/socModel"
+                app:layout_constraintTop_toTopOf="@+id/shapeSys"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/socModel"
+                android:layout_width="251dp"
+                android:layout_height="22dp"
+                android:layout_marginTop="36dp"
+                android:fontFamily="@font/inter"
+                android:text="SoC: N/A"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapeSys"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/deviceName"
+                app:layout_constraintTop_toTopOf="@+id/shapeSys"
+                tools:ignore="HardcodedText,TextSizeCheck" />
+
+            <TextView
+                android:id="@+id/uptime"
+                android:layout_width="218dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="132dp"
+                android:layout_marginEnd="136dp"
+                android:fontFamily="@font/inter"
+                android:text="Uptime: N/A"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapeSys"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/kernelName"
+                app:layout_constraintTop_toTopOf="@+id/shapeSys"
+                tools:ignore="HardcodedText,TextSizeCheck" />
+
+            <TextView
+                android:id="@+id/deepSleepTime"
+                android:layout_width="217dp"
+                android:layout_height="23dp"
+                android:layout_marginTop="152dp"
+                android:layout_marginEnd="116dp"
+                android:fontFamily="@font/inter"
+                android:text="Deep Sleep: N/A"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@+id/shapeSys"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/uptime"
+                app:layout_constraintTop_toTopOf="@+id/shapeSys"
+                tools:ignore="HardcodedText,TextSizeCheck" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.02" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.99" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/footer"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="200dp"
-        android:fontFamily="@font/inter"
-        android:text="CPU Governor : N/A"
-        android:textColor="@color/white"
-        android:textSize="13sp"
-        app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
-        app:layout_constraintDimensionRatio="210:23"
-        app:layout_constraintEnd_toEndOf="@id/shapecpu"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@+id/shapecpu"
-        app:layout_constraintTop_toBottomOf="@+id/cpuCore3"
-        app:layout_constraintVertical_bias="0.642"
-        tools:ignore="HardcodedText,MissingConstraints,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
-
-    <TextView
-        android:id="@+id/cpuMax"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="60dp"
-        android:fontFamily="@font/inter"
-        android:text="CPU Max: N/A"
-        android:textColor="@color/white"
-        android:textSize="13sp"
-        app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
-        app:layout_constraintDimensionRatio="180:30"
-        app:layout_constraintEnd_toEndOf="@id/shapecpu"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@id/cpuGov"
-        app:layout_constraintTop_toTopOf="@id/cpuCore7"
-        app:layout_constraintVertical_bias="0.785"
-        tools:ignore="HardcodedText,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
-
-
-    <ImageView
-        android:id="@+id/shapetemp"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="8dp"
-        android:background="@drawable/shape_cputemp"
-        app:layout_constraintDimensionRatio="397:36"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/shapecpu"
-        tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds" />
-
-    <TextView
-        android:id="@+id/cpuTemperature"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="12dp"
-        android:fontFamily="@font/inter"
-        android:text="Temp CPU: N/A"
-        android:textColor="@color/white"
-        android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="@+id/shapetemp"
-        app:layout_constraintTop_toTopOf="@+id/shapetemp"
-        tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
-
-    <TextView
-        android:id="@+id/socTemperature"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:fontFamily="@font/inter"
-        android:text="Temp SOC: N/A"
-        android:textColor="@color/white"
-        android:textSize="10sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapetemp"
-        app:layout_constraintHorizontal_bias="0.96"
-        app:layout_constraintStart_toStartOf="@+id/shapetemp"
-        app:layout_constraintTop_toTopOf="@+id/shapetemp"
-        tools:ignore="HardcodedText,SmallSp,VisualLintBounds,VisualLintOverlap" />
-
-
-    <ImageView
-        android:id="@+id/shapegputemp"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="4dp"
-        android:background="@drawable/shape_gpu"
-        app:layout_constraintBottom_toTopOf="@id/shapeSys"
-        app:layout_constraintDimensionRatio="79:64"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintTop_toBottomOf="@id/rootshape"
-        app:layout_constraintVertical_bias="0.0"
-        tools:ignore="ContentDescription" />
-
-    <TextView
-        android:id="@+id/gpuFrequency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="32dp"
-        android:fontFamily="@font/inter"
-        android:text="GPU Freq: N/A"
-        android:textColor="@color/white"
-        android:textSize="10sp"
-        app:layout_constraintStart_toStartOf="@+id/shapegputemp"
-        app:layout_constraintTop_toTopOf="@+id/shapegputemp"
-        tools:ignore="HardcodedText,SmallSp,VisualLintBounds" />
-
-    <TextView
-        android:id="@+id/gpuMaxFrequency"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:fontFamily="@font/inter"
-        android:text="GPU Max Freq: N/A"
-        android:textColor="@color/white"
-        android:textSize="10sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
-        app:layout_constraintHorizontal_bias="0.102"
-        app:layout_constraintStart_toStartOf="@+id/shapegputemp"
-        app:layout_constraintTop_toTopOf="@+id/shapegputemp"
-        tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
-
-    <ImageView
-        android:id="@+id/rootshape"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="4dp"
-        android:background="@drawable/shape_root"
-        app:layout_constraintDimensionRatio="401:119"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintTop_toBottomOf="@+id/shapetemp"
-        tools:ignore="ContentDescription,VisualLintBounds" />
-
-
-    <TextView
-        android:id="@+id/rootProvider"
-        android:layout_width="229dp"
-        android:layout_height="21dp"
-        android:layout_marginTop="4dp"
-        android:fontFamily="@font/inter"
-        android:text="RootManager : N/A"
-        android:textColor="@color/white"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="@+id/rootStatus"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/rootStatus"
-        app:layout_constraintTop_toBottomOf="@+id/rootStatus"
-        tools:ignore="HardcodedText,TextContrastCheck,VisualLintBounds,TextSizeCheck,VisualLintOverlap" />
-
-
-    <TextView
-        android:id="@+id/rootStatus"
-        android:layout_width="218dp"
-        android:layout_height="27dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="20dp"
-        android:fontFamily="@font/inter"
-        android:text="Root Access: N/A"
-        android:textColor="@color/white"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="@id/rootshape"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@id/rootshape"
-        app:layout_constraintTop_toTopOf="@+id/rootshape"
-        tools:ignore="HardcodedText,TextContrastCheck,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
-
-    <ImageView
-        android:id="@+id/rootProviderLogo"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"
-        android:contentDescription="Root Provider Logo"
-        android:textSize="18sp"
-        app:layout_constraintBottom_toBottomOf="@id/rootshape"
-        app:layout_constraintDimensionRatio="14:15"
-        app:layout_constraintEnd_toEndOf="@id/rootshape"
-        app:layout_constraintHorizontal_bias="0.104"
-        app:layout_constraintStart_toStartOf="@id/rootshape"
-        app:layout_constraintTop_toTopOf="@id/rootshape"
-        app:layout_constraintVertical_bias="0.172"
-        tools:ignore="HardcodedText,VisualLintBounds" />
-
-    <ImageView
-        android:id="@+id/shapeRam"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/rootshape"
-        app:layout_constraintBottom_toTopOf="@id/shapeBattery"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintEnd_toStartOf="@id/shapegputemp"
-        app:layout_constraintDimensionRatio="223:73"
-        android:background="@drawable/shape_ram"
-        tools:layout_editor_absoluteX="13dp"
-        tools:layout_editor_absoluteY="473dp"
-        tools:ignore="ContentDescription" />
-
-    <ImageView
-        android:id="@+id/shapeBattery"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@drawable/shape_battery"
-        app:layout_constraintTop_toBottomOf="@id/shapeRam"
-        app:layout_constraintEnd_toStartOf="@id/shapegputemp"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintBottom_toTopOf="@id/shapeSys"
-        app:layout_constraintDimensionRatio="73:23"
-        tools:layout_editor_absoluteX="15dp"
-        tools:layout_editor_absoluteY="547dp"
-        tools:ignore="ContentDescription" />
-
-    <ImageView
-        android:id="@+id/shapeSys"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="450dp"
-        android:layout_marginEnd="4dp"
-        android:background="@drawable/shape_sysinfo"
+        android:orientation="horizontal"
+        android:background="@color/customdarkgreen"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="196:107"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.644"
-        tools:ignore="ContentDescription" />
-
-    <TextView
-        android:id="@+id/kernelName"
-        android:layout_width="254dp"
-        android:layout_height="58dp"
-        android:layout_marginTop="92dp"
-        android:fontFamily="@font/inter"
-        android:text="Kernel Name: N/A"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/androidVersion"
-        app:layout_constraintTop_toTopOf="@+id/shapeSys"
-        tools:ignore="HardcodedText,MissingConstraints,SmallSp,TextContrastCheck" />
-
-    <ImageView
-        android:id="@+id/androidLogo"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="50dp"
-        android:layout_marginEnd="290dp"
-        android:contentDescription="Android Logo"
-        android:src="@drawable/ic_android_logo"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintTop_toTopOf="@id/shapeSys"
-        tools:ignore="HardcodedText,VisualLintBounds" />
-
-    <TextView
-        android:id="@+id/deviceName"
-        android:layout_width="254dp"
-        android:layout_height="26dp"
-        android:layout_marginEnd="8dp"
-        android:fontFamily="@font/interbold"
-        android:text="Device Name: N/A"
-        android:textColor="@color/customyellow"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="@+id/shapeSys"
-        app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-        app:layout_constraintHorizontal_bias="0.507"
-        app:layout_constraintStart_toEndOf="@+id/androidLogo"
-        app:layout_constraintTop_toTopOf="@+id/shapeSys"
-        app:layout_constraintVertical_bias="0.064"
-        tools:ignore="HardcodedText,TextSizeCheck,VisualLintOverlap" />
-
-    <TextView
-        android:id="@+id/androidVersion"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
-        android:fontFamily="@font/inter"
-        android:text="Android Version: N/A"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/socModel"
-        app:layout_constraintTop_toTopOf="@+id/shapeSys"
-        tools:ignore="HardcodedText" />
-
-    <TextView
-        android:id="@+id/socModel"
-        android:layout_width="251dp"
-        android:layout_height="22dp"
-        android:layout_marginTop="40dp"
-        android:fontFamily="@font/inter"
-        android:text="SoC: N/A"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/deviceName"
-        app:layout_constraintTop_toTopOf="@+id/shapeSys"
-        tools:ignore="HardcodedText,TextSizeCheck" />
-
-    <TextView
-        android:id="@+id/uptime"
-        android:layout_width="218dp"
-        android:layout_height="20dp"
-        android:layout_marginTop="152dp"
-        android:layout_marginEnd="136dp"
-        android:fontFamily="@font/inter"
-        android:text="Uptime: N/A"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/kernelName"
-        app:layout_constraintTop_toTopOf="@+id/shapeSys"
-        tools:ignore="HardcodedText,TextSizeCheck" />
-
-    <TextView
-        android:id="@+id/deepSleepTime"
-        android:layout_width="217dp"
-        android:layout_height="23dp"
-        android:layout_marginTop="180dp"
-        android:layout_marginEnd="116dp"
-        android:fontFamily="@font/inter"
-        android:text="Deep Sleep: N/A"
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/uptime"
-        app:layout_constraintTop_toTopOf="@+id/shapeSys"
-        tools:ignore="HardcodedText,TextSizeCheck" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.02" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.99" />
-
-    <ImageView
-        android:id="@+id/footerxkm"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/footer_xkm"
-        app:layout_constraintDimensionRatio="389:69"
-        app:layout_constraintEnd_toEndOf="@id/guideline3"
-        app:layout_constraintStart_toStartOf="@id/guideline2"
-        app:layout_constraintTop_toBottomOf="@id/shapeSys"
-        tools:ignore="ContentDescription,VisualLintBounds" />
-
-    <ImageButton
-        android:id="@+id/btnCPU"
-        android:layout_width="41dp"
-        android:layout_height="55dp"
-        android:background="@drawable/cpu_bt"
-        app:layout_constraintEnd_toEndOf="@id/footerxkm"
-        app:layout_constraintStart_toStartOf="@id/footerxkm"
-        app:layout_constraintTop_toTopOf="@id/footerxkm"
-        tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="4dp">
 
 
+        <ImageButton
+            android:id="@+id/btnCPU"
+            android:layout_width="41dp"
+            android:layout_height="55dp"
+            android:layout_marginStart="176dp"
+            android:background="@drawable/cpu_bt"
+            app:layout_constraintEnd_toEndOf="@id/footer"
+            app:layout_constraintStart_toStartOf="@id/footer"
+            app:layout_constraintTop_toTopOf="@id/footer"
+            tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
+    </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
