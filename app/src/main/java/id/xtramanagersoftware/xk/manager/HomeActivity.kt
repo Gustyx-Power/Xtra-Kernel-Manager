@@ -50,10 +50,14 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var footer: LinearLayout
 
 
+    @Suppress("DEPRECATION")
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingInflatedId", "ObsoleteSdkInt")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val config = resources.configuration
+        config.densityDpi = 410
+        resources.updateConfiguration(/* config = */ config, /* metrics = */ resources.displayMetrics)
         setContentView(R.layout.homepage)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -355,6 +359,8 @@ class HomeActivity : AppCompatActivity() {
             "SM8250" to "Qualcomm Snapdragon 865",
             "SM8250_AC" to "Qualcomm Snapdragon 865+",
             "SM8250_HP" to "Qualcomm Snapdragon 870",
+            "AArch64 Processor rev 13 (aarch64)" to "Qualcomm Snapdragon 845",
+            "SM8450" to "Qualcomm Snapdragon 8 Gen 1",
             "SDM845" to "Qualcomm Snapdragon 845",
             "SM8350" to "Qualcomm Snapdragon 888",
             "SM8350_AC" to "Qualcomm Snapdragon 888+",

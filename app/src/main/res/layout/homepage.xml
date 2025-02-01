@@ -279,13 +279,13 @@
                 android:id="@+id/gpuMaxFrequency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
+                android:layout_marginTop="44dp"
                 android:fontFamily="@font/inter"
                 android:text="GPU Max Freq: N/A"
                 android:textColor="@color/white"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
-                app:layout_constraintHorizontal_bias="0.102"
+                app:layout_constraintHorizontal_bias="0.049"
                 app:layout_constraintStart_toStartOf="@+id/shapegputemp"
                 app:layout_constraintTop_toTopOf="@+id/shapegputemp"
                 tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
@@ -493,7 +493,7 @@
 
             <TextView
                 android:id="@+id/deepSleepTime"
-                android:layout_width="217dp"
+                android:layout_width="260dp"
                 android:layout_height="23dp"
                 android:layout_marginTop="152dp"
                 android:layout_marginEnd="116dp"
@@ -539,7 +539,7 @@
             android:id="@+id/btnCPU"
             android:layout_width="41dp"
             android:layout_height="55dp"
-            android:layout_marginStart="176dp"
+            android:layout_marginStart="184dp"
             android:background="@drawable/cpu_bt"
             app:layout_constraintEnd_toEndOf="@id/footer"
             app:layout_constraintStart_toStartOf="@id/footer"
