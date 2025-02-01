@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="footer_height_navigation_3_buttons">120dp</dimen>
+    <dimen name="footer_height_navigation_gesture">72dp</dimen>
+</resources>
