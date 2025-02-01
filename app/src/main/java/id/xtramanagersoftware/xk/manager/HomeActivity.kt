@@ -8,11 +8,17 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.View
+import android.view.ViewGroup
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -41,15 +47,33 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var socModelTextView: TextView
     private lateinit var uptimeText: TextView
     private lateinit var deepSleepTimeText: TextView
-
-
+    private lateinit var footer: LinearLayout
 
 
     @RequiresApi(Build.VERSION_CODES.S)
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint("MissingInflatedId", "ObsoleteSdkInt")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.homepage)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            @Suppress("DEPRECATION")
+            window.setDecorFitsSystemWindows(false)
+            window.insetsController?.let { controller ->
+                controller.show(WindowInsets.Type.navigationBars())
+                controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                            View.SYSTEM_UI_FLAG_FULLSCREEN or
+                            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    )
+        }
+
+
 
         cpuCoreTextViews = listOf(
             findViewById(R.id.cpuCore0),
@@ -78,6 +102,7 @@ class HomeActivity : AppCompatActivity() {
         socModelTextView = findViewById(R.id.socModel)
         uptimeText = findViewById(R.id.uptime)
         deepSleepTimeText = findViewById(R.id.deepSleepTime)
+        footer = findViewById(R.id.footer)
 
 
 
@@ -87,6 +112,7 @@ class HomeActivity : AppCompatActivity() {
         displaySystemInfo()
         displayDeviceName()
         displaySocModel()
+        adjustFooterHeight()
 
 
         runnable = Runnable {
@@ -106,7 +132,6 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 
-
     @SuppressLint("PrivateApi")
     fun getSystemProperty(key: String, defaultValue: String): String {
         return try {
@@ -118,6 +143,7 @@ class HomeActivity : AppCompatActivity() {
             defaultValue
         }
     }
+
 
 
     @SuppressLint("SetTextI18n")
@@ -133,6 +159,25 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         displayCpuGovernor()
+    }
+
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
+    private fun adjustFooterHeight() {
+        ViewCompat.setOnApplyWindowInsetsListener(footer) { view, insets ->
+            val systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val navigationBarHeight = systemBarsInsets.bottom
+
+            val footerLayoutParams = footer.layoutParams as ViewGroup.LayoutParams
+
+            if (navigationBarHeight > 0) {
+                footerLayoutParams.height = resources.getDimensionPixelSize(R.dimen.footer_height_navigation_3_buttons)
+            } else {
+                footerLayoutParams.height = resources.getDimensionPixelSize(R.dimen.footer_height_navigation_gesture)
+            }
+
+            footer.layoutParams = footerLayoutParams
+            insets
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -203,7 +248,7 @@ class HomeActivity : AppCompatActivity() {
             } else {
                 null
             }
-            process?.inputStream?.bufferedReader()?.readText()?.trim()?.ifEmpty { "Rooted" } ?: "KernelSU,Magisk,APatch"
+            process?.inputStream?.bufferedReader()?.readText()?.trim()?.ifEmpty { "Rooted" } ?: "\nKernelSU,Magisk,APatch"
         } catch (e: Exception) {
             "Null"
         }
@@ -610,12 +655,8 @@ class HomeActivity : AppCompatActivity() {
         val formattedTime = getDurationBreakdown(deepSleepTime)
         val uptimeMillis = SystemClock.elapsedRealtime()
         val percentage = calculatePercentage(deepSleepTime, uptimeMillis)
-        deepSleepTimeText.text = "Deepsleep: $formattedTime ($percentage%)"
+        deepSleepTimeText.text = "DeepSleep: $formattedTime ($percentage%)"
     }
-
-
-
-
 
     override fun onDestroy() {
         super.onDestroy()
