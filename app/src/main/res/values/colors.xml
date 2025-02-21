@@ -11,4 +11,7 @@
     <color name="customdark">#091420</color>
     <color name="leaf">#71C26E</color>
     <color name="darkblue">#19293A</color>
+    <color name="cinnamon">#389A35</color>"
+    <color name="cinnamondark">#52389A35</color>
+    <color name="gray">#7AFFFFFF</color>
 </resources>
