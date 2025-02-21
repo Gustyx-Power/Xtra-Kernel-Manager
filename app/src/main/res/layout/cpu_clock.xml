@@ -5,248 +5,501 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:ignore="VisualLintBounds">
+    android:background="@color/customdark" >
 
-    <Button
-        android:id="@+id/btnPowerSaving"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hemat Daya"
+    <!-- Header Tetap -->
+
+    <ImageView
+        android:id="@+id/headerCpuTitle"
+        android:layout_width="302dp"
+        android:layout_height="54dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/header_cpu"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+        tools:ignore="ContentDescription,ImageContrastCheck" />
 
-    <Button
-        android:id="@+id/btnBalanced"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Seimbang"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btnPowerSaving"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
-
-    <Button
-        android:id="@+id/btnPerformance"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Performa"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btnBalanced"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        tools:ignore="HardcodedText" />
-
-
-    <TextView
-        android:id="@+id/littleClusterLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="LITTLE CLUSTER"
-        app:layout_constraintTop_toBottomOf="@id/btnPerformance"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
-
-    <TextView
-        android:id="@+id/littleMaxFreqLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Maximum CPU Frequency"
-        app:layout_constraintTop_toBottomOf="@id/littleClusterLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
-
-    <Spinner
-        android:id="@+id/littleMaxFreqSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:background="@color/darkblue"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/littleMaxFreqLabel"
-        tools:ignore="TouchTargetSizeCheck" />
+        app:layout_constraintStart_toStartOf="parent">
 
-    <TextView
-        android:id="@+id/littleMinFreqLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Minimum CPU Frequency"
-        app:layout_constraintTop_toBottomOf="@id/littleMaxFreqSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+        <ImageButton
+            android:id="@+id/btnHome"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/home_bt"
+            tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
 
-    <Spinner
-        android:id="@+id/littleMinFreqSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/littleMinFreqLabel"
-        tools:ignore="TouchTargetSizeCheck" />
-
-    <TextView
-        android:id="@+id/littleGovernorLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Governor"
-        app:layout_constraintTop_toBottomOf="@id/littleMinFreqSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
-
-    <Spinner
-        android:id="@+id/littleGovernorSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/littleGovernorLabel"
-        tools:ignore="TouchTargetSizeCheck" />
+        <ImageButton
+            android:id="@+id/btnCPU"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:background="@drawable/cpu_bt"
+            tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
 
 
-    <TextView
-        android:id="@+id/bigClusterLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="BIG CLUSTER"
-        app:layout_constraintTop_toBottomOf="@id/littleGovernorSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+        <ImageButton
+            android:id="@+id/btnGPU"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/gpu_bt"
+            tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/bigMaxFreqLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Maximum CPU Frequency"
-        app:layout_constraintTop_toBottomOf="@id/bigClusterLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintTop_toBottomOf="@id/headerCpuTitle"
+        app:layout_constraintVertical_bias="1.0"
+        tools:layout_editor_absoluteX="-47dp">
 
-    <Spinner
-        android:id="@+id/bigMaxFreqSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/bigMaxFreqLabel"
-        tools:ignore="TouchTargetSizeCheck" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/bigMinFreqLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Minimum CPU Frequency"
-        app:layout_constraintTop_toBottomOf="@id/bigMaxFreqSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
 
-    <Spinner
-        android:id="@+id/bigMinFreqSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/bigMinFreqLabel"
-        tools:ignore="TouchTargetSizeCheck" />
+            <ImageView
+                android:id="@+id/shapelittle"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_cluster_little"
+                app:layout_constraintDimensionRatio="7:5"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="0.666"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
 
-    <TextView
-        android:id="@+id/bigGovernorLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Governor"
-        app:layout_constraintTop_toBottomOf="@id/bigMinFreqSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+            <ImageView
+                android:id="@+id/shapemaxlittle"
+                android:layout_width="371dp"
+                android:layout_height="73dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_maxcpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapelittle"
+                app:layout_constraintEnd_toEndOf="@id/shapelittle"
+                app:layout_constraintHorizontal_bias="0.73"
+                app:layout_constraintStart_toStartOf="@id/shapelittle"
+                app:layout_constraintTop_toTopOf="@id/shapelittle"
+                app:layout_constraintVertical_bias="0.193"
+                tools:ignore="ContentDescription" />
 
-    <Spinner
-        android:id="@+id/bigGovernorSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/bigGovernorLabel"
-        tools:ignore="TouchTargetSizeCheck" />
+            <Spinner
+                android:id="@+id/spinnerMaxLittle"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapemaxlittle"
+                app:layout_constraintEnd_toEndOf="@id/shapemaxlittle"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapemaxlittle"
+                app:layout_constraintTop_toTopOf="@id/shapemaxlittle"
+                app:layout_constraintVertical_bias="0.65"
+                tools:ignore="TouchTargetSizeCheck" />
 
-    <TextView
-        android:id="@+id/primeClusterLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="PRIME CLUSTER"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/bigGovernorSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+            <ImageView
+                android:id="@+id/shapeminlittle"
+                android:layout_width="371dp"
+                android:layout_height="73dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_mincpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapelittle"
+                app:layout_constraintEnd_toEndOf="@id/shapelittle"
+                app:layout_constraintHorizontal_bias="0.722"
+                app:layout_constraintStart_toStartOf="@id/shapelittle"
+                app:layout_constraintTop_toBottomOf="@id/shapemaxlittle"
+                app:layout_constraintVertical_bias="0.033"
+                tools:ignore="ContentDescription" />
 
-    <TextView
-        android:id="@+id/primeMaxFreqLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Maximum CPU Frequency"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/primeClusterLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+            <Spinner
+                android:id="@+id/spinnerMinLittle"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapeminlittle"
+                app:layout_constraintEnd_toEndOf="@id/shapeminlittle"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapeminlittle"
+                app:layout_constraintTop_toTopOf="@id/shapeminlittle"
+                app:layout_constraintVertical_bias="0.636"
+                tools:ignore="TouchTargetSizeCheck" />
 
-    <Spinner
-        android:id="@+id/primeMaxFreqSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/primeMaxFreqLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
+            <!-- BIG CLUSTER -->
 
-    <TextView
-        android:id="@+id/primeMinFreqLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Minimum CPU Frequency"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/primeMaxFreqSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+            <ImageView
+                android:id="@+id/shapegovlittle"
+                android:layout_width="373dp"
+                android:layout_height="74dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_gov"
+                app:layout_constraintBottom_toBottomOf="@id/shapelittle"
+                app:layout_constraintEnd_toEndOf="@id/shapelittle"
+                app:layout_constraintHorizontal_bias="0.846"
+                app:layout_constraintStart_toStartOf="@id/shapelittle"
+                app:layout_constraintTop_toBottomOf="@id/shapeminlittle"
+                app:layout_constraintVertical_bias="0.533"
+                tools:ignore="ContentDescription" />
 
-    <Spinner
-        android:id="@+id/primeMinFreqSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/primeMinFreqLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
+            <Spinner
+                android:id="@+id/spinnerGovLittle"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapegovlittle"
+                app:layout_constraintEnd_toEndOf="@id/shapegovlittle"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapegovlittle"
+                app:layout_constraintTop_toTopOf="@id/shapegovlittle"
+                app:layout_constraintVertical_bias="0.545"
+                tools:ignore="TouchTargetSizeCheck" />
 
-    <TextView
-        android:id="@+id/primeGovernorLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Governor"
-        app:layout_constraintTop_toBottomOf="@id/primeMinFreqSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginBottom="8dp"
-        tools:ignore="HardcodedText" />
+            <ImageView
+                android:id="@+id/shapebig"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/shape_cluster_big"
+                app:layout_constraintDimensionRatio="7:5"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@id/shapelittle"
+                tools:ignore="ContentDescription" />
 
-    <Spinner
-        android:id="@+id/primeGovernorSpinner"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/primeGovernorLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="16dp"/>
+            <ImageView
+                android:id="@+id/shapemaxbig"
+                android:layout_width="371dp"
+                android:layout_height="73dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_maxcpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapebig"
+                app:layout_constraintEnd_toEndOf="@id/shapebig"
+                app:layout_constraintHorizontal_bias="0.73"
+                app:layout_constraintStart_toStartOf="@id/shapebig"
+                app:layout_constraintTop_toTopOf="@id/shapebig"
+                app:layout_constraintVertical_bias="0.193"
+                tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/spinnerMaxBig"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapemaxbig"
+                app:layout_constraintEnd_toEndOf="@id/shapemaxbig"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapemaxbig"
+                app:layout_constraintTop_toTopOf="@id/shapemaxbig"
+                app:layout_constraintVertical_bias="0.606"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <ImageView
+                android:id="@+id/shapeminbig"
+                android:layout_width="371dp"
+                android:layout_height="73dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_mincpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapebig"
+                app:layout_constraintEnd_toEndOf="@id/shapebig"
+                app:layout_constraintHorizontal_bias="0.72"
+                app:layout_constraintStart_toStartOf="@id/shapebig"
+                app:layout_constraintTop_toBottomOf="@id/shapemaxbig"
+                app:layout_constraintVertical_bias="0.065"
+                tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/spinnerMinBig"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapeminbig"
+                app:layout_constraintEnd_toEndOf="@id/shapeminbig"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapeminbig"
+                app:layout_constraintTop_toTopOf="@id/shapeminbig"
+                app:layout_constraintVertical_bias="0.515"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <ImageView
+                android:id="@+id/shapegovbig"
+                android:layout_width="373dp"
+                android:layout_height="74dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/shape_gov"
+                app:layout_constraintBottom_toBottomOf="@id/shapebig"
+                app:layout_constraintEnd_toEndOf="@id/shapebig"
+                app:layout_constraintHorizontal_bias="0.733"
+                app:layout_constraintStart_toStartOf="@id/shapebig"
+                app:layout_constraintTop_toBottomOf="@id/shapeminbig"
+                app:layout_constraintVertical_bias="0.272"
+                tools:ignore="ContentDescription" />
+
+
+            <Spinner
+                android:id="@+id/spinnerGovBig"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapegovbig"
+                app:layout_constraintEnd_toEndOf="@id/shapegovbig"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapegovbig"
+                app:layout_constraintTop_toTopOf="@id/shapegovbig"
+                app:layout_constraintVertical_bias="0.54"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <ImageView
+                android:id="@+id/shapeprime"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="36dp"
+                android:background="@drawable/shape_cluster_prime"
+                app:layout_constraintDimensionRatio="7:5"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@id/spinnerGovBig"
+                tools:ignore="ContentDescription" />
+
+            <ImageView
+                android:id="@+id/shapemaxprime"
+                android:layout_width="371dp"
+                android:layout_height="73dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_maxcpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapeprime"
+                app:layout_constraintEnd_toEndOf="@id/shapeprime"
+                app:layout_constraintHorizontal_bias="0.73"
+                app:layout_constraintStart_toStartOf="@id/shapeprime"
+                app:layout_constraintTop_toTopOf="@id/shapeprime"
+                app:layout_constraintVertical_bias="0.193"
+                tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/spinnerMaxPrime"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapemaxprime"
+                app:layout_constraintEnd_toEndOf="@id/shapemaxprime"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapemaxprime"
+                app:layout_constraintTop_toTopOf="@id/shapemaxprime"
+                app:layout_constraintVertical_bias="0.545"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <ImageView
+                android:id="@+id/shapeminprime"
+                android:layout_width="371dp"
+                android:layout_height="73dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_mincpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapeprime"
+                app:layout_constraintEnd_toEndOf="@id/shapeprime"
+                app:layout_constraintHorizontal_bias="0.722"
+                app:layout_constraintStart_toStartOf="@id/shapeprime"
+                app:layout_constraintTop_toBottomOf="@id/shapemaxprime"
+                app:layout_constraintVertical_bias="0.033"
+                tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/spinnerMinPrime"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapeminprime"
+                app:layout_constraintEnd_toEndOf="@id/shapeminprime"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapeminprime"
+                app:layout_constraintTop_toTopOf="@id/shapeminprime"
+                app:layout_constraintVertical_bias="0.333"
+                tools:ignore="TouchTargetSizeCheck" />
+
+            <ImageView
+                android:id="@+id/shapegovprime"
+                android:layout_width="373dp"
+                android:layout_height="74dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/shape_gov"
+                app:layout_constraintBottom_toBottomOf="@id/shapeprime"
+                app:layout_constraintEnd_toEndOf="@id/shapeprime"
+                app:layout_constraintHorizontal_bias="0.733"
+                app:layout_constraintStart_toStartOf="@id/shapeprime"
+                app:layout_constraintTop_toBottomOf="@id/shapeminprime"
+                app:layout_constraintVertical_bias="0.272"
+                tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/spinnerGovPrime"
+                android:layout_width="95dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:textAlignment="center"
+                android:background="@drawable/spinner_background"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapegovprime"
+                app:layout_constraintEnd_toEndOf="@id/shapegovprime"
+                app:layout_constraintHorizontal_bias="0.936"
+                app:layout_constraintStart_toStartOf="@id/shapegovprime"
+                app:layout_constraintTop_toTopOf="@id/shapegovprime"
+                app:layout_constraintVertical_bias="0.55"
+                tools:ignore="TouchTargetSizeCheck" />
+
+
+            <ImageView
+                android:id="@+id/shapethermal"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="896dp"
+                android:background="@drawable/shape_thermal"
+                app:layout_constraintDimensionRatio="131:30"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="ContentDescription" />
+
+            <Spinner
+                android:id="@+id/thermalProfileSpinner"
+                android:layout_width="95dp"
+                android:layout_height="35dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/spinner_background"
+                android:textAlignment="center"
+                android:theme="@style/SpinnerItemStyle"
+                app:layout_constraintBottom_toBottomOf="@id/shapethermal"
+                app:layout_constraintEnd_toEndOf="@id/shapethermal"
+                app:layout_constraintHorizontal_bias="0.924"
+                app:layout_constraintStart_toStartOf="@id/shapethermal"
+                app:layout_constraintTop_toTopOf="@id/shapethermal"
+                app:layout_constraintVertical_bias="0.584"
+                tools:ignore="TouchTargetSizeCheck" />
+
+
+            <ImageView
+                android:id="@+id/shapeapply"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/applycputherm_shape"
+                app:layout_constraintDimensionRatio="37:8"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@id/shapethermal"
+                tools:ignore="ContentDescription" />
+
+            <ImageButton
+                android:id="@+id/applybutton"
+                android:layout_width="99dp"
+                android:layout_height="35dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/apply_cpu"
+                app:layout_constraintBottom_toBottomOf="@id/shapeapply"
+                app:layout_constraintEnd_toEndOf="@id/shapeapply"
+                app:layout_constraintHorizontal_bias="0.925"
+                app:layout_constraintStart_toStartOf="@id/shapeapply"
+                app:layout_constraintTop_toTopOf="@id/shapeapply"
+                app:layout_constraintVertical_bias="0.0"
+                tools:ignore="ContentDescription,ImageContrastCheck,SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+            <ImageButton
+                android:id="@+id/thermalApplyButton"
+                android:layout_width="99dp"
+                android:layout_height="35dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="@drawable/apply_thermal"
+                app:layout_constraintBottom_toBottomOf="@id/shapeapply"
+                app:layout_constraintEnd_toEndOf="@id/shapeapply"
+                app:layout_constraintHorizontal_bias="0.925"
+                app:layout_constraintStart_toStartOf="@id/shapeapply"
+                app:layout_constraintTop_toBottomOf="@+id/applybutton"
+                app:layout_constraintVertical_bias="0.0"
+                tools:ignore="ContentDescription,ImageContrastCheck,SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.02" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.97" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
