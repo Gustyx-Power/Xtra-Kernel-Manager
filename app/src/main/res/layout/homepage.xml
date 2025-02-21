@@ -13,7 +13,6 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="52dp"
         android:layout_marginEnd="190dp"
-
         android:background="@drawable/header_xkm"
         app:layout_constraintDimensionRatio="90:22"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,9 +21,23 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds,ImageContrastCheck" />
 
+    <TextView
+        android:id="@+id/versionapps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:fontFamily="@font/regular_ptsans"
+        android:text="Version : 1.0-BetaRelease"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.077"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/xkmheader" />
+
     <LinearLayout
         android:id="@+id/footer"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/darkblue"
         android:orientation="horizontal"
@@ -33,16 +46,34 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <ImageButton
+            android:id="@+id/btnHome"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_marginStart="14dp"
+            android:background="@drawable/home_bt"
+            tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
 
         <ImageButton
             android:id="@+id/btnCPU"
-            android:layout_width="41dp"
-            android:layout_height="55dp"
-            android:layout_marginStart="184dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
             android:background="@drawable/cpu_bt"
-            app:layout_constraintEnd_toEndOf="@id/footer"
-            app:layout_constraintStart_toStartOf="@id/footer"
-            app:layout_constraintTop_toTopOf="@id/footer"
+            tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck"
+            />
+
+
+         <ImageButton
+            android:id="@+id/btnGPU"
+            android:layout_width="0dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/gpu_bt"
             tools:ignore="ContentDescription,HardcodedText,TouchTargetSizeCheck,VisualLintBounds,VisualLintOverlap,SpeakableTextPresentCheck" />
     </LinearLayout>
 
@@ -53,8 +84,10 @@
         android:layout_marginTop="20dp"
         app:layout_constraintBottom_toTopOf="@id/footer"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/xkmheader"
-        app:layout_constraintStart_toStartOf="parent" >
+        app:layout_constraintVertical_bias="0.0">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -78,6 +111,43 @@
                 app:layout_constraintStart_toStartOf="@id/guideline2"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="ContentDescription,HardcodedText,VisualLintBounds" />
+
+
+            <ProgressBar
+                android:id="@+id/progressBarCPUUsage"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="226dp"
+                android:layout_height="25dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_style"
+                app:layout_constraintBottom_toBottomOf="@id/shapecpu"
+                app:layout_constraintEnd_toEndOf="@id/shapecpu"
+                app:layout_constraintHorizontal_bias="0.901"
+                app:layout_constraintStart_toStartOf="@id/shapecpu"
+                app:layout_constraintTop_toTopOf="@id/shapecpu"
+                app:layout_constraintVertical_bias="0.095" />
+
+            <TextView
+                android:id="@+id/tvCPUUsageLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:fontFamily="@font/regular_ptsans"
+                android:text="0%"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/progressBarCPUUsage"
+                app:layout_constraintEnd_toEndOf="@id/progressBarCPUUsage"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/progressBarCPUUsage"
+                app:layout_constraintTop_toTopOf="@id/progressBarCPUUsage"
+                app:layout_constraintVertical_bias="1.0"
+                tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/cpuCore0"
@@ -193,33 +263,39 @@
 
             <TextView
                 android:id="@+id/cpuGov"
-                android:layout_width="173dp"
-                android:layout_height="26dp"
-                android:fontFamily="@font/regular_ptsans"
-                android:text="CPU Governor : N/A"
+                android:layout_width="123dp"
+                android:layout_height="17dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="100dp"
+                android:fontFamily="@font/interbold"
+                android:text="Governor : performance"
                 android:textColor="@color/white"
-                android:textSize="13sp"
+                android:textSize="10sp"
                 app:layout_constraintBottom_toBottomOf="@+id/shapecpu"
                 app:layout_constraintEnd_toEndOf="@+id/shapecpu"
-                app:layout_constraintHorizontal_bias="0.013"
+                app:layout_constraintHorizontal_bias="0.024"
                 app:layout_constraintStart_toStartOf="@+id/shapecpu"
                 app:layout_constraintTop_toTopOf="@+id/shapecpu"
-                app:layout_constraintVertical_bias="1.0"
+                app:layout_constraintVertical_bias="0.939"
                 tools:ignore="HardcodedText,MissingConstraints,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
 
             <TextView
                 android:id="@+id/cpuMax"
-                android:layout_width="120dp"
-                android:layout_height="18dp"
-                android:layout_marginTop="124dp"
-                android:fontFamily="@font/regular_ptsans"
-                android:text="CPU Max: 2.9Ghz"
+                android:layout_width="106dp"
+                android:layout_height="21dp"
+                android:layout_marginStart="170dp"
+                android:layout_marginTop="125dp"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="@font/interbold"
+                android:text="Max CPU: 2.9Ghz"
                 android:textColor="@color/white"
-                android:textSize="13sp"
+                android:textSize="10sp"
+                app:layout_constraintBottom_toBottomOf="@id/shapecpu"
                 app:layout_constraintEnd_toEndOf="@+id/shapecpu"
-                app:layout_constraintHorizontal_bias="0.904"
-                app:layout_constraintStart_toStartOf="@+id/cpuGov"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@+id/shapecpu"
                 app:layout_constraintTop_toTopOf="@+id/shapecpu"
+                app:layout_constraintVertical_bias="0.0"
                 tools:ignore="HardcodedText,TextSizeCheck,VisualLintOverlap,VisualLintBounds" />
 
             <ImageView
@@ -241,31 +317,46 @@
                 android:id="@+id/cpuTemperature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="12dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/black_ptsans"
                 android:text="Temp CPU: N/A"
                 android:textColor="@color/white"
-                android:textSize="10sp"
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="@+id/shapetemp"
                 app:layout_constraintTop_toTopOf="@+id/shapetemp"
                 tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
 
             <TextView
+                android:id="@+id/range"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="194dp"
+                android:layout_marginTop="7dp"
+                android:fontFamily="@font/interbold"
+                android:text="|"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="@+id/shapetemp"
+                app:layout_constraintTop_toTopOf="@+id/shapetemp"
+                tools:ignore="HardcodedText,SmallSp,VisualLintOverlap,VisualLintBounds" />
+
+
+            <TextView
                 android:id="@+id/socTemperature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginStart="35dp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/black_ptsans"
                 android:text="Temp SOC: N/A"
                 android:textColor="@color/white"
-                android:textSize="10sp"
+                android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapetemp"
-                app:layout_constraintHorizontal_bias="0.96"
+                app:layout_constraintHorizontal_bias="0.837"
                 app:layout_constraintStart_toStartOf="@+id/shapetemp"
                 app:layout_constraintTop_toTopOf="@+id/shapetemp"
                 tools:ignore="HardcodedText,SmallSp,VisualLintBounds,VisualLintOverlap" />
-
 
             <ImageView
                 android:id="@+id/shapegputemp"
@@ -282,15 +373,48 @@
                 app:layout_constraintTop_toBottomOf="@id/shapecpu"
                 tools:ignore="ContentDescription" />
 
+            <ProgressBar
+                android:id="@+id/progressBarGPUUsage"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="156dp"
+                android:layout_height="49dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_style"
+                app:layout_constraintBottom_toBottomOf="@id/shapegputemp"
+                app:layout_constraintEnd_toEndOf="@id/shapegputemp"
+                app:layout_constraintHorizontal_bias="0.444"
+                app:layout_constraintStart_toStartOf="@id/shapegputemp"
+                app:layout_constraintTop_toTopOf="@id/shapegputemp"
+                app:layout_constraintVertical_bias="0.748" />
+
+            <TextView
+                android:id="@+id/tvGPUUsageLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/bold_ptsans"
+                android:text="GPU Usage"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/progressBarGPUUsage"
+                app:layout_constraintEnd_toEndOf="@id/progressBarGPUUsage"
+                app:layout_constraintHorizontal_bias="0.131"
+                app:layout_constraintStart_toStartOf="@id/progressBarGPUUsage"
+                app:layout_constraintTop_toTopOf="@id/progressBarGPUUsage"
+                app:layout_constraintVertical_bias="0.481"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
             <TextView
                 android:id="@+id/GPUName"
                 android:layout_width="93dp"
                 android:layout_height="36dp"
                 android:layout_marginTop="20dp"
-                android:fontFamily="@font/inter"
-                android:text="Adreno (TM) 725v1"
+                android:fontFamily="@font/light_ptsans"
+                android:text="Adreno (TM) 725"
                 android:textColor="@color/white"
-                android:textSize="12sp"
+                android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
                 app:layout_constraintHorizontal_bias="0.917"
                 app:layout_constraintStart_toStartOf="@+id/shapegputemp"
@@ -301,24 +425,24 @@
                 android:id="@+id/gpuFrequency"
                 android:layout_width="158dp"
                 android:layout_height="20dp"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/light_ptsans"
                 android:text="GPU Freq: N/A"
                 android:textColor="@color/white"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
                 app:layout_constraintStart_toStartOf="@+id/shapegputemp"
                 app:layout_constraintTop_toBottomOf="@+id/GPUName"
-                tools:ignore="HardcodedText,SmallSp,VisualLintBounds,TextSizeCheck" />
+                tools:ignore="HardcodedText,SmallSp,VisualLintBounds,TextSizeCheck,VisualLintOverlap" />
 
             <TextView
                 android:id="@+id/gpuMaxFrequency"
                 android:layout_width="158dp"
                 android:layout_height="18dp"
-                android:layout_marginTop="4dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginTop="-1dp"
+                android:fontFamily="@font/light_ptsans"
                 android:text="GPU Max Freq: N/A"
                 android:textColor="@color/white"
-                android:textSize="10sp"
+                android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
                 app:layout_constraintStart_toStartOf="@+id/shapegputemp"
                 app:layout_constraintTop_toBottomOf="@+id/gpuFrequency"
@@ -328,16 +452,16 @@
                 android:id="@+id/infoOpenGL"
                 android:layout_width="158dp"
                 android:layout_height="35dp"
-                android:layout_marginTop="28dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/light_ptsans"
                 android:text="Renderer : Unknown"
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapegputemp"
-                app:layout_constraintHorizontal_bias="0.457"
                 app:layout_constraintStart_toStartOf="@+id/shapegputemp"
-                app:layout_constraintTop_toBottomOf="@+id/gpuMaxFrequency"
-                tools:ignore="HardcodedText,MissingConstraints,TextSizeCheck" />
+                app:layout_constraintTop_toBottomOf="@+id/progressBarGPUUsage"
+                tools:ignore="HardcodedText,MissingConstraints,TextSizeCheck,VisualLintOverlap" />
+
 
             <ImageView
                 android:id="@+id/shapeBattery"
@@ -354,25 +478,214 @@
                 app:layout_constraintTop_toBottomOf="@id/shapecpu"
                 tools:ignore="ContentDescription" />
 
+            <TextView
+                android:id="@+id/tvBatteryPercentage"
+                android:layout_width="127dp"
+                android:layout_height="57dp"
+                android:fontFamily="@font/bold_ptsans"
+                android:text="100%"
+                android:textColor="@color/white"
+                android:textSize="48sp"
+                app:layout_constraintBottom_toBottomOf="@id/shapeBattery"
+                app:layout_constraintEnd_toEndOf="@id/shapeBattery"
+                app:layout_constraintHorizontal_bias="0.285"
+                app:layout_constraintStart_toStartOf="@id/shapeBattery"
+                app:layout_constraintTop_toTopOf="@id/shapeBattery"
+                app:layout_constraintVertical_bias="0.325"
+                tools:ignore="HardcodedText,TextSizeCheck" />
+
+            <TextView
+                android:id="@+id/tvBatteryTemperature"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/bold_ptsans"
+                android:text="0°C"
+                android:textColor="@color/gray"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/shapeBattery"
+                app:layout_constraintEnd_toEndOf="@id/shapeBattery"
+                app:layout_constraintHorizontal_bias="0.073"
+                app:layout_constraintStart_toStartOf="@id/shapeBattery"
+                app:layout_constraintTop_toTopOf="@id/shapeBattery"
+                app:layout_constraintVertical_bias="0.778"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/tvChargingStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/bold_ptsans"
+                android:text="Charging Status"
+                android:textColor="@color/gray"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/shapeBattery"
+                app:layout_constraintEnd_toEndOf="@id/shapeBattery"
+                app:layout_constraintHorizontal_bias="0.842"
+                app:layout_constraintStart_toStartOf="@id/shapeBattery"
+                app:layout_constraintTop_toTopOf="@id/shapeBattery"
+                app:layout_constraintVertical_bias="0.778"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/tvBatteryVoltage"
+                android:layout_width="126dp"
+                android:layout_height="25dp"
+                android:fontFamily="@font/bold_ptsans"
+                android:text="Voltage: 0V"
+                android:textColor="@color/gray"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/shapeBattery"
+                app:layout_constraintEnd_toEndOf="@id/shapeBattery"
+                app:layout_constraintHorizontal_bias="0.318"
+                app:layout_constraintStart_toStartOf="@id/shapeBattery"
+                app:layout_constraintTop_toTopOf="@id/shapeBattery"
+                app:layout_constraintVertical_bias="0.596"
+                tools:ignore="HardcodedText,TextSizeCheck" />
+
+            <ProgressBar
+                android:id="@+id/progressBarBattery"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="173dp"
+                android:layout_height="21dp"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressDrawable="@drawable/progress_bar_style"
+                app:layout_constraintBottom_toBottomOf="@id/shapeBattery"
+                app:layout_constraintEnd_toEndOf="@id/shapeBattery"
+                app:layout_constraintStart_toStartOf="@id/shapeBattery"
+                app:layout_constraintTop_toTopOf="@id/shapeBattery"
+                app:layout_constraintVertical_bias="0.927" />
+
+            <TextView
+                android:id="@+id/tvBatteryCurrent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="20dp"
+                android:fontFamily="@font/light_ptsans"
+                android:text="0mA"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/progressBarBattery"
+                app:layout_constraintEnd_toEndOf="@id/progressBarBattery"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/progressBarBattery"
+                app:layout_constraintTop_toTopOf="@id/progressBarBattery"
+                app:layout_constraintVertical_bias="1.0"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <TextView
+                android:id="@+id/tvBatteryPower"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="118dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="4dp"
+                android:fontFamily="@font/light_ptsans"
+                android:text="0W"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/progressBarBattery"
+                app:layout_constraintEnd_toEndOf="@id/progressBarBattery"
+                app:layout_constraintHorizontal_bias="0.811"
+                app:layout_constraintStart_toStartOf="@id/progressBarBattery"
+                app:layout_constraintTop_toTopOf="@id/progressBarBattery"
+                app:layout_constraintVertical_bias="1.0"
+                tools:ignore="HardcodedText,VisualLintOverlap" />
+
+            <ImageView
+                android:id="@+id/shaperam"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_marginBottom="4dp"
+                android:background="@drawable/shape_rectangle"
+                app:layout_constraintBottom_toTopOf="@id/shapeSys"
+                app:layout_constraintDimensionRatio="197:18"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
+                app:layout_constraintTop_toBottomOf="@id/shapetemp"
+                tools:ignore="ContentDescription,MissingConstraints,VisualLintBounds,ImageContrastCheck" />
+
+            <TextView
+                android:id="@+id/tvTotalRam"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:text="Total RAM: 0MB"
+                android:textSize="12sp"
+                android:fontFamily="@font/regular_ptsans"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toBottomOf="@id/shaperam"
+                app:layout_constraintEnd_toEndOf="@id/shaperam"
+                app:layout_constraintHorizontal_bias="0.039"
+                app:layout_constraintStart_toStartOf="@id/shaperam"
+                app:layout_constraintTop_toTopOf="@id/shaperam"
+                app:layout_constraintVertical_bias="0.583"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/tvFreeRam"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/regular_ptsans"
+                android:text="Free RAM: 0MB"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@id/shaperam"
+                app:layout_constraintEnd_toEndOf="@id/shaperam"
+                app:layout_constraintHorizontal_bias="0.495"
+                app:layout_constraintStart_toStartOf="@id/shaperam"
+                app:layout_constraintTop_toTopOf="@id/shaperam"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/tvUsedRam"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="@font/regular_ptsans"
+                android:text="Used RAM: 0MB"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@id/shaperam"
+                app:layout_constraintEnd_toEndOf="@id/shaperam"
+                app:layout_constraintHorizontal_bias="0.951"
+                app:layout_constraintStart_toStartOf="@id/shaperam"
+                app:layout_constraintTop_toTopOf="@id/shaperam"
+                app:layout_constraintVertical_bias="0.625"
+                tools:ignore="HardcodedText" />
+
             <ImageView
                 android:id="@+id/shapeSys"
                 android:layout_width="391dp"
                 android:layout_height="212dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="4dp"
                 android:layout_marginStart="4dp"
+                android:layout_marginTop="48dp"
+                android:layout_marginEnd="4dp"
                 android:background="@drawable/shape_sysinfo"
-                app:layout_constraintStart_toStartOf="@id/guideline2"
-                app:layout_constraintEnd_toEndOf="@id/guideline3"
                 app:layout_constraintDimensionRatio="391:212"
+                app:layout_constraintEnd_toEndOf="@id/guideline3"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/guideline2"
                 app:layout_constraintTop_toBottomOf="@+id/shapetemp"
-                tools:ignore="ContentDescription"
-                tools:layout_editor_absoluteX="12dp" />
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/androidLogo"
-                android:layout_width="111dp"
-                android:layout_height="104dp"
+                android:layout_width="123dp"
+                android:layout_height="110dp"
                 android:layout_marginStart="4dp"
                 android:layout_marginTop="52dp"
                 android:layout_marginEnd="290dp"
@@ -387,15 +700,15 @@
 
             <TextView
                 android:id="@+id/deviceName"
-                android:layout_width="269dp"
-                android:layout_height="30dp"
-                android:layout_marginTop="8dp"
-                android:fontFamily="@font/interbold"
+                android:layout_width="259dp"
+                android:layout_height="28dp"
+                android:layout_marginTop="24dp"
+                android:fontFamily="@font/black_ptsans"
                 android:text="Device Name: N/A"
                 android:textColor="@color/leaf"
                 android:textSize="20sp"
                 app:layout_constraintEnd_toEndOf="@id/shapeSys"
-                app:layout_constraintHorizontal_bias="0.818"
+                app:layout_constraintHorizontal_bias="0.555"
                 app:layout_constraintStart_toEndOf="@id/androidLogo"
                 app:layout_constraintTop_toTopOf="@id/shapeSys"
                 tools:ignore="HardcodedText,TextSizeCheck,VisualLintOverlap" />
@@ -404,27 +717,27 @@
                 android:id="@+id/androidVersion"
                 android:layout_width="255dp"
                 android:layout_height="20dp"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/medium_ptsans"
                 android:text="Android Version: N/A"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="@id/shapeSys"
-                app:layout_constraintHorizontal_bias="0.36"
+                app:layout_constraintHorizontal_bias="0.384"
                 app:layout_constraintStart_toEndOf="@+id/androidLogo"
                 app:layout_constraintTop_toBottomOf="@+id/socModel"
-                tools:ignore="HardcodedText" />
+                tools:ignore="HardcodedText,TextSizeCheck" />
 
             <TextView
                 android:id="@+id/socModel"
                 android:layout_width="251dp"
                 android:layout_height="22dp"
-                android:layout_marginTop="12dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/light_ptsans"
                 android:text="SoC: N/A"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-                app:layout_constraintHorizontal_bias="0.342"
+                app:layout_constraintHorizontal_bias="0.31"
                 app:layout_constraintStart_toEndOf="@+id/androidLogo"
                 app:layout_constraintTop_toBottomOf="@+id/deviceName"
                 tools:ignore="HardcodedText,TextSizeCheck" />
@@ -433,13 +746,13 @@
                 android:id="@+id/uptime"
                 android:layout_width="218dp"
                 android:layout_height="20dp"
-                android:layout_marginTop="12dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/light_ptsans"
                 android:text="Uptime: N/A"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-                app:layout_constraintHorizontal_bias="0.161"
+                app:layout_constraintHorizontal_bias="0.1"
                 app:layout_constraintStart_toEndOf="@+id/androidLogo"
                 app:layout_constraintTop_toBottomOf="@+id/androidVersion"
                 tools:ignore="HardcodedText,TextSizeCheck" />
@@ -448,12 +761,11 @@
                 android:id="@+id/deepSleepTime"
                 android:layout_width="258dp"
                 android:layout_height="22dp"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/light_ptsans"
                 android:text="Deep Sleep: N/A"
                 android:textColor="@color/white"
                 android:textSize="14sp"
                 app:layout_constraintEnd_toEndOf="@+id/shapeSys"
-                app:layout_constraintHorizontal_bias="0.409"
                 app:layout_constraintStart_toEndOf="@+id/androidLogo"
                 app:layout_constraintTop_toBottomOf="@+id/uptime"
                 tools:ignore="HardcodedText,TextSizeCheck" />
@@ -476,8 +788,8 @@
                 android:id="@+id/kernelName"
                 android:layout_width="258dp"
                 android:layout_height="42dp"
-                android:layout_marginTop="12dp"
-                android:fontFamily="@font/inter"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/light_ptsans"
                 android:text="Kernel Name: N/A"
                 android:textColor="@color/white"
                 android:textSize="14sp"
@@ -490,4 +802,4 @@
 
     </ScrollView>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
