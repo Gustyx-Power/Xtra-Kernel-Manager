@@ -832,10 +832,10 @@ class Homepage : AppCompatActivity() {
     private fun showRootRequiredDialog(context: Context) {
         try {
             MaterialAlertDialogBuilder(context)
-                .setTitle("[Root Access Required]")
-                .setMessage("Xtra Kernel Manager requires root access to function properly.\nPlease grant root permission in \n - Magisk\n - KernelSU/KernelSU-Next \n - APatch\n\nOtherwise, Xtra Kernel Manager Cannot Be Used.")
+                .setTitle(context.getString(R.string.root_access_required_title))
+                .setMessage(context.getString(R.string.root_access_required_message))
                 .setCancelable(false)
-                .setPositiveButton("OK,I Will Grant Root") { _, _ ->
+                .setPositiveButton(context.getString(R.string.grant_root_access_button)) { _, _ ->
                     val intent = Intent(context, SysDestroyedEasterEgg::class.java)
                     context.startActivity(intent)
                 }

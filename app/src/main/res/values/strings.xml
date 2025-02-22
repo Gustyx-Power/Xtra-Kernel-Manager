@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Xtra Kernel Manager</string>
+    <string name="root_access_required_title">Root Access Required</string>
+    <string name="root_access_required_message">Xtra Kernel Manager needs root access to work properly.\n\nPlease grant root permissions through one of the following:\n- Magisk\n- KernelSU/KernelSU-Next\n- APatch\n\nWithout root access, the app cannot function.</string>
+    <string name="grant_root_access_button">Ok, Grant Root Access</string>
 </resources>
