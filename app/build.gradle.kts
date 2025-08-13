@@ -53,7 +53,7 @@ android {
     }
     configurations.all {
         resolutionStrategy {
-            force("com.google.guava:guava:32.1.3-jre")
+            force("com.google.guava:guava:33.4.8-jre")
         }
     }
 }
@@ -96,7 +96,7 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
-    implementation("com.google.guava:guava:32.1.3-jre") {
+    implementation("com.google.guava:guava:33.4.8-jre") {
         exclude(mapOf("group" to "com.google.guava", "module" to "listenablefuture"))
     }
 }
