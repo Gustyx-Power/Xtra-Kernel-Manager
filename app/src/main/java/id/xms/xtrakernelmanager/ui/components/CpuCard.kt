@@ -471,17 +471,20 @@ private fun CpuGraphModeToggle(
             onCheckedChange = { isChecked ->
                 onModeChanged(if (isChecked) GraphMode.LOAD else GraphMode.SPEED)
             },
-            colors = SwitchDefaults.colors( // M3 Switch colors are usually good by default
+            colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
                 checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                checkedIconColor = MaterialTheme.colorScheme.onPrimary,
                 uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             thumbContent = if (currentGraphMode == GraphMode.LOAD) {
                 {
                     Icon(
                         imageVector = Icons.Filled.BarChart,
                         contentDescription = stringResource(R.string.cpu_load_label),
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(SwitchDefaults.IconSize),
                     )
                 }
@@ -490,6 +493,7 @@ private fun CpuGraphModeToggle(
                     Icon(
                         imageVector = Icons.Filled.Speed,
                         contentDescription = stringResource(R.string.cpu_graph_mode_speed),
+                        tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(SwitchDefaults.IconSize),
                     )
                 }
