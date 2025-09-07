@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -87,13 +88,10 @@ fun GpuControlCard(
         tuningViewModel.fetchCurrentGpuRenderer()
     }
 
-    // Animation values
+    // Animation values - Simplified MD3 animation
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = tween(durationMillis = 300),
         label = "arrow_rotation"
     )
 
@@ -236,12 +234,15 @@ fun GpuControlCard(
         AnimatedVisibility(
             visible = isExpanded,
             enter = expandVertically(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
-            ) + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+                animationSpec = tween(durationMillis = 300)
+            ) + fadeIn(
+                animationSpec = tween(durationMillis = 300)
+            ),
+            exit = shrinkVertically(
+                animationSpec = tween(durationMillis = 300)
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 300)
+            )
         ) {
             Column {
                 Spacer(modifier = Modifier.height(20.dp))
