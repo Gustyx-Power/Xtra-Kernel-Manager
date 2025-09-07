@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.hilt.navigation.compose.hiltViewModel
 import id.xms.xtrakernelmanager.ui.components.*
 import id.xms.xtrakernelmanager.viewmodel.TuningViewModel
@@ -242,15 +244,19 @@ fun PerformanceModeCard(
     )
 
     // Custom color themes for each mode
-    val batteryYellow = Color(0xFFFFA726) // Orange-yellow for battery saver
-    val balancedGreen = Color(0xFF66BB6A) // Green for balanced
-    val performanceRed = Color(0xFFEF5350) // Red for performance
+    val batteryYellow = MaterialTheme.colorScheme.tertiary // Orange-yellow for battery saver
+    val balancedGreen = MaterialTheme.colorScheme.primary // Green for balanced
+    val performanceRed = MaterialTheme.colorScheme.error // Red for performance
 
-    SuperGlassCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        glassIntensity = if (blur) GlassIntensity.Light else GlassIntensity.Light
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        shape = RoundedCornerShape(24.dp)
     ) {
         Column(
+            modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -280,7 +286,7 @@ fun PerformanceModeCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 listOf("Battery Saver", "Balanced", "Performance").forEach { mode ->
-                    SuperGlassCard(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
@@ -291,137 +297,127 @@ fun PerformanceModeCard(
                                     viewModel.setCpuGov(cluster, governor)
                                 }
                             },
-                        glassIntensity = GlassIntensity.Light // Keep consistent light intensity to avoid blur obstruction
+                        colors = CardDefaults.cardColors(
+                            containerColor = when (mode) {
+                                "Battery Saver" -> if (performanceMode == mode) batteryYellow.copy(alpha = 0.15f) else batteryYellow.copy(alpha = 0.05f)
+                                "Balanced" -> if (performanceMode == mode) balancedGreen.copy(alpha = 0.15f) else balancedGreen.copy(alpha = 0.05f)
+                                "Performance" -> if (performanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
+                                else -> MaterialTheme.colorScheme.surface
+                            }
+                        ),
                     ) {
-                        // Add colored background for theming
-                        Box(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    color = when (mode) {
-                                        "Battery Saver" -> if (performanceMode == mode) batteryYellow.copy(alpha = 0.15f) else batteryYellow.copy(alpha = 0.05f)
-                                        "Balanced" -> if (performanceMode == mode) balancedGreen.copy(alpha = 0.15f) else balancedGreen.copy(alpha = 0.05f)
-                                        "Performance" -> if (performanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
-                                        else -> Color.Transparent
-                                    },
-                                    shape = RoundedCornerShape(28.dp)
-                                )
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            Icon(
+                                imageVector = when (mode) {
+                                    "Battery Saver" -> Icons.Default.BatteryStd
+                                    "Balanced" -> Icons.Default.Balance
+                                    "Performance" -> Icons.Default.FlashOn
+                                    else -> Icons.Default.Speed
+                                },
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp),
+                                tint = when (mode) {
+                                    "Battery Saver" -> if (performanceMode == mode) batteryYellow else MaterialTheme.colorScheme.onSurfaceVariant
+                                    "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                                    "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurfaceVariant
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+
+                            Column(
+                                modifier = Modifier.weight(1f)
                             ) {
-                                Icon(
-                                    imageVector = when (mode) {
-                                        "Battery Saver" -> Icons.Default.BatteryStd
-                                        "Balanced" -> Icons.Default.Balance
-                                        "Performance" -> Icons.Default.FlashOn
-                                        else -> Icons.Default.Speed
-                                    },
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = when (mode) {
-                                        "Battery Saver" -> if (performanceMode == mode) batteryYellow else MaterialTheme.colorScheme.onSurfaceVariant
-                                        "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurfaceVariant
-                                        "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurfaceVariant
-                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                Text(
+                                    text = mode,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = if (performanceMode == mode) FontWeight.Bold else FontWeight.Medium,
+                                    color = when (mode) {
+                                        "Battery Saver" -> if (performanceMode == mode) batteryYellow else MaterialTheme.colorScheme.onSurface
+                                        "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
+                                        "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
+                                        else -> MaterialTheme.colorScheme.onSurface
                                     }
                                 )
+                                Text(
+                                    text = when (mode) {
+                                        "Battery Saver" -> "Powersave governor for maximum battery life"
+                                        "Balanced" -> "Schedutil governor for balanced performance"
+                                        "Performance" -> "Performance governor for maximum speed"
+                                        else -> "Default governor"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
 
-                                Column(
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        text = mode,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = if (performanceMode == mode) FontWeight.Bold else FontWeight.Medium,
-                                        color = when (mode) {
-                                            "Battery Saver" -> if (performanceMode == mode) batteryYellow else MaterialTheme.colorScheme.onSurface
-                                            "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
-                                            "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
-                                            else -> MaterialTheme.colorScheme.onSurface
-                                        }
-                                    )
-                                    Text(
-                                        text = when (mode) {
-                                            "Battery Saver" -> "Powersave governor for maximum battery life"
-                                            "Balanced" -> "Schedutil governor for balanced performance"
-                                            "Performance" -> "Performance governor for maximum speed"
-                                            else -> "Default governor"
-                                        },
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                // Checkmark for selected mode
-                                if (performanceMode == mode) {
-                                    Icon(
-                                        imageVector = Icons.Default.CheckCircle,
-                                        contentDescription = "Selected",
-                                        modifier = Modifier.size(20.dp),
-                                        tint = when (mode) {
-                                            "Battery Saver" -> batteryYellow
-                                            "Balanced" -> balancedGreen
-                                            "Performance" -> performanceRed
-                                            else -> MaterialTheme.colorScheme.primary
-                                        }
-                                    )
-                                }
+                            // Checkmark for selected mode
+                            if (performanceMode == mode) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Selected",
+                                    modifier = Modifier.size(20.dp),
+                                    tint = when (mode) {
+                                        "Battery Saver" -> batteryYellow
+                                        "Balanced" -> balancedGreen
+                                        "Performance" -> performanceRed
+                                        else -> MaterialTheme.colorScheme.primary
+                                    }
+                                )
                             }
                         }
                     }
                 }
             }
 
-            if (performanceMode != "Balanced") {
-                SuperGlassCard(
+            AnimatedVisibility(
+                visible = performanceMode != "Balanced",
+                enter = fadeIn(animationSpec = tween(300)) + expandVertically(animationSpec = tween(300)),
+                exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(animationSpec = tween(300))
+            ) {
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    glassIntensity = GlassIntensity.Light
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                color = when (performanceMode) {
-                                    "Battery Saver" -> batteryYellow.copy(alpha = 0.1f)
-                                    "Performance" -> performanceRed.copy(alpha = 0.1f)
-                                    else -> Color.Transparent
-                                },
-                                shape = RoundedCornerShape(28.dp)
-                            )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = when (performanceMode) {
-                                    "Battery Saver" -> "🔋 Battery Saver Active"
-                                    "Performance" -> "⚡ Performance Mode Active"
-                                    else -> "Mode Active"
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = when (performanceMode) {
-                                    "Battery Saver" -> batteryYellow
-                                    "Performance" -> performanceRed
-                                    else -> MaterialTheme.colorScheme.onPrimaryContainer
-                                }
-                            )
-                            Text(
-                                text = when (performanceMode) {
-                                    "Battery Saver" -> "Using powersave governor for maximum battery life"
-                                    "Performance" -> "Using performance governor for maximum speed"
-                                    else -> "Using default governor"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    colors = CardDefaults.cardColors(
+                        containerColor = when (performanceMode) {
+                            "Battery Saver" -> batteryYellow.copy(alpha = 0.1f)
+                            "Performance" -> performanceRed.copy(alpha = 0.1f)
+                            else -> MaterialTheme.colorScheme.surfaceContainerLow
                         }
+                    ),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = when (performanceMode) {
+                                "Battery Saver" -> "🔋 Battery Saver Active"
+                                "Performance" -> "⚡ Performance Mode Active"
+                                else -> "Mode Active"
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = when (performanceMode) {
+                                "Battery Saver" -> batteryYellow
+                                "Performance" -> performanceRed
+                                else -> MaterialTheme.colorScheme.onPrimaryContainer
+                            }
+                        )
+                        Text(
+                            text = when (performanceMode) {
+                                "Battery Saver" -> "Using powersave governor for maximum battery life"
+                                "Performance" -> "Using performance governor for maximum speed"
+                                else -> "Using default governor"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
