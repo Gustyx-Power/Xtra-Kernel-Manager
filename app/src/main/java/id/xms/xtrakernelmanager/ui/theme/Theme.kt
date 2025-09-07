@@ -1,69 +1,86 @@
 package id.xms.xtrakernelmanager.ui.theme
 
+import android.app.Activity
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-// Dark theme color palette - optimized for OLED displays
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF90CAF9),
-    onPrimary = Color(0xFF0D1B2A),
-    primaryContainer = Color(0xFF1B263B),
-    onPrimaryContainer = Color(0xFFBBDEFB),
-
-    secondary = Color(0xFF81C784),
-    onSecondary = Color(0xFF0A1F0A),
-    secondaryContainer = Color(0xFF1B5E20),
-    onSecondaryContainer = Color(0xFFC8E6C9),
-
-    tertiary = Color(0xFFFFAB91),
-    onTertiary = Color(0xFF2C1810),
-    tertiaryContainer = Color(0xFF5D4037),
-    onTertiaryContainer = Color(0xFFFFCCBC),
-
-    error = Color(0xFFEF5350),
-    onError = Color(0xFF1A0000),
-    errorContainer = Color(0xFFB71C1C),
-    onErrorContainer = Color(0xFFFFCDD2),
-
-    background = Color(0xFF0A0E13),
-    onBackground = Color(0xFFE3E3E3),
-
-    surface = Color(0xFF121212),
-    onSurface = Color(0xFFE1E1E1),
-    surfaceVariant = Color(0xFF1E1E1E),
-    onSurfaceVariant = Color(0xFFBDBDBD),
-
-    outline = Color(0xFF616161),
-    outlineVariant = Color(0xFF424242),
-
-    scrim = Color(0xFF000000),
-    inverseSurface = Color(0xFFE1E1E1),
-    inverseOnSurface = Color(0xFF2C2C2C),
-    inversePrimary = Color(0xFF1976D2),
-
-    surfaceDim = Color(0xFF0F0F0F),
-    surfaceBright = Color(0xFF2A2A2A),
-    surfaceContainerLowest = Color(0xFF090909),
-    surfaceContainerLow = Color(0xFF191919),
-    surfaceContainer = Color(0xFF1F1F1F),
-    surfaceContainerHigh = Color(0xFF262626),
-    surfaceContainerHighest = Color(0xFF2E2E2E)
+// Fallback LightColorScheme
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF6200EE),
+    secondary = Color(0xFF03DAC6),
+    tertiary = Color(0xFF03DAC6),
+    background = Color(0xFFFFFFFF),
+    surface = Color(0xFFFFFFFF),
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onTertiary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black
 )
 
+// Fallback DarkColorScheme
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFFBB86FC),
+    secondary = Color(0xFF03DAC6),
+    tertiary = Color(0xFF03DAC6),
+    background = Color(0xFF121212),
+    surface = Color(0xFF121212),
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onTertiary = Color.Black,
+    onBackground = Color.White,
+    onSurface = Color.White
+)
+
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun XtraTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
     content: @Composable () -> Unit
 ) {
-    val context = LocalContext.current
+    val colorScheme = when {
+        dynamicColor && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
+        dynamicColor && !darkTheme -> dynamicLightColorScheme(LocalContext.current)
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
 
-    // Force dark theme always - ignore system theme
-    val colorScheme = DarkColorScheme
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            // Set status bar to be transparent for full edge-to-edge
+            window.statusBarColor = Color.Transparent.toArgb()
+            // Set navigation bar color to match the bottom navigation bar
+            window.navigationBarColor = colorScheme.surface.toArgb()
+            // Ensure content draws behind system bars
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+
+            // Set status bar and navigation bar icon colors based on the chosen theme
+            val isLight = !darkTheme // If dynamic colors are off, this relies on isSystemInDarkTheme
+                                     // If dynamic colors are on, we should ideally check the luminance of the
+                                     // actual dynamic background, but this is a good starting point.
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isLight
+            // For navigation bar, we need to check the luminance of the surface color
+            val isNavigationBarLight = colorScheme.surface.luminance() > 0.5f
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = isNavigationBarLight
+        }
+    }
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = id.xms.xtrakernelmanager.ui.theme.Typography,
+        typography = Typography, // Make sure Typography.kt is in this package or imported
         content = content
     )
 }

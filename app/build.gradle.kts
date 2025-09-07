@@ -48,9 +48,6 @@ android {
         compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
     }
     buildFeatures { compose = true }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
     configurations.all {
         resolutionStrategy {
             force("com.google.guava:guava:32.1.3-jre")

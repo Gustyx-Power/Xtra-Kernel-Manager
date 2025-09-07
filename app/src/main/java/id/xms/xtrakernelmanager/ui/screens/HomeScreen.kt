@@ -25,7 +25,6 @@ import androidx.navigation.NavController
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.*
 import id.xms.xtrakernelmanager.viewmodel.HomeViewModel
-import kotlinx.coroutines.delay
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.util.Log
@@ -88,7 +87,7 @@ fun FadeInEffect(
 
     Box(modifier = Modifier.alpha(alpha)) {
         content(if (shimmerBrush != null) Modifier.graphicsLayer(alpha = 0.99f)
-            else Modifier)
+        else Modifier)
     }
 }
 
@@ -564,40 +563,24 @@ fun HomeScreen(navController: NavController) {
 
 
     val fullTitle = stringResource(R.string.xtra_kernel_manager)
-    val isTitleAnimationDone by vm.isTitleAnimationDone.collectAsState()
-    var displayedTitle by remember {
-        mutableStateOf(if (isTitleAnimationDone) fullTitle else "")
-    }
+    val displayedTitle = fullTitle
 
-    LaunchedEffect(isTitleAnimationDone) {
-        if (!isTitleAnimationDone) {
-            var currentIndex = 0
-            while (currentIndex <= fullTitle.length) {
-                displayedTitle = fullTitle.substring(0, currentIndex)
-                currentIndex++
-                delay(100)
-            }
-            vm.onTitleAnimationFinished()
-        }
-    }
-
+    val scrollState = rememberScrollState()
+    
     Scaffold(
+        containerColor = Color.Transparent,
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.End) {
-                AnimatedVisibility(visible = showFabMenu) {
-                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        // FAB Menu Items (Reboot, SystemUI, etc.)
+                if (showFabMenu) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         SmallFabWithLabel(
                             text = stringResource(R.string.reboot_system),
                             icon = Icons.Filled.Refresh,
                             contentDescription = "Reboot System",
                             onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot")) }
-                        )
-                        SmallFabWithLabel(
-                            text = stringResource(R.string.reboot_systemui),
-                            icon = Icons.Filled.SettingsApplications,
-                            contentDescription = "Reboot SystemUI",
-                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "killall com.android.systemui")) }
                         )
                         SmallFabWithLabel(
                             text = stringResource(R.string.reboot_bootloader),
@@ -641,14 +624,8 @@ fun HomeScreen(navController: NavController) {
                 title = {
                     Text(
                         text = displayedTitle,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
-                        modifier = Modifier
-                            .background(Color(0xFF006400), shape = MaterialTheme.shapes.medium)
-                            .clip(MaterialTheme.shapes.large)
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-
-
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -670,7 +647,7 @@ fun HomeScreen(navController: NavController) {
             Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -700,7 +677,6 @@ fun HomeScreen(navController: NavController) {
                         d = currentDeepSleep,
                         rooted = currentRoot,
                         version = currentVersion,
-                        blur = false,
                         mem = currentMemory,
                         systemInfo = currentSystem,
                         storageInfo = storageInfo,
@@ -709,9 +685,9 @@ fun HomeScreen(navController: NavController) {
                 }
             } else {
                 FadeInEffect { modifier ->
-                     Box(modifier.fillMaxWidth().height(200.dp).background(Color.LightGray.copy(alpha = 0.5f))) {
-                         CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                     }
+                    Box(modifier.fillMaxWidth().height(200.dp).background(Color.LightGray.copy(alpha = 0.5f))) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
                 }
             }
 
@@ -757,7 +733,7 @@ private fun SmallFabWithLabel(
         ) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 textAlign = TextAlign.Center
             )

@@ -12,6 +12,9 @@
     <string name="kernel">Kernel</string>
     <string name="version">Version: %1$s</string>
     <string name="kernel_type">Kernel Type: %1$s</string>
+    <string name="sched">I/O Scheduler: %1$s</string>
+    <string name="abi" translatable="false">ABI: %1$s</string>
+    <string name="architecture" translatable="false">Arch: %1$s</string>
     <string name="kernel_information">Kernel Information</string>
     <string name="kernel_version">Kernel Version: %1$s</string>
     <string name="xtra_kernel_manager">Xtra Kernel Manager</string>
@@ -19,7 +22,6 @@
     <string name="tuning">Tuning</string>
     <string name="misc">Misc</string>
     <string name="info">Info</string>
-    <string name="sched">I/O Scheduler: %1$s</string>
     <string name="github_link">https://github.com/Gustyx-Power/Xtra-Kernel-Manager</string>
     <string name="telegram_link">https://t.me/XtraManagerSoftware</string>
     <string name="reboot_system">Reboot System</string>
@@ -35,6 +37,7 @@
     <string name="central_proccessing_unit_cpu">Central Processing Unit (CPU)</string>
     <string name="offline">Offline</string>
     <string name="cpu_governor_label">Governor:</string>
+    <string name="cpu_cores_title" translatable="false">CPU Cores</string>
     <string name="cpu_cores_label">Cores:</string>
     <string name="core_suffix">Cores</string> <!-- atau "Inti" -->
     <string name="temperature_label">Temp:</string>
@@ -101,5 +104,11 @@
     <!-- Language strings -->
     <string name="language_english">English</string>
     <string name="language_indonesian">Indonesian</string>
+    <string name="cpu_core_offline">Off</string>
+    <string name="system_stats_title">System Stats</string>
+    <string name="cpu_load_label">Load</string>
+    <string name="gathering_data_placeholder">Gathering data…</string>
+    <string name="cpu_graph_mode_speed" translatable="false">Clock Speed</string>
+    <string name="cpu_graph_mode_load" translatable="false">CPU Load</string>
 
 </resources>

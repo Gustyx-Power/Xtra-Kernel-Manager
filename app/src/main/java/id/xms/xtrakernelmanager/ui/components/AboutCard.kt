@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,12 +49,15 @@ fun AboutCard(
 ) {
     var showCreditsDialog by remember { mutableStateOf(false) }
 
-    SuperGlassCard(
+    Surface(
         modifier = modifier,
-        glassIntensity = GlassIntensity.Medium
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header Section
@@ -61,15 +65,22 @@ fun AboutCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Info,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .padding(8.dp)
+                    )
+                }
                 Text(
                     text = stringResource(id = R.string.about),
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -77,9 +88,9 @@ fun AboutCard(
             // Description
             Text(
                 text = stringResource(id = R.string.desc_about),
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                lineHeight = MaterialTheme.typography.bodyLarge.lineHeight
+                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight
             )
 
             // Action Section
@@ -100,26 +111,26 @@ fun AboutCard(
                     )
 
                     // Telegram Button
-                    FilledTonalIconButton(
+                    IconButton(
                         onClick = { uriHandler.openUri(telegramLink) },
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.telegram),
                             contentDescription = stringResource(id = R.string.telegram),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
 
                     // GitHub Button
-                    FilledTonalIconButton(
+                    IconButton(
                         onClick = { uriHandler.openUri(githubLink) },
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.github),
                             contentDescription = stringResource(id = R.string.github),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
@@ -186,7 +197,7 @@ fun AboutCard(
                     }
                 },
                 confirmButton = {
-                    FilledTonalButton(onClick = { showCreditsDialog = false }) {
+                    Button(onClick = { showCreditsDialog = false }) {
                         Text(stringResource(android.R.string.ok))
                     }
                 }
@@ -200,14 +211,13 @@ fun DeveloperCreditItem(developer: Developer) {
     val uriHandler = LocalUriHandler.current
     val githubProfileUrl = "https://github.com/${developer.githubUsername}"
 
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { uriHandler.openUri(githubProfileUrl) },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 1.dp
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

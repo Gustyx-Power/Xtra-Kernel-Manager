@@ -1,23 +1,21 @@
 package id.xms.xtrakernelmanager.ui.components
 
-import android.graphics.drawable.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import org.w3c.dom.Text
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppToolbar(title: String, onBack: (() -> Unit)? = null) {
     if (onBack != null) {
-        TopAppBar(title = { Text(title) },
+        TopAppBar(title = { Text(title, style = MaterialTheme.typography.headlineSmall) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, "back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "back")
                 }
             })
     } else {
-        CenterAlignedTopAppBar(title = { Text(title) })
+        CenterAlignedTopAppBar(title = { Text(title, style = MaterialTheme.typography.headlineSmall) })
     }
 }

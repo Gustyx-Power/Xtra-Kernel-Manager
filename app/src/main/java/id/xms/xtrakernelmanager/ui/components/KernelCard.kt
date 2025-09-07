@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -11,6 +12,7 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,36 +38,35 @@ fun KernelCard(
 
     if (showDialog) {
         Dialog(onDismissRequest = { showDialog = false }) {
-            SuperGlassCard(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                glassIntensity = GlassIntensity.Heavy
+                shape = RoundedCornerShape(24.dp),
+                tonalElevation = 6.dp
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Header with gradient accent
-                    Card(
+                    // Header with MD3 styling
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f)
-                        ),
-                        shape = RoundedCornerShape(16.dp)
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(0.dp, 0.dp, 16.dp, 16.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(20.dp, 16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.kernel),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(32.dp)
                             )
                             Text(
@@ -82,47 +83,322 @@ fun KernelCard(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 400.dp)
+                            .weight(1f)
+                            .padding(horizontal = 16.dp)
                     ) {
-                        // Basic Kernel Info Section
-                        InfoSection(
-                            title = "Kernel Details",
-                            icon = Icons.Filled.Memory,
-                            items = listOf(
-                                InfoItem("Version", k.version),
-                                InfoItem("Type", k.gkiType),
-                                InfoItem("I/O Scheduler", k.scheduler)
-                            )
-                        )
+                        // Kernel Details
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 1.dp
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Section header
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        shape = CircleShape
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Memory,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        text = "Kernel Details",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
 
-                        // System Architecture Section
-                        InfoSection(
-                            title = "System Architecture",
-                            icon = Icons.Filled.Computer,
-                            items = listOf(
-                                InfoItem("ABI", k.abi),
-                                InfoItem("Architecture", k.architecture)
-                            )
-                        )
+                                // Kernel information items
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Version
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Version",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.version,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
 
-                        // Security Section
-                        InfoSection(
-                            title = "Security",
-                            icon = Icons.Filled.Security,
-                            items = listOf(
-                                InfoItem("SELinux", k.selinuxStatus, getSelinuxColor(k.selinuxStatus)),
-                                InfoItem("KernelSU", k.kernelSuStatus, getKernelSuColor(k.kernelSuStatus))
-                            )
-                        )
+                                    // Type
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Type",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.gkiType,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
+
+                                    // I/O Scheduler
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "I/O Scheduler",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.scheduler,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // System Architecture
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 1.dp
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Section header
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        shape = CircleShape
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Computer,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSecondary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        text = "System Architecture",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                // Architecture information items
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // ABI
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "ABI",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.abi,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
+
+                                    // Architecture
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Architecture",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.architecture,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Security
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainer,
+                            tonalElevation = 1.dp
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Section header
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(24.dp),
+                                        color = MaterialTheme.colorScheme.error,
+                                        shape = CircleShape
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Security,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onError,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        text = "Security",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                // Security information items
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // SELinux
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "SELinux",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.selinuxStatus,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = getSelinuxColor(k.selinuxStatus),
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
+
+                                    // KernelSU
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "KernelSU",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(0.4f)
+                                        )
+                                        Text(
+                                            text = k.kernelSuStatus,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = getKernelSuColor(k.kernelSuStatus),
+                                            textAlign = TextAlign.End,
+                                            modifier = Modifier.weight(0.6f),
+                                            maxLines = 1
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
 
-                    // Close button with modern style
-                    FilledTonalButton(
+                    // Close button with MD3 style
+                    Button(
                         onClick = { showDialog = false },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(16.dp)
                             .height(48.dp),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = "Close",
@@ -135,17 +411,20 @@ fun KernelCard(
         }
     }
 
-    SuperGlassCard(
+    Surface(
         modifier = modifier,
-        glassIntensity = GlassIntensity.Medium
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Header Section with enhanced styling
+            // Header Section with MD3 styling
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp, 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -154,16 +433,14 @@ fun KernelCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                        ),
-                        shape = RoundedCornerShape(12.dp)
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.kernel),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier
                                 .size(40.dp)
                                 .padding(8.dp)
@@ -184,27 +461,14 @@ fun KernelCard(
                         )
                     }
                 }
-
-                // Info button with enhanced styling
-                FilledIconButton(
-                    onClick = { showDialog = true },
-                    modifier = Modifier.size(48.dp),
-                    colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Info,
-                        contentDescription = stringResource(R.string.kernel_information),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
             }
 
-            // Quick info grid with modern cards
+            // Quick info grid with MD3 cards
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .padding(bottom = 20.dp)
             ) {
                 // Process kernel version to extract clean version info
                 val versionString = k.version
@@ -220,17 +484,25 @@ fun KernelCard(
 
                 // Single card: Kernel Version (full width)
                 CompactInfoCard(
-                    label = stringResource(R.string.version),
-                    value = localVersion,
+                    label = stringResource(R.string.version, localVersion),
+                    value = "",
                     icon = Icons.Filled.Memory,
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 // Single card: GKI Type (full width)
                 CompactInfoCard(
-                    label = "Type",
-                    value = k.gkiType,
+                    label = stringResource(R.string.kernel_type, k.gkiType),
+                    value = "",
                     icon = Icons.Filled.Computer,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Single card: I/O Scheduler (full width)
+                CompactInfoCard(
+                    label = stringResource(R.string.sched, k.scheduler),
+                    value = "",
+                    icon = Icons.Filled.Settings,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -239,14 +511,14 @@ fun KernelCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     CompactInfoCard(
-                        label = "ABI",
-                        value = k.abi.take(20) + if (k.abi.length > 20) "..." else "",
+                        label = stringResource(R.string.abi, k.abi.take(20) + if (k.abi.length > 20) "..." else ""),
+                        value = "",
                         icon = Icons.Filled.Computer,
                         modifier = Modifier.weight(1f)
                     )
                     CompactInfoCard(
-                        label = "Arch",
-                        value = k.architecture.take(20) + if (k.architecture.length > 20) "..." else "",
+                        label = stringResource(R.string.architecture, k.architecture.take(20) + if (k.architecture.length > 20) "..." else ""),
+                        value = "",
                         icon = Icons.Filled.Memory,
                         modifier = Modifier.weight(1f)
                     )
@@ -292,22 +564,34 @@ private fun CompactInfoCard(
     modifier: Modifier = Modifier,
     valueColor: Color? = null
 ) {
-    SuperGlassCard(
+    Surface(
         modifier = modifier,
-        glassIntensity = GlassIntensity.Light
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+        tonalElevation = 1.dp
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon with colorful background
-            Card(
-                modifier = Modifier.size(32.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = getIconBackgroundColor(label)
-                ),
-                shape = RoundedCornerShape(8.dp)
+            // Icon with MD3 styling using dynamic colors based on label
+            val iconColor = when {
+                label.contains("version", ignoreCase = true) -> MaterialTheme.colorScheme.primary
+                label.contains("type", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
+                label.contains("abi", ignoreCase = true) -> MaterialTheme.colorScheme.tertiary
+                label.contains("arch", ignoreCase = true) -> MaterialTheme.colorScheme.primary
+                label.contains("selinux", ignoreCase = true) -> MaterialTheme.colorScheme.error
+                label.contains("kernelsu", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
+                else -> MaterialTheme.colorScheme.primary
+            }
+            
+            Surface(
+                modifier = Modifier.size(36.dp),
+                color = iconColor,
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -316,99 +600,42 @@ private fun CompactInfoCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = if (iconColor == MaterialTheme.colorScheme.error) 
+                            MaterialTheme.colorScheme.onError 
+                        else 
+                            MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodySmall,
-                color = valueColor ?: MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 2
-            )
-        }
-    }
-}
-
-@Composable
-private fun getIconBackgroundColor(label: String): Color {
-    return when (label.lowercase()) {
-        "version" -> Color(0xFF6366F1) // Indigo
-        "type" -> Color(0xFF8B5CF6) // Purple
-        "abi" -> Color(0xFF06B6D4) // Cyan
-        "arch" -> Color(0xFF10B981) // Emerald
-        "selinux" -> when {
-            else -> Color(0xFFF59E0B) // Amber for security
-        }
-        "kernelsu" -> Color(0xFFEF4444) // Red
-        else -> Color(0xFF6B7280) // Gray
-    }
-}
-
-@Composable
-private fun InfoSection(
-    title: String,
-    icon: ImageVector,
-    items: List<InfoItem>
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f)
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Section header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                thickness = 1.dp
-            )
-
-            // Section items
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.weight(1f)
             ) {
-                items.forEach { item ->
-                    InfoRow(
-                        label = item.label,
-                        value = item.value,
-                        valueColor = item.valueColor
+                // Jika value tidak kosong, tampilkan label dan value terpisah
+                // Jika value kosong, anggap label sudah berisi format lengkap
+                if (value.isNotEmpty()) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = valueColor ?: MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                } else {
+                    // Untuk kasus format string seperti "Version: 4.19.0"
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
                     )
                 }
             }
@@ -416,47 +643,13 @@ private fun InfoSection(
     }
 }
 
-private data class InfoItem(
-    val label: String,
-    val value: String,
-    val valueColor: Color? = null
-)
-
-@Composable
-private fun InfoRow(
-    label: String,
-    value: String,
-    valueColor: Color? = null
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(0.4f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            color = valueColor ?: MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.End,
-            modifier = Modifier.weight(0.6f)
-        )
-    }
-}
 
 @Composable
 private fun getSelinuxColor(status: String): Color {
     return when (status.lowercase()) {
-        "enforcing" -> Color(0xFF4CAF50) // Green
-        "permissive" -> Color(0xFFFF9800) // Orange
-        "disabled" -> Color(0xFFF44336) // Red
+        "enforcing" -> MaterialTheme.colorScheme.primary // Green tone from dynamic colors
+        "permissive" -> MaterialTheme.colorScheme.tertiary // Orange tone from dynamic colors
+        "disabled" -> MaterialTheme.colorScheme.error // Red tone from dynamic colors
         else -> MaterialTheme.colorScheme.onSurface
     }
 }
@@ -464,10 +657,10 @@ private fun getSelinuxColor(status: String): Color {
 @Composable
 private fun getKernelSuColor(status: String): Color {
     return when {
-        status.contains("Version", ignoreCase = true) -> Color(0xFF4CAF50) // Green for detected version
-        status.contains("Active", ignoreCase = true) -> Color(0xFF4CAF50) // Green for active
-        status.contains("Detected", ignoreCase = true) -> Color(0xFF2196F3) // Blue for detected
-        status.contains("Not Detected", ignoreCase = true) -> Color(0xFF9E9E9E) // Gray
+        status.contains("Version", ignoreCase = true) -> MaterialTheme.colorScheme.primary // Green tone from dynamic colors
+        status.contains("Active", ignoreCase = true) -> MaterialTheme.colorScheme.primary // Green tone from dynamic colors
+        status.contains("Detected", ignoreCase = true) -> MaterialTheme.colorScheme.secondary // Blue tone from dynamic colors
+        status.contains("Not Detected", ignoreCase = true) -> MaterialTheme.colorScheme.outline // Gray tone from dynamic colors
         else -> MaterialTheme.colorScheme.onSurface
     }
 }
