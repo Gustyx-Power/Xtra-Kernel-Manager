@@ -113,7 +113,7 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
             CpuGovernorCard(vm = viewModel, blur = true)
             GpuControlCard(tuningViewModel = viewModel, blur = true)
             ThermalCard(viewModel = viewModel, blur = true)
-            SwappinessCard(vm = viewModel, blur = true)
+            SwappinessCard(vm = viewModel)
         }
     }
 
