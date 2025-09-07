@@ -1,13 +1,5 @@
-@file:Suppress("UNUSED_PARAMETER", "DEPRECATION")
-
-package id.xms.xtrakernelmanager.ui.screens
-
 import android.annotation.SuppressLint
-import android.content.ContentValues
 import android.content.Context
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -18,7 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -29,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,11 +33,6 @@ import id.xms.xtrakernelmanager.viewmodel.TuningViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
-import java.text.SimpleDateFormat
-import java.util.*
 
 
 data class FeatureText(
@@ -98,12 +89,8 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tuning Control", style = TextStyle(fontSize = 27.sp)) },
-                actions = {
-                    IconButton(onClick = { showInfoDialog = true }) {
-                        Icon(Icons.Filled.Info, contentDescription = "Informasi Fitur")
-                    }
-                }
+                title = { Text("Tuning Control",
+                    style = MaterialTheme.typography.headlineSmall) },
             )
         }
     ) { paddingValues ->
@@ -115,6 +102,11 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Hero Header
+            HeroHeader(
+                onClick = { showInfoDialog = true }
+            )
+            
             PerformanceModeCard(viewModel = viewModel, blur = true)
             CpuGovernorCard(vm = viewModel, blur = true)
             GpuControlCard(tuningViewModel = viewModel, blur = true)
@@ -137,39 +129,6 @@ fun FeatureInfoDialog(
     features: List<FeatureText>
 ) {
     var selectedLanguage by remember { mutableStateOf(Language.EN) }
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    fun generateFileContent(): String {
-        val dialogTitleText = if (selectedLanguage == Language.ID) "Informasi Fitur Tuning" else "Tuning Feature Information"
-        val contentBuilder = StringBuilder()
-        contentBuilder.appendLine("== $dialogTitleText ==")
-        contentBuilder.appendLine()
-
-        features.forEach { feature ->
-            val title = if (selectedLanguage == Language.ID) feature.titleId else feature.titleEn
-            val description = if (selectedLanguage == Language.ID) feature.descriptionId else feature.descriptionEn
-            contentBuilder.appendLine("Fitur: $title")
-            contentBuilder.appendLine("Deskripsi: $description")
-            contentBuilder.appendLine("------------------------------")
-            contentBuilder.appendLine()
-        }
-        return contentBuilder.toString()
-    }
-
-    fun saveContentToFile(content: String) {
-        coroutineScope.launch {
-            val success = saveTextToFileHelper(context, content, selectedLanguage)
-            withContext(Dispatchers.Main) {
-                val message = if (success) {
-                    if (selectedLanguage == Language.ID) "Informasi disimpan ke direktori Documents" else "Information saved to Documents directory"
-                } else {
-                    if (selectedLanguage == Language.ID) "Gagal menyimpan informasi" else "Failed to save information"
-                }
-                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-            }
-        }
-    }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -228,22 +187,17 @@ fun FeatureInfoDialog(
             }
         },
         confirmButton = {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp, start = 8.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                verticalAlignment = Alignment.CenterVertically
+            Button(
+                onClick = onDismissRequest,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
             ) {
-                TextButton(onClick = {
-                    val fileContent = generateFileContent()
-                    saveContentToFile(fileContent)
-                }) {
-                    Icon(Icons.Filled.Save, contentDescription = if (selectedLanguage == Language.ID) "Simpan" else "Save", modifier = Modifier.size(ButtonDefaults.IconSize))
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(if (selectedLanguage == Language.ID) "SIMPAN" else "SAVE")
-                }
-                TextButton(onClick = onDismissRequest) {
-                    Text(if (selectedLanguage == Language.ID) "TUTUP" else "CLOSE")
-                }
+                Text(
+                    text = if (selectedLanguage == Language.ID) "Tutup" else "Close",
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
+                )
             }
         },
         dismissButton = null,
@@ -251,59 +205,6 @@ fun FeatureInfoDialog(
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .fillMaxWidth()
     )
-}
-
-// Fungsi helper untuk menyimpan teks ke file, dipisahkan agar lebih rapi
-@SuppressLint("ObsoleteSdkInt")
-suspend fun saveTextToFileHelper(context: Context, textContent: String, language: Language): Boolean {
-    return withContext(Dispatchers.IO) {
-        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        val timestamp = sdf.format(Date())
-        val fileName = "TuningInfo_${timestamp}.txt"
-        var outputStream: OutputStream? = null
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val resolver = context.contentResolver
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS)
-                }
-                val uri = resolver.insert(MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY), contentValues)
-                if (uri != null) {
-                    outputStream = resolver.openOutputStream(uri)
-                } else {
-                    android.util.Log.e("SaveToFile", "MediaStore URI was null.")
-                    return@withContext false
-                }
-            } else {
-                val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                if (!documentsDir.exists() && !documentsDir.mkdirs()) {
-                    android.util.Log.e("SaveToFile", "Failed to create Documents directory.")
-                    return@withContext false
-                }
-                val file = File(documentsDir, fileName)
-                outputStream = FileOutputStream(file)
-            }
-
-            outputStream?.use { stream ->
-                stream.write(textContent.toByteArray(Charsets.UTF_8))
-                stream.flush()
-            }
-            outputStream != null
-        } catch (e: Exception) {
-            android.util.Log.e("SaveToFile", "Error saving file", e)
-            e.printStackTrace()
-            false
-        } finally {
-            try {
-                outputStream?.close()
-            } catch (e: java.io.IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
 }
 
 @Composable
@@ -524,6 +425,73 @@ fun PerformanceModeCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun HeroHeader(
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 4.dp)
+            .clickable { onClick() },
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Icon
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Lightbulb,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+            
+            // Title
+            Text(
+                text = "System Tuning",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            // Description
+            Text(
+                text = "Optimize your device performance and power efficiency with advanced kernel controls",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+            
+            // Info text
+            Text(
+                text = "Tap for more information",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }

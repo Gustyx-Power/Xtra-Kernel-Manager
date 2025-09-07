@@ -36,19 +36,6 @@ import kotlin.text.isNotBlank
 
 
 @Composable
-fun ShimmerEffect(
-    isLoading: Boolean,
-    contentLoading: @Composable () -> Unit,
-    content: @Composable () -> Unit
-) {
-    if (isLoading) {
-        contentLoading()
-    } else {
-        content()
-    }
-}
-
-@Composable
 fun FadeInEffect(
     shimmerEnabled: Boolean = true,
     content: @Composable (Modifier) -> Unit
@@ -696,7 +683,7 @@ fun HomeScreen(navController: NavController) {
             val currentKernel = kernelInfo
             if (currentKernel != null) {
                 FadeInEffect { modifier ->
-                    KernelCard(currentKernel, false, modifier)
+                    KernelCard(currentKernel, modifier)
                 }
             } else {
                 // Opsional: Placeholder untuk KernelCard

@@ -31,7 +31,6 @@ import id.xms.xtrakernelmanager.data.model.KernelInfo
 @Composable
 fun KernelCard(
     k: KernelInfo,
-    blur: Boolean,
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }

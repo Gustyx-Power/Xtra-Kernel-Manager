@@ -1,6 +1,7 @@
 package id.xms.xtrakernelmanager.ui
 
 import InfoScreen
+import TuningScreen
 import android.content.Context
 import android.content.Intent
 import android.os.Build

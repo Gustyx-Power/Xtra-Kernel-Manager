@@ -82,4 +82,18 @@
     <string name="system_stats_title">Statistik Sistem</string>
     <string name="cpu_load_label">Load</string>
     <string name="gathering_data_placeholder">Mengumpulkan data…</string>
+
+    <!-- Tuning Feature Info Dialog strings -->
+    <string name="tuning_feature_info_title">Informasi Fitur Tuning</string>
+    <string name="tuning_feature_info_close">TUTUP</string>
+    <string name="tuning_feature_performance_mode_title">Mode Performa</string>
+    <string name="tuning_feature_performance_mode_desc">Menyediakan preset konfigurasi untuk mengoptimalkan sistem berdasarkan kebutuhan: Battery Saver (powersave governor), Balanced (schedutil governor), dan Performance (performance governor).</string>
+    <string name="tuning_feature_cpu_governor_title">CPU Governor</string>
+    <string name="tuning_feature_cpu_governor_desc">Mengatur bagaimana frekuensi CPU naik atau turun berdasarkan beban kerja. Pilihan governor yang berbeda dapat mempengaruhi performa dan konsumsi daya.</string>
+    <string name="tuning_feature_gpu_control_title">Kontrol GPU</string>
+    <string name="tuning_feature_gpu_control_desc">Menyesuaikan berbagai parameter terkait GPU seperti frekuensi maksimum, governor GPU, dan lainnya untuk mengoptimalkan performa grafis atau efisiensi daya.</string>
+    <string name="tuning_feature_thermal_title">Thermal</string>
+    <string name="tuning_feature_thermal_desc">Mengelola batas suhu perangkat. Penyesuaian di sini dapat membantu mencegah throttling (penurunan performa akibat panas berlebih) atau sebaliknya, memungkinkan performa lebih tinggi dengan risiko suhu lebih tinggi.</string>
+    <string name="tuning_feature_swappiness_title">Swappiness</string>
+    <string name="tuning_feature_swappiness_desc">Mengontrol seberapa agresif kernel memindahkan data dari RAM ke zRAM/swap. Nilai yang lebih tinggi berarti lebih agresif memindahkan ke swap (bisa menghemat RAM aktif tapi lebih lambat), nilai lebih rendah mempertahankan data di RAM lebih lama.</string>
 </resources>

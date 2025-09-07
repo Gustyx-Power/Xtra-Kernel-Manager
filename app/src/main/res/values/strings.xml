@@ -111,4 +111,18 @@
     <string name="cpu_graph_mode_speed" translatable="false">Clock Speed</string>
     <string name="cpu_graph_mode_load" translatable="false">CPU Load</string>
 
+    <!-- Tuning Feature Info Dialog strings -->
+    <string name="tuning_feature_info_title">Tuning Feature Information</string>
+    <string name="tuning_feature_info_close">CLOSE</string>
+    <string name="tuning_feature_performance_mode_title">Performance Mode</string>
+    <string name="tuning_feature_performance_mode_desc">Provides configuration presets to optimize the system based on needs: Battery Saver (powersave governor), Balanced (schedutil governor), and Performance (performance governor).</string>
+    <string name="tuning_feature_cpu_governor_title">CPU Governor</string>
+    <string name="tuning_feature_cpu_governor_desc">Controls how CPU frequency scales up or down based on workload. Different governors can affect performance and power consumption.</string>
+    <string name="tuning_feature_gpu_control_title">GPU Control</string>
+    <string name="tuning_feature_gpu_control_desc">Adjusts various GPU-related parameters like maximum frequency, GPU governor, and others to optimize graphics performance or power efficiency.</string>
+    <string name="tuning_feature_thermal_title">Thermal</string>
+    <string name="tuning_feature_thermal_desc">Manages device temperature limits. Adjustments here can help prevent throttling (performance reduction due to overheating) or, conversely, allow higher performance at the risk of higher temperatures.</string>
+    <string name="tuning_feature_swappiness_title">Swappiness</string>
+    <string name="tuning_feature_swappiness_desc">Controls how aggressively the kernel moves data from RAM to zRAM/swap. A higher value means more aggressive swapping (can save active RAM but is slower), a lower value keeps data in RAM longer.</string>
+
 </resources>
