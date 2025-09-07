@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -53,13 +54,17 @@ fun ThermalCard(
         label = "pulse_alpha"
     )
 
-    SuperGlassCard(
+    Card(
         modifier = modifier,
-        glassIntensity = GlassIntensity.Light,
-        onClick = null
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        shape = RoundedCornerShape(24.dp),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Thermal Header Section
@@ -74,11 +79,6 @@ fun ThermalCard(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                        thickness = 1.dp
-                    )
-
                     if (isLoading) {
                         // Loading Section
                         ThermalLoadingSection()
@@ -138,25 +138,18 @@ private fun ThermalHeaderSection(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                            )
-                        )
-                    )
+                    .background(MaterialTheme.colorScheme.primaryContainer)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = "Active: $currentProfileName",
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
                 )
             }
         }
 
-        // Animated Thermal Icon with pulse effect
+        // Thermal Icon
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -165,33 +158,14 @@ private fun ThermalHeaderSection(
                 modifier = Modifier
                     .size(56.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .drawBehind {
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    Color(0xFFFF5722).copy(alpha = pulseAlpha * 0.6f),
-                                    Color.Transparent
-                                ),
-                                radius = size.minDimension * 0.8f
-                            ),
-                            radius = size.minDimension * 0.5f
-                        )
-                    }
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.1f)
-                            )
-                        )
-                    ),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Thermostat,
                     contentDescription = "Thermal",
                     modifier = Modifier.size(28.dp),
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 
@@ -324,7 +298,7 @@ private fun ThermalActiveProfileSection(
             )
             Spacer(Modifier.width(4.dp))
             Icon(
-                imageVector = Icons.Default.ArrowDropDown,
+                imageVector = Icons.AutoMirrored.Filled.ArrowRight,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
