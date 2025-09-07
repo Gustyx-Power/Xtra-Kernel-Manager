@@ -389,7 +389,7 @@ fun PerformanceModeCard(
                             else -> MaterialTheme.colorScheme.surfaceContainerLow
                         }
                     ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
