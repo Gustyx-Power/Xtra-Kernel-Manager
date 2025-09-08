@@ -140,6 +140,9 @@ class SystemRepository @Inject constructor(
         return null
     }
 
+    // Variabel untuk menyimpan data CPU sebelumnya untuk perhitungan load
+    private var previousCpuData: List<LongArray>? = null
+
     private suspend fun getCpuRealtimeInternal(): RealtimeCpuInfo {
         val cores = Runtime.getRuntime().availableProcessors()
         val governor = readFileToString("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", "CPU0 Governor") ?: VALUE_UNKNOWN
@@ -152,8 +155,10 @@ class SystemRepository @Inject constructor(
         val tempStr = readFileToString("/sys/class/thermal/thermal_zone0/temp", "Thermal Zone0 Temp")
         val temperature = (tempStr?.toFloatOrNull()?.div(1000)) ?: 0f // Asumsi temp dalam mili-Celsius
 
+        // Menghitung CPU load percentage
+        val cpuLoadPercentage = calculateCpuLoadPercentage()
+
         val systemInfo = getCachedSystemInfo() // Dapatkan info SoC
-        val cpuLoadPercentage = null // Placeholder
 
         return RealtimeCpuInfo(
             cores = cores,
@@ -163,6 +168,50 @@ class SystemRepository @Inject constructor(
             soc = systemInfo.soc, // Menambahkan kembali socModel
             cpuLoadPercentage = cpuLoadPercentage
         )
+    }
+
+    private fun calculateCpuLoadPercentage(): Float? {
+        try {
+            // Membaca data CPU dari /proc/stat
+            val cpuStat = readFileToString("/proc/stat", "CPU Stat")?.lines()?.firstOrNull { it.startsWith("cpu ") }
+            if (cpuStat == null) {
+                Log.w(TAG, "Failed to read CPU stat from /proc/stat")
+                return null
+            }
+
+            // Parsing data CPU
+            val cpuData = cpuStat.trim().split("\\s+".toRegex()).drop(1).map { it.toLong() }.toLongArray()
+            if (cpuData.size < 4) {
+                Log.w(TAG, "Invalid CPU stat data format")
+                return null
+            }
+
+            // Jika ini adalah pembacaan pertama, simpan data dan kembalikan null
+            val previousData = previousCpuData
+            if (previousData == null) {
+                previousCpuData = listOf(cpuData)
+                return null
+            }
+
+            // Menghitung perbedaan antara data saat ini dan sebelumnya
+            val prevData = previousData.first()
+            val diffData = LongArray(cpuData.size) { i -> cpuData[i] - prevData[i] }
+
+            // Menghitung total waktu dan waktu idle
+            val total = diffData.sum()
+            val idle = diffData[3] + (if (diffData.size > 4) diffData[4] else 0) // idle + iowait
+
+            // Menghitung persentase penggunaan CPU
+            val usage = if (total > 0) ((total - idle).toDouble() / total.toDouble() * 100.0) else 0.0
+            
+            // Simpan data saat ini untuk perhitungan berikutnya
+            previousCpuData = listOf(cpuData)
+
+            return usage.toFloat().coerceIn(0f, 100f)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error calculating CPU load percentage", e)
+            return null
+        }
     }
 
     fun getCpuRealtime(): RealtimeCpuInfo {

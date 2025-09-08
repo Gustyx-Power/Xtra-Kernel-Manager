@@ -70,7 +70,9 @@ fun CpuCard(
                         Random.nextFloat() * 30f else 0f
                     (baseLoad + spike).coerceIn(0f, 100f)
                 } else {
-                    (info.cpuLoadPercentage ?: 0f).coerceIn(0f, 100f) // Default to 0f if null
+                    // Gunakan nilai dari info.cpuLoadPercentage jika tersedia, jika tidak gunakan 0f sebagai fallback
+                    val loadValue = info.cpuLoadPercentage ?: 0f
+                    loadValue.coerceIn(0f, 100f)
                 }
             }
         }
@@ -255,7 +257,7 @@ private fun CpuStatsSection(
             Text(
                 text = stringResource(R.string.system_stats_title),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Row(
