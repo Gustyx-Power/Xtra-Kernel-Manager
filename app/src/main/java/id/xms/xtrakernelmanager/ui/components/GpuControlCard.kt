@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Memory
@@ -37,10 +36,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Monitor
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Tune
@@ -298,12 +301,12 @@ fun GpuControlCard(
                         description = "Controls GPU frequency scaling behavior",
                         icon = Icons.Default.Tune
                     ) {
-                        OutlinedCard(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { showGovernorDialog = true },
-                            colors = CardDefaults.outlinedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
                             )
                         ) {
                             Row(
@@ -329,7 +332,7 @@ fun GpuControlCard(
                                     )
                                 }
                                 Icon(
-                                    imageVector = Icons.Default.Edit,
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                     contentDescription = "Change Governor",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
@@ -405,8 +408,8 @@ fun GpuControlCard(
                                     valueRange = minFreqRange..maxFreqRange,
                                     steps = ((maxFreqRange - minFreqRange) / 10).toInt(),
                                     colors = SliderDefaults.colors(
-                                        thumbColor = MaterialTheme.colorScheme.error,
-                                        activeTrackColor = MaterialTheme.colorScheme.error,
+                                        thumbColor = MaterialTheme.colorScheme.secondary,
+                                        activeTrackColor = MaterialTheme.colorScheme.secondary,
                                         inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                                     ),
                                     modifier = Modifier.fillMaxWidth()
@@ -421,14 +424,14 @@ fun GpuControlCard(
                     GPUControlSection(
                         title = "GPU Renderer",
                         description = "Select graphics rendering backend",
-                        icon = Icons.Default.Visibility
+                        icon = Icons.Default.Monitor
                     ) {
-                        OutlinedCard(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { showRendererDialog = true },
-                            colors = CardDefaults.outlinedCardColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
                             )
                         ) {
                             Row(
@@ -454,7 +457,7 @@ fun GpuControlCard(
                                     )
                                 }
                                 Icon(
-                                    imageVector = Icons.Default.Edit,
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                                     contentDescription = "Change Renderer",
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
@@ -476,11 +479,6 @@ fun GpuControlCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
                     Text("Select GPU Governor")
                 }
             },
@@ -548,11 +546,6 @@ fun GpuControlCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Visibility,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
                     Text("Select GPU Renderer")
                 }
             },
@@ -594,22 +587,22 @@ fun GpuControlCard(
                                     "OpenGL" -> Text(
                                         text = "Traditional rendering",
                                         fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     "Vulkan" -> Text(
                                         text = "Modern low-overhead API",
                                         fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     "ANGLE" -> Text(
                                         text = "OpenGL ES on Direct3D",
                                         fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                     "Default" -> Text(
                                         text = "System default",
                                         fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -637,7 +630,7 @@ private fun GPUInfoChip(
     OutlinedCard(
         modifier = modifier,
         colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Column(
