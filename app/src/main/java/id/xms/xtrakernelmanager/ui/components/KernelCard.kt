@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import id.xms.xtrakernelmanager.R
@@ -144,7 +145,7 @@ fun KernelCard(
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
-                                            text = shortenKernelVersion(k.version),
+                                            text = k.version,
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
@@ -492,14 +493,14 @@ fun KernelCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     CompactInfoCard(
-                        label = stringResource(R.string.abi, k.abi.take(20) + if (k.abi.length > 20) "..." else ""),
-                        value = "",
+                        label = "ABI",
+                        value = k.abi,
                         icon = Icons.Filled.Computer,
                         modifier = Modifier.weight(1f)
                     )
                     CompactInfoCard(
-                        label = stringResource(R.string.architecture, k.architecture.take(20) + if (k.architecture.length > 20) "..." else ""),
-                        value = "",
+                        label = "Architecture",
+                        value = k.architecture,
                         icon = Icons.Filled.Memory,
                         modifier = Modifier.weight(1f)
                     )
@@ -600,14 +601,16 @@ private fun CompactInfoCard(
                         text = label,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = value,
                         style = MaterialTheme.typography.bodyMedium,
                         color = valueColor ?: MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 } else {
                     // Untuk kasus format string seperti "Version: 4.19.0"
@@ -616,7 +619,8 @@ private fun CompactInfoCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
