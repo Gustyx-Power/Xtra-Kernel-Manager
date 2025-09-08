@@ -630,20 +630,13 @@ fun CpuClusterCard(
     val availableFrequenciesForCluster by vm.getAvailableCpuFrequencies(clusterName).collectAsState()
     val coreStates by vm.coreStates.collectAsState()
 
-    // Different color themes for each CPU cluster
-    val clusterColors = when (clusterName) {
-        "cpu0" -> Pair(Color(0xFF4FC3F7), Color(0xFFE1F5FE)) // Light Blue theme
-        "cpu4" -> Pair(Color(0xFF66BB6A), Color(0xFFE8F5E8)) // Green theme
-        "cpu7" -> Pair(Color(0xFFFF7043), Color(0xFFFFF3E0)) // Orange theme
-        else -> Pair(Color(0xFF9C27B0), Color(0xFFF3E5F5)) // Purple theme as fallback
-    }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -698,7 +691,7 @@ fun CpuClusterCard(
                 Card(
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
                 ) {
                     Text(
@@ -780,7 +773,6 @@ private fun ControlSection(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             modifier = Modifier
