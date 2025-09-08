@@ -44,11 +44,14 @@
     <string name="cpu_governor">Governrr: %s</string>
     <string name="cpu_cores_format">%d Inti</string>
     <string name="temperature_c">Suhu: %.1f °C</string>
-    <string name="uptime_regex">%02dh %02dm %02ds</string>
+    <string name="uptime_regex" formatted="false">%02dh %02dm %02ds</string>
 
     <!-- Settings Screen -->
-    <string name="settings_title">Pengaturan</string>
-    <string name="settings_back_button_desc">Kembali</string>
+    <string name="settings">Pengaturan</string>
+    <string name="back">Kembali</string>
+    <string name="preferences">Preferensi</string>
+    <string name="theme">Tema</string>
+    <string name="theme_system">Sistem</string>
     <string name="settings_language_label">Bahasa</string>
     <string name="language_english">Inggris</string>
     <string name="language_indonesian">Indonesia</string>
