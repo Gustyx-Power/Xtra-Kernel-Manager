@@ -26,8 +26,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.foundation.clickable
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.KernelInfo
+import id.xms.xtrakernelmanager.data.model.KernelDetailInfo
+import id.xms.xtrakernelmanager.ui.dialog.KernelDetailDialog
 
 @Composable
 fun KernelCard(
@@ -464,12 +467,30 @@ fun KernelCard(
                 // Process kernel version to extract clean version info
                 val shortenedVersion = shortenKernelVersion(k.version)
 
+                // State untuk menyimpan detail info yang sedang ditampilkan
+                var detailInfo by remember { mutableStateOf<KernelDetailInfo?>(null) }
+                
+                // Tampilkan dialog jika ada detail info
+                detailInfo?.let { info ->
+                    KernelDetailDialog(
+                        detailInfo = info,
+                        onDismiss = { detailInfo = null }
+                    )
+                }
+
                 // Single card: Kernel Version (full width)
                 CompactInfoCard(
                     label = stringResource(R.string.version, shortenedVersion),
                     value = "",
                     icon = Icons.Filled.Memory,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onCardClick = {
+                        detailInfo = KernelDetailInfo(
+                            title = "Kernel Version",
+                            value = k.version,
+                            icon = Icons.Filled.Memory
+                        )
+                    }
                 )
 
                 // Single card: GKI Type (full width)
@@ -477,7 +498,14 @@ fun KernelCard(
                     label = stringResource(R.string.kernel_type, getKernelTypeByVersion(k.version)),
                     value = "",
                     icon = Icons.Filled.Computer,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onCardClick = {
+                        detailInfo = KernelDetailInfo(
+                            title = "Kernel Type",
+                            value = getKernelTypeByVersion(k.version),
+                            icon = Icons.Filled.Computer
+                        )
+                    }
                 )
 
                 // Single card: I/O Scheduler (full width)
@@ -485,7 +513,14 @@ fun KernelCard(
                     label = stringResource(R.string.sched, k.scheduler),
                     value = "",
                     icon = Icons.Filled.Settings,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    onCardClick = {
+                        detailInfo = KernelDetailInfo(
+                            title = "I/O Scheduler",
+                            value = k.scheduler,
+                            icon = Icons.Filled.Settings
+                        )
+                    }
                 )
 
                 // Row: ABI and Architecture
@@ -496,13 +531,27 @@ fun KernelCard(
                         label = "ABI",
                         value = k.abi,
                         icon = Icons.Filled.Computer,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onCardClick = {
+                            detailInfo = KernelDetailInfo(
+                                title = "ABI",
+                                value = k.abi,
+                                icon = Icons.Filled.Computer
+                            )
+                        }
                     )
                     CompactInfoCard(
                         label = "Architecture",
                         value = k.architecture,
                         icon = Icons.Filled.Memory,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onCardClick = {
+                            detailInfo = KernelDetailInfo(
+                                title = "Architecture",
+                                value = k.architecture,
+                                icon = Icons.Filled.Memory
+                            )
+                        }
                     )
                 }
 
@@ -515,7 +564,14 @@ fun KernelCard(
                         value = k.selinuxStatus,
                         icon = Icons.Filled.Shield,
                         valueColor = getSelinuxColor(k.selinuxStatus),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onCardClick = {
+                            detailInfo = KernelDetailInfo(
+                                title = "SELinux",
+                                value = k.selinuxStatus,
+                                icon = Icons.Filled.Shield
+                            )
+                        }
                     )
                     CompactInfoCard(
                         label = "KernelSU",
@@ -530,7 +586,14 @@ fun KernelCard(
                         },
                         icon = Icons.Filled.AdminPanelSettings,
                         valueColor = getKernelSuColor(k.kernelSuStatus),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        onCardClick = {
+                            detailInfo = KernelDetailInfo(
+                                title = "KernelSU",
+                                value = k.kernelSuStatus,
+                                icon = Icons.Filled.AdminPanelSettings
+                            )
+                        }
                     )
                 }
             }
@@ -544,10 +607,18 @@ private fun CompactInfoCard(
     value: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    valueColor: Color? = null
+    valueColor: Color? = null,
+    onCardClick: (() -> Unit)? = null
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier
+            .then(
+                if (onCardClick != null) {
+                    Modifier.clickable(onClick = onCardClick)
+                } else {
+                    Modifier
+                }
+            ),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
         tonalElevation = 1.dp
