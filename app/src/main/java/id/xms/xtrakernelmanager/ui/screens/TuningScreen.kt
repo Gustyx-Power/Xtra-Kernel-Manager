@@ -28,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import id.xms.xtrakernelmanager.ui.components.*
@@ -150,6 +152,7 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeatureInfoDialog(
     onDismissRequest: () -> Unit,
@@ -157,81 +160,131 @@ fun FeatureInfoDialog(
 ) {
     var selectedLanguage by remember { mutableStateOf(Language.EN) }
 
-    AlertDialog(
+    // Full-screen dialog implementation according to MD3 guidelines with animation
+    Dialog(
         onDismissRequest = onDismissRequest,
-        icon = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        title = {
-            Text(
-                text = if (selectedLanguage == Language.ID) "Informasi Fitur Tuning" else "Tuning Feature Information",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall
-            )
-        },
-        text = {
-            Column {
-                Row(modifier = Modifier.fillMaxWidth()) { // Baris pertama untuk TabRow
-                    TabRow(
-                        selectedTabIndex = selectedLanguage.ordinal,
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        indicator = { tabPositions ->
-                            TabRowDefaults.Indicator(Modifier.tabIndicatorOffset(tabPositions[selectedLanguage.ordinal]))
-                        }
-                    ) {
-                        Tab(
-                            selected = selectedLanguage == Language.ID,
-                            onClick = { selectedLanguage = Language.ID },
-                            text = { Text("ID") },
-                            selectedContentColor = MaterialTheme.colorScheme.primary,
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Tab(
-                            selected = selectedLanguage == Language.EN,
-                            onClick = { selectedLanguage = Language.EN },
-                            text = { Text("EN") },
-                            selectedContentColor = MaterialTheme.colorScheme.primary,
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp)) // Spacer antara TabRow dan konten fitur
-
-                Column(modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f) // Biarkan kolom ini mengambil sisa ruang vertikal
-                    .verticalScroll(rememberScrollState())
-                ) {
-                    features.forEachIndexed { index, feature ->
-                        FeatureDescription(
-                            title = if (selectedLanguage == Language.ID) feature.titleId else feature.titleEn,
-                            description = if (selectedLanguage == Language.ID) feature.descriptionId else feature.descriptionEn
-                        )
-                        if (index < features.lastIndex) {
-                            Divider(modifier = Modifier.padding(vertical = 8.dp))
-                        }
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismissRequest,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        AnimatedVisibility(
+            visible = true,
+            enter = fadeIn() + scaleIn(initialScale = 0.95f),
+            exit = fadeOut() + scaleOut(targetScale = 0.95f)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                Text(
-                    text = if (selectedLanguage == Language.ID) "Tutup" else "Close",
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .systemBarsPadding()
+                ) {
+                    // Top app bar for full-screen dialog
+                    CenterAlignedTopAppBar(
+                        title = {
+                            Text(
+                                text = if (selectedLanguage == Language.ID) "Informasi Fitur Tuning" else "Tuning Feature Information",
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onDismissRequest) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = if (selectedLanguage == Language.ID) "Tutup" else "Close"
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            titleContentColor = MaterialTheme.colorScheme.onSurface,
+                            navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    
+                    // Content with tabs and feature descriptions
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        // Tab row for language selection
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(4.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                FilterChip(
+                                    selected = selectedLanguage == Language.ID,
+                                    onClick = { selectedLanguage = Language.ID },
+                                    label = { Text("ID") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = if (selectedLanguage == Language.ID) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        },
+                                        labelColor = if (selectedLanguage == Language.ID) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                FilterChip(
+                                    selected = selectedLanguage == Language.EN,
+                                    onClick = { selectedLanguage = Language.EN },
+                                    label = { Text("EN") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = if (selectedLanguage == Language.EN) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceVariant
+                                        },
+                                        labelColor = if (selectedLanguage == Language.EN) {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+                                )
+                            }
+                        }
+                        
+                        // Feature descriptions
+                        features.forEachIndexed { index, feature ->
+                            FeatureDescription(
+                                title = if (selectedLanguage == Language.ID) feature.titleId else feature.titleEn,
+                                description = if (selectedLanguage == Language.ID) feature.descriptionId else feature.descriptionEn
+                            )
+                            if (index < features.lastIndex) {
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
+                            }
+                        }
+                        
+                        // Add some bottom padding
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
+                }
             }
-        },
-        dismissButton = null,
-        modifier = Modifier
-            .padding(horizontal = 16.dp, vertical = 24.dp)
-            .fillMaxWidth()
-    )
+        }
+    }
 }
 
 @Composable
