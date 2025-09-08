@@ -28,6 +28,10 @@ import id.xms.xtrakernelmanager.viewmodel.HomeViewModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import android.util.Log
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -557,39 +561,53 @@ fun HomeScreen(navController: NavController) {
     Scaffold(
         containerColor = Color.Transparent,
         floatingActionButton = {
-            Column(horizontalAlignment = Alignment.End) {
-                if (showFabMenu) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AnimatedVisibility(
+                    visible = showFabMenu,
+                    enter = fadeIn(animationSpec = tween(200)) + slideInVertically(
+                        initialOffsetY = { it / 2 },
+                        animationSpec = tween(200)
+                    ),
+                    exit = fadeOut(animationSpec = tween(200)) + slideOutVertically(
+                        targetOffsetY = { it / 2 },
+                        animationSpec = tween(200)
+                    )
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        SmallFabWithLabel(
-                            text = stringResource(R.string.reboot_system),
-                            icon = Icons.Filled.Refresh,
-                            contentDescription = "Reboot System",
-                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot")) }
+                        ExtendedFloatingActionButton(
+                            text = { Text(stringResource(R.string.power_off)) },
+                            icon = { Icon(Icons.Filled.PowerSettingsNew, contentDescription = null) },
+                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot -p")) },
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
                         )
-                        SmallFabWithLabel(
-                            text = stringResource(R.string.reboot_bootloader),
-                            icon = Icons.Filled.Build,
-                            contentDescription = "Reboot Bootloader",
-                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot bootloader")) }
-                        )
-                        SmallFabWithLabel(
-                            text = stringResource(R.string.reboot_recovery),
-                            icon = Icons.Filled.SettingsBackupRestore,
-                            contentDescription = "Reboot Recovery",
+                        
+                        ExtendedFloatingActionButton(
+                            text = { Text(stringResource(R.string.reboot_recovery)) },
+                            icon = { Icon(Icons.Filled.SettingsBackupRestore, contentDescription = null) },
                             onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot recovery")) }
                         )
-                        SmallFabWithLabel(
-                            text = stringResource(R.string.power_off),
-                            icon = Icons.Filled.PowerSettingsNew,
-                            contentDescription = "Power Off",
-                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot -p")) }
+                        
+                        ExtendedFloatingActionButton(
+                            text = { Text(stringResource(R.string.reboot_bootloader)) },
+                            icon = { Icon(Icons.Filled.Build, contentDescription = null) },
+                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot bootloader")) }
+                        )
+                        
+                        ExtendedFloatingActionButton(
+                            text = { Text(stringResource(R.string.reboot_system)) },
+                            icon = { Icon(Icons.Filled.Refresh, contentDescription = null) },
+                            onClick = { Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot")) }
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                
                 FloatingActionButton(
                     onClick = { showFabMenu = !showFabMenu },
                 ) {
@@ -699,34 +717,3 @@ fun HomeScreen(navController: NavController) {
 }
 
 
-@Composable
-private fun SmallFabWithLabel(
-    text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
-    ) {
-        Card(
-            shape = MaterialTheme.shapes.medium,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
-            )
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                textAlign = TextAlign.Center
-            )
-        }
-        SmallFloatingActionButton(onClick = onClick) {
-            Icon(icon, contentDescription)
-        }
-    }
-}
