@@ -32,12 +32,26 @@ fun BottomNavBar(navController: NavHostController, items: List<String>) {
             NavigationBarItem(
                 selected = selected,
                 onClick = {
-                    navController.navigate(screen.lowercase()) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                    val targetRoute = screen.lowercase()
+                    // Jika pengguna berada di SettingsScreen (atau screen lain yang tidak ada di bottom nav),
+                    // dan mengklik tombol home, arahkan ke home screen
+                    if (currentRoute != "home" && targetRoute == "home") {
+                        navController.navigate(targetRoute) {
+                            // Pop semua screen sampai kembali ke home
+                            popUpTo("home") {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
+                    } else if (currentRoute != targetRoute) {
+                        // Untuk screen lain dalam bottom nav, gunakan navigasi normal
+                        navController.navigate(targetRoute) {
+                            popUpTo("home") {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 icon = { Icon(imageVector = iconToDisplay, contentDescription = screen) },
