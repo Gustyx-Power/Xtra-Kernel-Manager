@@ -703,7 +703,7 @@ private fun BatteryStatsSection(
             // Additional info if current is available
             if (batteryInfo.current != 0f) {
                 val currentMa = batteryInfo.current / 1000
-                val displayCurrent = kotlin.math.abs(currentMa)
+                val displayCurrent = currentMa
                 SystemStatItem(
                     icon = if (batteryInfo.isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryAlert,
                     label = "Current",

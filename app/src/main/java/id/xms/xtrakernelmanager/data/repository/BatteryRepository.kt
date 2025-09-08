@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -26,32 +27,47 @@ class BatteryRepository @Inject constructor(
                 val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) / 10.0f
                 val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0) / 1000.0f
                 val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+                val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
                 
                 // Get charging current
                 val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
                 val current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+                val currentMa = if (current != Int.MIN_VALUE) current.toFloat() / 1000f else 0f
                 val chargingWattage = abs(voltage * current / 1000000f) // Convert to watts
 
-                // Determine charging status based on both status and current
-                // Some devices report current as negative when discharging and positive when charging
-                // But this can vary by manufacturer, so we'll use the status as primary indicator
-                val isCharging = if (status == BatteryManager.BATTERY_STATUS_CHARGING || 
-                                   status == BatteryManager.BATTERY_STATUS_FULL) {
-                    true
-                } else if (status == BatteryManager.BATTERY_STATUS_DISCHARGING) {
-                    false
-                } else {
-                    // For other statuses, use current as secondary indicator
-                    // If current is significantly positive, consider it charging
-                    current > 10000 // 10mA threshold to avoid false positives from noise
+                // Log values for debugging
+                Log.d("BatteryRepository", "Battery Status: $status, Plugged: $plugged, Current: $currentMa mA")
+                Log.d("BatteryRepository", "Status Constants - CHARGING: ${BatteryManager.BATTERY_STATUS_CHARGING}, DISCHARGING: ${BatteryManager.BATTERY_STATUS_DISCHARGING}, FULL: ${BatteryManager.BATTERY_STATUS_FULL}, NOT_CHARGING: ${BatteryManager.BATTERY_STATUS_NOT_CHARGING}")
+
+                // Determine charging status using multiple indicators for accuracy
+                // Some devices may report inconsistent values, so we'll use a more robust approach
+                val isCharging = when {
+                    // If status explicitly says charging or full, trust it
+                    status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL -> true
+                    // If status explicitly says discharging or not charging, trust it
+                    status == BatteryManager.BATTERY_STATUS_DISCHARGING || status == BatteryManager.BATTERY_STATUS_NOT_CHARGING -> false
+                    // If plugged is 0, definitely not charging
+                    plugged == 0 -> false
+                    // If we have current data, use it as additional indicator
+                    current != Int.MIN_VALUE -> {
+                        // On most devices, positive current means charging, negative means discharging
+                        // However, some devices use opposite convention, so we'll use a threshold
+                        current > 5000 // 5mA threshold to account for small fluctuations
+                    }
+                    // If plugged but we can't determine from other sources, assume charging
+                    plugged != 0 -> true
+                    // Default fallback
+                    else -> false
                 }
+
+                Log.d("BatteryRepository", "Calculated isCharging: $isCharging")
 
                 val batteryInfo = BatteryInfo(
                     level = (level * 100 / scale.toFloat()).toInt(),
                     temp = temp,
                     voltage = voltage,
                     isCharging = isCharging,
-                    current = current.toFloat() / 1000f, // Convert to mA
+                    current = currentMa, // Convert to mA
                     chargingWattage = if (isCharging) chargingWattage else 0f,
                     technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "",
                     health = when (intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)) {

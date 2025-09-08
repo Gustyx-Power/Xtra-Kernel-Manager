@@ -67,10 +67,38 @@ class BatteryInfoViewModel @Inject constructor(
                 val cycleCount = getBatteryCycleCount()
                 val capacity = getBatteryCapacity()
                 val currentCapacity = getCurrentCapacity()
-                val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                
+                // Get current (in µA) to help determine charging state more accurately
+                val current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+                val currentMa = if (current != Int.MIN_VALUE) current.toFloat() / 1000f else 0f
+                
+                // Log values for debugging
+                Log.d("BatteryInfoViewModel", "Battery Status: $status, Plugged: $plugged, Current: $currentMa mA")
+                Log.d("BatteryInfoViewModel", "Status Constants - CHARGING: ${BatteryManager.BATTERY_STATUS_CHARGING}, DISCHARGING: ${BatteryManager.BATTERY_STATUS_DISCHARGING}, FULL: ${BatteryManager.BATTERY_STATUS_FULL}, NOT_CHARGING: ${BatteryManager.BATTERY_STATUS_NOT_CHARGING}")
+                
+                // Determine charging status using multiple indicators for accuracy
+                // Some devices may report inconsistent values, so we'll use a more robust approach
+                val isCharging = when {
+                    // If status explicitly says charging or full, trust it
+                    status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL -> true
+                    // If status explicitly says discharging or not charging, trust it
+                    status == BatteryManager.BATTERY_STATUS_DISCHARGING || status == BatteryManager.BATTERY_STATUS_NOT_CHARGING -> false
+                    // If plugged is 0, definitely not charging
+                    plugged == 0 -> false
+                    // If we have current data, use it as an additional indicator.
+                    // Negative current means charging, positive means discharging.
+                    current != Int.MIN_VALUE -> {
+                        current < -5000 // Use a threshold (e.g., -5mA) to account for small fluctuations
+                    }
+                    // If plugged but we can't determine from other sources, assume charging
+                    plugged != 0 -> true
+                    // Default fallback
+                    else -> false
+                }
+                
+                Log.d("BatteryInfoViewModel", "Calculated isCharging: $isCharging")
 
                 // Calculate charging wattage
-                val current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
                 val chargingWattage = if (current != Int.MIN_VALUE) {
                     (Math.abs(current) * voltage) / 1000000f // Convert to watts
                 } else {
@@ -89,9 +117,9 @@ class BatteryInfoViewModel @Inject constructor(
                     level = (level * 100) / scale,
                     temp = temperature, // Changed from temperature to temp
                     voltage = voltage,
-                    chargingWattage = chargingWattage,
+                    chargingWattage = if (isCharging) chargingWattage else 0f,
                     isCharging = isCharging,
-                    current = if (current != Int.MIN_VALUE) current.toFloat() / 1000f else 0f, // Current in mA
+                    current = currentMa, // Current in mA
                     technology = technology,
                     health = healthString,
                     status = chargingStatus, // Changed from chargingStatus to status

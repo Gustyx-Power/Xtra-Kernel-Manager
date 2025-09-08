@@ -233,7 +233,7 @@ class SystemRepository @Inject constructor(
         } else -1
     }
 
-    private fun getBatteryInfoInternal(): BatteryInfo {
+    private fun getBatteryInfoInternal(statusFromIntent: Int = -1): BatteryInfo {
         val batteryDir = "/sys/class/power_supply/battery"
         val batteryLevelStr = readFileToString("$batteryDir/capacity", "Battery Level Percent from File")
         val finalLevel = batteryLevelStr?.toIntOrNull() ?: getBatteryLevelFromApi().let { if (it == -1) 0 else it }
@@ -406,8 +406,24 @@ class SystemRepository @Inject constructor(
         val finalVoltageStr = readFileToString("$batteryDir/voltage_now", "Battery Voltage Now")
         val finalVoltage = finalVoltageStr?.toFloatOrNull()
 
-        val finalCurrentStr = readFileToString("$batteryDir/current_now", "Battery Current Now")
-        val finalCurrent = finalCurrentStr?.toFloatOrNull()
+        var finalCurrent: Float? = null
+        val currentPaths = listOf(
+            "$batteryDir/current_now",
+            "$batteryDir/current_avg",
+            "/sys/class/power_supply/bms/current_now",
+            "/sys/class/power_supply/usb/current_now"
+        )
+        for (path in currentPaths) {
+            val currentStr = readFileToString(path, "Battery Current from $path")
+            if (currentStr != null) {
+                finalCurrent = currentStr.toFloatOrNull()
+                // Some kernels add extra characters, so let's be safe
+                if (finalCurrent != null) {
+                    Log.d(TAG, "Found battery current from $path: $finalCurrent")
+                    break // Found a valid value, stop searching
+                }
+            }
+        }
 
         val finalWattageStr = readFileToString("$batteryDir/power_now", "Battery Power Now")
         val finalWattage = finalWattageStr?.toFloatOrNull()
@@ -415,7 +431,28 @@ class SystemRepository @Inject constructor(
         val finalTechnology = readFileToString("$batteryDir/technology", "Battery Technology")
 
         val statusString = readFileToString("$batteryDir/status", "Battery Status")
-        val isCharging = statusString?.contains("Charging", ignoreCase = true) == true
+        Log.d(TAG, "Battery Status String: $statusString, Current: $finalCurrent")
+
+        // Determine charging status
+        val isCharging = when {
+            // Prioritize the status from the broadcast intent if it's valid and not unknown
+            statusFromIntent != -1 && statusFromIntent != BatteryManager.BATTERY_STATUS_UNKNOWN -> {
+                Log.d(TAG, "Using API status from intent: $statusFromIntent")
+                statusFromIntent == BatteryManager.BATTERY_STATUS_CHARGING || statusFromIntent == BatteryManager.BATTERY_STATUS_FULL
+            }
+            // Then fall back to the file-based logic
+            finalCurrent != null -> {
+                Log.d(TAG, "Using file-based current: $finalCurrent")
+                finalCurrent < -1000f // Negative current means charging
+            }
+            else -> {
+                Log.d(TAG, "Using file-based status string: $statusString")
+                statusString?.contains("Charging", ignoreCase = true) == true ||
+                statusString?.contains("Full", ignoreCase = true) == true
+            }
+        }
+        
+        Log.d(TAG, "Calculated isCharging from file: $isCharging")
 
         val finalStatus = when {
             statusString.isNullOrBlank() -> ""
@@ -425,12 +462,18 @@ class SystemRepository @Inject constructor(
             else -> statusString
         }
 
+        // Normalize current for display: positive for charging, negative for discharging
+        val displayCurrent = finalCurrent?.let {
+            val absCurrent = kotlin.math.abs(it)
+            if (isCharging) absCurrent else -absCurrent
+        } ?: 0f
+
         return BatteryInfo(
             level = finalLevel,
             temp = finalTemperature,
             voltage = finalVoltage ?: 0f,
             isCharging = isCharging,
-            current = finalCurrent ?: 0f,
+            current = displayCurrent,
             chargingWattage = finalWattage ?: 0f,
             technology = finalTechnology ?: "Unknown",
             health = healthStatus, // Use the calculated health status
@@ -1095,63 +1138,74 @@ class SystemRepository @Inject constructor(
         return clusters
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+        @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     val realtimeAggregatedInfoFlow: Flow<RealtimeAggregatedInfo> = callbackFlow {
         Log.d(TAG, "callbackFlow started for realtimeAggregatedInfoFlow")
 
-        // Get SystemInfo once at the beginning (especially for SoC Name)
-        // This will fill the cache if not already present
-        getCachedSystemInfo() // Ensure cache is filled
+        val lastState = java.util.concurrent.atomic.AtomicReference<RealtimeAggregatedInfo>(null)
 
-        // Send initial value immediately
-        val initialData = RealtimeAggregatedInfo(
-            cpuInfo = getCpuRealtimeInternal(),
-            batteryInfo = getBatteryInfoInternal(),
-            memoryInfo = getMemoryInfoInternal(),
-            uptimeMillis = getUptimeMillisInternal(),
-            deepSleepMillis = getDeepSleepMillisInternal()
-        )
-
-        val initialSendResult: ChannelResult<Unit> = trySend(initialData)
-        if (initialSendResult.isFailure) {
-            Log.e(TAG, "Failed to send initial data to flow", initialSendResult.exceptionOrNull())
-        } else if (initialSendResult.isClosed) {
-            Log.w(TAG, "Flow was closed before initial data could be sent.")
-        } else {
-            Log.d(TAG, "Initial data sent successfully to flow.")
+        // Initial full data fetch
+        launch(Dispatchers.IO) {
+            val initialData = RealtimeAggregatedInfo(
+                cpuInfo = getCpuRealtimeInternal(),
+                batteryInfo = getBatteryInfoInternal(),
+                memoryInfo = getMemoryInfoInternal(),
+                uptimeMillis = getUptimeMillisInternal(),
+                deepSleepMillis = getDeepSleepMillisInternal()
+            )
+            lastState.set(initialData)
+            trySend(initialData)
         }
 
-        // Job for periodic updates
-        val updateJob = launch(Dispatchers.IO) {
-            Log.d(TAG, "Realtime update job started in callbackFlow. isActive: $isActive")
-            try {
-                while (isActive) {
-                    delay(REALTIME_UPDATE_INTERVAL_MS)
-
-                    val updatedData = RealtimeAggregatedInfo(
-                        cpuInfo = getCpuRealtimeInternal(),
-                        batteryInfo = getBatteryInfoInternal(),
-                        memoryInfo = getMemoryInfoInternal(),
-                        uptimeMillis = getUptimeMillisInternal(),
-                        deepSleepMillis = getDeepSleepMillisInternal()
-                    )
-
-                    val sendResult: ChannelResult<Unit> = trySend(updatedData)
-                    if (sendResult.isFailure) {
-                        Log.e(TAG, "Failed to send updated data to flow", sendResult.exceptionOrNull())
-                    } else if (sendResult.isClosed) {
-                        Log.w(TAG, "Flow was closed during update.")
-                        break
+        // Decoupled battery update via BroadcastReceiver
+        val batteryReceiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action == Intent.ACTION_BATTERY_CHANGED) {
+                    val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
+                    Log.d(TAG, "Received ACTION_BATTERY_CHANGED, triggering isolated battery update.")
+                    val currentState = lastState.get()
+                    if (currentState != null) {
+                        launch(Dispatchers.IO) {
+                            val newBatteryInfo = getBatteryInfoInternal(status)
+                            val newState = currentState.copy(batteryInfo = newBatteryInfo)
+                            lastState.set(newState)
+                            trySend(newState)
+                        }
                     }
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error in realtime update job", e)
+            }
+        }
+        context.registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+
+        // Decoupled polling for other system stats
+        val pollingJob = launch(Dispatchers.IO) {
+            while (isActive) {
+                delay(REALTIME_UPDATE_INTERVAL_MS)
+                val currentState = lastState.get()
+                if (currentState != null) {
+                    // Fetch non-battery stats
+                    val newCpuInfo = getCpuRealtimeInternal()
+                    val newMemoryInfo = getMemoryInfoInternal()
+                    val newUptime = getUptimeMillisInternal()
+                    val newDeepSleep = getDeepSleepMillisInternal()
+
+                    // Create new state by copying the last one and updating polled values
+                    val newState = currentState.copy(
+                        cpuInfo = newCpuInfo,
+                        memoryInfo = newMemoryInfo,
+                        uptimeMillis = newUptime,
+                        deepSleepMillis = newDeepSleep
+                    )
+                    lastState.set(newState)
+                    trySend(newState)
+                }
             }
         }
 
         awaitClose {
-            Log.d(TAG, "callbackFlow awaitClose() called, cancelling update job.")
-            updateJob.cancel()
+            Log.d(TAG, "Flow is closing. Unregistering receiver and cancelling polling job.")
+            context.unregisterReceiver(batteryReceiver)
+            pollingJob.cancel()
         }
     }.shareIn(
         scope = repositoryScope,
