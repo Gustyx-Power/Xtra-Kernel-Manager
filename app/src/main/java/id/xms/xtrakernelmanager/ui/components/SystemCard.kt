@@ -19,7 +19,6 @@ import id.xms.xtrakernelmanager.data.model.SystemInfo
 @Composable
 fun SystemCard(
     info: SystemInfo,
-    blur: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Card(
