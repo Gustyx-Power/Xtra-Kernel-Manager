@@ -32,7 +32,6 @@ import id.xms.xtrakernelmanager.viewmodel.TuningViewModel
 @Composable
 fun ThermalCard(
     viewModel: TuningViewModel,
-    blur: Boolean,
     modifier: Modifier = Modifier
 ) {
     val supportedProfiles by viewModel.supportedThermalProfiles.collectAsState()

@@ -109,10 +109,10 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
                 onClick = { showInfoDialog = true }
             )
             
-            PerformanceModeCard(viewModel = viewModel, blur = true)
-            CpuGovernorCard(vm = viewModel, blur = true)
-            GpuControlCard(tuningViewModel = viewModel, blur = true)
-            ThermalCard(viewModel = viewModel, blur = true)
+            PerformanceModeCard(viewModel = viewModel)
+            CpuGovernorCard(vm = viewModel)
+            GpuControlCard(tuningViewModel = viewModel)
+            ThermalCard(viewModel = viewModel)
             SwappinessCard(vm = viewModel)
         }
     }
@@ -270,8 +270,10 @@ fun PerformanceModeCard(
                 )
                 Text(
                     text = "Performance Mode",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                 )
             }
 

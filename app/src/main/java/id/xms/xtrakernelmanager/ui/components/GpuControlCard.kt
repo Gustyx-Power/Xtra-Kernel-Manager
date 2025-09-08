@@ -165,8 +165,10 @@ fun GpuControlCard(
                     Column {
                         Text(
                             text = "GPU Control",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            ),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(

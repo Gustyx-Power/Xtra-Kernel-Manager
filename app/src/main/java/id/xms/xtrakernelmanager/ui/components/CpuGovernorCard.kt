@@ -4,14 +4,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ExpandLess
@@ -34,11 +33,20 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowRight
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -70,13 +78,9 @@ import id.xms.xtrakernelmanager.viewmodel.TuningViewModel
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-// Import SuperGlassCard dan GlassIntensity
-// Karena keduanya berada di package yang sama, kita tidak perlu import explicit
-
 @Composable
 fun CpuGovernorCard(
     vm: TuningViewModel,
-    blur: Boolean,
 ) {
     val clusters = vm.cpuClusters
     val availableGovernors by vm.generalAvailableCpuGovernors.collectAsState()
@@ -90,18 +94,19 @@ fun CpuGovernorCard(
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
+        animationSpec = tween(durationMillis = 300),
         label = "DropdownRotation"
     )
 
-    SuperGlassCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        glassIntensity = if (blur) GlassIntensity.Light else GlassIntensity.Light
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
     ) {
         Column(
+            modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header with expand/collapse
@@ -124,8 +129,10 @@ fun CpuGovernorCard(
                     )
                     Text(
                         text = "CPU Control",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        ),
                     )
                 }
                 Icon(
@@ -139,22 +146,25 @@ fun CpuGovernorCard(
             Text(
                 text = "Configure CPU governor and frequency settings for each cluster",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = slideInVertically() + expandVertically() + fadeIn(),
-                exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                enter = expandVertically(animationSpec = tween(200)) + fadeIn(animationSpec = tween(200)),
+                exit = shrinkVertically(animationSpec = tween(200)) + fadeOut(animationSpec = tween(200))
             ) {
                 Column(
                     modifier = Modifier.padding(top = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     if (availableGovernors.isEmpty() && clusters.isNotEmpty()) {
-                        SuperGlassCard(
+                        Card(
                             modifier = Modifier.fillMaxWidth(),
-                            glassIntensity = GlassIntensity.Light
+                            shape = RoundedCornerShape(24.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            ),
                         ) {
                             Row(
                                 modifier = Modifier
@@ -295,7 +305,7 @@ private fun GovernorSelectionDialog(
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(24.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
         onDismissRequest = onDismiss,
         title = {
@@ -306,7 +316,6 @@ private fun GovernorSelectionDialog(
         },
         text = {
             Column(modifier = Modifier.padding(top = 8.dp)) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.height(16.dp))
                 availableGovernors.sorted().forEach { governor -> // Urutkan daftar governor
                     Row(
@@ -347,7 +356,7 @@ private fun GovernorSelectionDialog(
                     contentColor = MaterialTheme.colorScheme.primary
                 )
             ) {
-                Text("CANCEL", fontWeight = FontWeight.SemiBold)
+                Text("Cancel", fontWeight = FontWeight.SemiBold)
             }
         },
         dismissButton = null // Tidak perlu dismiss button eksplisit, onDismissRequest sudah cukup
@@ -410,7 +419,7 @@ private fun FrequencySelectionDialog(
                 Text(
                     clusterName.replaceFirstChar { it.titlecase() },
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(bottom = 16.dp, top = 4.dp)
                 )
 
@@ -474,28 +483,56 @@ private fun FrequencySelectionDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = {
-                    val finalMin = findClosestFrequency(sliderMinValue.roundToInt(), allAvailableFrequencies)
-                    val finalMax = findClosestFrequency(sliderMaxValue.roundToInt(), allAvailableFrequencies)
-                    if (finalMin <= finalMax) {
-                        onFrequencySelected(finalMin, finalMax)
-                    } else {
-                        onFrequencySelected(finalMin, finalMin)
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("APPLY")
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cancel", fontWeight = FontWeight.Medium)
+                }
+
+                FilledTonalButton(
+                    onClick = {
+                        val finalMin = findClosestFrequency(sliderMinValue.roundToInt(), allAvailableFrequencies)
+                        val finalMax = findClosestFrequency(sliderMaxValue.roundToInt(), allAvailableFrequencies)
+                        if (finalMin <= finalMax) {
+                            onFrequencySelected(finalMin, finalMax)
+                        } else {
+                            onFrequencySelected(finalMin, finalMin)
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Apply",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Apply", fontWeight = FontWeight.Bold)
+                }
             }
         },
         dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.secondary)
-            ) {
-                Text("CANCEL")
-            }
+            // Kosong karena sudah diimplementasikan di confirmButton
         }
     )
 }
@@ -507,8 +544,8 @@ private fun CoreStatusDialog(
     onCoreToggled: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val GreenOnline = Color(0xFF4CAF50)
-    val RedOffline = Color(0xFFF44336)
+    val GreenOnline = MaterialTheme.colorScheme.primary
+    val RedOffline = MaterialTheme.colorScheme.error
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -568,7 +605,7 @@ private fun CoreStatusDialog(
                 onClick = onDismiss,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("DONE", fontWeight = FontWeight.Medium)
+                Text("Done", fontWeight = FontWeight.Medium)
             }
         }
     )
@@ -601,9 +638,12 @@ fun CpuClusterCard(
         else -> Pair(Color(0xFF9C27B0), Color(0xFFF3E5F5)) // Purple theme as fallback
     }
 
-    SuperGlassCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        glassIntensity = GlassIntensity.Light
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -624,7 +664,7 @@ fun CpuClusterCard(
                         modifier = Modifier
                             .size(40.dp)
                             .background(
-                                color = clusterColors.first.copy(alpha = 0.15f),
+                                color = MaterialTheme.colorScheme.primaryContainer,
                                 shape = RoundedCornerShape(12.dp)
                             ),
                         contentAlignment = Alignment.Center
@@ -632,7 +672,7 @@ fun CpuClusterCard(
                         Icon(
                             imageVector = Icons.Default.Memory,
                             contentDescription = null,
-                            tint = clusterColors.first,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -644,20 +684,22 @@ fun CpuClusterCard(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp
                             ),
-                            color = clusterColors.first
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = "Cluster Control",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
                 // Status indicator
-                SuperGlassCard(
-                    glassIntensity = GlassIntensity.Light,
-                    modifier = Modifier.padding(0.dp)
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
                 ) {
                     Text(
                         text = if (currentGovernor != "..." && currentGovernor != "Error") "ACTIVE" else "LOADING",
@@ -665,17 +707,12 @@ fun CpuClusterCard(
                             fontWeight = FontWeight.Bold
                         ),
                         color = if (currentGovernor != "..." && currentGovernor != "Error")
-                            clusterColors.first
+                            MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
             }
-
-            HorizontalDivider(
-                color = clusterColors.first.copy(alpha = 0.2f),
-                thickness = 1.dp
-            )
 
             // Enhanced Control Sections
             Column(
@@ -687,7 +724,7 @@ fun CpuClusterCard(
                     title = "Governor",
                     value = if (currentGovernor == "..." || currentGovernor == "Error") currentGovernor else currentGovernor,
                     isLoading = currentGovernor == "..." || currentGovernor == "Error",
-                    themeColor = clusterColors.first,
+                    themeColor = MaterialTheme.colorScheme.primary,
                     onClick = onGovernorClick,
                     enabled = currentGovernor != "..." && currentGovernor != "Error"
                 )
@@ -705,7 +742,7 @@ fun CpuClusterCard(
                     title = "Frequency",
                     value = freqText,
                     isLoading = freqText == "Loading..." || freqText == "Error",
-                    themeColor = clusterColors.first,
+                    themeColor = MaterialTheme.colorScheme.primary,
                     onClick = onFrequencyClick,
                     enabled = availableFrequenciesForCluster.isNotEmpty()
                 )
@@ -716,7 +753,7 @@ fun CpuClusterCard(
                     title = "Core Status",
                     value = "${coreStates.count { it }}/${coreStates.size} Online",
                     isLoading = false,
-                    themeColor = clusterColors.first,
+                    themeColor = MaterialTheme.colorScheme.primary,
                     onClick = onCoreClick,
                     enabled = true
                 )
@@ -735,11 +772,15 @@ private fun ControlSection(
     onClick: () -> Unit,
     enabled: Boolean
 ) {
-    SuperGlassCard(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = enabled) { onClick() },
-        glassIntensity = GlassIntensity.Light
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             modifier = Modifier
@@ -753,7 +794,7 @@ private fun ControlSection(
                 modifier = Modifier
                     .size(36.dp)
                     .background(
-                        color = if (enabled) themeColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                        color = if (enabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(10.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -761,7 +802,7 @@ private fun ControlSection(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = if (enabled) themeColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -786,7 +827,7 @@ private fun ControlSection(
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
-                            color = themeColor
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = value,
@@ -810,7 +851,7 @@ private fun ControlSection(
             // Arrow indicator
             if (enabled) {
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Expand",
                     tint = themeColor,
                     modifier = Modifier.size(24.dp)
