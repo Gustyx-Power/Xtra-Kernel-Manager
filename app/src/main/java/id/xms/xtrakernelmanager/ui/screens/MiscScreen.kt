@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.ui.screens
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,14 +10,19 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.material3.surfaceColorAtElevation
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import id.xms.xtrakernelmanager.viewmodel.MiscViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,12 +31,32 @@ fun MiscScreen(
     viewModel: MiscViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val scrollState = rememberScrollState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val systemUiController = rememberSystemUiController()
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val surfaceColorAtElevation = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+    val topBarContainerColor by remember {
+        derivedStateOf {
+            lerp(
+                surfaceColor,
+                surfaceColorAtElevation,
+                scrollBehavior.state.overlappedFraction
+            )
+        }
+    }
+    val darkTheme = isSystemInDarkTheme()
+    LaunchedEffect(topBarContainerColor, darkTheme) {
+        systemUiController.setStatusBarColor(
+            color = topBarContainerColor,
+            darkIcons = !darkTheme
+        )
+    }
 
     val batteryStatsEnabled by viewModel.batteryStatsEnabled.collectAsState()
     val batteryNotificationEnabled by viewModel.batteryNotificationEnabled.collectAsState()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -41,11 +67,9 @@ fun MiscScreen(
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                    containerColor = topBarContainerColor
+                ),
+                scrollBehavior = scrollBehavior
             )
         }
     ) { innerPadding ->
@@ -54,7 +78,7 @@ fun MiscScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
-                .verticalScroll(scrollState),
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
             BatteryStatsCard(

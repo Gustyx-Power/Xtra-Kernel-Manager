@@ -1,8 +1,14 @@
 package id.xms.xtrakernelmanager.ui.screens
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,36 +18,29 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.ui.components.*
 import id.xms.xtrakernelmanager.viewmodel.HomeViewModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import android.util.Log
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import id.xms.xtrakernelmanager.data.model.SystemInfo
 import kotlin.text.isNotBlank
 
 
 @Composable
 fun FadeInEffect(
-    shimmerEnabled: Boolean = true,
+    shimmerEnabled: Boolean = false,
     content: @Composable (Modifier) -> Unit
 ) {
     val visibleState = remember { MutableTransitionState(false) }
@@ -70,7 +69,7 @@ fun FadeInEffect(
             ), label = "shimmerTranslateFadeIn"
         )
         Brush.linearGradient(
-            colors = shimmerColors,
+            colors = if (shimmerColors.size >= 2) shimmerColors else listOf(Color.LightGray.copy(alpha = 0.6f), Color.LightGray.copy(alpha = 0.2f)),
             start = androidx.compose.ui.geometry.Offset.Zero,
             end = androidx.compose.ui.geometry.Offset(x = translateAnim.value, y = translateAnim.value)
         )
@@ -556,9 +555,30 @@ fun HomeScreen(navController: NavController) {
     val fullTitle = stringResource(R.string.xtra_kernel_manager)
     val displayedTitle = fullTitle
 
-    val scrollState = rememberScrollState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    val systemUiController = rememberSystemUiController()
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val surfaceColorAtElevation = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+    val topBarContainerColor by remember {
+        derivedStateOf {
+            lerp(
+                surfaceColor,
+                surfaceColorAtElevation,
+                scrollBehavior.state.overlappedFraction
+            )
+        }
+    }
+    val darkTheme = isSystemInDarkTheme()
+
+    LaunchedEffect(topBarContainerColor, darkTheme) {
+        systemUiController.setStatusBarColor(
+            color = topBarContainerColor,
+            darkIcons = !darkTheme
+        )
+    }
     
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Color.Transparent,
         floatingActionButton = {
             Column(
@@ -634,7 +654,7 @@ fun HomeScreen(navController: NavController) {
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = topBarContainerColor
                 ),
                 actions = {
                     IconButton(onClick = { navController.navigate("settings") }) {
@@ -643,7 +663,8 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "Settings"
                         )
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -652,7 +673,7 @@ fun HomeScreen(navController: NavController) {
             Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -660,9 +681,7 @@ fun HomeScreen(navController: NavController) {
             /* 1. CPU */
             FadeInEffect { modifier ->
                 val currentSystemInfo = systemInfoState
-                val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != VALUE_UNKNOWN_SYS_INFO }
-                    ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" }
-                    ?: "CPU"
+                val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != VALUE_UNKNOWN_SYS_INFO } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" } ?: "CPU"
                 CpuCard(socNameToDisplay, cpuInfo, false, modifier)
             }
 
@@ -715,5 +734,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 }
+
 
 

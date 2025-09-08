@@ -60,18 +60,11 @@ fun XtraTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Set status bar to be transparent for full edge-to-edge
-            window.statusBarColor = Color.Transparent.toArgb()
             // Set navigation bar color to match the bottom navigation bar
             window.navigationBarColor = colorScheme.surface.toArgb()
             // Ensure content draws behind system bars
             WindowCompat.setDecorFitsSystemWindows(window, false)
 
-            // Set status bar and navigation bar icon colors based on the chosen theme
-            val isLight = !darkTheme // If dynamic colors are off, this relies on isSystemInDarkTheme
-                                     // If dynamic colors are on, we should ideally check the luminance of the
-                                     // actual dynamic background, but this is a good starting point.
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = isLight
             // For navigation bar, we need to check the luminance of the surface color
             val isNavigationBarLight = colorScheme.surface.luminance() > 0.5f
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = isNavigationBarLight

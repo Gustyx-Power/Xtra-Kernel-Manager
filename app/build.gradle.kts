@@ -85,10 +85,17 @@ dependencies {
     testImplementation("com.google.dagger:hilt-android-testing:2.57")
     kaptTest("com.google.dagger:hilt-compiler:2.57")
 
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.31.0-alpha")
+
     // LibSu & Coil
     implementation("com.github.topjohnwu.libsu:core:6.0.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("org.mockito:mockito-core:3.12.4")
+    testImplementation("org.robolectric:robolectric:4.10.3")
 
     // Serialization yang cocok dengan Kotlin 1.9.24
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
