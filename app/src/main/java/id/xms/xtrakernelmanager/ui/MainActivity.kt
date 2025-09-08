@@ -22,16 +22,17 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.*
 import dagger.hilt.android.AndroidEntryPoint
+import id.xms.xtrakernelmanager.data.repository.RootRepository
 import id.xms.xtrakernelmanager.data.repository.ThermalRepository
 import id.xms.xtrakernelmanager.service.ThermalService
 import id.xms.xtrakernelmanager.ui.components.BottomNavBar
 import id.xms.xtrakernelmanager.ui.components.ExpressiveBackground
+import id.xms.xtrakernelmanager.ui.components.RootRequiredDialog
 import id.xms.xtrakernelmanager.ui.dialog.BatteryOptDialog
 import id.xms.xtrakernelmanager.ui.screens.*
 import id.xms.xtrakernelmanager.ui.theme.XtraTheme
 import id.xms.xtrakernelmanager.util.BatteryOptimizationChecker
 import id.xms.xtrakernelmanager.util.LanguageManager
-import id.xms.xtrakernelmanager.util.RootUtils
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,7 +43,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var rootUtils: RootUtils
+    lateinit var rootRepo: RootRepository
 
     @Inject
     lateinit var dataStore: DataStore<Preferences>
@@ -55,6 +56,7 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var batteryOptChecker: BatteryOptimizationChecker
     private var showBatteryOptDialog by mutableStateOf(false)
+    private var showRootRequiredDialog by mutableStateOf(false)
     private var permissionDenialCount by mutableIntStateOf(0)
     private val MAX_PERMISSION_RETRIES = 2
 
@@ -65,8 +67,11 @@ class MainActivity : ComponentActivity() {
         // Force dark mode always - ignore system theme setting
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
+        if (!rootRepo.isRooted()) {
+            showRootRequiredDialog = true
+        }
+
         enableEdgeToEdge() // Enable edge-to-edge display for Android 16-like experience
-        rootUtils.init(this)
         batteryOptChecker = BatteryOptimizationChecker(this)
 
         // Check permissions first before starting any services
@@ -87,6 +92,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    if (showRootRequiredDialog) {
+                        RootRequiredDialog(onDismiss = { finish() })
+                    }
                     if (showBatteryOptDialog) {
                         BatteryOptDialog(
                             onDismiss = {
