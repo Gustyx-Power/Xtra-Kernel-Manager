@@ -673,7 +673,7 @@ private fun BatteryStatsSection(
                 SystemStatItem(
                     icon = if (batteryInfo.isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryStd,
                     label = "Status",
-                    value = batteryInfo.status,
+                    value = if (batteryInfo.isCharging) "Charging" else "Discharging",
                     modifier = Modifier.weight(1f)
                 )
             }

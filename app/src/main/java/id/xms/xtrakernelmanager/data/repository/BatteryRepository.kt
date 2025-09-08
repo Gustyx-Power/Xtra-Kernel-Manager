@@ -26,13 +26,25 @@ class BatteryRepository @Inject constructor(
                 val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) / 10.0f
                 val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0) / 1000.0f
                 val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-                val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                                status == BatteryManager.BATTERY_STATUS_FULL
-
+                
                 // Get charging current
                 val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
                 val current = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
                 val chargingWattage = abs(voltage * current / 1000000f) // Convert to watts
+
+                // Determine charging status based on both status and current
+                // Some devices report current as negative when discharging and positive when charging
+                // But this can vary by manufacturer, so we'll use the status as primary indicator
+                val isCharging = if (status == BatteryManager.BATTERY_STATUS_CHARGING || 
+                                   status == BatteryManager.BATTERY_STATUS_FULL) {
+                    true
+                } else if (status == BatteryManager.BATTERY_STATUS_DISCHARGING) {
+                    false
+                } else {
+                    // For other statuses, use current as secondary indicator
+                    // If current is significantly positive, consider it charging
+                    current > 10000 // 10mA threshold to avoid false positives from noise
+                }
 
                 val batteryInfo = BatteryInfo(
                     level = (level * 100 / scale.toFloat()).toInt(),
