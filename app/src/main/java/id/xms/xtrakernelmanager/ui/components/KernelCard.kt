@@ -165,7 +165,7 @@ fun KernelCard(
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
-                                            text = k.gkiType,
+                                            text = getKernelTypeByVersion(k.version),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
@@ -473,7 +473,7 @@ fun KernelCard(
 
                 // Single card: GKI Type (full width)
                 CompactInfoCard(
-                    label = stringResource(R.string.kernel_type, k.gkiType),
+                    label = stringResource(R.string.kernel_type, getKernelTypeByVersion(k.version)),
                     value = "",
                     icon = Icons.Filled.Computer,
                     modifier = Modifier.fillMaxWidth()
@@ -668,4 +668,149 @@ private fun shortenKernelVersion(version: String): String {
         }
         version.substring(0, endIndex).trim()
     }
+}
+
+// Utility function to determine kernel type based on version
+private fun getKernelTypeByVersion(version: String): String {
+    // Debug logging
+    android.util.Log.d("KernelCard", "getKernelTypeByVersion called with version: '$version'")
+    
+    // Extract version number
+    val versionRegex = """Linux version ([\d.]+)""".toRegex()
+    val matchResult = versionRegex.find(version)
+    
+    if (matchResult != null) {
+        val versionNumber = matchResult.groupValues[1]
+        android.util.Log.d("KernelCard", "Extracted version number: '$versionNumber'")
+        
+        // Clean the version number to remove any non-printable characters and normalize dots
+        val cleanVersionNumber = versionNumber.trim()
+            .replace(Regex("""[^\d.]"""), "") // Hanya biarkan angka dan titik
+            .replace("..", ".") // Ganti double titik dengan satu titik (cara manual)
+            .replace(Regex("""\.{2,}"""), ".") // Ganti multiple titik dengan satu titik
+            .replace(Regex("""[^\x00-\x7F]"""), "") // Hapus karakter non-ASCII
+            .trim('.', '.')
+        
+        // Jika ada multiple titik, ambil hanya bagian sebelum dan setelah titik pertama
+        val finalVersionNumber = if (cleanVersionNumber.count { it == '.' } > 1) {
+            val firstDotIndex = cleanVersionNumber.indexOf('.')
+            val secondDotIndex = cleanVersionNumber.indexOf('.', firstDotIndex + 1)
+            if (secondDotIndex != -1) {
+                cleanVersionNumber.substring(0, secondDotIndex)
+            } else {
+                cleanVersionNumber
+            }
+        } else {
+            cleanVersionNumber
+        }
+        
+        // Debug: Print each character and its code
+        android.util.Log.d("KernelCard", "Final cleaned version number: '$finalVersionNumber'")
+        finalVersionNumber.forEachIndexed { index, char ->
+            android.util.Log.d("KernelCard", "  Character $index: '$char' (code: ${char.toInt()})")
+        }
+        
+        // Parse version as string parts for more accurate comparison
+        val versionParts = finalVersionNumber.split(".").map { it.toIntOrNull() ?: 0 }
+        android.util.Log.d("KernelCard", "Version parts: $versionParts")
+        
+        val result = when {
+            versionParts.size >= 2 && (versionParts[0] < 4 || (versionParts[0] == 4 && versionParts[1] < 19)) -> {
+                android.util.Log.d("KernelCard", "Returning Legacy")
+                "Legacy"
+            }
+            versionParts.size >= 2 && (versionParts[0] > 4 || (versionParts[0] == 4 && versionParts[1] >= 19)) && 
+            (versionParts[0] < 5 || (versionParts[0] == 5 && versionParts[1] <= 4)) -> {
+                android.util.Log.d("KernelCard", "Returning GKI1 (4.19-5.4)")
+                "GKI1"
+            }
+            versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] > 4 && versionParts[1] < 10 -> {
+                android.util.Log.d("KernelCard", "Returning GKI1 (5.4-5.10)")
+                "GKI1"
+            }
+            versionParts.size >= 2 && (versionParts[0] > 5 || (versionParts[0] == 5 && versionParts[1] >= 10)) -> {
+                android.util.Log.d("KernelCard", "Returning GKI2")
+                "GKI2"
+            }
+            else -> {
+                android.util.Log.d("KernelCard", "Returning Unknown (else case)")
+                "Unknown"
+            }
+        }
+        
+        android.util.Log.d("KernelCard", "Final result: $result")
+        return result
+    }
+    
+    android.util.Log.d("KernelCard", "No match found with primary regex")
+    
+    // Fallback: if we can't parse with the regex, try to extract version in a simpler way
+    val simpleVersionRegex = """(\d+\.\d+)""".toRegex()
+    val simpleMatch = simpleVersionRegex.find(version)
+    
+    if (simpleMatch != null) {
+        val versionNumber = simpleMatch.groupValues[1]
+        android.util.Log.d("KernelCard", "Fallback extracted version number: '$versionNumber'")
+        
+        // Clean the version number to remove any non-printable characters and normalize dots
+        val cleanVersionNumber = versionNumber.trim()
+            .replace(Regex("""[^\d.]"""), "") // Hanya biarkan angka dan titik
+            .replace("..", ".") // Ganti double titik dengan satu titik (cara manual)
+            .replace(Regex("""\.{2,}"""), ".") // Ganti multiple titik dengan satu titik
+            .replace(Regex("""[^\x00-\x7F]"""), "") // Hapus karakter non-ASCII
+            .trim('.', '.')
+        
+        // Jika ada multiple titik, ambil hanya bagian sebelum dan setelah titik pertama
+        val finalVersionNumber = if (cleanVersionNumber.count { it == '.' } > 1) {
+            val firstDotIndex = cleanVersionNumber.indexOf('.')
+            val secondDotIndex = cleanVersionNumber.indexOf('.', firstDotIndex + 1)
+            if (secondDotIndex != -1) {
+                cleanVersionNumber.substring(0, secondDotIndex)
+            } else {
+                cleanVersionNumber
+            }
+        } else {
+            cleanVersionNumber
+        }
+        
+        // Debug: Print each character and its code
+        android.util.Log.d("KernelCard", "Fallback final cleaned version number: '$finalVersionNumber'")
+        finalVersionNumber.forEachIndexed { index, char ->
+            android.util.Log.d("KernelCard", "  Character $index: '$char' (code: ${char.toInt()})")
+        }
+        
+        // Parse version as string parts for more accurate comparison
+        val versionParts = finalVersionNumber.split(".").map { it.toIntOrNull() ?: 0 }
+        android.util.Log.d("KernelCard", "Fallback version parts: $versionParts")
+        
+        val result = when {
+            versionParts.size >= 2 && (versionParts[0] < 4 || (versionParts[0] == 4 && versionParts[1] < 19)) -> {
+                android.util.Log.d("KernelCard", "Fallback returning Legacy")
+                "Legacy"
+            }
+            versionParts.size >= 2 && (versionParts[0] > 4 || (versionParts[0] == 4 && versionParts[1] >= 19)) && 
+            (versionParts[0] < 5 || (versionParts[0] == 5 && versionParts[1] <= 4)) -> {
+                android.util.Log.d("KernelCard", "Fallback returning GKI1 (4.19-5.4)")
+                "GKI1"
+            }
+            versionParts.size >= 2 && versionParts[0] == 5 && versionParts[1] > 4 && versionParts[1] < 10 -> {
+                android.util.Log.d("KernelCard", "Fallback returning GKI1 (5.4-5.10)")
+                "GKI1"
+            }
+            versionParts.size >= 2 && (versionParts[0] > 5 || (versionParts[0] == 5 && versionParts[1] >= 10)) -> {
+                android.util.Log.d("KernelCard", "Fallback returning GKI2")
+                "GKI2"
+            }
+            else -> {
+                android.util.Log.d("KernelCard", "Fallback returning Unknown (else case)")
+                "Unknown"
+            }
+        }
+        
+        android.util.Log.d("KernelCard", "Fallback final result: $result")
+        return result
+    }
+    
+    android.util.Log.d("KernelCard", "No match found with fallback regex, returning Unknown")
+    return "Unknown"
 }
