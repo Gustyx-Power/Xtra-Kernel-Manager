@@ -103,7 +103,8 @@ fun CpuCard(
 
             EnhancedCpuGraph(
                 graphDataHistory = graphDataHistory,
-                currentGraphMode = currentGraphMode
+                currentGraphMode = currentGraphMode,
+                primaryColor = MaterialTheme.colorScheme.primary
             )
 
             CpuGraphModeToggle(
@@ -346,7 +347,8 @@ private fun StatItem(
 @Composable
 private fun EnhancedCpuGraph(
     graphDataHistory: List<Float>,
-    currentGraphMode: GraphMode
+    currentGraphMode: GraphMode,
+    primaryColor: Color
 ) {
     Surface( // Use Surface for graph background
         modifier = Modifier
@@ -374,8 +376,6 @@ private fun EnhancedCpuGraph(
 
                     val effectiveYRange = (yAxisMax - yAxisMin).coerceAtLeast(1f)
                     val stepX = size.width / (MAX_HISTORY_POINTS_GRAPH - 1).coerceAtLeast(1).toFloat()
-                    val primaryGraphColor = // MaterialTheme.colorScheme.primary is not accessible here
-                        Color(0xFF6750A4) // Fallback to a purple, replace with theme color if possible
 
                     val path = Path()
                     val fillPath = Path()
@@ -404,8 +404,8 @@ private fun EnhancedCpuGraph(
                             path = fillPath,
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    primaryGraphColor.copy(alpha = 0.3f),
-                                    primaryGraphColor.copy(alpha = 0.05f)
+                                    primaryColor.copy(alpha = 0.3f),
+                                    primaryColor.copy(alpha = 0.05f)
                                 )
                             )
                         )
@@ -413,7 +413,7 @@ private fun EnhancedCpuGraph(
 
                     drawPath(
                         path = path,
-                        color = primaryGraphColor,
+                        color = primaryColor,
                         style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
                     )
 
@@ -424,7 +424,7 @@ private fun EnhancedCpuGraph(
                         val lastNormalizedData = ((lastDataPoint.coerceAtLeast(yAxisMin) - yAxisMin) / effectiveYRange).coerceIn(0f, 1f)
                         val lastY = size.height * (1 - lastNormalizedData)
                          drawCircle(
-                            color = primaryGraphColor,
+                            color = primaryColor,
                             radius = 4.dp.toPx(),
                             center = Offset(lastX, lastY.coerceIn(0f, size.height))
                         )
