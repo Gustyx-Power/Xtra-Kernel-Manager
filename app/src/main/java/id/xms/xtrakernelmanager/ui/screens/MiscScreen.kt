@@ -4,6 +4,7 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,8 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import id.xms.xtrakernelmanager.ui.components.SuperGlassCard
-import id.xms.xtrakernelmanager.ui.components.GlassIntensity
+
 import id.xms.xtrakernelmanager.viewmodel.MiscViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,33 +30,48 @@ fun MiscScreen(
     val batteryStatsEnabled by viewModel.batteryStatsEnabled.collectAsState()
     val batteryNotificationEnabled by viewModel.batteryNotificationEnabled.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Misc Settings",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
+                    actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
-        Text(
-            text = "Misc Settings",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+            BatteryStatsCard(
+                batteryStatsEnabled = batteryStatsEnabled,
+                batteryNotificationEnabled = batteryNotificationEnabled,
+                onToggleBatteryStats = { enabled ->
+                    viewModel.toggleBatteryStats(enabled)
+                }
+            )
 
-        // Battery Stats & Notification Card
-        BatteryStatsCard(
-            batteryStatsEnabled = batteryStatsEnabled,
-            batteryNotificationEnabled = batteryNotificationEnabled,
-            onToggleBatteryStats = { enabled ->
-                viewModel.toggleBatteryStats(enabled)
-            }
-        )
-
-        // Additional misc features
-        SystemTweaksCard()
+            // Additional misc features
+            SystemTweaksCard()
+        }
     }
 }
+
+
 
 @Composable
 fun BatteryStatsCard(
@@ -64,17 +79,22 @@ fun BatteryStatsCard(
     batteryNotificationEnabled: Boolean,
     onToggleBatteryStats: (Boolean) -> Unit
 ) {
-    SuperGlassCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        glassIntensity = GlassIntensity.Light
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Column(
+            modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = "Battery & System Stats",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             // Battery Stats Toggle
@@ -86,19 +106,39 @@ fun BatteryStatsCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Battery Stats Service",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Monitor battery usage, charging stats, and system metrics",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 Switch(
                     checked = batteryStatsEnabled,
-                    onCheckedChange = onToggleBatteryStats
+                    onCheckedChange = onToggleBatteryStats,
+                    thumbContent = if (batteryStatsEnabled) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    }
                 )
             }
 
@@ -117,14 +157,33 @@ fun BatteryStatsCard(
                     Text(
                         text = "Show detailed battery info in notification panel",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 Switch(
                     checked = batteryNotificationEnabled,
                     onCheckedChange = onToggleBatteryStats,
-                    enabled = false // This is controlled by the main battery stats toggle
+                    enabled = false, // This is controlled by the main battery stats toggle
+                    thumbContent = if (batteryNotificationEnabled) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    }
                 )
             }
 
@@ -165,9 +224,9 @@ fun BatteryStatsCard(
             }
 
             if (!batteryStatsEnabled) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                OutlinedCard(
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -182,7 +241,7 @@ fun BatteryStatsCard(
                             Icon(
                                 imageVector = Icons.Default.Info,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Features Available",
@@ -213,17 +272,22 @@ fun SystemTweaksCard() {
     var animationsEnabled by remember { mutableStateOf(true) }
     var debugMode by remember { mutableStateOf(false) }
 
-    SuperGlassCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        glassIntensity = GlassIntensity.Light // No blur for better readability
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
     ) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = "System Tweaks",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Row(
@@ -232,16 +296,39 @@ fun SystemTweaksCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("System Animations")
+                    Text(
+                        text = "System Animations",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Text(
                         text = "Enable/disable system animations",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Switch(
                     checked = animationsEnabled,
-                    onCheckedChange = { animationsEnabled = it }
+                    onCheckedChange = { animationsEnabled = it },
+                    thumbContent = if (animationsEnabled) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    }
                 )
             }
 
@@ -251,16 +338,39 @@ fun SystemTweaksCard() {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Debug Mode")
+                    Text(
+                        text = "Debug Mode",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Text(
                         text = "Enable debug logging",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Switch(
                     checked = debugMode,
-                    onCheckedChange = { debugMode = it }
+                    onCheckedChange = { debugMode = it },
+                    thumbContent = if (debugMode) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    }
                 )
             }
         }
