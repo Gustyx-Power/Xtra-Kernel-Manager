@@ -65,7 +65,7 @@ fun KernelCard(
                             Icon(
                                 painter = painterResource(id = R.drawable.kernel),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(32.dp)
                             )
                             Text(
@@ -88,9 +88,8 @@ fun KernelCard(
                         // Kernel Details
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(24.dp),
                             color = MaterialTheme.colorScheme.surfaceContainer,
-                            tonalElevation = 1.dp
                         ) {
                             Column(
                                 modifier = Modifier
@@ -105,7 +104,7 @@ fun KernelCard(
                                 ) {
                                     Surface(
                                         modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
                                         shape = CircleShape
                                     ) {
                                         Box(
@@ -115,7 +114,7 @@ fun KernelCard(
                                             Icon(
                                                 imageVector = Icons.Filled.Memory,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
@@ -141,15 +140,14 @@ fun KernelCard(
                                         Text(
                                             text = "Version",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
-                                            text = k.version,
+                                            text = shortenKernelVersion(k.version),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(0.6f),
                                             maxLines = 1
                                         )
                                     }
@@ -163,7 +161,7 @@ fun KernelCard(
                                         Text(
                                             text = "Type",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
@@ -171,7 +169,6 @@ fun KernelCard(
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(0.6f),
                                             maxLines = 1
                                         )
                                     }
@@ -185,7 +182,7 @@ fun KernelCard(
                                         Text(
                                             text = "I/O Scheduler",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
@@ -193,7 +190,6 @@ fun KernelCard(
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(0.6f),
                                             maxLines = 1
                                         )
                                     }
@@ -204,9 +200,8 @@ fun KernelCard(
                         // System Architecture
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(24.dp),
                             color = MaterialTheme.colorScheme.surfaceContainer,
-                            tonalElevation = 1.dp
                         ) {
                             Column(
                                 modifier = Modifier
@@ -221,7 +216,7 @@ fun KernelCard(
                                 ) {
                                     Surface(
                                         modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.secondary,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
                                         shape = CircleShape
                                     ) {
                                         Box(
@@ -231,7 +226,7 @@ fun KernelCard(
                                             Icon(
                                                 imageVector = Icons.Filled.Computer,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSecondary,
+                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
@@ -257,7 +252,7 @@ fun KernelCard(
                                         Text(
                                             text = "ABI",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
@@ -265,7 +260,6 @@ fun KernelCard(
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(0.6f),
                                             maxLines = 1
                                         )
                                     }
@@ -279,7 +273,7 @@ fun KernelCard(
                                         Text(
                                             text = "Architecture",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
@@ -287,7 +281,6 @@ fun KernelCard(
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(0.6f),
                                             maxLines = 1
                                         )
                                     }
@@ -298,9 +291,8 @@ fun KernelCard(
                         // Security
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(24.dp),
                             color = MaterialTheme.colorScheme.surfaceContainer,
-                            tonalElevation = 1.dp
                         ) {
                             Column(
                                 modifier = Modifier
@@ -315,7 +307,7 @@ fun KernelCard(
                                 ) {
                                     Surface(
                                         modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.error,
+                                        color = MaterialTheme.colorScheme.primaryContainer,
                                         shape = CircleShape
                                     ) {
                                         Box(
@@ -325,7 +317,7 @@ fun KernelCard(
                                             Icon(
                                                 imageVector = Icons.Filled.Security,
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onError,
+                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                                 modifier = Modifier.size(16.dp)
                                             )
                                         }
@@ -351,7 +343,7 @@ fun KernelCard(
                                         Text(
                                             text = "SELinux",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
@@ -359,7 +351,6 @@ fun KernelCard(
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = getSelinuxColor(k.selinuxStatus),
                                             textAlign = TextAlign.End,
-                                            modifier = Modifier.weight(0.6f),
                                             maxLines = 1
                                         )
                                     }
@@ -373,7 +364,7 @@ fun KernelCard(
                                         Text(
                                             text = "KernelSU",
                                             style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             modifier = Modifier.weight(0.4f)
                                         )
                                         Text(
@@ -410,11 +401,11 @@ fun KernelCard(
         }
     }
 
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow
-    ) {
+                Surface(
+                modifier = modifier,
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -470,20 +461,11 @@ fun KernelCard(
                     .padding(bottom = 20.dp)
             ) {
                 // Process kernel version to extract clean version info
-                val versionString = k.version
-                val hashIndex = versionString.indexOf(" #")
-                val parenIndex = versionString.indexOf(" (")
-                val endIndex = when {
-                    hashIndex != -1 && parenIndex != -1 -> minOf(hashIndex, parenIndex)
-                    hashIndex != -1 -> hashIndex
-                    parenIndex != -1 -> parenIndex
-                    else -> versionString.length
-                }
-                val localVersion = versionString.substring(0, endIndex).trim()
+                val shortenedVersion = shortenKernelVersion(k.version)
 
                 // Single card: Kernel Version (full width)
                 CompactInfoCard(
-                    label = stringResource(R.string.version, localVersion),
+                    label = stringResource(R.string.version, shortenedVersion),
                     value = "",
                     icon = Icons.Filled.Memory,
                     modifier = Modifier.fillMaxWidth()
@@ -578,13 +560,13 @@ private fun CompactInfoCard(
         ) {
             // Icon with MD3 styling using dynamic colors based on label
             val iconColor = when {
-                label.contains("version", ignoreCase = true) -> MaterialTheme.colorScheme.primary
-                label.contains("type", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
-                label.contains("abi", ignoreCase = true) -> MaterialTheme.colorScheme.tertiary
-                label.contains("arch", ignoreCase = true) -> MaterialTheme.colorScheme.primary
-                label.contains("selinux", ignoreCase = true) -> MaterialTheme.colorScheme.error
-                label.contains("kernelsu", ignoreCase = true) -> MaterialTheme.colorScheme.secondary
-                else -> MaterialTheme.colorScheme.primary
+                label.contains("version", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
+                label.contains("type", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
+                label.contains("abi", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
+                label.contains("arch", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
+                label.contains("selinux", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
+                label.contains("kernelsu", ignoreCase = true) -> MaterialTheme.colorScheme.primaryContainer
+                else -> MaterialTheme.colorScheme.primaryContainer
             }
             
             Surface(
@@ -599,10 +581,10 @@ private fun CompactInfoCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (iconColor == MaterialTheme.colorScheme.error) 
-                            MaterialTheme.colorScheme.onError 
+                        tint = if (iconColor == MaterialTheme.colorScheme.errorContainer)
+                            MaterialTheme.colorScheme.onErrorContainer
                         else 
-                            MaterialTheme.colorScheme.onPrimary,
+                            MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -661,5 +643,29 @@ private fun getKernelSuColor(status: String): Color {
         status.contains("Detected", ignoreCase = true) -> MaterialTheme.colorScheme.secondary // Blue tone from dynamic colors
         status.contains("Not Detected", ignoreCase = true) -> MaterialTheme.colorScheme.outline // Gray tone from dynamic colors
         else -> MaterialTheme.colorScheme.onSurface
+    }
+}
+
+// Utility function to shorten kernel version format
+private fun shortenKernelVersion(version: String): String {
+    // Extract version number and kernel name
+    val versionRegex = """Linux version ([\d.]+)-([^ ]+)""".toRegex()
+    val matchResult = versionRegex.find(version)
+    
+    return if (matchResult != null) {
+        val versionNumber = matchResult.groupValues[1]
+        val kernelName = matchResult.groupValues[2]
+        "$versionNumber-$kernelName"
+    } else {
+        // Fallback: try to extract version info before hash or parentheses
+        val hashIndex = version.indexOf(" #")
+        val parenIndex = version.indexOf(" (")
+        val endIndex = when {
+            hashIndex != -1 && parenIndex != -1 -> minOf(hashIndex, parenIndex)
+            hashIndex != -1 -> hashIndex
+            parenIndex != -1 -> parenIndex
+            else -> version.length
+        }
+        version.substring(0, endIndex).trim()
     }
 }
