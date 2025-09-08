@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.ui.components
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,8 @@ data class Developer(val name: String, val role: String, val githubUsername: Str
 val developers = listOf(
     Developer("Gustyx-Power", "Founder & Developer", "Gustyx-Power", R.drawable.gustyx_power),
     Developer("Pavelc4", "Ui Supports", "pavelc4", R.drawable.pavelc4),
-    Developer("Ziyu", "Tuning Supports", "Ziyu", R.drawable.ziyu)
+    Developer("Ziyu", "Tuning Supports", "Ziyu", R.drawable.ziyu),
+    Developer("Viasco", "MD3 UI Migration", "bimoalfarrabi", R.drawable.viasco)
 )
 
 @Composable
@@ -140,13 +142,6 @@ fun AboutCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-
                     AssistChip(
                         onClick = { showCreditsDialog = true },
                         label = {
@@ -179,13 +174,8 @@ fun AboutCard(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
                         Text(stringResource(id = R.string.credits))
                     }
                 },
@@ -215,9 +205,8 @@ fun DeveloperCreditItem(developer: Developer) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { uriHandler.openUri(githubProfileUrl) },
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
