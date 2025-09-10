@@ -99,4 +99,10 @@
     <string name="tuning_feature_thermal_desc">Mengelola batas suhu perangkat. Penyesuaian di sini dapat membantu mencegah throttling (penurunan performa akibat panas berlebih) atau sebaliknya, memungkinkan performa lebih tinggi dengan risiko suhu lebih tinggi.</string>
     <string name="tuning_feature_swappiness_title">Swappiness</string>
     <string name="tuning_feature_swappiness_desc">Mengontrol seberapa agresif kernel memindahkan data dari RAM ke zRAM/swap. Nilai yang lebih tinggi berarti lebih agresif memindahkan ke swap (bisa menghemat RAM aktif tapi lebih lambat), nilai lebih rendah mempertahankan data di RAM lebih lama.</string>
+    
+    <string name="kernel_verification_title">Kernel Tidak Didukung</string>
+    <string name="kernel_verification_desc">Aplikasi ini hanya mendukung kernel yang dibuat oleh bimoalfarrabi@github.com. Silakan gunakan kernel yang didukung untuk melanjutkan.</string>
+    <string name="root_required">Diperlukan Root</string>
+    <string name="root_required_desc">Aplikasi ini memerlukan akses root untuk berfungsi dengan baik. Silakan berikan akses root.</string>
+    <string name="exit_app">Keluar</string>
 </resources>

@@ -27,6 +27,7 @@ import id.xms.xtrakernelmanager.data.repository.ThermalRepository
 import id.xms.xtrakernelmanager.service.ThermalService
 import id.xms.xtrakernelmanager.ui.components.BottomNavBar
 import id.xms.xtrakernelmanager.ui.components.ExpressiveBackground
+import id.xms.xtrakernelmanager.ui.components.KernelVerificationDialog
 import id.xms.xtrakernelmanager.ui.components.RootRequiredDialog
 import id.xms.xtrakernelmanager.ui.dialog.BatteryOptDialog
 import id.xms.xtrakernelmanager.ui.screens.*
@@ -57,6 +58,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var batteryOptChecker: BatteryOptimizationChecker
     private var showBatteryOptDialog by mutableStateOf(false)
     private var showRootRequiredDialog by mutableStateOf(false)
+    private var showKernelVerificationDialog by mutableStateOf(false)
     private var permissionDenialCount by mutableIntStateOf(0)
     private val MAX_PERMISSION_RETRIES = 2
 
@@ -70,7 +72,10 @@ class MainActivity : ComponentActivity() {
         // Initialize batteryOptChecker regardless of root status for consistency
         batteryOptChecker = BatteryOptimizationChecker(this)
         
-        if (!rootRepo.isRooted()) {
+        // Check if kernel is supported first
+        if (!isKernelSupported()) {
+            showKernelVerificationDialog = true
+        } else if (!rootRepo.isRooted()) {
             showRootRequiredDialog = true
         } else {
             // Only check permissions if device is rooted
@@ -94,6 +99,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+                    if (showKernelVerificationDialog) {
+                        KernelVerificationDialog(onDismiss = { finish() })
+                    }
                     if (showRootRequiredDialog) {
                         RootRequiredDialog(onDismiss = { finish() })
                     }
@@ -150,8 +158,49 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun isKernelSupported(): Boolean {
+        // Check if the kernel is built by bimoalfarrabi@github.com
+        // This is a simple check - in a real implementation, you might want to check
+        // more specific kernel properties or signatures
+        try {
+            val process = Runtime.getRuntime().exec("getprop ro.boot.kernel.builder")
+            val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
+            val builder = reader.readLine()
+            reader.close()
+            process.waitFor()
+            
+            // Check if the builder is bimoalfarrabi@github.com
+            if (builder != null && builder.contains("bimoalfarrabi@github.com")) {
+                return true
+            }
+            
+            // Alternative check: look for specific kernel signature in /proc/version
+            val versionProcess = Runtime.getRuntime().exec("cat /proc/version")
+            val versionReader = java.io.BufferedReader(java.io.InputStreamReader(versionProcess.inputStream))
+            val versionLine = versionReader.readLine()
+            versionReader.close()
+            versionProcess.waitFor()
+            
+            // Check if the version string contains the builder signature
+            if (versionLine != null && versionLine.contains("bimoalfarrabi@github.com")) {
+                return true
+            }
+            
+            // If neither check passes, kernel is not supported
+            return false
+        } catch (e: Exception) {
+            // If we can't determine, assume it's not supported for security
+            return false
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        
+        // Don't check permissions if kernel verification dialog is shown
+        if (showKernelVerificationDialog) {
+            return
+        }
         
         // Only check permissions if device is rooted
         if (rootRepo.isRooted()) {

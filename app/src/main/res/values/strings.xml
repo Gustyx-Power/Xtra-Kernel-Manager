@@ -128,6 +128,8 @@
     <string name="tuning_feature_swappiness_title">Swappiness</string>
     <string name="tuning_feature_swappiness_desc">Controls how aggressively the kernel moves data from RAM to zRAM/swap. A higher value means more aggressive swapping (can save active RAM but is slower), a lower value keeps data in RAM longer.</string>
 
+    <string name="kernel_verification_title">Kernel Not Supported</string>
+    <string name="kernel_verification_desc">This application only supports kernels built by bimoalfarrabi@github.com. Please use a supported kernel to continue.</string>
     <string name="root_required">Root Required</string>
     <string name="root_required_desc">This application requires root access to function properly. Please grant root access.</string>
     <string name="exit_app">Exit</string>
