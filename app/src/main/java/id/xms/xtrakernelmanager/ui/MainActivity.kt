@@ -67,15 +67,17 @@ class MainActivity : ComponentActivity() {
         // Force dark mode always - ignore system theme setting
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
+        // Initialize batteryOptChecker regardless of root status for consistency
+        batteryOptChecker = BatteryOptimizationChecker(this)
+        
         if (!rootRepo.isRooted()) {
             showRootRequiredDialog = true
+        } else {
+            // Only check permissions if device is rooted
+            checkAndHandlePermissions()
         }
 
         enableEdgeToEdge() // Enable edge-to-edge display for Android 16-like experience
-        batteryOptChecker = BatteryOptimizationChecker(this)
-
-        // Check permissions first before starting any services
-        checkAndHandlePermissions()
 
         // Observe language changes
         lifecycleScope.launch {
@@ -95,7 +97,8 @@ class MainActivity : ComponentActivity() {
                     if (showRootRequiredDialog) {
                         RootRequiredDialog(onDismiss = { finish() })
                     }
-                    if (showBatteryOptDialog) {
+                    // Only show permission dialog if device is rooted
+                    if (showBatteryOptDialog && rootRepo.isRooted()) {
                         BatteryOptDialog(
                             onDismiss = {
                                 // Only allow dismiss if we haven't exceeded retry limit
@@ -138,33 +141,38 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkAndHandlePermissions() {
-        if (!batteryOptChecker.hasRequiredPermissions()) {
+        // Only check permissions if device is rooted
+        if (rootRepo.isRooted() && !batteryOptChecker.hasRequiredPermissions()) {
             showBatteryOptDialog = true
-        } else {
-            // Only start service if we have permissions
+        } else if (rootRepo.isRooted()) {
+            // Only start service if we have permissions and device is rooted
             startForegroundService(Intent(this, ThermalService::class.java))
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Check if permissions were denied
-        if (!batteryOptChecker.hasRequiredPermissions()) {
-            permissionDenialCount++
-            if (permissionDenialCount >= MAX_PERMISSION_RETRIES) {
-                // Show dialog with exit button after max retries
-                showBatteryOptDialog = true
-            } else if (!showBatteryOptDialog) {
-                // Show normal dialog if not already showing
-                showBatteryOptDialog = true
-            }
-        } else {
-            // Reset counter if permissions are granted
-            permissionDenialCount = 0
-            showBatteryOptDialog = false
+        
+        // Only check permissions if device is rooted
+        if (rootRepo.isRooted()) {
+            // Check if permissions were denied
+            if (!batteryOptChecker.hasRequiredPermissions()) {
+                permissionDenialCount++
+                if (permissionDenialCount >= MAX_PERMISSION_RETRIES) {
+                    // Show dialog with exit button after max retries
+                    showBatteryOptDialog = true
+                } else if (!showBatteryOptDialog) {
+                    // Show normal dialog if not already showing
+                    showBatteryOptDialog = true
+                }
+            } else {
+                // Reset counter if permissions are granted
+                permissionDenialCount = 0
+                showBatteryOptDialog = false
 
-            // Ensure service is running if permissions are granted
-            startForegroundService(Intent(this, ThermalService::class.java))
+                // Ensure service is running if permissions are granted
+                startForegroundService(Intent(this, ThermalService::class.java))
+            }
         }
     }
 }
