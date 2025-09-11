@@ -72,13 +72,13 @@ class MainActivity : ComponentActivity() {
         // Initialize batteryOptChecker regardless of root status for consistency
         batteryOptChecker = BatteryOptimizationChecker(this)
         
-        // Check if kernel is supported first
-        if (!isKernelSupported()) {
-            showKernelVerificationDialog = true
-        } else if (!rootRepo.isRooted()) {
+        // Check root first, then kernel
+        if (!rootRepo.isRooted()) {
             showRootRequiredDialog = true
+        } else if (!isKernelSupported()) {
+            showKernelVerificationDialog = true
         } else {
-            // Only check permissions if device is rooted
+            // Only check permissions if device is rooted and kernel is supported
             checkAndHandlePermissions()
         }
 
@@ -159,34 +159,38 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun isKernelSupported(): Boolean {
-        // Check if the kernel is built by bimoalfarrabi@github.com
-        // This is a simple check - in a real implementation, you might want to check
-        // more specific kernel properties or signatures
+        // Check if the kernel has one of the supported signatures
+        // This approach focuses on checking /proc/version which is more reliable
+        val supportedSignatures = listOf(
+            "bimoalfarrabi@github.com",
+            "N0Kontzzz"
+        )
+        
         try {
-            val process = Runtime.getRuntime().exec("getprop ro.boot.kernel.builder")
-            val reader = java.io.BufferedReader(java.io.InputStreamReader(process.inputStream))
-            val builder = reader.readLine()
-            reader.close()
-            process.waitFor()
+            // Try to read /proc/version with root access
+            var versionLine: String? = null
             
-            // Check if the builder is bimoalfarrabi@github.com
-            if (builder != null && builder.contains("bimoalfarrabi@github.com")) {
-                return true
+            try {
+                val versionProcess = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /proc/version"))
+                val versionReader = java.io.BufferedReader(java.io.InputStreamReader(versionProcess.inputStream))
+                versionLine = versionReader.readLine()
+                versionReader.close()
+                versionProcess.waitFor()
+            } catch (e: Exception) {
+                // If we can't read the file, assume kernel is not supported
+                return false
             }
             
-            // Alternative check: look for specific kernel signature in /proc/version
-            val versionProcess = Runtime.getRuntime().exec("cat /proc/version")
-            val versionReader = java.io.BufferedReader(java.io.InputStreamReader(versionProcess.inputStream))
-            val versionLine = versionReader.readLine()
-            versionReader.close()
-            versionProcess.waitFor()
-            
-            // Check if the version string contains the builder signature
-            if (versionLine != null && versionLine.contains("bimoalfarrabi@github.com")) {
-                return true
+            // Check if the version string contains any supported signature
+            if (versionLine != null) {
+                for (signature in supportedSignatures) {
+                    if (versionLine.contains(signature, ignoreCase = true)) {
+                        return true
+                    }
+                }
             }
             
-            // If neither check passes, kernel is not supported
+            // If no supported signature is found, kernel is not supported
             return false
         } catch (e: Exception) {
             // If we can't determine, assume it's not supported for security

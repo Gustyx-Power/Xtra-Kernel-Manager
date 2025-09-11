@@ -18,6 +18,7 @@ class PreferenceManager @Inject constructor(
         private const val KEY_BATTERY_NOTIFICATION_AUTO_START = "battery_notification_auto_start"
         private const val KEY_SERVICE_AUTO_START = "service_auto_start"
         private const val KEY_TARGET_GAME_PACKAGES = "target_game_packages"
+        private const val KEY_KGSL_SKIP_ZEROING = "kgsl_skip_zeroing"
     }
 
     fun setBatteryStatsEnabled(enabled: Boolean) {
@@ -59,5 +60,15 @@ class PreferenceManager @Inject constructor(
 
     fun getTargetGamePackages(): Set<String> {
         return sharedPreferences.getStringSet(KEY_TARGET_GAME_PACKAGES, emptySet()) ?: emptySet()
+    }
+
+    fun setKgslSkipZeroing(enabled: Boolean) {
+        sharedPreferences.edit()
+            .putBoolean(KEY_KGSL_SKIP_ZEROING, enabled)
+            .apply()
+    }
+
+    fun getKgslSkipZeroing(): Boolean {
+        return sharedPreferences.getBoolean(KEY_KGSL_SKIP_ZEROING, false)
     }
 }

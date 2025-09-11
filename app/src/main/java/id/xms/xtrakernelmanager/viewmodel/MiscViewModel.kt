@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.xms.xtrakernelmanager.data.repository.SystemRepository
 import id.xms.xtrakernelmanager.service.BatteryStatsService
 import id.xms.xtrakernelmanager.utils.PreferenceManager
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MiscViewModel @Inject constructor(
     private val application: Application,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    private val systemRepository: SystemRepository
 ) : AndroidViewModel(application) {
 
     private val _batteryStatsEnabled = MutableStateFlow(false)
@@ -25,10 +27,20 @@ class MiscViewModel @Inject constructor(
     private val _batteryNotificationEnabled = MutableStateFlow(false)
     val batteryNotificationEnabled: StateFlow<Boolean> = _batteryNotificationEnabled.asStateFlow()
 
+    private val _kgslSkipZeroingEnabled = MutableStateFlow(false)
+    val kgslSkipZeroingEnabled: StateFlow<Boolean> = _kgslSkipZeroingEnabled.asStateFlow()
+
+    private val _isKgslFeatureAvailable = MutableStateFlow(false)
+    val isKgslFeatureAvailable: StateFlow<Boolean> = _isKgslFeatureAvailable.asStateFlow()
+
     init {
         // Load saved preferences on init
         _batteryStatsEnabled.value = preferenceManager.getBatteryStatsEnabled()
         _batteryNotificationEnabled.value = preferenceManager.getBatteryStatsEnabled()
+        _kgslSkipZeroingEnabled.value = preferenceManager.getKgslSkipZeroing()
+        
+        // Check if KGSL feature is available
+        _isKgslFeatureAvailable.value = systemRepository.isKgslFeatureAvailable()
     }
 
     fun toggleBatteryStats(enabled: Boolean) {
@@ -55,6 +67,23 @@ class MiscViewModel @Inject constructor(
                 val serviceIntent = Intent(application, BatteryStatsService::class.java)
                 application.stopService(serviceIntent)
                 preferenceManager.setBatteryStatsEnabled(false)
+            }
+        }
+    }
+
+    fun toggleKgslSkipZeroing(enabled: Boolean) {
+        viewModelScope.launch {
+            // Try to set the value in the kernel
+            val success = systemRepository.setKgslSkipZeroing(enabled)
+            
+            if (success) {
+                // Update state and save preference
+                _kgslSkipZeroingEnabled.value = enabled
+                preferenceManager.setKgslSkipZeroing(enabled)
+            } else {
+                // If failed, revert the state to the actual value
+                _kgslSkipZeroingEnabled.value = systemRepository.getKgslSkipZeroing()
+                preferenceManager.setKgslSkipZeroing(_kgslSkipZeroingEnabled.value)
             }
         }
     }

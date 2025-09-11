@@ -140,6 +140,65 @@ class SystemRepository @Inject constructor(
         return null
     }
 
+    private fun writeStringToFile(filePath: String, content: String, fileDescription: String, attemptSu: Boolean = true): Boolean {
+        val file = File(filePath)
+        try {
+            if (file.exists() && file.canWrite()) {
+                file.writeText(content)
+                return true
+            } else {
+                Log.w(TAG, "'$fileDescription': File tidak dapat ditulis (langsung). Path: $filePath")
+                if (!attemptSu) return false
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "'$fileDescription': SecurityException saat menulis (langsung). Path: $filePath. Mencoba SU.", e)
+        } catch (e: FileNotFoundException) {
+            Log.w(TAG, "'$fileDescription': FileNotFoundException saat menulis (langsung). Path: $filePath. Mencoba SU.", e)
+        } catch (e: IOException) {
+            Log.e(TAG, "'$fileDescription': IOException saat menulis (langsung). Path: $filePath.", e)
+            return false
+        } catch (e: Exception) {
+            Log.e(TAG, "'$fileDescription': Exception tidak diketahui saat menulis (langsung). Path: $filePath.", e)
+            return false
+        }
+
+        if (attemptSu) {
+            var process: Process? = null
+            try {
+                process = Runtime.getRuntime().exec(arrayOf("su", "-c", "echo \"$content\" > \"$filePath\""))
+                val errorReader = BufferedReader(InputStreamReader(process.errorStream))
+                val exitCode = process.waitFor()
+                val errorOutput = StringBuilder()
+                var line: String?
+
+                while (errorReader.readLine().also { line = it } != null) {
+                    errorOutput.append(line).append("\n")
+                }
+
+                if (errorOutput.isNotBlank()) {
+                    Log.w(TAG, "'$fileDescription': Error stream dari 'su echo \"$content\" > \"$filePath\"' (exit: $exitCode):\n${errorOutput.toString().trim()}")
+                }
+
+                if (exitCode == 0) {
+                    Log.d(TAG, "'$fileDescription': Berhasil menulis ke file (via SU). Path: $filePath")
+                    return true
+                } else {
+                    Log.e(TAG, "'$fileDescription': Perintah 'su echo \"$content\" > \"$filePath\"' gagal dengan exit code $exitCode.")
+                }
+            } catch (e: IOException) {
+                Log.e(TAG, "'$fileDescription': IOException saat menjalankan 'su echo \"$content\" > \"$filePath\"'", e)
+            } catch (e: InterruptedException) {
+                Log.e(TAG, "'$fileDescription': InterruptedException saat 'su echo \"$content\" > \"$filePath\"'", e)
+                Thread.currentThread().interrupt()
+            } catch (e: Exception) {
+                Log.e(TAG, "'$fileDescription': Error tidak diketahui saat 'su echo \"$content\" > \"$filePath\"'", e)
+            } finally {
+                process?.destroy()
+            }
+        }
+        return false
+    }
+
     // Variabel untuk menyimpan data CPU sebelumnya untuk perhitungan load
     private var previousCpuData: List<LongArray>? = null
 
@@ -1059,6 +1118,32 @@ class SystemRepository @Inject constructor(
             architecture = architecture,
             kernelSuStatus = kernelSuStatus
         )
+    }
+
+    fun getKgslSkipZeroing(): Boolean {
+        val value = readFileToString("/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing", "KGSL Skip Pool Zeroing")
+        return parseKgslSkipZeroingValue(value)
+    }
+
+    fun setKgslSkipZeroing(enabled: Boolean): Boolean {
+        val value = if (enabled) "1" else "0"
+        return writeStringToFile("/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing", value, "KGSL Skip Pool Zeroing")
+    }
+
+    fun isKgslFeatureAvailable(): Boolean {
+        return try {
+            // Check if the KGSL Skip Pool Zeroing file exists and is accessible
+            val kgslFile = File("/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing")
+            kgslFile.exists() && kgslFile.canRead()
+        } catch (e: Exception) {
+            // If we can't access the file, feature is not available
+            false
+        }
+    }
+
+    // Helper function for testing
+    fun parseKgslSkipZeroingValue(value: String?): Boolean {
+        return value?.toIntOrNull() == 1
     }
 
     fun getCpuClusters(): List<CpuCluster> {

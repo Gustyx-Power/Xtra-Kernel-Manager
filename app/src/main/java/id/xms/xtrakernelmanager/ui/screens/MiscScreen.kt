@@ -54,6 +54,8 @@ fun MiscScreen(
 
     val batteryStatsEnabled by viewModel.batteryStatsEnabled.collectAsState()
     val batteryNotificationEnabled by viewModel.batteryNotificationEnabled.collectAsState()
+    val kgslSkipZeroingEnabled by viewModel.kgslSkipZeroingEnabled.collectAsState()
+    val isKgslFeatureAvailable by viewModel.isKgslFeatureAvailable.collectAsState()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -91,6 +93,15 @@ fun MiscScreen(
 
             // Additional misc features
             SystemTweaksCard()
+
+            // KGSL Skip Pool Zeroing feature
+            KgslSkipZeroingCard(
+                kgslSkipZeroingEnabled = kgslSkipZeroingEnabled,
+                isKgslFeatureAvailable = isKgslFeatureAvailable,
+                onToggleKgslSkipZeroing = { enabled ->
+                    viewModel.toggleKgslSkipZeroing(enabled)
+                }
+            )
         }
     }
 }
@@ -396,6 +407,120 @@ fun SystemTweaksCard() {
                         }
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun KgslSkipZeroingCard(
+    kgslSkipZeroingEnabled: Boolean,
+    isKgslFeatureAvailable: Boolean,
+    onToggleKgslSkipZeroing: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Graphics Performance",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "KGSL Skip Pool Zeroing",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        text = if (isKgslFeatureAvailable) {
+                            "Improve FPS in emulators, Unity & Unreal games. May cause UI glitches."
+                        } else {
+                            "Feature not available in your kernel version."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    )
+                }
+
+                Switch(
+                    checked = if (isKgslFeatureAvailable) kgslSkipZeroingEnabled else false,
+                    onCheckedChange = if (isKgslFeatureAvailable) onToggleKgslSkipZeroing else null,
+                    enabled = isKgslFeatureAvailable,
+                    thumbContent = if (kgslSkipZeroingEnabled && isKgslFeatureAvailable) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else if (isKgslFeatureAvailable) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        null
+                    }
+                )
+            }
+
+            if (kgslSkipZeroingEnabled && isKgslFeatureAvailable) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Performance Mode Active",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Text(
+                            text = "This feature may cause UI glitches or visual artifacts. If you experience issues, disable this feature.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
             }
         }
     }
