@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Xtra Kernel Manager</string>
-    <string name="welcome_message">Welcome to Xtra Kernel Manager!</string>
-    <string name="desc_about">Thank you for choosing Xtra Kernel Manager. We hope you enjoy the experience!</string>
+    <string name="app_name">NKM</string>
+    <string name="welcome_message">Welcome to N0Kontzzz Kernel Manager!</string>
+    <string name="desc_about">Thank you for choosing N0Kontzzz Kernel Manager. We hope you enjoy the experience!</string>
     <string name="about">About Apps</string>
     <string name="telegram">Telegram</string>
     <string name="github">Github</string>
@@ -17,7 +17,7 @@
     <string name="architecture" translatable="false">Arch: %1$s</string>
     <string name="kernel_information">Kernel Information</string>
     <string name="kernel_version">Kernel Version: %1$s</string>
-    <string name="xtra_kernel_manager">Xtra Kernel Manager</string>
+    <string name="n0kz_kernel_manager">N0Kontzzz Kernel Manager</string>
     <string name="home">Home</string>
     <string name="tuning">Tuning</string>
     <string name="misc">Misc</string>

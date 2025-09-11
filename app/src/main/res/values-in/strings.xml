@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">Xtra Kernel Manager</string>
-    <string name="welcome_message">Selamat datang di Xtra Kernel Manager!</string>
-    <string name="desc_about">Terima kasih telah memilih Xtra Kernel Manager. Kami harap Anda menikmati pengalamannya!</string>
+    <string name="app_name">NKM</string>
+    <string name="welcome_message">Selamat datang di N0Kontzzz Kernel Manager!</string>
+    <string name="desc_about">Terima kasih telah memilih N0Kontzzz Kernel Manager. Kami harap Anda menikmati pengalamannya!</string>
     <string name="about">Tentang Aplikasi</string>
     <string name="telegram">Telegram</string>
     <string name="github">Github</string>
@@ -14,7 +14,7 @@
     <string name="kernel_type">Tipe Kernel: %1$s</string>
     <string name="kernel_information">Informasi Kernel</string>
     <string name="kernel_version">Version Kernel: %1$s</string>
-    <string name="xtra_kernel_manager">Xtra Kernel Manager</string>
+    <string name="n0kz_kernel_manager">N0Kontzzz Kernel Manager</string>
     <string name="home">Home</string>
     <string name="tuning">Tuning</string>
     <string name="misc">Misc</string>
