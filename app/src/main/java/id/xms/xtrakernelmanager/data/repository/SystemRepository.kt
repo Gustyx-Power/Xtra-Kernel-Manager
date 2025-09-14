@@ -1120,25 +1120,46 @@ class SystemRepository @Inject constructor(
         )
     }
 
+    // Helper function to determine which KGSL path is available
+    private fun getAvailableKgslPath(): String? {
+        val paths = listOf(
+            "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
+            "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing"
+        )
+        
+        for (path in paths) {
+            try {
+                val file = File(path)
+                if (file.exists() && file.canRead()) {
+                    return path
+                }
+            } catch (e: Exception) {
+                // Continue to check the next path
+            }
+        }
+        return null
+    }
+
     fun getKgslSkipZeroing(): Boolean {
-        val value = readFileToString("/sys/kernel/n0kz_attributes/kgsl_skip_zeroing", "KGSL Skip Pool Zeroing")
-        return parseKgslSkipZeroingValue(value)
+        val path = getAvailableKgslPath()
+        if (path != null) {
+            val value = readFileToString(path, "KGSL Skip Pool Zeroing")
+            return parseKgslSkipZeroingValue(value)
+        }
+        return false
     }
 
     fun setKgslSkipZeroing(enabled: Boolean): Boolean {
-        val value = if (enabled) "1" else "0"
-        return writeStringToFile("/sys/kernel/n0kz_attributes/kgsl_skip_zeroing", value, "KGSL Skip Pool Zeroing")
+        val path = getAvailableKgslPath()
+        if (path != null) {
+            val value = if (enabled) "1" else "0"
+            return writeStringToFile(path, value, "KGSL Skip Pool Zeroing")
+        }
+        return false
     }
 
     fun isKgslFeatureAvailable(): Boolean {
-        return try {
-            // Check if the KGSL Skip Pool Zeroing file exists and is accessible
-            val kgslFile = File("/sys/kernel/n0kz_attributes/kgsl_skip_zeroing")
-            kgslFile.exists() && kgslFile.canRead()
-        } catch (e: Exception) {
-            // If we can't access the file, feature is not available
-            false
-        }
+        return getAvailableKgslPath() != null
     }
 
     // Helper function for testing
