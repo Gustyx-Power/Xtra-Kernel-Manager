@@ -313,13 +313,70 @@ fun PerformanceModeCard(
     blur: Boolean = true
 ) {
     var performanceMode by remember { mutableStateOf("Balanced") }
+    
+    // Collect available governors
+    val availableGovernors by viewModel.generalAvailableCpuGovernors.collectAsState()
 
-    // Governor mappings as specified
-    val governorMappings = mapOf(
-        "Battery Saver" to "powersave",
-        "Balanced" to "schedutil",
-        "Performance" to "performance"
-    )
+    // Dynamically create performance modes based on available governors
+    val performanceModes = remember(availableGovernors) {
+        val modes = mutableListOf<String>()
+        
+        // Always include Balanced as default
+        modes.add("Balanced")
+        
+        // Add Battery Saver if powersave governor is available
+        if (availableGovernors.contains("powersave")) {
+            modes.add(0, "Battery Saver")
+        }
+        
+        // Add Performance if performance governor is available
+        if (availableGovernors.contains("performance")) {
+            modes.add("Performance")
+        }
+        
+        // Add other common governors if they exist
+        if (availableGovernors.contains("ondemand") && !modes.contains("Performance")) {
+            modes.add("Performance")
+        }
+        
+        if (availableGovernors.contains("conservative") && !modes.contains("Battery Saver")) {
+            modes.add(0, "Battery Saver")
+        }
+        
+        modes
+    }
+    
+    // Dynamic governor mappings based on available governors
+    val governorMappings = remember(availableGovernors) {
+        val mappings = mutableMapOf<String, String>()
+        
+        // Default mappings
+        mappings["Balanced"] = "schedutil"
+        
+        // Check for specific governors
+        if (availableGovernors.contains("powersave")) {
+            mappings["Battery Saver"] = "powersave"
+        } else if (availableGovernors.contains("conservative")) {
+            mappings["Battery Saver"] = "conservative"
+        }
+        
+        if (availableGovernors.contains("performance")) {
+            mappings["Performance"] = "performance"
+        } else if (availableGovernors.contains("ondemand")) {
+            mappings["Performance"] = "ondemand"
+        }
+        
+        // Fallback mappings
+        if (!mappings.containsKey("Battery Saver") && availableGovernors.isNotEmpty()) {
+            mappings["Battery Saver"] = availableGovernors.firstOrNull { it.contains("save", ignoreCase = true) } ?: availableGovernors.first()
+        }
+        
+        if (!mappings.containsKey("Performance") && availableGovernors.isNotEmpty()) {
+            mappings["Performance"] = availableGovernors.firstOrNull { it.contains("perform", ignoreCase = true) } ?: availableGovernors.last()
+        }
+        
+        mappings
+    }
 
     // Custom color themes for each mode
     val batteryYellow = MaterialTheme.colorScheme.tertiary // Orange-yellow for battery saver
@@ -365,7 +422,7 @@ fun PerformanceModeCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                listOf("Battery Saver", "Balanced", "Performance").forEach { mode ->
+                performanceModes.forEach { mode ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -426,10 +483,22 @@ fun PerformanceModeCard(
                                 )
                                 Text(
                                     text = when (mode) {
-                                        "Battery Saver" -> "Powersave governor for maximum battery life"
-                                        "Balanced" -> "Schedutil governor for balanced performance"
-                                        "Performance" -> "Performance governor for maximum speed"
-                                        else -> "Default governor"
+                                        "Battery Saver" -> {
+                                            val gov = governorMappings[mode] ?: "powersave"
+                                            "$gov governor for maximum battery life"
+                                        }
+                                        "Balanced" -> {
+                                            val gov = governorMappings[mode] ?: "schedutil"
+                                            "$gov governor for balanced performance"
+                                        }
+                                        "Performance" -> {
+                                            val gov = governorMappings[mode] ?: "performance"
+                                            "$gov governor for maximum speed"
+                                        }
+                                        else -> {
+                                            val gov = governorMappings[mode] ?: "default"
+                                            "$gov governor"
+                                        }
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -463,40 +532,33 @@ fun PerformanceModeCard(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = when (performanceMode) {
-                            "Battery Saver" -> batteryYellow.copy(alpha = 0.1f)
-                            "Performance" -> performanceRed.copy(alpha = 0.1f)
-                            else -> MaterialTheme.colorScheme.surfaceContainerLow
-                        }
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Performance Mode Applied",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                         Text(
-                            text = when (performanceMode) {
-                                "Battery Saver" -> "🔋 Battery Saver Active"
-                                "Performance" -> "⚡ Performance Mode Active"
-                                else -> "Mode Active"
-                            },
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = when (performanceMode) {
-                                "Battery Saver" -> batteryYellow
-                                "Performance" -> performanceRed
-                                else -> MaterialTheme.colorScheme.onPrimaryContainer
-                            }
-                        )
-                        Text(
-                            text = when (performanceMode) {
-                                "Battery Saver" -> "Using powersave governor for maximum battery life"
-                                "Performance" -> "Using performance governor for maximum speed"
-                                else -> "Using default governor"
-                            },
+                            text = "Changed CPU governor to ${governorMappings[performanceMode] ?: "schedutil"} on all clusters",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
                 }
