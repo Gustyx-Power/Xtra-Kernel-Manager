@@ -1163,13 +1163,27 @@ class SystemRepository @Inject constructor(
         for (path in paths) {
             try {
                 val file = File(path)
-                if (file.exists() && file.canRead()) {
+                // Check if file exists
+                if (file.exists()) {
                     return path
                 }
             } catch (e: Exception) {
                 // Continue to check the next path
             }
         }
+        
+        // If direct file check fails, try to read the file using SU
+        for (path in paths) {
+            try {
+                val value = readFileToString(path, "KGSL Skip Pool Zeroing", false)
+                if (value != null) {
+                    return path
+                }
+            } catch (e: Exception) {
+                // Continue to check the next path
+            }
+        }
+        
         return null
     }
 
@@ -1192,7 +1206,31 @@ class SystemRepository @Inject constructor(
     }
 
     fun isKgslFeatureAvailable(): Boolean {
-        return getAvailableKgslPath() != null
+        // Try to get an available path
+        val path = getAvailableKgslPath()
+        if (path != null) {
+            return true
+        }
+        
+        // If no path found, try to actually read the value to see if feature is available
+        // This handles cases where file exists but needs SU permission to access
+        try {
+            val paths = listOf(
+                "/sys/kernel/n0kz_attributes/kgsl_skip_zeroing",
+                "/sys/kernel/n0kz_attributes/n0kz_kgsl_skip_zeroing"
+            )
+            
+            for (path in paths) {
+                val value = readFileToString(path, "KGSL Skip Pool Zeroing")
+                if (value != null) {
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            // Continue if reading fails
+        }
+        
+        return false
     }
 
     // Helper function for testing
