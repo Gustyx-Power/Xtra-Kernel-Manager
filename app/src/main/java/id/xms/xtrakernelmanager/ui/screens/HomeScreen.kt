@@ -550,9 +550,7 @@ fun HomeScreen(navController: NavController) {
 
     var showFabMenu by remember { mutableStateOf(false) }
 
-
-
-    val fullTitle = stringResource(R.string.xtra_kernel_manager)
+    val fullTitle = stringResource(R.string.n0kz_kernel_manager)
     val displayedTitle = fullTitle
 
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
