@@ -472,7 +472,7 @@ fun KgslSkipZeroingCard(
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
-                    } else if (isKgslFeatureAvailable) {
+                    } else {
                         {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -481,8 +481,6 @@ fun KgslSkipZeroingCard(
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
                             )
                         }
-                    } else {
-                        null
                     }
                 )
             }
