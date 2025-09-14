@@ -89,6 +89,7 @@ enum class Language {
 @Composable
 fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
     var showInfoDialog by remember { mutableStateOf(false) }
+    val isTuningDataLoading by viewModel.isTuningDataLoading.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val systemUiController = rememberSystemUiController()
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -123,24 +124,30 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
             )
         }
     ) { paddingValues ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Hero Header
-            HeroHeader(
-                onClick = { showInfoDialog = true }
-            )
-            
-            PerformanceModeCard(viewModel = viewModel)
-            CpuGovernorCard(vm = viewModel)
-            GpuControlCard(tuningViewModel = viewModel)
-            ThermalCard(viewModel = viewModel)
-            SwappinessCard(vm = viewModel)
+        if (isTuningDataLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Hero Header
+                HeroHeader(
+                    onClick = { showInfoDialog = true }
+                )
+                
+                PerformanceModeCard(viewModel = viewModel)
+                CpuGovernorCard(vm = viewModel)
+                GpuControlCard(tuningViewModel = viewModel)
+                ThermalCard(viewModel = viewModel)
+                SwappinessCard(vm = viewModel)
+            }
         }
     }
 

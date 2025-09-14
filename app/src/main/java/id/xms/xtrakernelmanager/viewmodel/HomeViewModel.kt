@@ -10,9 +10,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import id.xms.xtrakernelmanager.data.model.*
 import id.xms.xtrakernelmanager.data.repository.RootRepository
 import id.xms.xtrakernelmanager.data.repository.SystemRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
 import javax.inject.Inject
+import kotlin.text.isNotBlank
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -83,7 +88,7 @@ class HomeViewModel @Inject constructor(
                 }
         }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _systemInfo.value = systemRepo.getSystemInfo()
             _kernelInfo.value = systemRepo.getKernelInfo()
             _rootStatus.value = rootRepo.isRooted()
@@ -104,4 +109,6 @@ class HomeViewModel @Inject constructor(
         super.onCleared()
         Log.d("HomeViewModel", "onCleared called.")
     }
+
+    
 }

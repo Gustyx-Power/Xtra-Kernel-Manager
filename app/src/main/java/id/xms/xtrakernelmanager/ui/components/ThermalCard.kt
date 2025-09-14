@@ -38,7 +38,7 @@ fun ThermalCard(
     val supportedProfiles by viewModel.supportedThermalProfiles.collectAsState()
     val currentProfileName by viewModel.currentThermalProfileName.collectAsState()
     val currentProfileIndex by viewModel.currentThermalModeIndex.collectAsState()
-    val isLoading by viewModel.isThermalLoading.collectAsState()
+    val isLoading by viewModel.isTuningDataLoading.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(true) }

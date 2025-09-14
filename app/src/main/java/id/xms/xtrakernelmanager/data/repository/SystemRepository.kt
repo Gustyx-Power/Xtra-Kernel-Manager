@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.data.repository
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -33,6 +34,8 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -59,11 +62,12 @@ class SystemRepository @Inject constructor(
 
     private val repositoryScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    private val systemInfoMutex = Mutex()
     private var cachedSystemInfo: SystemInfo? = null
     private suspend fun getCachedSystemInfo(): SystemInfo {
         // Menggunakan double-checked locking untuk thread-safety sederhana jika diakses dari coroutine berbeda
         // Meskipun dalam kasus ini, kemungkinan besar akan dipanggil dari scope callbackFlow yang sama.
-        return cachedSystemInfo ?: synchronized(this) {
+        return cachedSystemInfo ?: systemInfoMutex.withLock {
             cachedSystemInfo ?: getSystemInfoInternal().also { cachedSystemInfo = it }
         }
     }
@@ -676,6 +680,7 @@ class SystemRepository @Inject constructor(
         return uptime - awakeTime
     }
 
+    @SuppressLint("DefaultLocale")
     private fun formatDuration(millis: Long): String {
         val totalSeconds = millis / 1000
         val hours = totalSeconds / 3600
@@ -692,7 +697,7 @@ class SystemRepository @Inject constructor(
         return DeepSleepInfo(getUptimeMillisInternal(), getDeepSleepMillisInternal())
     }
 
-    private fun getSystemInfoInternal(): SystemInfo {
+    private suspend fun getSystemInfoInternal(): SystemInfo {
         Log.d(TAG, "Mengambil SystemInfo (API based)...")
 
         // Improved SoC detection with multiple property sources
@@ -1458,3 +1463,4 @@ class SystemRepository @Inject constructor(
         repositoryScope.cancel()
     }
 }
+

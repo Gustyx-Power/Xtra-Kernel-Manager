@@ -173,14 +173,14 @@ class TuningViewModel @Inject constructor(
     val maxZramSize: StateFlow<Long> = _maxZramSize.asStateFlow()
 
     /* ---------------- Thermal ---------------- */
-    private val _isThermalLoading = MutableStateFlow(true)
-    val isThermalLoading: StateFlow<Boolean> = _isThermalLoading.asStateFlow()
+    private val _isTuningDataLoading = MutableStateFlow(true)
+    val isTuningDataLoading: StateFlow<Boolean> = _isTuningDataLoading.asStateFlow()
 
     private val _currentThermalModeIndex = MutableStateFlow(-1)
     val currentThermalModeIndex: StateFlow<Int> = _currentThermalModeIndex.asStateFlow()
 
     val currentThermalProfileName: StateFlow<String> =
-        combine(_currentThermalModeIndex, _isThermalLoading) { idx, loading ->
+        combine(_currentThermalModeIndex, _isTuningDataLoading) { idx, loading ->
             if (loading) "Loading..."
             else thermalRepo.getCurrentThermalProfileName(idx)
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Loading...")
@@ -491,15 +491,15 @@ class TuningViewModel @Inject constructor(
 
     /* ---------------- Thermal ---------------- */
     private fun fetchCurrentThermalMode(isInitialLoad: Boolean = false) {
-        if (isInitialLoad) _isThermalLoading.value = true
+        if (isInitialLoad) _isTuningDataLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             thermalRepo.getCurrentThermalModeIndex()
                 .catch {
-                    if (isInitialLoad) applyLastSavedThermalProfile() else _isThermalLoading.value = false
+                    if (isInitialLoad) applyLastSavedThermalProfile() else _isTuningDataLoading.value = false
                 }
                 .collect {
                     _currentThermalModeIndex.value = it
-                    if (isInitialLoad) applyLastSavedThermalProfile() else _isThermalLoading.value = false
+                    if (isInitialLoad) applyLastSavedThermalProfile() else _isTuningDataLoading.value = false
                 }
         }
     }
@@ -510,12 +510,12 @@ class TuningViewModel @Inject constructor(
         if (profile != null && _currentThermalModeIndex.value != idx) {
             setThermalProfileInternal(profile, isRestoring = true)
         } else {
-            _isThermalLoading.value = false
+            _isTuningDataLoading.value = false
         }
     }
 
     private suspend fun setThermalProfileInternal(profile: ThermalRepository.ThermalProfile, isRestoring: Boolean) {
-        if (!isRestoring) _isThermalLoading.value = true
+        if (!isRestoring) _isTuningDataLoading.value = true
         thermalRepo.setThermalModeIndex(profile.index).collect { ok ->
             if (ok) {
                 _currentThermalModeIndex.value = profile.index
@@ -532,7 +532,7 @@ class TuningViewModel @Inject constructor(
             } else {
                 fetchCurrentThermalMode()
             }
-            _isThermalLoading.value = false
+            _isTuningDataLoading.value = false
         }
     }
 
