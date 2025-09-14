@@ -111,8 +111,13 @@
     <string name="system_stats_title">System Stats</string>
     <string name="cpu_load_label">Load</string>
     <string name="gathering_data_placeholder">Gathering data…</string>
-    <string name="cpu_graph_mode_speed" translatable="false">Clock Speed</string>
     <string name="cpu_graph_mode_load" translatable="false">CPU Load</string>
+    <string name="cpu_graph_mode_speed" translatable="false">Clock Speed</string>
+    <string name="graphics_processing_unit_gpu">Graphics Processing Unit (GPU)</string>
+    <string name="gpu_label">GPU</string>
+    <string name="gpu_current_freq">Current Freq</string>
+    <string name="gpu_max_freq">Max Freq</string>
+    <string name="gpu_usage">Usage</string>
 
     <!-- Tuning Feature Info Dialog strings -->
     <string name="tuning_feature_info_title">Tuning Feature Information</string>

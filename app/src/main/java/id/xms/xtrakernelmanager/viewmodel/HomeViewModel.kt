@@ -27,6 +27,11 @@ class HomeViewModel @Inject constructor(
     )
     val cpuInfo: StateFlow<RealtimeCpuInfo> = _cpuInfo.asStateFlow()
 
+    private val _gpuInfo = MutableStateFlow(
+        RealtimeGpuInfo(usagePercentage = null, currentFreq = 0, maxFreq = 0)
+    )
+    val gpuInfo: StateFlow<RealtimeGpuInfo> = _gpuInfo.asStateFlow()
+
     private val _batteryInfo = MutableStateFlow<BatteryInfo?>(null)
     val batteryInfo: StateFlow<BatteryInfo?> = _batteryInfo.asStateFlow()
 
@@ -67,6 +72,7 @@ class HomeViewModel @Inject constructor(
                 }
                 .collect { aggregatedInfo ->
                     _cpuInfo.value = aggregatedInfo.cpuInfo
+                    _gpuInfo.value = aggregatedInfo.gpuInfo
                     _batteryInfo.value = aggregatedInfo.batteryInfo
                     _memoryInfo.value = aggregatedInfo.memoryInfo
                     _deepSleep.value = DeepSleepInfo(

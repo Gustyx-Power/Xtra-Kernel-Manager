@@ -539,6 +539,7 @@ fun HomeScreen(navController: NavController) {
 
     // Kumpulkan semua state dari ViewModel
     val cpuInfo by vm.cpuInfo.collectAsState()
+    val gpuInfo by vm.gpuInfo.collectAsState()
     val batteryInfo by vm.batteryInfo.collectAsState()
     val memoryInfo by vm.memoryInfo.collectAsState()
     val deepSleepInfo by vm.deepSleep.collectAsState()
@@ -683,7 +684,12 @@ fun HomeScreen(navController: NavController) {
                 CpuCard(socNameToDisplay, cpuInfo, false, modifier)
             }
 
-            /* 2. Merged card */
+            /* 2. GPU */
+            FadeInEffect { modifier ->
+                GpuCard(gpuInfo, modifier)
+            }
+
+            /* 3. Merged card */
             val currentBattery = batteryInfo
             val currentMemory = memoryInfo
             val currentDeepSleep = deepSleepInfo
@@ -714,7 +720,7 @@ fun HomeScreen(navController: NavController) {
             }
 
 
-            /* 3. Kernel */
+            /* 4. Kernel */
             val currentKernel = kernelInfo
             if (currentKernel != null) {
                 FadeInEffect { modifier ->
@@ -725,7 +731,7 @@ fun HomeScreen(navController: NavController) {
             }
 
 
-            /* 4. About */
+            /* 5. About */
             FadeInEffect { modifier ->
                 AboutCard(false, modifier)
             }

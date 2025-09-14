@@ -37,6 +37,7 @@ class TuningRepository @Inject constructor(
     private val gpuAvailableGovsPath = "$gpuBaseSysfsPath/devfreq/available_governors"
     private val gpuMinFreqPath = "$gpuBaseSysfsPath/devfreq/min_freq"
     private val gpuMaxFreqPath = "$gpuBaseSysfsPath/devfreq/max_freq"
+    private val gpuCurFreqPath = "$gpuBaseSysfsPath/devfreq/cur_freq"
     private val gpuAvailableFreqsPath = "$gpuBaseSysfsPath/devfreq/available_frequencies"
     private val gpuCurrentPowerLevelPath = "$gpuBaseSysfsPath/default_pwrlevel"
     private val gpuMinPowerLevelPath = "$gpuBaseSysfsPath/min_pwrlevel"
@@ -427,6 +428,21 @@ class TuningRepository @Inject constructor(
         Log.d("MyGpuDebug", "getGpuFreq: Mengirimkan pasangan (minMhz, maxMhz): ($minMhzResult, $maxMhzResult)")
 
         emit(minMhzResult to maxMhzResult)
+    }.flowOn(Dispatchers.IO)
+
+
+    fun getCurrentGpuFreq(): Flow<Int> = flow {
+        Log.d("MyGpuDebug", "getCurrentGpuFreq: Membaca frekuensi GPU saat ini dari path: $gpuCurFreqPath")
+        val rawOutput = readShellCommand("cat $gpuCurFreqPath").trim()
+        Log.d("MyGpuDebug", "getCurrentGpuFreq: rawOutput dari readShellCommand: [$rawOutput]")
+
+        val freqHz = rawOutput.toIntOrNull() ?: 0
+        Log.d("MyGpuDebug", "getCurrentGpuFreq: freqHz setelah toIntOrNull (default 0): $freqHz")
+
+        val freqMhzResult = if (freqHz == 0) 0 else freqHz / 1000000
+        Log.d("MyGpuDebug", "getCurrentGpuFreq: freqMhzResult setelah konversi ke MHz: $freqMhzResult")
+
+        emit(freqMhzResult)
     }.flowOn(Dispatchers.IO)
 
 

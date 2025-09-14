@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.vector.path
 // import kotlin.io.path.inputStream // Ini juga sepertinya tidak digunakan, File.inputStream() lebih umum
 
 import id.xms.xtrakernelmanager.data.model.*
+import id.xms.xtrakernelmanager.data.repository.TuningRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +27,7 @@ import kotlinx.coroutines.channels.awaitClose // Diperlukan untuk callbackFlow
 import kotlinx.coroutines.channels.ChannelResult // Untuk memeriksa hasil trySend
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
-// import kotlinx.coroutines.flow.first // Tidak digunakan di kode yang Anda berikan
+import kotlinx.coroutines.flow.firstOrNull
 // import kotlinx.coroutines.flow.mapLatest // Tidak digunakan di kode yang Anda berikan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.isActive
@@ -46,6 +47,7 @@ import kotlin.io.path.inputStream
 @Singleton
 class SystemRepository @Inject constructor(
     private val context: Context,
+    private val tuningRepository: TuningRepository,
 ) {
 
     companion object {
@@ -571,6 +573,37 @@ class SystemRepository @Inject constructor(
     fun getMemoryInfo(): MemoryInfo {
         Log.w(TAG, "Panggilan getMemoryInfo() sinkron. Disarankan menggunakan Flow untuk update realtime.")
         return getMemoryInfoInternal()
+    }
+
+    private suspend fun getGpuRealtimeInternal(): RealtimeGpuInfo {
+        var currentFreq = 0
+        var maxFreq = 0
+        
+        try {
+            // Get current GPU frequency from TuningRepository
+            currentFreq = tuningRepository.getCurrentGpuFreq().firstOrNull() ?: 0
+            
+            // Get max GPU frequency from TuningRepository
+            val (_, max) = tuningRepository.getGpuFreq().firstOrNull() ?: (0 to 0)
+            maxFreq = max
+        } catch (e: Exception) {
+            Log.w(TAG, "Error getting GPU frequency information", e)
+        }
+        
+        // For GPU usage, we'll need to implement a more complex solution or return null for now
+        // This would typically require parsing /sys/class/kgsl/kgsl-3d0 or similar paths
+        // which can vary between devices and kernel versions
+        
+        return RealtimeGpuInfo(
+            usagePercentage = null, // GPU usage is harder to get, so we'll leave it as null for now
+            currentFreq = currentFreq,
+            maxFreq = maxFreq
+        )
+    }
+    
+    fun getGpuRealtime(): RealtimeGpuInfo {
+        Log.w(TAG, "Panggilan getGpuRealtime() sinkron. Disarankan menggunakan Flow untuk update realtime.")
+        return runBlocking { getGpuRealtimeInternal() }
     }
 
     private fun getUptimeMillisInternal(): Long {
@@ -1254,6 +1287,7 @@ class SystemRepository @Inject constructor(
         launch(Dispatchers.IO) {
             val initialData = RealtimeAggregatedInfo(
                 cpuInfo = getCpuRealtimeInternal(),
+                gpuInfo = getGpuRealtimeInternal(),
                 batteryInfo = getBatteryInfoInternal(),
                 memoryInfo = getMemoryInfoInternal(),
                 uptimeMillis = getUptimeMillisInternal(),
@@ -1291,6 +1325,7 @@ class SystemRepository @Inject constructor(
                 if (currentState != null) {
                     // Fetch non-battery stats
                     val newCpuInfo = getCpuRealtimeInternal()
+                    val newGpuInfo = getGpuRealtimeInternal()
                     val newMemoryInfo = getMemoryInfoInternal()
                     val newUptime = getUptimeMillisInternal()
                     val newDeepSleep = getDeepSleepMillisInternal()
@@ -1298,6 +1333,7 @@ class SystemRepository @Inject constructor(
                     // Create new state by copying the last one and updating polled values
                     val newState = currentState.copy(
                         cpuInfo = newCpuInfo,
+                        gpuInfo = newGpuInfo,
                         memoryInfo = newMemoryInfo,
                         uptimeMillis = newUptime,
                         deepSleepMillis = newDeepSleep

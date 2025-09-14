@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import id.xms.xtrakernelmanager.data.repository.RootRepository
 import id.xms.xtrakernelmanager.data.repository.SystemRepository
+import id.xms.xtrakernelmanager.data.repository.TuningRepository
 import javax.inject.Singleton
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -24,8 +25,12 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideSystemRepository(@ApplicationContext context: Context): SystemRepository =
-        SystemRepository(context)
+    fun provideTuningRepository(@ApplicationContext context: Context): TuningRepository = TuningRepository(context)
+
+    @Provides
+    @Singleton
+    fun provideSystemRepository(@ApplicationContext context: Context, tuningRepository: TuningRepository): SystemRepository =
+        SystemRepository(context, tuningRepository)
 
     @Provides
     @Singleton

@@ -84,7 +84,11 @@
     <string name="cpu_core_offline">Mati</string>
     <string name="system_stats_title">Statistik Sistem</string>
     <string name="cpu_load_label">Load</string>
-    <string name="gathering_data_placeholder">Mengumpulkan data…</string>
+    <string name="graphics_processing_unit_gpu">Unit Pemrosesan Grafis (GPU)</string>
+    <string name="gpu_label">GPU</string>
+    <string name="gpu_current_freq">Frek Saat Ini</string>
+    <string name="gpu_max_freq">Frek Maks</string>
+    <string name="gpu_usage">Penggunaan</string>
 
     <!-- Tuning Feature Info Dialog strings -->
     <string name="tuning_feature_info_title">Informasi Fitur Tuning</string>
