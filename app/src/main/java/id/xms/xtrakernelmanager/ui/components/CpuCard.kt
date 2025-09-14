@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.model.CpuCluster
 import id.xms.xtrakernelmanager.data.model.RealtimeCpuInfo
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
@@ -46,7 +47,7 @@ const val SIMULATE_CPU_LOAD_TOGGLE = false // Keep for existing logic
 fun CpuCard(
     soc: String,
     info: RealtimeCpuInfo,
-    // blur: Boolean, // Removed
+    clusters: List<id.xms.xtrakernelmanager.data.model.CpuCluster>,
     modifier1: Boolean, // Parameter tetap ada
     modifier: Modifier = Modifier
 ) {
@@ -96,7 +97,7 @@ fun CpuCard(
             CpuHeaderSection(soc = soc, info = info)
 
             if (info.freqs.isNotEmpty()) {
-                CpuCoresSection(info = info)
+                CpuCoresSection(info = info, clusters = clusters)
             }
 
             CpuStatsSection(info = info, currentGraphMode = currentGraphMode, graphDataHistory = graphDataHistory)
@@ -171,7 +172,7 @@ private fun CpuHeaderSection(
 }
 
 @Composable
-private fun CpuCoresSection(info: RealtimeCpuInfo) {
+private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: List<id.xms.xtrakernelmanager.data.model.CpuCluster>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             text = stringResource(R.string.cpu_cores_title),
@@ -179,59 +180,101 @@ private fun CpuCoresSection(info: RealtimeCpuInfo) {
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        val activeCoresFreq = info.freqs
-        // Group cores for better layout, e.g., 2 columns if many cores
-        val itemsPerRow = if (activeCoresFreq.size > 4) 4 else activeCoresFreq.size.coerceAtLeast(1)
-
-        activeCoresFreq.chunked(itemsPerRow).forEach { freqsInRow ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                freqsInRow.forEachIndexed { index, freq ->
-                    Surface( // Use Surface for each core item
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        // Display cluster information with max frequencies
+        if (clusters.isNotEmpty()) {
+            clusters.forEach { cluster ->
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 12.dp, horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp, horizontal = 6.dp) // Adjusted padding
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = "Core ${info.freqs.indexOf(freq)}", // Display Core Index
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                text = cluster.name,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            if (freq == 0) {
+                            Text(
+                                text = "Max: ${cluster.maxFreq} MHz",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Text(
+                            text = "${cluster.minFreq} - ${cluster.maxFreq} MHz",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        } else {
+            // Fallback to original core display if no cluster info available
+            val activeCoresFreq = info.freqs
+            // Group cores for better layout, e.g., 2 columns if many cores
+            val itemsPerRow = if (activeCoresFreq.size > 4) 4 else activeCoresFreq.size.coerceAtLeast(1)
+
+            activeCoresFreq.chunked(itemsPerRow).forEach { freqsInRow ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    freqsInRow.forEachIndexed { index, freq ->
+                        Surface( // Use Surface for each core item
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp, horizontal = 6.dp) // Adjusted padding
+                            ) {
                                 Text(
-                                    text = stringResource(R.string.cpu_core_offline),
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                )
-                            } else {
-                                Text(
-                                    text = "$freq",
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
-                                    color = MaterialTheme.colorScheme.primary,
-                                )
-                                Text(
-                                    text = "MHz",
+                                    text = "Core ${info.freqs.indexOf(freq)}", // Display Core Index
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                if (freq == 0) {
+                                    Text(
+                                        text = stringResource(R.string.cpu_core_offline),
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    )
+                                } else {
+                                    Text(
+                                        text = "$freq",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                    Text(
+                                        text = "MHz",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                    )
+                                }
                             }
                         }
                     }
-                }
-                // Fill remaining space in the row if chunk size is not met
-                repeat((itemsPerRow - freqsInRow.size).coerceAtLeast(0)) {
-                    Spacer(Modifier.weight(1f))
+                    // Fill remaining space in the row if chunk size is not met
+                    repeat((itemsPerRow - freqsInRow.size).coerceAtLeast(0)) {
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
             }
         }

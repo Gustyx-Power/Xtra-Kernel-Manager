@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import id.xms.xtrakernelmanager.data.repository.SystemRepository
 import id.xms.xtrakernelmanager.data.repository.ThermalRepository
 import id.xms.xtrakernelmanager.data.repository.TuningRepository
 import id.xms.xtrakernelmanager.service.ThermalService
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class TuningViewModel @Inject constructor(
     private val application: Application,
     private val repo: TuningRepository,
-    private val thermalRepo: ThermalRepository
+    private val thermalRepo: ThermalRepository,
+    private val systemRepo: SystemRepository
 ) : AndroidViewModel(application) {
 
     private val thermalPrefs: SharedPreferences by lazy {
@@ -28,6 +30,44 @@ class TuningViewModel @Inject constructor(
     private val KEY_LAST_APPLIED_THERMAL_INDEX = "last_applied_thermal_index"
 
     val cpuClusters = listOf("cpu0", "cpu4", "cpu7")
+    
+    // Dynamic cluster information with proper names
+    private val _dynamicCpuClusters = MutableStateFlow<List<String>>(emptyList())
+    val dynamicCpuClusters: StateFlow<List<String>> = _dynamicCpuClusters.asStateFlow()
+    
+    init {
+        // Initialize dynamic cluster information
+        fetchDynamicCpuClusters()
+    }
+    
+    private fun fetchDynamicCpuClusters() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val clusters = systemRepo.getCpuClusters()
+                // Map the dynamic cluster names to the corresponding cpu cluster identifiers
+                val clusterNames = clusters.map { cluster ->
+                    when {
+                        cluster.name.contains("Little", ignoreCase = true) -> "cpu0"
+                        cluster.name.contains("Big", ignoreCase = true) -> "cpu4"
+                        cluster.name.contains("Prime", ignoreCase = true) -> "cpu7"
+                        else -> {
+                            // Fallback to original naming
+                            when (cluster.name) {
+                                "Efficiency Cluster" -> "cpu0"
+                                "Performance Cluster" -> "cpu7"
+                                else -> "cpu4" // Mid cluster
+                            }
+                        }
+                    }
+                }
+                _dynamicCpuClusters.value = clusterNames
+            } catch (e: Exception) {
+                Log.e("TuningViewModel", "Error fetching dynamic CPU clusters", e)
+                // Fallback to hardcoded values
+                _dynamicCpuClusters.value = cpuClusters
+            }
+        }
+    }
 
     /* ---------------- CPU ---------------- */
     private val _coreStates = MutableStateFlow(List(8) { true })

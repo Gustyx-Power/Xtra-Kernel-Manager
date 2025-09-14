@@ -547,6 +547,7 @@ fun HomeScreen(navController: NavController) {
     val kernelInfo by vm.kernelInfo.collectAsState()
     val appVersion by vm.appVersion.collectAsState()
     val systemInfoState by vm.systemInfo.collectAsState()
+    val cpuClusters by vm.cpuClusters.collectAsState()
     val storageInfo by storageViewModel.storageInfo.collectAsState()
 
     var showFabMenu by remember { mutableStateOf(false) }
@@ -681,7 +682,7 @@ fun HomeScreen(navController: NavController) {
             FadeInEffect { modifier ->
                 val currentSystemInfo = systemInfoState
                 val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != VALUE_UNKNOWN_SYS_INFO } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" } ?: "CPU"
-                CpuCard(socNameToDisplay, cpuInfo, false, modifier)
+                CpuCard(socNameToDisplay, cpuInfo, cpuClusters, false, modifier)
             }
 
             /* 2. GPU */

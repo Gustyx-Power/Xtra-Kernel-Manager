@@ -62,6 +62,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private val _cpuClusters = MutableStateFlow<List<CpuCluster>>(emptyList())
+    val cpuClusters: StateFlow<List<CpuCluster>> = _cpuClusters.asStateFlow()
 
     init {
         viewModelScope.launch {

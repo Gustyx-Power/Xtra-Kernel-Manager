@@ -629,6 +629,14 @@ fun CpuClusterCard(
     val currentFreqPair by vm.getCpuFreq(clusterName).collectAsState()
     val availableFrequenciesForCluster by vm.getAvailableCpuFrequencies(clusterName).collectAsState()
     val coreStates by vm.coreStates.collectAsState()
+    
+    // Map cluster identifiers to display names
+    val displayClusterName = when (clusterName) {
+        "cpu0" -> "Little Cluster"
+        "cpu4" -> "Big Cluster"
+        "cpu7" -> "Prime Cluster"
+        else -> clusterName.uppercase()
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -672,7 +680,7 @@ fun CpuClusterCard(
 
                     Column {
                         Text(
-                            text = clusterName.uppercase(),
+                            text = displayClusterName.uppercase(),
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 18.sp

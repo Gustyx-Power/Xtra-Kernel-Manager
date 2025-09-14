@@ -1334,9 +1334,9 @@ class SystemRepository @Inject constructor(
             if (coresInCluster.isNotEmpty()) {
                 val representativeCore = coresInCluster.first()
                 val clusterName = when (index) {
-                    0 -> "Efficiency Cluster" // Lowest frequency cluster
-                    frequencyGroups.size - 1 -> "Performance Cluster" // Highest frequency cluster
-                    else -> "Mid Cluster ${index + 1}"
+                    0 -> "Little Cluster" // Lowest frequency cluster
+                    frequencyGroups.size - 1 -> "Prime Cluster" // Highest frequency cluster
+                    else -> "Big Cluster"
                 }
 
                 val governor = coreGovernors[representativeCore] ?: "Unknown"
