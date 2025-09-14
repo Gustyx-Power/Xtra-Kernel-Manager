@@ -57,7 +57,7 @@ fun GpuCard(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            GpuHeaderSection()
+            GpuHeaderSection(info)
 
             GpuStatsSection(info = info, graphDataHistory = graphDataHistory)
 
@@ -70,7 +70,7 @@ fun GpuCard(
 }
 
 @Composable
-private fun GpuHeaderSection() {
+private fun GpuHeaderSection(info: RealtimeGpuInfo) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -78,7 +78,17 @@ private fun GpuHeaderSection() {
     ) {
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
-                text = stringResource(R.string.graphics_processing_unit_gpu),
+                text = if (info.model.isNotBlank() && info.model != "N/A" && info.model != "Graphics Processing Unit (GPU)") {
+                    // Truncate long GPU model names but make sure we show meaningful info
+                    val modelName = info.model
+                    if (modelName.length > 25) {
+                        modelName.substring(0, 22) + "..."
+                    } else {
+                        modelName
+                    }
+                } else {
+                    stringResource(R.string.graphics_processing_unit_gpu)
+                },
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )

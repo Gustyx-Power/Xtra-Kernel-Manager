@@ -575,10 +575,69 @@ class SystemRepository @Inject constructor(
         return getMemoryInfoInternal()
     }
 
+    private suspend fun getGpuModel(): String {
+        return try {
+            val result = tuningRepository.getOpenGlesDriver().firstOrNull()
+            Log.d(TAG, "Raw GPU driver info: '$result'")
+            
+            if (result != null && result != "N/A" && result.isNotBlank()) {
+                // Clean up the result first
+                val cleanResult = result.trim()
+                Log.d(TAG, "Cleaned GPU driver info: '$cleanResult'")
+                
+                // The format is: "Qualcomm, Adreno (TM) 650, OpenGL ES 3.2..."
+                // So we want the second part after splitting by comma
+                val parts = cleanResult.split(",")
+                if (parts.size >= 2) {
+                    val gpuModel = parts[1].trim()
+                    Log.d(TAG, "Extracted GPU model: '$gpuModel'")
+                    
+                    // Clean up the GPU model
+                    val cleanGpuModel = gpuModel
+                        .replace("(TM)", "")
+                        .replace("  ", " ")
+                        .trim()
+                    
+                    Log.d(TAG, "Cleaned GPU model: '$cleanGpuModel'")
+                    return cleanGpuModel
+                }
+                
+                // Fallback: if we can't parse properly, try the old method
+                var gpuModel = cleanResult
+                val commaIndex = cleanResult.indexOf(',')
+                if (commaIndex != -1) {
+                    gpuModel = cleanResult.substring(0, commaIndex).trim()
+                }
+                
+                // Remove common prefixes and clean up
+                gpuModel = gpuModel
+                    .replace("GLES:", "")
+                    .replace("OpenGL ES", "")
+                    .replace("(TM)", "")
+                    .replace("  ", " ")
+                    .trim()
+                
+                Log.d(TAG, "Fallback extracted GPU model: '$gpuModel'")
+                
+                // If still too generic, fall back to default
+                if (gpuModel.equals("Qualcomm", ignoreCase = true) || gpuModel.length < 5) {
+                    return "Graphics Processing Unit (GPU)"
+                }
+                
+                return gpuModel
+            }
+            "Graphics Processing Unit (GPU)"
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting GPU model: ${e.message}", e)
+            "Graphics Processing Unit (GPU)"
+        }
+    }
+
     private suspend fun getGpuRealtimeInternal(): RealtimeGpuInfo {
         var currentFreq = 0
         var maxFreq = 0
         var usage = 0
+        val gpuModel = getGpuModel()
         
         try {
             // Get current GPU frequency from TuningRepository
@@ -597,7 +656,8 @@ class SystemRepository @Inject constructor(
         return RealtimeGpuInfo(
             usagePercentage = usage.toFloat(),
             currentFreq = currentFreq,
-            maxFreq = maxFreq
+            maxFreq = maxFreq,
+            model = gpuModel
         )
     }
     
