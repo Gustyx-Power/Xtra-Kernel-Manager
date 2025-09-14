@@ -578,6 +578,7 @@ class SystemRepository @Inject constructor(
     private suspend fun getGpuRealtimeInternal(): RealtimeGpuInfo {
         var currentFreq = 0
         var maxFreq = 0
+        var usage = 0
         
         try {
             // Get current GPU frequency from TuningRepository
@@ -586,16 +587,15 @@ class SystemRepository @Inject constructor(
             // Get max GPU frequency from TuningRepository
             val (_, max) = tuningRepository.getGpuFreq().firstOrNull() ?: (0 to 0)
             maxFreq = max
+            
+            // Get GPU usage from TuningRepository
+            usage = tuningRepository.getGpuUsage().firstOrNull() ?: 0
         } catch (e: Exception) {
             Log.w(TAG, "Error getting GPU frequency information", e)
         }
         
-        // For GPU usage, we'll need to implement a more complex solution or return null for now
-        // This would typically require parsing /sys/class/kgsl/kgsl-3d0 or similar paths
-        // which can vary between devices and kernel versions
-        
         return RealtimeGpuInfo(
-            usagePercentage = null, // GPU usage is harder to get, so we'll leave it as null for now
+            usagePercentage = usage.toFloat(),
             currentFreq = currentFreq,
             maxFreq = maxFreq
         )

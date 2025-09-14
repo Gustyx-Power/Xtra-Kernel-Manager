@@ -445,6 +445,23 @@ class TuningRepository @Inject constructor(
         emit(freqMhzResult)
     }.flowOn(Dispatchers.IO)
 
+    fun getGpuUsage(): Flow<Int> = flow {
+        Log.d("MyGpuDebug", "getGpuUsage: Membaca penggunaan GPU dari path: /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage")
+        val rawOutput = readShellCommand("cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage").trim()
+        Log.d("MyGpuDebug", "getGpuUsage: rawOutput dari readShellCommand: [$rawOutput]")
+
+        if (rawOutput.isEmpty()) {
+            emit(0)
+            return@flow
+        }
+
+        val cleanedOutput = rawOutput.replace("%", "").trim()
+        val usage = cleanedOutput.toIntOrNull() ?: 0
+        Log.d("MyGpuDebug", "getGpuUsage: usage setelah parsing: $usage")
+
+        emit(usage.coerceIn(0, 100))
+    }.flowOn(Dispatchers.IO)
+
 
     fun setGpuMinFreq(freqMHz: Int): Boolean {
         Log.d(TAG, "setGpuMinFreq: Menyetel ke $freqMHz MHz (nilai Hz: ${freqMHz * 1000000})")

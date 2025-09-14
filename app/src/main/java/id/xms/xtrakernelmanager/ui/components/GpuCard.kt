@@ -39,17 +39,7 @@ fun GpuCard(
     var graphDataHistory by remember { mutableStateOf(listOf<Float>()) }
     
     LaunchedEffect(info) {
-        val currentDataPoint: Float = if (SIMULATE_GPU_LOAD_TOGGLE) {
-            delay(150) // Keep for simulation if enabled
-            val baseLoad = Random.nextFloat() * 70f
-            val spike = if (Random.nextInt(0, 4) == 0)
-                Random.nextFloat() * 30f else 0f
-            (baseLoad + spike).coerceIn(0f, 100f)
-        } else {
-            // For now, we'll simulate GPU usage since it's hard to get real usage data
-            // In the future, we could replace this with actual GPU usage data
-            info.usagePercentage?.coerceIn(0f, 100f) ?: 0f
-        }
+        val currentDataPoint: Float = info.usagePercentage?.coerceIn(0f, 100f) ?: 0f
         graphDataHistory = (graphDataHistory + currentDataPoint).takeLast(MAX_GPU_HISTORY_POINTS)
     }
 
@@ -171,10 +161,10 @@ private fun GpuStatsSection(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.BarChart,
                     label = stringResource(R.string.gpu_usage),
-                    value = if (info.usagePercentage != null) "${info.usagePercentage?.roundToInt() ?: 0}%" else "N/A",
+                    value = if (info.usagePercentage != null) "${info.usagePercentage?.toInt() ?: 0}%" else "N/A",
                     iconColor = when {
-                        info.usagePercentage ?: 0f > 80 -> MaterialTheme.colorScheme.error
-                        info.usagePercentage ?: 0f > 60 -> MaterialTheme.colorScheme.tertiary
+                        info.usagePercentage?.toInt() ?: 0 > 80 -> MaterialTheme.colorScheme.error
+                        info.usagePercentage?.toInt() ?: 0 > 60 -> MaterialTheme.colorScheme.tertiary
                         else -> MaterialTheme.colorScheme.primary
                     }
                 )
