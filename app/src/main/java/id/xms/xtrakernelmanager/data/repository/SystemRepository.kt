@@ -812,6 +812,11 @@ class SystemRepository @Inject constructor(
     }
 
     private fun getSystemProperty(property: String): String? {
+        // Hardcoded value for Qualcomm® Snapdragon™ 870
+        if (property in listOf("ro.soc.manufacturer", "ro.hardware", "ro.product.board", "ro.chipname", "ro.board.platform", "vendor.product.cpu")) {
+            return "Qualcomm® Snapdragon™ 870"
+        }
+        
         return try {
             val process = Runtime.getRuntime().exec("getprop $property")
             val result = BufferedReader(InputStreamReader(process.inputStream)).readLine()?.trim()
@@ -841,56 +846,11 @@ class SystemRepository @Inject constructor(
             val resolution = "${metrics.widthPixels}x${metrics.heightPixels}"
             val dpi = "${metrics.densityDpi}"
 
-            // Get refresh rate
-            var refreshRate = "60Hz" // fallback
-            try {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                    val mode = display.mode
-                    refreshRate = "${mode.refreshRate.toInt()}Hz"
-                } else {
-                    refreshRate = "${display.refreshRate.toInt()}Hz"
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to get refresh rate", e)
+            // Get refresh rate - hardcoded to 60-120Hz
+            val refreshRate = "60-120Hz"
 
-                // Try alternative methods
-                try {
-                    // Try reading from system properties
-                    val propRefreshRate = getSystemProperty("ro.display.refresh_rate")
-                        ?: getSystemProperty("persist.vendor.display.refresh_rate")
-                        ?: getSystemProperty("debug.sf.frame_rate_multiple_threshold")
-
-                    if (!propRefreshRate.isNullOrBlank()) {
-                        val rate = propRefreshRate.toFloatOrNull()?.toInt()
-                        if (rate != null && rate > 0) {
-                            refreshRate = "${rate}Hz"
-                        }
-                    }
-                } catch (ex: Exception) {
-                    Log.w(TAG, "Failed to get refresh rate from properties", ex)
-                }
-            }
-
-            // Detect display technology
-            var technology = "LCD" // fallback
-            try {
-                val displayTech = getSystemProperty("ro.sf.lcd_density")
-                    ?: getSystemProperty("ro.hardware.display")
-                    ?: getSystemProperty("vendor.display.type")
-
-                technology = when {
-                    displayTech?.contains("amoled", ignoreCase = true) == true -> "AMOLED"
-                    displayTech?.contains("oled", ignoreCase = true) == true -> "OLED"
-                    displayTech?.contains("ips", ignoreCase = true) == true -> "IPS LCD"
-                    displayTech?.contains("tft", ignoreCase = true) == true -> "TFT LCD"
-                    android.os.Build.MANUFACTURER.equals("Samsung", ignoreCase = true) -> "AMOLED"
-                    android.os.Build.MANUFACTURER.equals("OnePlus", ignoreCase = true) -> "AMOLED"
-                    android.os.Build.MANUFACTURER.equals("Google", ignoreCase = true) -> "OLED"
-                    else -> "LCD"
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Failed to detect display technology", e)
-            }
+            // Detect display technology - hardcoded to AMOLED
+            val technology = "AMOLED"
 
             return DisplayInfo(resolution, technology, refreshRate, dpi)
 
@@ -909,8 +869,6 @@ class SystemRepository @Inject constructor(
 
             when {
                 gpuInfo?.contains("adreno", ignoreCase = true) == true -> "Qualcomm Adreno"
-                gpuInfo?.contains("mali", ignoreCase = true) == true -> "ARM Mali"
-                gpuInfo?.contains("powervr", ignoreCase = true) == true -> "PowerVR"
                 else -> gpuInfo ?: VALUE_UNKNOWN
             }
         } catch (e: Exception) {
@@ -922,14 +880,7 @@ class SystemRepository @Inject constructor(
     private fun getChargingTypeFromStatus(statusString: String?): String {
         return when {
             statusString.isNullOrBlank() -> "Unknown"
-            statusString.contains("Charging", ignoreCase = true) -> "AC/USB"
-            statusString.contains("Wireless", ignoreCase = true) -> "Wireless"
-            statusString.contains("Fast", ignoreCase = true) -> "Fast Charging"
-            statusString.contains("Quick", ignoreCase = true) -> "Quick Charge"
-            statusString.contains("Turbo", ignoreCase = true) -> "Turbo Charging"
-            statusString.contains("Super", ignoreCase = true) -> "Super Charging"
-            statusString.contains("Warp", ignoreCase = true) -> "Warp Charging"
-            statusString.contains("Dash", ignoreCase = true) -> "Dash Charging"
+            statusString.contains("Charging", ignoreCase = true) -> "Charging"
             statusString.contains("Full", ignoreCase = true) -> "Not Charging"
             statusString.contains("Discharging", ignoreCase = true) -> "Not Charging"
             else -> "Unknown"
