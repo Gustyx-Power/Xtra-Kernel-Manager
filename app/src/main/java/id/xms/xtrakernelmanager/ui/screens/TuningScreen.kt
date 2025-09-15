@@ -51,8 +51,8 @@ val tuningFeatures = listOf(
     FeatureText(
         titleId = "Mode Performa",
         titleEn = "Performance Mode",
-        descriptionId = "Menyediakan preset konfigurasi untuk mengoptimalkan sistem berdasarkan kebutuhan: Battery Saver (powersave governor), Balanced (schedutil governor), dan Performance (performance governor).",
-        descriptionEn = "Provides configuration presets to optimize the system based on needs: Battery Saver (powersave governor), Balanced (schedutil governor), and Performance (performance governor)."
+        descriptionId = "Menyediakan preset konfigurasi untuk mengoptimalkan sistem berdasarkan kebutuhan: Balanced (schedutil governor) dan Performance (performance governor).",
+        descriptionEn = "Provides configuration presets to optimize the system based on needs: Balanced (schedutil governor) and Performance (performance governor)."
     ),
     FeatureText(
         titleId = "CPU Governor",
@@ -336,72 +336,20 @@ fun PerformanceModeCard(
     // Use a key to preserve state across recompositions
     var performanceMode by remember(key1 = viewModel) { mutableStateOf("Balanced") }
     
-    // Collect available governors
-    val availableGovernors by viewModel.generalAvailableCpuGovernors.collectAsState()
-
-    // Dynamically create performance modes based on available governors
-    val performanceModes = remember(key1 = availableGovernors) {
-        val modes = mutableListOf<String>()
-        
-        // Always include Balanced as default
-        modes.add("Balanced")
-        
-        // Add Battery Saver if powersave governor is available
-        if (availableGovernors.contains("powersave")) {
-            modes.add(0, "Battery Saver")
-        }
-        
-        // Add Performance if performance governor is available
-        if (availableGovernors.contains("performance")) {
-            modes.add("Performance")
-        }
-        
-        // Add other common governors if they exist
-        if (availableGovernors.contains("ondemand") && !modes.contains("Performance")) {
-            modes.add("Performance")
-        }
-        
-        if (availableGovernors.contains("conservative") && !modes.contains("Battery Saver")) {
-            modes.add(0, "Battery Saver")
-        }
-        
-        modes
+    // Hardcoded performance modes
+    val performanceModes = remember {
+        listOf("Balanced", "Performance")
     }
     
-    // Dynamic governor mappings based on available governors
-    val governorMappings = remember(key1 = availableGovernors) {
-        val mappings = mutableMapOf<String, String>()
-        
-        // Default mappings
-        mappings["Balanced"] = "schedutil"
-        
-        // Check for specific governors
-        if (availableGovernors.contains("powersave")) {
-            mappings["Battery Saver"] = "powersave"
-        } else if (availableGovernors.contains("conservative")) {
-            mappings["Battery Saver"] = "conservative"
-        }
-        
-        if (availableGovernors.contains("performance")) {
-            mappings["Performance"] = "performance"
-        } else if (availableGovernors.contains("ondemand")) {
-            mappings["Performance"] = "ondemand"
-        }
-        
-        // Fallback mappings
-        if (!mappings.containsKey("Battery Saver") && availableGovernors.isNotEmpty()) {
-            mappings["Battery Saver"] = availableGovernors.firstOrNull { it.contains("save", ignoreCase = true) } ?: availableGovernors.first()
-        }
-        
-        if (!mappings.containsKey("Performance") && availableGovernors.isNotEmpty()) {
-            mappings["Performance"] = availableGovernors.firstOrNull { it.contains("perform", ignoreCase = true) } ?: availableGovernors.last()
-        }
-        
-        mappings
+    // Hardcoded governor mappings
+    val governorMappings = remember {
+        mapOf(
+            "Balanced" to "schedutil",
+            "Performance" to "performance"
+        )
     }
 
     // Custom color themes for each mode
-    val batteryYellow = MaterialTheme.colorScheme.tertiary // Orange-yellow for battery saver
     val balancedGreen = MaterialTheme.colorScheme.primary // Green for balanced
     val performanceRed = MaterialTheme.colorScheme.error // Red for performance
 
@@ -458,7 +406,6 @@ fun PerformanceModeCard(
                             },
                         colors = CardDefaults.cardColors(
                             containerColor = when (mode) {
-                                "Battery Saver" -> if (performanceMode == mode) batteryYellow.copy(alpha = 0.15f) else batteryYellow.copy(alpha = 0.05f)
                                 "Balanced" -> if (performanceMode == mode) balancedGreen.copy(alpha = 0.15f) else balancedGreen.copy(alpha = 0.05f)
                                 "Performance" -> if (performanceMode == mode) performanceRed.copy(alpha = 0.15f) else performanceRed.copy(alpha = 0.05f)
                                 else -> MaterialTheme.colorScheme.surface
@@ -474,7 +421,6 @@ fun PerformanceModeCard(
                         ) {
                             Icon(
                                 imageVector = when (mode) {
-                                    "Battery Saver" -> Icons.Default.BatteryStd
                                     "Balanced" -> Icons.Default.Balance
                                     "Performance" -> Icons.Default.FlashOn
                                     else -> Icons.Default.Speed
@@ -482,10 +428,9 @@ fun PerformanceModeCard(
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp),
                                 tint = when (mode) {
-                                    "Battery Saver" -> if (performanceMode == mode) batteryYellow else MaterialTheme.colorScheme.onSurfaceVariant
-                                    "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurfaceVariant
-                                    "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurfaceVariant
-                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    "Balanced" -> balancedGreen
+                                    "Performance" -> performanceRed
+                                    else -> MaterialTheme.colorScheme.primary
                                 }
                             )
 
@@ -497,7 +442,6 @@ fun PerformanceModeCard(
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = if (performanceMode == mode) FontWeight.Bold else FontWeight.Medium,
                                     color = when (mode) {
-                                        "Battery Saver" -> if (performanceMode == mode) batteryYellow else MaterialTheme.colorScheme.onSurface
                                         "Balanced" -> if (performanceMode == mode) balancedGreen else MaterialTheme.colorScheme.onSurface
                                         "Performance" -> if (performanceMode == mode) performanceRed else MaterialTheme.colorScheme.onSurface
                                         else -> MaterialTheme.colorScheme.onSurface
@@ -505,10 +449,6 @@ fun PerformanceModeCard(
                                 )
                                 Text(
                                     text = when (mode) {
-                                        "Battery Saver" -> {
-                                            val gov = governorMappings[mode] ?: "powersave"
-                                            "$gov governor for maximum battery life"
-                                        }
                                         "Balanced" -> {
                                             val gov = governorMappings[mode] ?: "schedutil"
                                             "$gov governor for balanced performance"
@@ -534,7 +474,6 @@ fun PerformanceModeCard(
                                     contentDescription = "Selected",
                                     modifier = Modifier.size(20.dp),
                                     tint = when (mode) {
-                                        "Battery Saver" -> batteryYellow
                                         "Balanced" -> balancedGreen
                                         "Performance" -> performanceRed
                                         else -> MaterialTheme.colorScheme.primary
