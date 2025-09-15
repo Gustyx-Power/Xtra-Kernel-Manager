@@ -78,7 +78,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import id.xms.xtrakernelmanager.viewmodel.TuningViewModel
-import id.xms.xtrakernelmanager.ui.icons.OpenGLESIcon
 import kotlinx.coroutines.launch
 
 @Composable
@@ -175,11 +174,6 @@ fun GpuControlCard(
                             ),
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Text(
-                            text = "Graphics Processing Unit",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
                     }
                 }
 
@@ -193,88 +187,11 @@ fun GpuControlCard(
                 )
             }
 
-            // Quick Info Section - Layout with OpenGL ES centered in its own row
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // First row - Governor dan Frequency
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    GPUInfoChip(
-                        icon = Icons.Default.Settings,
-                        label = "Governor",
-                        value = when {
-                            gpuGovernor.isBlank() || gpuGovernor == "..." -> "Loading..."
-                            gpuGovernor.contains("N/A", ignoreCase = true) -> "N/A"
-                            else -> gpuGovernor
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    GPUInfoChip(
-                        icon = Icons.Default.Speed,
-                        label = "Frequency",
-                        value = when {
-                            gpuMinFreq <= 0 && gpuMaxFreq <= 0 -> "N/A"
-                            gpuMinFreq > 0 && gpuMaxFreq > 0 -> "$gpuMinFreq-$gpuMaxFreq MHz"
-                            else -> "Loading..."
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Second row - OpenGL ES Card (wider and taller to show full driver version)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    GPUInfoChip(
-                        icon = OpenGLESIcon,
-                        label = "OpenGL ES",
-                        value = when {
-                            openGlesDriver.isBlank() || openGlesDriver == "Loading..." -> "Loading..."
-                            openGlesDriver.contains("N/A", ignoreCase = true) -> "N/A"
-                            openGlesDriver.contains("Not supported", ignoreCase = true) -> "N/A"
-                            else -> openGlesDriver.take(135) + if (openGlesDriver.length > 135) "..." else ""
-                        },
-                        modifier = Modifier.fillMaxWidth(1f), // Perlebar card menjadi 100% lebar layar
-                        isWider = true // Parameter untuk membuat card lebih tinggi
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    GPUInfoChip(
-                        icon = Icons.Filled.VideogameAsset,
-                        label = "Vulkan",
-                        value = when {
-                            vulkanVersion.isBlank() || vulkanVersion == "Loading..." -> "Loading..."
-                            vulkanVersion.contains("Available", ignoreCase = true) -> "Available"
-                            vulkanVersion.contains("Not supported", ignoreCase = true) -> "Available"
-                            vulkanVersion.contains("0.0", ignoreCase = true) -> "N/A"
-                            else -> "Yes"
-                        },
-                        modifier = Modifier.weight(1f),
-                        isWider = false
-                    )
-
-                    GPUInfoChip(
-                        icon = Icons.Default.Visibility,
-                        label = "GPU Renderer",
-                        value = when {
-                            currentRenderer.isBlank() || currentRenderer == "Loading..." -> "Loading..."
-                            currentRenderer.contains("N/A", ignoreCase = true) -> "N/A"
-                            currentRenderer.contains("Default", ignoreCase = true) -> "Default"
-                            else -> currentRenderer.take(12) + if (currentRenderer.length > 12) "..." else ""
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
+            Text(
+                text = "Configure GPU governor, frequency, and renderer settings",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -619,54 +536,7 @@ fun GpuControlCard(
     }
 }
 
-@Composable
-private fun GPUInfoChip(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    isWider: Boolean = false // Parameter untuk membuat card lebih tinggi
-) {
-    OutlinedCard(
-        modifier = modifier,
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(if (isWider) 16.dp else 12.dp), // Padding lebih besar untuk card yang lebih lebar
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(if (isWider) 28.dp else 16.dp) // Icon lebih besar lagi untuk card yang lebih lebar (OpenGL ES)
-            )
-            Spacer(modifier = Modifier.height(if (isWider) 8.dp else 4.dp)) // Spacer lebih tinggi
-            Text(
-                text = label,
-                fontSize = if (isWider) 12.sp else 10.sp, // Font lebih besar untuk label
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(if (isWider) 6.dp else 2.dp)) // Spacer tambahan
-            Text(
-                text = value,
-                fontSize = if (isWider) 14.sp else 12.sp, // Font lebih besar untuk value
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = if (isWider) 3 else 2, // Lebih banyak baris untuk text yang panjang
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
+
 
 @Composable
 private fun GPUControlSection(
