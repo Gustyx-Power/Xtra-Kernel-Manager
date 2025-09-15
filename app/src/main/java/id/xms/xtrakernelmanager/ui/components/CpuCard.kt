@@ -205,14 +205,9 @@ private fun CpuCoresSection(info: RealtimeCpuInfo, clusters: List<id.xms.xtraker
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
-                            Text(
-                                text = "Max: ${cluster.maxFreq} MHz",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                         Text(
-                            text = "${cluster.minFreq} - ${cluster.maxFreq} MHz",
+                            text = "Max: ${cluster.maxFreq} MHz",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
