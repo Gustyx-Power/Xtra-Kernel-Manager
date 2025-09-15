@@ -41,13 +41,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
         lint.disable.add("NullSafeMutableLiveData")
-
-
     }
     kotlin {
         compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) }
     }
     buildFeatures { compose = true }
+    
     configurations.all {
         resolutionStrategy {
             force("com.google.guava:guava:32.1.3-jre")

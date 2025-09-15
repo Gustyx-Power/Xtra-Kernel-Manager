@@ -111,6 +111,11 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
         )
     }
 
+    // Log when screen is composed
+    LaunchedEffect(Unit) {
+        android.util.Log.d("TuningScreen", "Screen composed, loading state: $isTuningDataLoading")
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -124,9 +129,18 @@ fun TuningScreen(viewModel: TuningViewModel = hiltViewModel()) {
             )
         }
     ) { paddingValues ->
+        // Log loading state changes
+        LaunchedEffect(isTuningDataLoading) {
+            android.util.Log.d("TuningScreen", "Loading state changed to: $isTuningDataLoading")
+        }
+        
         if (isTuningDataLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Loading tuning data...")
+                }
             }
         } else {
             Column(
@@ -319,13 +333,14 @@ fun PerformanceModeCard(
     viewModel: TuningViewModel,
     blur: Boolean = true
 ) {
-    var performanceMode by remember { mutableStateOf("Balanced") }
+    // Use a key to preserve state across recompositions
+    var performanceMode by remember(key1 = viewModel) { mutableStateOf("Balanced") }
     
     // Collect available governors
     val availableGovernors by viewModel.generalAvailableCpuGovernors.collectAsState()
 
     // Dynamically create performance modes based on available governors
-    val performanceModes = remember(availableGovernors) {
+    val performanceModes = remember(key1 = availableGovernors) {
         val modes = mutableListOf<String>()
         
         // Always include Balanced as default
@@ -354,7 +369,7 @@ fun PerformanceModeCard(
     }
     
     // Dynamic governor mappings based on available governors
-    val governorMappings = remember(availableGovernors) {
+    val governorMappings = remember(key1 = availableGovernors) {
         val mappings = mutableMapOf<String, String>()
         
         // Default mappings

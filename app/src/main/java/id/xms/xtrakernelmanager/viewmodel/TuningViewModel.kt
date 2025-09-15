@@ -193,7 +193,10 @@ class TuningViewModel @Inject constructor(
     init {
         Log.d("TuningVM_Init", "ViewModel initializing...")
         initializeCpuStateFlows()
-        fetchAllInitialData()
+        // Only fetch initial data if not already loaded
+        if (_isTuningDataLoading.value) {
+            fetchAllInitialData()
+        }
         refreshCoreStates()
         fetchRamControlData()
         Log.d("TuningVM_Init", "ViewModel initialization complete.")
@@ -213,17 +216,45 @@ class TuningViewModel @Inject constructor(
         val tempGovernors = mutableMapOf<String, List<String>>()
         val tempFreqs = mutableMapOf<String, List<Int>>()
 
-        cpuClusters.forEach { cluster ->
-            coroutineScope {
-                launch { repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it } }
-                launch { repo.getCpuFreq(cluster).take(1).collect { _currentCpuFrequencies[cluster]?.value = it } }
-                launch { repo.getAvailableCpuGovernors(cluster).collect { tempGovernors[cluster] = it } }
-                launch { repo.getAvailableCpuFrequencies(cluster).collect { tempFreqs[cluster] = it } }
+        try {
+            cpuClusters.forEach { cluster ->
+                coroutineScope {
+                    launch { 
+                        try {
+                            repo.getCpuGov(cluster).take(1).collect { _currentCpuGovernors[cluster]?.value = it }
+                        } catch (e: Exception) {
+                            Log.e("TuningVM_CPU", "Error fetching CPU governor for $cluster", e)
+                        }
+                    }
+                    launch { 
+                        try {
+                            repo.getCpuFreq(cluster).take(1).collect { _currentCpuFrequencies[cluster]?.value = it }
+                        } catch (e: Exception) {
+                            Log.e("TuningVM_CPU", "Error fetching CPU frequency for $cluster", e)
+                        }
+                    }
+                    launch { 
+                        try {
+                            repo.getAvailableCpuGovernors(cluster).collect { tempGovernors[cluster] = it }
+                        } catch (e: Exception) {
+                            Log.e("TuningVM_CPU", "Error fetching available CPU governors for $cluster", e)
+                        }
+                    }
+                    launch { 
+                        try {
+                            repo.getAvailableCpuFrequencies(cluster).collect { tempFreqs[cluster] = it }
+                        } catch (e: Exception) {
+                            Log.e("TuningVM_CPU", "Error fetching available CPU frequencies for $cluster", e)
+                        }
+                    }
+                }
             }
+            _availableCpuFrequenciesPerClusterMap.value = tempFreqs
+            if (tempGovernors.isNotEmpty()) _generalAvailableCpuGovernors.value = tempGovernors.values.flatten().distinct().sorted()
+            Log.d("TuningVM_CPU", "Finished fetching all CPU data.")
+        } catch (e: Exception) {
+            Log.e("TuningVM_CPU", "Error in fetchAllCpuData", e)
         }
-        _availableCpuFrequenciesPerClusterMap.value = tempFreqs
-        if (tempGovernors.isNotEmpty()) _generalAvailableCpuGovernors.value = tempGovernors.values.flatten().distinct().sorted()
-        Log.d("TuningVM_CPU", "Finished fetching all CPU data.")
     }
 
     fun getCpuGov(cluster: String): StateFlow<String> = _currentCpuGovernors.getOrPut(cluster) { MutableStateFlow("...") }.asStateFlow()
@@ -263,15 +294,19 @@ class TuningViewModel @Inject constructor(
 
     /* ---------------- GPU ---------------- */
     fun fetchGpuData() = viewModelScope.launch(Dispatchers.IO) {
-        _availableGpuGovernors.value = repo.getAvailableGpuGovernors().first()
-        _currentGpuGovernor.value = repo.getGpuGov().first()
-        _availableGpuFrequencies.value = repo.getAvailableGpuFrequencies().first()
-        val (min, max) = repo.getGpuFreq().first()
-        _currentGpuMinFreq.value = min
-        _currentGpuMaxFreq.value = max
-        Log.d("ViewModelGPU", "StateFlows updated: _currentGpuMinFreq=${_currentGpuMinFreq.value}, _currentGpuMaxFreq=${_currentGpuMaxFreq.value}")
-        _gpuPowerLevelRange.value = repo.getGpuPowerLevelRange().first()
-        _currentGpuPowerLevel.value = repo.getCurrentGpuPowerLevel().first()
+        try {
+            _availableGpuGovernors.value = repo.getAvailableGpuGovernors().first()
+            _currentGpuGovernor.value = repo.getGpuGov().first()
+            _availableGpuFrequencies.value = repo.getAvailableGpuFrequencies().first()
+            val (min, max) = repo.getGpuFreq().first()
+            _currentGpuMinFreq.value = min
+            _currentGpuMaxFreq.value = max
+            Log.d("ViewModelGPU", "StateFlows updated: _currentGpuMinFreq=${_currentGpuMinFreq.value}, _currentGpuMaxFreq=${_currentGpuMaxFreq.value}")
+            _gpuPowerLevelRange.value = repo.getGpuPowerLevelRange().first()
+            _currentGpuPowerLevel.value = repo.getCurrentGpuPowerLevel().first()
+        } catch (e: Exception) {
+            Log.e("ViewModelGPU", "Error fetching GPU data", e)
+        }
     }
 
     fun setGpuGovernor(gov: String) = viewModelScope.launch(Dispatchers.IO) {
@@ -493,23 +528,37 @@ class TuningViewModel @Inject constructor(
     private fun fetchCurrentThermalMode(isInitialLoad: Boolean = false) {
         if (isInitialLoad) _isTuningDataLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
-            thermalRepo.getCurrentThermalModeIndex()
-                .catch {
-                    if (isInitialLoad) applyLastSavedThermalProfile() else _isTuningDataLoading.value = false
+            try {
+                thermalRepo.getCurrentThermalModeIndex()
+                    .catch { e ->
+                        Log.e("TuningVM_Thermal", "Error getting current thermal mode", e)
+                        if (isInitialLoad) applyLastSavedThermalProfile() else _isTuningDataLoading.value = false
+                    }
+                    .collect { index ->
+                        _currentThermalModeIndex.value = index
+                        if (isInitialLoad) applyLastSavedThermalProfile() else _isTuningDataLoading.value = false
+                    }
+            } catch (e: Exception) {
+                Log.e("TuningVM_Thermal", "Error in fetchCurrentThermalMode", e)
+                if (isInitialLoad) {
+                    applyLastSavedThermalProfile()
+                } else {
+                    _isTuningDataLoading.value = false
                 }
-                .collect {
-                    _currentThermalModeIndex.value = it
-                    if (isInitialLoad) applyLastSavedThermalProfile() else _isTuningDataLoading.value = false
-                }
+            }
         }
     }
 
     private suspend fun applyLastSavedThermalProfile() {
-        val idx = thermalPrefs.getInt(KEY_LAST_APPLIED_THERMAL_INDEX, -1)
-        val profile = thermalRepo.availableThermalProfiles.find { it.index == idx }
-        if (profile != null && _currentThermalModeIndex.value != idx) {
-            setThermalProfileInternal(profile, isRestoring = true)
-        } else {
+        try {
+            val idx = thermalPrefs.getInt(KEY_LAST_APPLIED_THERMAL_INDEX, -1)
+            val profile = thermalRepo.availableThermalProfiles.find { it.index == idx }
+            if (profile != null && _currentThermalModeIndex.value != idx) {
+                setThermalProfileInternal(profile, isRestoring = true)
+            } else {
+                _isTuningDataLoading.value = false
+            }
+        } catch (e: Exception) {
             _isTuningDataLoading.value = false
         }
     }
@@ -548,13 +597,40 @@ class TuningViewModel @Inject constructor(
     /* ---------------- Init ---------------- */
     private fun fetchAllInitialData() {
         viewModelScope.launch {
-            launch(Dispatchers.IO) { fetchAllCpuData() }
-            launch(Dispatchers.IO) { fetchGpuData() }
-            fetchCurrentThermalMode(isInitialLoad = true)
-            launch(Dispatchers.IO) { fetchOpenGlesDriver() }
-            launch(Dispatchers.IO) { fetchCurrentGpuRenderer() }
-            launch(Dispatchers.IO) { fetchVulkanApiVersion() }
-            fetchRamControlData()
+            _isTuningDataLoading.value = true
+            
+            // Set a timeout to ensure loading doesn't get stuck
+            val timeoutJob = launch {
+                delay(10000) // 10 seconds timeout
+                if (_isTuningDataLoading.value) {
+                    Log.w("TuningVM_Init", "Data fetch timeout, forcing loading to false")
+                    _isTuningDataLoading.value = false
+                }
+            }
+            
+            try {
+                // Launch all data fetching operations in parallel
+                val jobs = listOf(
+                    launch(Dispatchers.IO) { fetchAllCpuData() },
+                    launch(Dispatchers.IO) { fetchGpuData() },
+                    launch(Dispatchers.IO) { fetchCurrentThermalMode(isInitialLoad = true) },
+                    launch(Dispatchers.IO) { fetchOpenGlesDriver() },
+                    launch(Dispatchers.IO) { fetchCurrentGpuRenderer() },
+                    launch(Dispatchers.IO) { fetchVulkanApiVersion() },
+                    launch(Dispatchers.IO) { fetchRamControlData() }
+                )
+                
+                // Wait for all jobs to complete
+                jobs.forEach { it.join() }
+            } catch (e: Exception) {
+                Log.e("TuningVM_Init", "Error during initial data fetch", e)
+            } finally {
+                // Cancel timeout job
+                timeoutJob.cancel()
+                // Always ensure loading is set to false
+                _isTuningDataLoading.value = false
+                Log.d("TuningVM_Init", "Initial data fetch completed, loading set to false")
+            }
         }
     }
 }
