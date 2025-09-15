@@ -151,8 +151,8 @@ class MainActivity : ComponentActivity() {
         if (rootRepo.isRooted() && !batteryOptChecker.hasRequiredPermissions()) {
             showBatteryOptDialog = true
         } else if (rootRepo.isRooted()) {
-            // Only start service if we have permissions and device is rooted
-            startForegroundService(Intent(this, ThermalService::class.java))
+            // Only start service for Dynamic mode (10) which requires continuous monitoring
+            // For other thermal modes, persistent scripts handle settings
         }
     }
 
@@ -221,8 +221,8 @@ class MainActivity : ComponentActivity() {
                 permissionDenialCount = 0
                 showBatteryOptDialog = false
 
-                // Ensure service is running if permissions are granted
-                startForegroundService(Intent(this, ThermalService::class.java))
+                // Only start service for Dynamic mode (10) which requires continuous monitoring
+                // For other thermal modes, persistent scripts handle settings
             }
         }
     }

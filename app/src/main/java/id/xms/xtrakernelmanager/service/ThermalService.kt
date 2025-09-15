@@ -6,6 +6,10 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.AndroidEntryPoint
 import id.xms.xtrakernelmanager.R
@@ -25,6 +29,9 @@ class ThermalService : Service() {
     private var monitoringJob: Job? = null
     private val TAG = "ThermalService"
     private var isRootAvailable = false
+
+    private val thermalDataStore: DataStore<Preferences> by preferencesDataStore(name = "thermal_settings")
+    private val LAST_THERMAL_MODE = intPreferencesKey("last_thermal_mode")
 
     companion object {
         const val NOTIFICATION_ID = 1
@@ -52,7 +59,7 @@ class ThermalService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "XKM Thermal Service",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_MIN
             ).apply {
                 description = "Maintains thermal settings"
                 enableLights(false)
@@ -69,7 +76,7 @@ class ThermalService : Service() {
     private fun startForegroundSafely() {
         try {
             startForeground(NOTIFICATION_ID, createNotification(
-                if (isRootAvailable) "XKM Thermal Service Running"
+                if (isRootAvailable) "Maintaining Dynamic thermal profile"
                 else "Service inactive - No root access"
             ))
         } catch (e: Exception) {
@@ -109,8 +116,24 @@ class ThermalService : Service() {
                         }
                     }
 
+                    // Check if we're still in Dynamic mode (10)
+                    val savedMode = try {
+                        runBlocking {
+                            thermalDataStore.data.first()[LAST_THERMAL_MODE] ?: 0
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Failed to get saved thermal mode", e)
+                        0
+                    }
+
+                    // If we're no longer in Dynamic mode, stop the service
+                    if (savedMode != 10) {
+                        Log.d(TAG, "No longer in Dynamic mode ($savedMode), stopping service")
+                        stopSelf()
+                        break
+                    }
+
                     val currentMode = thermalRepository.getCurrentThermalModeIndex().first()
-                    val savedMode = thermalRepository.getSavedThermalMode()
 
                     if (currentMode != savedMode && savedMode != 0) {
                         Log.d(TAG, "Thermal mode changed from $savedMode to $currentMode, restoring...")
@@ -154,7 +177,7 @@ class ThermalService : Service() {
         }
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("XKM Thermal Service")
+            .setContentTitle("Thermal Control")
             .setContentText(text)
             .setSmallIcon(R.drawable.ic_notification)
             .apply {

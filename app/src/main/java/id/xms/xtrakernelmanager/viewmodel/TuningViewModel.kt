@@ -569,13 +569,20 @@ class TuningViewModel @Inject constructor(
             if (ok) {
                 _currentThermalModeIndex.value = profile.index
                 if (!isRestoring) thermalPrefs.edit().putInt(KEY_LAST_APPLIED_THERMAL_INDEX, profile.index).apply()
-                // Mulai ThermalService untuk menjaga pengaturan di background
-                if (profile.index != 0) { // Jangan mulai kalau mode Disable
+                // For Dynamic mode (10), we need continuous monitoring
+                // For other modes, persistent scripts handle reboot persistence
+                if (profile.index == 10) {
+                    // Only start service for Dynamic mode which requires CPU monitoring
                     val intent = Intent(application, ThermalService::class.java)
                     intent.putExtra("thermal_mode", profile.index)
-                    application.startService(intent)
-                    Log.d("TuningVM_Thermal", "Started ThermalService for mode ${profile.index}")
+                    try {
+                        application.startService(intent)
+                        Log.d("TuningVM_Thermal", "Started ThermalService for Dynamic mode")
+                    } catch (e: Exception) {
+                        Log.e("TuningVM_Thermal", "Failed to start ThermalService", e)
+                    }
                 } else {
+                    // For other modes, stop the service if running
                     stopThermalService()
                 }
             } else {
