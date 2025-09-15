@@ -1,6 +1,5 @@
 package id.xms.xtrakernelmanager.ui
 
-import InfoScreen
 import TuningScreen
 import android.content.Context
 import android.content.Intent
@@ -92,7 +91,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             XtraTheme {
                 val navController = rememberNavController()
-                val items = listOf("Home", "Tuning", "Misc", "Info")
+                val items = listOf("Home", "Tuning", "Misc")
 
                 // Use Surface instead of ExpressiveBackground to avoid potential composition issues
                 Surface(
@@ -138,7 +137,6 @@ class MainActivity : ComponentActivity() {
                                 composable("home") { HomeScreen(navController = navController) }
                                 composable("tuning") { TuningScreen() }
                                 composable("misc") { MiscScreen() }
-                                composable("info") { InfoScreen() }
                                 composable("settings") { SettingsScreen(navController = navController) }
                             }
                         }

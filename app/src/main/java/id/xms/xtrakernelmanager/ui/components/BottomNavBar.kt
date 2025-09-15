@@ -79,7 +79,6 @@ private fun getNavIcons(screen: String): Pair<ImageVector, ImageVector> { // Pai
         "home" -> Pair(Icons.Filled.Home, Icons.Outlined.Home)
         "tuning" -> Pair(Icons.Filled.Build, Icons.Outlined.Build) // Assuming Build has an Outlined version
         "misc" -> Pair(Icons.Filled.Tune, Icons.Outlined.Tune) // Changed icon
-        "info" -> Pair(Icons.Filled.Info, Icons.Outlined.Info)
         // Fallback icons if a screen name doesn't match
         else -> Pair(Icons.Filled.Help, Icons.Outlined.HelpOutline) // Example fallback
     }
