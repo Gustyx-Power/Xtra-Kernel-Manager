@@ -22,8 +22,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.RealtimeGpuInfo
+import id.xms.xtrakernelmanager.viewmodel.GraphDataViewModel
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -34,13 +36,14 @@ const val SIMULATE_GPU_LOAD_TOGGLE = false // Keep for existing logic
 @Composable
 fun GpuCard(
     info: RealtimeGpuInfo,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    graphDataViewModel: GraphDataViewModel = viewModel()
 ) {
-    var graphDataHistory by remember { mutableStateOf(listOf<Float>()) }
+    val graphData by graphDataViewModel.graphData.collectAsState()
     
     LaunchedEffect(info) {
         val currentDataPoint: Float = info.usagePercentage?.coerceIn(0f, 100f) ?: 0f
-        graphDataHistory = (graphDataHistory + currentDataPoint).takeLast(MAX_GPU_HISTORY_POINTS)
+        graphDataViewModel.addGpuData(currentDataPoint)
     }
 
     Card(
@@ -59,10 +62,10 @@ fun GpuCard(
         ) {
             GpuHeaderSection(info)
 
-            GpuStatsSection(info = info, graphDataHistory = graphDataHistory)
+            GpuStatsSection(info = info, graphDataHistory = graphData.gpuHistory)
 
             EnhancedGpuGraph(
-                graphDataHistory = graphDataHistory,
+                graphDataHistory = graphData.gpuHistory,
                 primaryColor = MaterialTheme.colorScheme.primary
             )
         }

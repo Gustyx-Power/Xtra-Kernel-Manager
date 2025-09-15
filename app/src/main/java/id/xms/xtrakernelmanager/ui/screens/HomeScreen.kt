@@ -27,11 +27,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.ui.components.*
+import id.xms.xtrakernelmanager.viewmodel.GraphDataViewModel
 import id.xms.xtrakernelmanager.viewmodel.HomeViewModel
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -90,6 +92,7 @@ fun FadeInEffect(
 fun HomeScreen(navController: NavController) {
     val vm: HomeViewModel = hiltViewModel()
     val storageViewModel: id.xms.xtrakernelmanager.ui.viewmodel.StorageInfoViewModel = hiltViewModel()
+    val graphDataViewModel: id.xms.xtrakernelmanager.viewmodel.GraphDataViewModel = viewModel()
 
     // Kumpulkan semua state dari ViewModel
     val cpuInfo by vm.cpuInfo.collectAsState()
@@ -244,12 +247,12 @@ fun HomeScreen(navController: NavController) {
                 FadeInEffect { modifier ->
                     val currentSystemInfo = systemInfoState
                     val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != "Unknown" } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" } ?: "CPU"
-                    CpuCard(socNameToDisplay, cpuInfo, cpuClusters, false, modifier)
+                    CpuCard(socNameToDisplay, cpuInfo, cpuClusters, false, modifier, graphDataViewModel)
                 }
 
                 /* 2. GPU */
                 FadeInEffect { modifier ->
-                    GpuCard(gpuInfo, modifier)
+                    GpuCard(gpuInfo, modifier, graphDataViewModel)
                 }
 
                 /* 3. Merged card */

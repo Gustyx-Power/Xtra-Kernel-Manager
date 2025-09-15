@@ -28,17 +28,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CpuCluster
 import id.xms.xtrakernelmanager.data.model.RealtimeCpuInfo
+import id.xms.xtrakernelmanager.viewmodel.GraphDataViewModel
+import id.xms.xtrakernelmanager.viewmodel.GraphMode
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 import kotlin.random.Random
-
-enum class GraphMode {
-    SPEED,
-    LOAD
-}
 
 const val MAX_HISTORY_POINTS_GRAPH = 50
 const val SIMULATE_CPU_LOAD_TOGGLE = false // Keep for existing logic
@@ -47,12 +45,13 @@ const val SIMULATE_CPU_LOAD_TOGGLE = false // Keep for existing logic
 fun CpuCard(
     soc: String,
     info: RealtimeCpuInfo,
-    clusters: List<id.xms.xtrakernelmanager.data.model.CpuCluster>,
+    clusters: List<CpuCluster>,
     modifier1: Boolean, // Parameter tetap ada
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    graphDataViewModel: GraphDataViewModel = viewModel()
 ) {
-    var graphDataHistory by remember { mutableStateOf(listOf<Float>()) }
-    var currentGraphMode by remember { mutableStateOf(GraphMode.LOAD) }
+    val graphData by graphDataViewModel.graphData.collectAsState()
+    var currentGraphMode by remember { mutableStateOf(graphData.cpuGraphMode) }
 
     LaunchedEffect(currentGraphMode, info) {
         val currentDataPoint: Float = when (currentGraphMode) {
@@ -77,7 +76,12 @@ fun CpuCard(
                 }
             }
         }
-        graphDataHistory = (graphDataHistory + currentDataPoint).takeLast(MAX_HISTORY_POINTS_GRAPH)
+        
+        // Update the ViewModel with the new data point
+        when (currentGraphMode) {
+            GraphMode.LOAD -> graphDataViewModel.addCpuLoadData(currentDataPoint)
+            GraphMode.SPEED -> graphDataViewModel.addCpuSpeedData(currentDataPoint)
+        }
     }
 
     Card( // Mengganti ElevatedCard menjadi Card dengan konfigurasi baru
@@ -100,10 +104,14 @@ fun CpuCard(
                 CpuCoresSection(info = info, clusters = clusters)
             }
 
-            CpuStatsSection(info = info, currentGraphMode = currentGraphMode, graphDataHistory = graphDataHistory)
+            CpuStatsSection(
+                info = info, 
+                currentGraphMode = currentGraphMode, 
+                graphDataHistory = if (currentGraphMode == GraphMode.LOAD) graphData.cpuLoadHistory else graphData.cpuSpeedHistory
+            )
 
             EnhancedCpuGraph(
-                graphDataHistory = graphDataHistory,
+                graphDataHistory = if (currentGraphMode == GraphMode.LOAD) graphData.cpuLoadHistory else graphData.cpuSpeedHistory,
                 currentGraphMode = currentGraphMode,
                 primaryColor = MaterialTheme.colorScheme.primary
             )
@@ -112,7 +120,9 @@ fun CpuCard(
                 currentGraphMode = currentGraphMode,
                 onModeChanged = { newMode ->
                     currentGraphMode = newMode
-                    graphDataHistory = emptyList() // Reset history on mode change
+                    graphDataViewModel.setCPUGraphMode(newMode)
+                    // Only reset history when explicitly changing modes
+                    // graphDataViewModel.resetCPUGraphHistory()
                 }
             )
         }
