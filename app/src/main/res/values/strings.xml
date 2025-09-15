@@ -69,9 +69,7 @@
     <string name="widget_battery_off">Battery OFF</string>
     <string name="battery_performance_widget_description">Control battery notification and performance mode</string>
 
-    <!-- Xtra Control Widget strings -->
-    <string name="widget_title">Xtra Control</string>
-    <string name="xtra_control_widget_description">Battery notification and performance mode control</string>
+    
     <string name="battery_toggle">Toggle Battery Stats</string>
     <string name="performance_cycle">Cycle Performance Mode</string>
     <string name="performance_mode_balanced">Mode: Balanced</string>

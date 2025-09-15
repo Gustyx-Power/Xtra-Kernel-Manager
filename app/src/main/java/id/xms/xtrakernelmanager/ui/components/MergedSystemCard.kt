@@ -71,6 +71,7 @@ fun MergedSystemCard(
         // Separate Battery Card
         BatteryCard(
             batteryInfo = b,
+            deepSleepInfo = d,
         )
 
         // Separate Memory Card
@@ -96,6 +97,7 @@ fun MergedSystemCard(
 @Composable
 private fun BatteryCard(
     batteryInfo: BatteryInfo,
+    deepSleepInfo: DeepSleepInfo?,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -114,7 +116,7 @@ private fun BatteryCard(
             BatteryProgressSection(batteryInfo = batteryInfo)
 
             // Battery Stats Section
-            BatteryStatsSection(batteryInfo = batteryInfo)
+            BatteryStatsSection(batteryInfo = batteryInfo, deepSleepInfo = deepSleepInfo)
         }
     }
 }
@@ -194,7 +196,7 @@ private fun BatteryHeaderSection(
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            // Battery Status Box
+            // Battery Status Box with temperature
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
@@ -202,7 +204,7 @@ private fun BatteryHeaderSection(
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "${batteryInfo.level}% • ${if (batteryInfo.isCharging) "Charging" else "Discharging"}",
+                    text = "${batteryInfo.level}% • ${String.format(Locale.getDefault(), "%.1f", batteryInfo.temp)}°C • ${if (batteryInfo.isCharging) "Charging" else "Discharging"}",
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium)
                 )
@@ -590,7 +592,8 @@ private fun MemoryProgressSection(
 
 @Composable
 private fun BatteryStatsSection(
-    batteryInfo: BatteryInfo
+    batteryInfo: BatteryInfo,
+    deepSleepInfo: DeepSleepInfo?
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -602,19 +605,11 @@ private fun BatteryStatsSection(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Battery Stats Row 1 - Temperature and Voltage
+            // Battery Stats Row 1 - Voltage and Uptime
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Temperature
-                SystemStatItem(
-                    icon = Icons.Default.Thermostat,
-                    label = "Temperature",
-                    value = "${String.format(Locale.getDefault(), "%.1f", batteryInfo.temp)}°C",
-                    modifier = Modifier.weight(1f)
-                )
-
                 // Voltage
                 SystemStatItem(
                     icon = Icons.Default.ElectricBolt,
@@ -630,6 +625,14 @@ private fun BatteryStatsSection(
                         } else "0"
                         "${formattedVoltage}V"
                     },
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Uptime
+                SystemStatItem(
+                    icon = Icons.Default.AccessTime,
+                    label = "Uptime",
+                    value = deepSleepInfo?.let { formatTimeWithSeconds(it.uptime) } ?: "N/A",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -700,16 +703,38 @@ private fun BatteryStatsSection(
                 )
             }
 
-            // Additional info if current is available
-            if (batteryInfo.current != 0f) {
-                val currentMa = batteryInfo.current / 1000
-                val displayCurrent = currentMa
+            // Battery Stats Row 5 - Deep Sleep and Current (if available)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Deep Sleep
                 SystemStatItem(
-                    icon = if (batteryInfo.isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryAlert,
-                    label = "Current",
-                    value = "${String.format(Locale.getDefault(), "%.0f", displayCurrent)}mA",
-                    modifier = Modifier.fillMaxWidth()
+                    icon = Icons.Default.NightsStay,
+                    label = "Deep Sleep",
+                    value = deepSleepInfo?.let { 
+                        if (it.uptime > 0) {
+                            val percentage = (it.deepSleep.toFloat() / it.uptime.toFloat()) * 100
+                            "%.1f%%".format(percentage)
+                        } else "0.0%"
+                    } ?: "N/A",
+                    modifier = Modifier.weight(1f)
                 )
+
+                // Current (if available)
+                if (batteryInfo.current != 0f) {
+                    val currentMa = batteryInfo.current / 1000
+                    val displayCurrent = currentMa
+                    SystemStatItem(
+                        icon = if (batteryInfo.isCharging) Icons.Default.BatteryChargingFull else Icons.Default.BatteryAlert,
+                        label = "Current",
+                        value = "${String.format(Locale.getDefault(), "%.0f", displayCurrent)}mA",
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    // Empty placeholder to maintain layout
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }

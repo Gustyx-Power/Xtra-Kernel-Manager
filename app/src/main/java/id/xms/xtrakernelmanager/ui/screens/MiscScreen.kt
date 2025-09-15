@@ -52,8 +52,6 @@ fun MiscScreen(
         )
     }
 
-    val batteryStatsEnabled by viewModel.batteryStatsEnabled.collectAsState()
-    val batteryNotificationEnabled by viewModel.batteryNotificationEnabled.collectAsState()
     val kgslSkipZeroingEnabled by viewModel.kgslSkipZeroingEnabled.collectAsState()
     val isKgslFeatureAvailable by viewModel.isKgslFeatureAvailable.collectAsState()
 
@@ -82,14 +80,7 @@ fun MiscScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-            BatteryStatsCard(
-                batteryStatsEnabled = batteryStatsEnabled,
-                batteryNotificationEnabled = batteryNotificationEnabled,
-                onToggleBatteryStats = { enabled ->
-                    viewModel.toggleBatteryStats(enabled)
-                }
-            )
+        ) {
 
             // Additional misc features
             SystemTweaksCard()
@@ -106,14 +97,11 @@ fun MiscScreen(
     }
 }
 
-
-
 @Composable
-fun BatteryStatsCard(
-    batteryStatsEnabled: Boolean,
-    batteryNotificationEnabled: Boolean,
-    onToggleBatteryStats: (Boolean) -> Unit
-) {
+fun SystemTweaksCard() {
+    var animationsEnabled by remember { mutableStateOf(true) }
+    var debugMode by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -126,205 +114,13 @@ fun BatteryStatsCard(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Battery & System Stats",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            // Battery Stats Toggle
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Battery Stats Service",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Monitor battery usage, charging stats, and system metrics",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Switch(
-                    checked = batteryStatsEnabled,
-                    onCheckedChange = onToggleBatteryStats,
-                    thumbContent = if (batteryStatsEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
-            }
-
-            // Battery Notification Info
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Persistent Notification",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "Show detailed battery info in notification panel",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                Switch(
-                    checked = batteryNotificationEnabled,
-                    onCheckedChange = onToggleBatteryStats,
-                    enabled = false, // This is controlled by the main battery stats toggle
-                    thumbContent = if (batteryNotificationEnabled) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.inverseOnSurface,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    }
-                )
-            }
-
-            if (batteryStatsEnabled) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.BatteryStd,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "Battery Service Active",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                        Text(
-                            text = "Monitoring battery level, charging current, voltage, temperature, screen time, and deep sleep statistics.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-            }
-
-            if (!batteryStatsEnabled) {
-                OutlinedCard(
-                    colors = CardDefaults.outlinedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Info,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Features Available",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text("• Real-time battery level & charging status", style = MaterialTheme.typography.bodySmall)
-                            Text("• Charging current & voltage monitoring", style = MaterialTheme.typography.bodySmall)
-                            Text("• Battery temperature tracking", style = MaterialTheme.typography.bodySmall)
-                            Text("• Screen on/off time statistics", style = MaterialTheme.typography.bodySmall)
-                            Text("• Deep sleep & awake time monitoring", style = MaterialTheme.typography.bodySmall)
-                            Text("• System uptime tracking", style = MaterialTheme.typography.bodySmall)
-                            Text("• Battery drain rate calculation", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun SystemTweaksCard() {
-    var animationsEnabled by remember { mutableStateOf(true) }
-    var debugMode by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
                 text = "System Tweaks",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
+            // Animation toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -332,7 +128,7 @@ fun SystemTweaksCard() {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "System Animations",
+                        text = "Animations",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -367,6 +163,7 @@ fun SystemTweaksCard() {
                 )
             }
 
+            // Debug mode toggle
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -433,7 +230,9 @@ fun KgslSkipZeroingCard(
                 text = "Graphics Performance",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.5f
+                )
             )
 
             Row(
@@ -446,7 +245,9 @@ fun KgslSkipZeroingCard(
                         text = "KGSL Skip Pool Zeroing",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.5f
+                        )
                     )
                     Text(
                         text = if (isKgslFeatureAvailable) {
@@ -455,13 +256,15 @@ fun KgslSkipZeroingCard(
                             "Feature not available in your kernel version."
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        color = if (isKgslFeatureAvailable) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.5f
+                        )
                     )
                 }
 
                 Switch(
-                    checked = if (isKgslFeatureAvailable) kgslSkipZeroingEnabled else false,
-                    onCheckedChange = if (isKgslFeatureAvailable) onToggleKgslSkipZeroing else null,
+                    checked = kgslSkipZeroingEnabled && isKgslFeatureAvailable,
+                    onCheckedChange = { if (isKgslFeatureAvailable) onToggleKgslSkipZeroing(!kgslSkipZeroingEnabled) },
                     enabled = isKgslFeatureAvailable,
                     thumbContent = if (kgslSkipZeroingEnabled && isKgslFeatureAvailable) {
                         {

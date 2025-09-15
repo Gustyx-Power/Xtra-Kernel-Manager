@@ -18,12 +18,12 @@ fun BatteryOptDialog(
         text = {
             Text(
                 if (showExitButton) {
-                    "XKM requires these permissions to function properly. Without them, the app cannot " +
-                    "maintain your settings. Please grant the permissions or exit the app."
+                    "XKM requires battery optimization exclusion to function properly. Without this permission, " +
+                    "the app cannot maintain your thermal settings in the background. Please grant the permission " +
+                    "or exit the app."
                 } else {
-                    "XKM needs to be excluded from battery optimization and requires notification " +
-                    "permission to maintain your thermal settings in the background. Please allow " +
-                    "these permissions for the app to work properly."
+                    "XKM needs to be excluded from battery optimization to maintain your thermal settings " +
+                    "in the background. Please allow this permission for the app to work properly."
                 }
             )
         },

@@ -29,12 +29,11 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.BATTERY_STATS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.DEVICE_POWER"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -71,14 +70,6 @@
             </intent-filter>
         </activity>
 
-        <!-- BatteryStatsService - Persistent foreground service -->
-        <service
-            android:name=".service.BatteryStatsService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
-
         <!-- ThermalService -->
         <service
             android:name=".service.ThermalService"
@@ -102,49 +93,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Battery Notification Widget -->
-        <receiver
-            android:name=".widget.BatteryNotificationWidget"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="id.xms.xtrakernelmanager.TOGGLE_BATTERY_NOTIFICATION" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/battery_notification_widget_info" />
-        </receiver>
-
-        <!-- Battery Performance Widget -->
-        <receiver
-            android:name=".widget.BatteryPerformanceWidget"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="id.xms.xtrakernelmanager.TOGGLE_BATTERY_NOTIFICATION" />
-                <action android:name="id.xms.xtrakernelmanager.CYCLE_PERFORMANCE_MODE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/battery_performance_widget_info" />
-        </receiver>
-
-        <!-- Xtra Control Widget 4x4 -->
-        <receiver
-            android:name=".widget.XtraControlWidget"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="id.xms.xtrakernelmanager.TOGGLE_BATTERY" />
-                <action android:name="id.xms.xtrakernelmanager.CYCLE_PERFORMANCE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/xtra_control_widget_info" />
-        </receiver>
+        
 
         <!-- Disable WorkManager's automatic initialization -->
         <provider

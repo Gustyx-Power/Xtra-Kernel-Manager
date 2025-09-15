@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import dagger.hilt.android.AndroidEntryPoint
-import id.xms.xtrakernelmanager.service.BatteryStatsService
 import id.xms.xtrakernelmanager.utils.PreferenceManager
 import javax.inject.Inject
 
@@ -32,20 +31,7 @@ class BootReceiver : BroadcastReceiver() {
 
     private fun handleBootCompleted(context: Context) {
         Log.d(TAG, "Handling boot completed event")
-
-        // Start BatteryStatsService on boot if it was previously enabled
-        if (preferenceManager.getBatteryStatsEnabled()) {
-            Log.d(TAG, "Starting BatteryStatsService on boot")
-
-            val serviceIntent = Intent(context, BatteryStatsService::class.java)
-            try {
-                context.startForegroundService(serviceIntent)
-                Log.d(TAG, "BatteryStatsService started successfully")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to start BatteryStatsService: ${e.message}", e)
-            }
-        } else {
-            Log.d(TAG, "Battery stats service was not previously enabled")
-        }
+        // No services to start on boot now that BatteryStatsService has been removed
+        Log.d(TAG, "No services to start on boot")
     }
 }

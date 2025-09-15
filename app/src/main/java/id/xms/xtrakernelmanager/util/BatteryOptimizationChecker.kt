@@ -9,14 +9,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 
 class BatteryOptimizationChecker(private val context: Context) {
 
     fun hasRequiredPermissions(): Boolean {
         return isIgnoringBatteryOptimizations() &&
-                hasNotificationPermission() &&
                 hasDataSyncPermission()
     }
 
@@ -59,24 +57,6 @@ class BatteryOptimizationChecker(private val context: Context) {
         activity.startActivity(intent)
     }
 
-    fun hasNotificationPermission(): Boolean {
-        return NotificationManagerCompat.from(context).areNotificationsEnabled()
-    }
-
-    fun openNotificationSettings(activity: Activity) {
-        val intent = Intent().apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-            } else {
-                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                data = Uri.fromParts("package", context.packageName, null)
-            }
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        activity.startActivity(intent)
-    }
-
     fun openAppSettings(activity: Activity) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", context.packageName, null)
@@ -93,8 +73,6 @@ class BatteryOptimizationChecker(private val context: Context) {
 
         if (!isIgnoringBatteryOptimizations()) {
             requestDisableBatteryOptimization(activity)
-        } else if (!hasNotificationPermission()) {
-            openNotificationSettings(activity)
         }
     }
 }
