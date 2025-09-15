@@ -29,17 +29,19 @@ class ThermalRepository @Inject constructor(
 
     data class ThermalProfile(val displayName: String, val index: Int)
     val availableThermalProfiles = listOf(
-        ThermalProfile("Disable", 0),
-        ThermalProfile("Extreme", 2),
-        ThermalProfile("Incalls", 8),
         ThermalProfile("Dynamic", 10),
-        ThermalProfile("PUBG", 13),
-        ThermalProfile("Thermal 20", 20),
-        ThermalProfile("Game", 40),
-        ThermalProfile("Camera", 42),
-        ThermalProfile("Game 2", 50),
-        ThermalProfile("YouTube", 51)
-    ).sortedBy { it.displayName }
+        ThermalProfile("Class 0", 11),
+        ThermalProfile("AR VR", 15),
+        ThermalProfile("In-calls", 8),
+        ThermalProfile("Game", 9),
+        ThermalProfile("Game 2", 16),
+        ThermalProfile("Extreme", 2),
+        ThermalProfile("Pubg", 12),
+        ThermalProfile("Camera", 13),
+        ThermalProfile("Youtube", 14),
+        ThermalProfile("Disabled", 0),
+        ThermalProfile("Not Set", -1)
+    )
 
     private var userSetMaxFreq: Int = 0
     private var userSetGovernor: String? = null
