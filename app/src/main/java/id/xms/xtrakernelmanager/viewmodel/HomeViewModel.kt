@@ -11,6 +11,7 @@ import id.xms.xtrakernelmanager.data.model.*
 import id.xms.xtrakernelmanager.data.repository.RootRepository
 import id.xms.xtrakernelmanager.data.repository.SystemRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -69,7 +70,11 @@ class HomeViewModel @Inject constructor(
     private val _cpuClusters = MutableStateFlow<List<CpuCluster>>(emptyList())
     val cpuClusters: StateFlow<List<CpuCluster>> = _cpuClusters.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     init {
+        _isLoading.value = true
         viewModelScope.launch {
             systemRepo.realtimeAggregatedInfoFlow
                 .catch { e ->
@@ -88,20 +93,28 @@ class HomeViewModel @Inject constructor(
                 }
         }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            _systemInfo.value = systemRepo.getSystemInfo()
-            _kernelInfo.value = systemRepo.getKernelInfo()
-            _rootStatus.value = rootRepo.isRooted()
-            _cpuClusters.value = systemRepo.getCpuClusters()
-
-            try {
-                @SuppressLint("PackageManagerGetSignatures")
-                val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-                _appVersion.value = pInfo.versionName
-            } catch (e: Exception) {
-                _appVersion.value = "N/A"
-                Log.e("HomeViewModel", "Error getting app version", e)
+                viewModelScope.launch(Dispatchers.IO) {
+            val systemInfoDeferred = async { systemRepo.getSystemInfo() }
+            val kernelInfoDeferred = async { systemRepo.getKernelInfo() }
+            val rootStatusDeferred = async { rootRepo.isRooted() }
+            val cpuClustersDeferred = async { systemRepo.getCpuClusters() }
+            val appVersionDeferred = async {
+                try {
+                    @SuppressLint("PackageManagerGetSignatures")
+                    val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                    pInfo.versionName
+                } catch (e: Exception) {
+                    Log.e("HomeViewModel", "Error getting app version", e)
+                    "N/A"
+                }
             }
+
+            _systemInfo.value = systemInfoDeferred.await()
+            _kernelInfo.value = kernelInfoDeferred.await()
+            _rootStatus.value = rootStatusDeferred.await()
+            _cpuClusters.value = cpuClustersDeferred.await()
+            _appVersion.value = appVersionDeferred.await()
+            _isLoading.value = false
         }
     }
 

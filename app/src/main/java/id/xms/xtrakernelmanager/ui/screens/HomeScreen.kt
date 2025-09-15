@@ -103,6 +103,7 @@ fun HomeScreen(navController: NavController) {
     val systemInfoState by vm.systemInfo.collectAsState()
     val cpuClusters by vm.cpuClusters.collectAsState()
     val storageInfo by storageViewModel.storageInfo.collectAsState()
+    val isLoading by vm.isLoading.collectAsState()
 
     var showFabMenu by remember { mutableStateOf(false) }
 
@@ -222,77 +223,80 @@ fun HomeScreen(navController: NavController) {
             )
         }
     ) { paddingValues ->
-
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-
-            /* 1. CPU */
-            FadeInEffect { modifier ->
-                val currentSystemInfo = systemInfoState
-                val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != "Unknown" } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" } ?: "CPU"
-                CpuCard(socNameToDisplay, cpuInfo, cpuClusters, false, modifier)
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
+        } else {
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
 
-            /* 2. GPU */
-            FadeInEffect { modifier ->
-                GpuCard(gpuInfo, modifier)
-            }
-
-            /* 3. Merged card */
-            val currentBattery = batteryInfo
-            val currentMemory = memoryInfo
-            val currentDeepSleep = deepSleepInfo
-            val currentRoot = rootStatus
-            val currentVersion = appVersion
-            val currentSystem = systemInfoState
-
-            if (currentBattery != null && currentMemory != null && currentDeepSleep != null &&
-                currentRoot != null && currentVersion != null && currentSystem != null) {
+                /* 1. CPU */
                 FadeInEffect { modifier ->
-                    MergedSystemCard(
-                        b = currentBattery,
-                        d = currentDeepSleep,
-                        rooted = currentRoot,
-                        version = currentVersion,
-                        mem = currentMemory,
-                        systemInfo = currentSystem,
-                        storageInfo = storageInfo,
-                        modifier = modifier
-                    )
+                    val currentSystemInfo = systemInfoState
+                    val socNameToDisplay = currentSystemInfo?.soc?.takeIf { it.isNotBlank() && it != "Unknown" } ?: cpuInfo.soc.takeIf { it.isNotBlank() && it != "Unknown SoC" && it != "N/A" } ?: "CPU"
+                    CpuCard(socNameToDisplay, cpuInfo, cpuClusters, false, modifier)
                 }
-            } else {
+
+                /* 2. GPU */
                 FadeInEffect { modifier ->
-                    Box(modifier.fillMaxWidth().height(200.dp).background(Color.LightGray.copy(alpha = 0.5f))) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    GpuCard(gpuInfo, modifier)
+                }
+
+                /* 3. Merged card */
+                val currentBattery = batteryInfo
+                val currentMemory = memoryInfo
+                val currentDeepSleep = deepSleepInfo
+                val currentRoot = rootStatus
+                val currentVersion = appVersion
+                val currentSystem = systemInfoState
+
+                if (currentBattery != null && currentMemory != null && currentDeepSleep != null &&
+                    currentRoot != null && currentVersion != null && currentSystem != null) {
+                    FadeInEffect { modifier ->
+                        MergedSystemCard(
+                            b = currentBattery,
+                            d = currentDeepSleep,
+                            rooted = currentRoot,
+                            version = currentVersion,
+                            mem = currentMemory,
+                            systemInfo = currentSystem,
+                            storageInfo = storageInfo,
+                            modifier = modifier
+                        )
+                    }
+                } else {
+                    FadeInEffect { modifier ->
+                        Box(modifier.fillMaxWidth().height(200.dp).background(Color.LightGray.copy(alpha = 0.5f))) {
+                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                        }
                     }
                 }
-            }
 
-
-            /* 4. Kernel */
-            val currentKernel = kernelInfo
-            if (currentKernel != null) {
-                FadeInEffect { modifier ->
-                    KernelCard(currentKernel, modifier)
+                /* 4. Kernel */
+                val currentKernel = kernelInfo
+                if (currentKernel != null) {
+                    FadeInEffect { modifier ->
+                        KernelCard(currentKernel, modifier)
+                    }
+                } else {
+                    // Opsional: Placeholder untuk KernelCard
                 }
-            } else {
-                // Opsional: Placeholder untuk KernelCard
-            }
 
-
-            /* 5. About */
-            FadeInEffect { modifier ->
-                AboutCard(false, modifier)
+                /* 5. About */
+                FadeInEffect { modifier ->
+                    AboutCard(false, modifier)
+                }
             }
         }
     }
 }
-
-
-
