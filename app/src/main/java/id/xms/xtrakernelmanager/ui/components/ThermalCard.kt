@@ -41,19 +41,8 @@ fun ThermalCard(
     val isLoading by viewModel.isTuningDataLoading.collectAsState()
 
     var showDialog by remember { mutableStateOf(false) }
-    var isExpanded by remember { mutableStateOf(true) }
+    var isExpanded by remember { mutableStateOf(false) }
 
-    // Animation untuk pulse effect
-    val infiniteTransition = rememberInfiniteTransition(label = "thermal_pulse")
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_alpha"
-    )
 
     Card(
         modifier = modifier,
@@ -71,7 +60,6 @@ fun ThermalCard(
             // Thermal Header Section
             ThermalHeaderSection(
                 currentProfileName = currentProfileName,
-                pulseAlpha = pulseAlpha,
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded }
             )
@@ -114,7 +102,6 @@ fun ThermalCard(
 @Composable
 private fun ThermalHeaderSection(
     currentProfileName: String,
-    pulseAlpha: Float,
     isExpanded: Boolean,
     onExpandClick: () -> Unit
 ) {
