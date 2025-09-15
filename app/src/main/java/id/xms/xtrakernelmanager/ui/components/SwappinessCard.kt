@@ -75,18 +75,6 @@ fun SwappinessCard(
     var showMinFreeMemoryDialog by remember { mutableStateOf(false) }
     var showAdjustSwapSizeDialog by remember { mutableStateOf(false) }
 
-    // Animation untuk pulse effect
-    val infiniteTransition = rememberInfiniteTransition(label = "ram_control_pulse")
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse_alpha"
-    )
-
     Card(
         modifier = Modifier,
         colors = CardDefaults.cardColors(
@@ -104,7 +92,6 @@ fun SwappinessCard(
             RamControlHeaderSection(
                 zramEnabled = zramEnabled,
                 zramDisksize = zramDisksize,
-                pulseAlpha = pulseAlpha,
                 isExpanded = isExpanded,
                 onExpandClick = { isExpanded = !isExpanded }
             )
@@ -116,7 +103,7 @@ fun SwappinessCard(
                     // ZRAM Toggle Section
                     RamZramToggleSection(
                         zramEnabled = zramEnabled,
-                        onZramToggle = { vm.setZramEnabled(!zramEnabled) }
+                        onZramToggle = { } // ZRAM state is controlled by kernel, so no-op
                     )
 
                     AnimatedVisibility(visible = zramEnabled) {
@@ -364,7 +351,6 @@ fun SwappinessCard(
 fun RamControlHeaderSection(
     zramEnabled: Boolean,
     zramDisksize: Long,
-    pulseAlpha: Float,
     isExpanded: Boolean,
     onExpandClick: () -> Unit
 ) {
@@ -446,30 +432,26 @@ fun RamZramToggleSection(
                     MaterialTheme.colorScheme.surfaceContainer
                 }
             )
-            .clickable { onZramToggle() }
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        Column(
+            modifier = Modifier.weight(1f)
         ) {
-            Column {
-                Text(
-                    text = "ZRAM State",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontWeight = FontWeight.Normal
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            Text(
+                text = "ZRAM State",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Normal
+                ),
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-                Text(
-                    text = if (zramEnabled) "Compressed RAM enabled" else "Compressed RAM disabled",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            Text(
+                text = if (zramEnabled) "Compressed RAM enabled (controlled by kernel)" else "Compressed RAM disabled (controlled by kernel)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
 
         Text(
@@ -823,7 +805,7 @@ private fun getFeatureExplanation(title: String): String {
             "Controls how aggressively the kernel moves data from RAM to storage. Low values (0-10) make the system focus more on using RAM, high values (60-100) use swap more frequently to save RAM."
 
         title.contains("ZRAM", ignoreCase = true) ->
-            "Sets the size of compressed RAM to increase virtual memory capacity. ZRAM compresses data in RAM to store more applications without using slower storage."
+            "Sets the size of compressed RAM to increase virtual memory capacity. ZRAM compresses data in RAM to store more applications without using slower storage. (ZRAM state is controlled by your kernel and cannot be changed)"
 
         title.contains("Dirty Ratio", ignoreCase = true) ->
             "Sets the percentage of RAM used for write cache before forcing writes to storage. Higher values = better performance but risk of data loss during crashes."
@@ -886,13 +868,6 @@ fun CompressionAlgorithmDialog(
     onDismiss: () -> Unit,
     onAlgorithmSelected: (String) -> Unit
 ) {
-    // Add animation for dialog appearance
-    var visible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        visible = true
-    }
-
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier
@@ -910,198 +885,190 @@ fun CompressionAlgorithmDialog(
                     .background(Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
-                AnimatedVisibility(
-                    visible = visible
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .heightIn(min = 300.dp, max = 600.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    shape = RoundedCornerShape(24.dp),
                 ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .heightIn(min = 300.dp, max = 600.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        ),
-                        shape = RoundedCornerShape(24.dp),
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        // Enhanced Header with better styling
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Enhanced Header with better styling
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(56.dp)
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
+                                Icon(
+                                    imageVector = Icons.Default.Compress,
+                                    contentDescription = "Compress",
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Choose Compression Algorithm",
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "ZRAM Performance Settings",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        // Enhanced explanation card
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Compress,
-                                        contentDescription = "Compress",
-                                        modifier = Modifier.size(28.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "Info",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
-                                }
-
-                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = "Choose Compression Algorithm",
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            fontWeight = FontWeight.Bold
+                                        text = "About This Feature",
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.SemiBold
                                         ),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Text(
-                                        text = "ZRAM Performance Settings",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
                                 }
+                                Text(
+                                    text = "The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio. (ZRAM state is controlled by your kernel and cannot be changed)",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 18.sp
+                                )
                             }
+                        }
 
-                            // Enhanced explanation card
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                ),
-                                shape = RoundedCornerShape(24.dp),
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                        // Enhanced algorithm selection list
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 280.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(compressionAlgorithms) { algorithm ->
+                                val isSelected = algorithm.lowercase() == currentCompression.lowercase()
+
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
+                                    )
                                 ) {
                                     Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = "Info",
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = "About This Feature",
-                                            style = MaterialTheme.typography.labelLarge.copy(
-                                                fontWeight = FontWeight.SemiBold
-                                            ),
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                    Text(
-                                        text = "The compression algorithm used by ZRAM to compress data in memory. LZ4 prioritizes speed, ZSTD high efficiency, LZO optimal balance between speed and compression ratio.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 18.sp
-                                    )
-                                }
-                            }
-
-                            // Enhanced algorithm selection list
-                            LazyColumn(
-                                modifier = Modifier.heightIn(max = 280.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(compressionAlgorithms) { algorithm ->
-                                    val isSelected = algorithm == currentCompression
-
-                                    AnimatedVisibility(
-                                        visible = true
-                                    ) {
-                                        Card(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
+                                        RadioButton(
+                                            selected = isSelected,
+                                            onClick = { onAlgorithmSelected(algorithm) },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = MaterialTheme.colorScheme.primary,
+                                                unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                             )
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(16.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                            ) {
-                                                RadioButton(
-                                                    selected = isSelected,
-                                                    onClick = { onAlgorithmSelected(algorithm) },
-                                                    colors = RadioButtonDefaults.colors(
-                                                        selectedColor = MaterialTheme.colorScheme.primary,
-                                                        unselectedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                                    )
-                                                )
+                                        )
 
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text(
-                                                        text = algorithm.uppercase(),
-                                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
-                                                        ),
-                                                        color = if (isSelected)
-                                                            MaterialTheme.colorScheme.primary
-                                                        else
-                                                            MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                    Text(
-                                                        text = when (algorithm.lowercase()) { // ENGLISH_TRANSLATION
-                                                            "lz4" -> "Maximum speed • Low latency"
-                                                            "zstd" -> "High efficiency • Best compression ratio"
-                                                            "lzo" -> "Optimal balance • Stable"
-                                                            "lz4hc" -> "High compression • Moderate speed"
-                                                            "deflate" -> "Standard compression • Moderate speed"
-                                                            "lzma" -> "Maximum compression • Slower"
-                                                            "bzip2" -> "Better compression • Slower"
-                                                            "zlib" -> "Balanced compression • Moderate speed"
-                                                            "lzo-rle" -> "Fast compression • Low CPU usage"
-                                                            else -> "Compression algorithm • Good performance"
-                                                        },
-                                                        style = MaterialTheme.typography.bodySmall,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                }
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = algorithm.uppercase(),
+                                                style = MaterialTheme.typography.bodyLarge.copy(
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold
+                                                ),
+                                                color = if (isSelected)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = when (algorithm.lowercase()) { // ENGLISH_TRANSLATION
+                                                    "lz4" -> "Maximum speed • Low latency"
+                                                    "zstd" -> "High efficiency • Best compression ratio"
+                                                    "lzo" -> "Optimal balance • Stable"
+                                                    "lz4hc" -> "High compression • Moderate speed"
+                                                    "deflate" -> "Standard compression • Moderate speed"
+                                                    "lzma" -> "Maximum compression • Slower"
+                                                    "bzip2" -> "Better compression • Slower"
+                                                    "zlib" -> "Balanced compression • Moderate speed"
+                                                    "lzo-rle" -> "Fast compression • Low CPU usage"
+                                                    else -> "Compression algorithm • Good performance"
+                                                },
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
 
-                                                if (isSelected) {
-                                                    Icon(
-                                                        imageVector = Icons.Default.CheckCircle,
-                                                        contentDescription = "Selected",
-                                                        modifier = Modifier.size(20.dp),
-                                                        tint = MaterialTheme.colorScheme.primary
-                                                    )
-                                                }
-                                            }
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Default.CheckCircle,
+                                                contentDescription = "Selected",
+                                                modifier = Modifier.size(20.dp),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
                                         }
                                     }
                                 }
                             }
+                        }
 
-                            // Enhanced action buttons
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        // Enhanced action buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = onDismiss,
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                ),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant
+                                ),
+                                shape = RoundedCornerShape(16.dp)
                             ) {
-                                OutlinedButton(
-                                    onClick = onDismiss,
-                                    modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.onSurface
-                                    ),
-                                    border = BorderStroke(
-                                        1.dp,
-                                        MaterialTheme.colorScheme.outlineVariant
-                                    ),
-                                    shape = RoundedCornerShape(16.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Cancel",
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text("CANCEL", fontWeight = FontWeight.Medium)
-                                }
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cancel",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("CANCEL", fontWeight = FontWeight.Medium)
                             }
                         }
                     }
@@ -1137,13 +1104,6 @@ fun SwapLoadingDialog(
     logs: List<String>,
     onDismissRequest: () -> Unit
 ) {
-    // Add animation for dialog appearance
-    var visible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        visible = true
-    }
-
     BasicAlertDialog(
         onDismissRequest = { }, // Cannot dismiss while loading
         modifier = Modifier
@@ -1161,236 +1121,232 @@ fun SwapLoadingDialog(
                     .background(Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
-                AnimatedVisibility(
-                    visible = visible
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .heightIn(min = 300.dp, max = 600.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    shape = RoundedCornerShape(24.dp),
                 ) {
-                    Card(
+                    Column(
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .heightIn(min = 300.dp, max = 600.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                        ),
-                        shape = RoundedCornerShape(24.dp),
+                            .padding(24.dp)
+                            .heightIn(max = 550.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(24.dp)
-                                .heightIn(max = 550.dp),
-                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        // Enhanced header with animated progress indicator
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // Enhanced header with animated progress indicator
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(
-                                            Brush.radialGradient(
-                                                colors = listOf(
-                                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                                                    Color.Transparent
-                                                ),
-                                                radius = 60f
-                                            )
-                                        )
-                                        .border(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                                            RoundedCornerShape(24.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        strokeWidth = 3.dp
-                                    )
-                                }
-
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Processing Swap File...",
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            fontWeight = FontWeight.Bold
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "Configuring Virtual Memory",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            }
-
-                            // Enhanced explanation card
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                ),
-                                shape = RoundedCornerShape(24.dp),
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Info,
-                                            contentDescription = "Info",
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = "Process in Progress",
-                                            style = MaterialTheme.typography.labelLarge.copy(
-                                                fontWeight = FontWeight.SemiBold
-                                            ),
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-                                    Text(
-                                        text = "The system is configuring the swap file to increase virtual memory capacity. This process may take a while depending on the size of the file being configured.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        lineHeight = 18.sp
-                                    )
-                                }
-                            }
-
-                            // Enhanced logs section with better styling - Always visible to prevent flickering
-                            Card(
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, false),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                ),
-                                shape = RoundedCornerShape(24.dp),
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Terminal,
-                                            contentDescription = "Logs",
-                                            modifier = Modifier.size(16.dp),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
-                                        Text(
-                                            text = "Real-time Process Log",
-                                            style = MaterialTheme.typography.labelLarge.copy(
-                                                fontWeight = FontWeight.SemiBold
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .background(
+                                        Brush.radialGradient(
+                                            colors = listOf(
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                                                Color.Transparent
                                             ),
-                                            color = MaterialTheme.colorScheme.onSurface
+                                            radius = 60f
                                         )
-                                    }
-
-                                    // Scrollable logs with better formatting
-                                    val listState = rememberLazyListState()
-
-                                    // Auto-scroll to bottom when new logs are added
-                                    LaunchedEffect(logs.size) {
-                                        if (logs.isNotEmpty()) {
-                                            listState.animateScrollToItem(logs.size - 1)
-                                        }
-                                    }
-
-                                    LazyColumn(
-                                        state = listState,
-                                        modifier = Modifier.heightIn(min = 80.dp, max = 250.dp),
-                                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        if (logs.isEmpty()) {
-                                            item {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(8.dp),
-                                                    horizontalArrangement = Arrangement.Center,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Text(
-                                                        text = "Initializing process...",
-                                                        style = MaterialTheme.typography.bodySmall.copy(
-                                                            fontWeight = FontWeight.Normal
-                                                        ),
-                                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                                        lineHeight = 16.sp
-                                                    )
-                                                }
-                                            }
-                                        } else {
-                                            items(logs.takeLast(50)) { log -> // Limit to last 50 logs for performance
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                                    verticalAlignment = Alignment.Top
-                                                ) {
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .size(4.dp)
-                                                            .clip(CircleShape)
-                                                            .background(MaterialTheme.colorScheme.primary)
-                                                            .offset(y = 6.dp)
-                                                    )
-
-                                                    Text(
-                                                        text = log,
-                                                        style = MaterialTheme.typography.bodySmall.copy(
-                                                            fontWeight = FontWeight.Normal
-                                                        ),
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        lineHeight = 16.sp,
-                                                        modifier = Modifier.weight(1f)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                    )
+                                    .border(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                                        RoundedCornerShape(24.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    strokeWidth = 3.dp
+                                )
                             }
 
-                            // Progress indicator section
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                                ),
-                                shape = RoundedCornerShape(24.dp),
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Processing Swap File...",
+                                    style = MaterialTheme.typography.headlineSmall.copy(
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Configuring Virtual Memory",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        // Enhanced explanation card
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(16.dp),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    CircularProgressIndicator(
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = "Info",
                                         modifier = Modifier.size(16.dp),
-                                        color = MaterialTheme.colorScheme.primary,
-                                        strokeWidth = 2.dp
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
-                                        text = "Please wait, do not close the application...",
-                                        style = MaterialTheme.typography.bodySmall.copy(
-                                            fontWeight = FontWeight.Medium
+                                        text = "Process in Progress",
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.SemiBold
                                         ),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
+                                Text(
+                                    text = "The system is configuring the swap file to increase virtual memory capacity. This process may take a while depending on the size of the file being configured.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    lineHeight = 18.sp
+                                )
+                            }
+                        }
+
+                        // Enhanced logs section with better styling - Always visible to prevent flickering
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, false),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Terminal,
+                                        contentDescription = "Logs",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "Real-time Process Log",
+                                        style = MaterialTheme.typography.labelLarge.copy(
+                                            fontWeight = FontWeight.SemiBold
+                                        ),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                // Scrollable logs with better formatting
+                                val listState = rememberLazyListState()
+
+                                // Auto-scroll to bottom when new logs are added
+                                LaunchedEffect(logs.size) {
+                                    if (logs.isNotEmpty()) {
+                                        listState.animateScrollToItem(logs.size - 1)
+                                    }
+                                }
+
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier.heightIn(min = 80.dp, max = 250.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    if (logs.isEmpty()) {
+                                        item {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(8.dp),
+                                                horizontalArrangement = Arrangement.Center,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "Initializing process...",
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        fontWeight = FontWeight.Normal
+                                                    ),
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                                    lineHeight = 16.sp
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        items(logs.takeLast(50)) { log -> // Limit to last 50 logs for performance
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.Top
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(4.dp)
+                                                        .clip(CircleShape)
+                                                        .background(MaterialTheme.colorScheme.primary)
+                                                        .offset(y = 6.dp)
+                                                )
+
+                                                Text(
+                                                    text = log,
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        fontWeight = FontWeight.Normal
+                                                    ),
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    lineHeight = 16.sp,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Progress indicator section
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                            ),
+                            shape = RoundedCornerShape(24.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    strokeWidth = 2.dp
+                                )
+                                Text(
+                                    text = "Please wait, do not close the application...",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
                     }
