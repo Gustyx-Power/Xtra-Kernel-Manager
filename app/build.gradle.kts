@@ -66,65 +66,65 @@ android {
     }
     configurations.all {
         resolutionStrategy {
-            force("com.google.guava:guava:32.1.3-jre")
+            force("com.google.guava:guava:33.5.0-jre")
         }
     }
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.16.0")
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation("androidx.work:work-runtime-ktx:2.10.3")
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.activity:activity-compose:1.11.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
 
-    implementation(platform("androidx.compose:compose-bom:2025.07.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.09.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
-    implementation("androidx.navigation:navigation-compose:2.9.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
+    implementation("androidx.navigation:navigation-compose:2.9.5")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
 
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
 
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     // Room Database
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.8.1")
+    implementation("androidx.room:room-ktx:2.8.1")
+    ksp("androidx.room:room-compiler:2.8.1")
 
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.57")
-    ksp("com.google.dagger:hilt-compiler:2.57")
-    implementation("androidx.hilt:hilt-work:1.2.0")
-    ksp("androidx.hilt:hilt-compiler:1.2.0") // KSP processor for Hilt-WorkManager
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    testImplementation("com.google.dagger:hilt-android-testing:2.57")
-    kspTest("com.google.dagger:hilt-compiler:2.57")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    ksp("com.google.dagger:hilt-compiler:2.57.2")
+    implementation("androidx.hilt:hilt-work:1.3.0")
+    ksp("androidx.hilt:hilt-compiler:1.3.0") // KSP processor for Hilt-WorkManager
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
+    testImplementation("com.google.dagger:hilt-android-testing:2.57.2")
+    kspTest("com.google.dagger:hilt-compiler:2.57.2")
 
     // LibSu & Coil
     implementation("com.github.topjohnwu.libsu:core:6.0.0")
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Accompanist
-    implementation("com.google.accompanist:accompanist-drawablepainter:0.28.0")
+    implementation("com.google.accompanist:accompanist-drawablepainter:0.37.3")
 
     // Serialization for Kotlin 2.0.0
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // WorkManager
-    implementation("androidx.work:work-runtime-ktx:2.10.3")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
 
     // Guava
-    implementation("com.google.guava:guava:32.1.3-jre") {
+    implementation("com.google.guava:guava:33.5.0-jre") {
         exclude(mapOf("group" to "com.google.guava", "module" to "listenablefuture"))
     }
 
     // Firebase BOM (Bill of Materials) for version management
-    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.3.0"))
     // Add Firebase Analytics (core dependency, you can add more as needed)
     implementation("com.google.firebase:firebase-analytics-ktx")
     // Add other Firebase dependencies as needed, e.g.:
@@ -132,7 +132,7 @@ dependencies {
     // implementation("com.google.firebase:firebase-firestore-ktx")
     // Firebase Realtime Database
     implementation("com.google.firebase:firebase-database-ktx")
-    implementation("com.google.firebase:firebase-common-ktx:20.4.0")
+    implementation("com.google.firebase:firebase-common-ktx:21.0.0")
 }
 
 
