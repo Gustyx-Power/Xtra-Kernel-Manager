@@ -11,17 +11,20 @@ echo "Membersihkan cache Gradle..."
 echo "Pembersihan selesai."
 echo ""
 
-# --- Meminta Informasi Keystore Secara Interaktif ---
-echo "Silakan masukkan detail keystore untuk menandatangani aplikasi:"
-
-# 1. Meminta path keystore
-read -p "Masukkan path ke file keystore Anda: " KEYSTORE_PATH
+# --- Set Keystore Path ---
+KEYSTORE_PATH="/home/gustyxpower/Documents/Project/XMS/Keystore/Keystore-XKM/xkm-release-key.jks"
 
 # Validasi sederhana untuk memeriksa apakah file ada
 if [ ! -f "$KEYSTORE_PATH" ]; then
     echo "Error: File keystore tidak ditemukan di '$KEYSTORE_PATH'"
     exit 1
 fi
+
+# --- Meminta Informasi Keystore Secara Interaktif ---
+echo "Silakan masukkan detail keystore untuk menandatangani aplikasi:"
+
+# 1. Menampilkan path keystore yang digunakan
+echo "Menggunakan keystore di: $KEYSTORE_PATH"
 
 # 2. Meminta alias key
 read -p "Masukkan alias key Anda: " KEY_ALIAS
