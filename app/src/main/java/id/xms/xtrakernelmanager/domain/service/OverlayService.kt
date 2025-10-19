@@ -10,7 +10,9 @@ import android.content.Intent
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.*
@@ -42,6 +44,9 @@ class OverlayService : Service() {
     private var currentFps = 0
     private var hasRoot = false
 
+    // Handler for FPS updates
+    private val handler = Handler(Looper.getMainLooper())
+
     companion object {
         private const val TAG = "OverlayService"
         private const val CHANNEL_ID = "xtra_kernel_overlay"
@@ -50,7 +55,7 @@ class OverlayService : Service() {
         const val ACTION_START = "action_start_overlay"
         const val ACTION_STOP = "action_stop_overlay"
 
-        // DRM FPS paths (priority order)
+        // DRM FPS paths
         private val DRM_FPS_PATHS = listOf(
             "/sys/class/drm/sde-crtc-0/measured_fps",
             "/sys/class/drm/card0-DSI-1/measured_fps",
@@ -71,6 +76,10 @@ class OverlayService : Service() {
         serviceScope.launch {
             hasRoot = RootUtils.isRootAvailable()
             Log.d(TAG, "Root available: $hasRoot")
+
+            if (hasRoot) {
+                enableAospFpsLog()
+            }
         }
     }
 
@@ -169,20 +178,23 @@ class OverlayService : Service() {
         } catch (e: Exception) {
             Log.e(TAG, "Error hiding overlay", e)
         }
+        handler.removeCallbacksAndMessages(null)
         serviceScope.cancel()
     }
 
     private fun startUpdatingStats() {
-        serviceScope.launch {
-            while (isActive) {
-                try {
-                    updateStats()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error updating stats", e)
+        handler.post(object : Runnable {
+            override fun run() {
+                serviceScope.launch {
+                    try {
+                        updateStats()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error updating stats", e)
+                    }
                 }
-                delay(500)
+                handler.postDelayed(this, 500)
             }
-        }
+        })
     }
 
     private suspend fun updateStats() = withContext(Dispatchers.IO) {
@@ -240,7 +252,7 @@ class OverlayService : Service() {
 
                 // Update RAM
                 tvRamUsage?.apply {
-                    text = "RAM: $usedMemMB / $totalMemMB MB"
+                    text = "RAM: $usedMemMB/$totalMemMB MB"
                     setTextColor(when {
                         totalMemMB == 0 -> android.graphics.Color.WHITE
                         usedMemMB.toFloat() / totalMemMB < 0.6 -> android.graphics.Color.parseColor("#00FF00")
@@ -254,15 +266,28 @@ class OverlayService : Service() {
         }
     }
 
-    // ========== FPS READING (ROOT STRATEGY) ==========
+    // ========== FPS READING (IMPROVED WITH OLD METHOD) ==========
 
     private suspend fun readFpsWithRoot(): Int = withContext(Dispatchers.IO) {
         try {
-            // Priority 1: Try DRM with root
+            // Priority 1: Try DRM with improved parsing (from old code)
             for (path in DRM_FPS_PATHS) {
                 try {
                     val result = RootUtils.executeCommand("cat $path").getOrNull()
                     if (!result.isNullOrEmpty()) {
+                        if (result.contains("fps:")) {
+                            val fpsValue = result
+                                .substringAfter("fps:")
+                                .substringBefore("duration")
+                                .trim()
+                                .toFloatOrNull()?.roundToInt()
+
+                            if (fpsValue != null && fpsValue in 20..165) {
+                                Log.d(TAG, "FPS from DRM ($path): $fpsValue")
+                                return@withContext fpsValue
+                            }
+                        }
+
                         val fpsValue = result.trim().toFloatOrNull()?.roundToInt()
                         if (fpsValue != null && fpsValue in 20..165) {
                             Log.d(TAG, "FPS from DRM ($path): $fpsValue")
@@ -274,14 +299,21 @@ class OverlayService : Service() {
                 }
             }
 
-            // Priority 2: Try SurfaceFlinger
+            // Priority 2: Try AOSP logcat method (from old code)
+            val logcatFps = getAospLogFps()
+            if (logcatFps in 20..165) {
+                Log.d(TAG, "FPS from AOSP logcat: $logcatFps")
+                return@withContext logcatFps
+            }
+
+            // Priority 3: Try SurfaceFlinger
             val sfFps = readFpsFromSurfaceFlinger()
             if (sfFps > 0) {
                 Log.d(TAG, "FPS from SurfaceFlinger: $sfFps")
                 return@withContext sfFps
             }
 
-            // Priority 3: Fallback to display refresh rate
+            // Priority 4: Fallback to display refresh rate
             val displayFps = readDisplayRefreshRate()
             Log.d(TAG, "FPS from Display RR (fallback): $displayFps")
             return@withContext displayFps
@@ -289,6 +321,34 @@ class OverlayService : Service() {
         } catch (e: Exception) {
             Log.e(TAG, "Error reading FPS with root", e)
             return@withContext readDisplayRefreshRate()
+        }
+    }
+
+    // Enable AOSP FPS logging (from old code)
+    private suspend fun enableAospFpsLog() = withContext(Dispatchers.IO) {
+        try {
+            RootUtils.executeCommand("setprop debug.sf.showfps 1")
+            RootUtils.executeCommand("setprop ro.surface_flinger.debug_layer 1")
+            Log.d(TAG, "AOSP FPS logging enabled")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to enable AOSP FPS logging", e)
+        }
+    }
+
+    // Get FPS from AOSP logcat (from old code)
+    private suspend fun getAospLogFps(): Int = withContext(Dispatchers.IO) {
+        try {
+            val log = RootUtils.executeCommand("logcat -d -s SurfaceFlinger | tail -40").getOrNull()
+            if (log.isNullOrEmpty()) return@withContext 0
+
+            val fpsValues = Regex("""fps\s+(\d+\.?\d*)""").findAll(log)
+                .mapNotNull { it.groupValues[1].toFloatOrNull() }
+                .toList()
+
+            return@withContext fpsValues.lastOrNull()?.roundToInt() ?: 0
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading AOSP logcat FPS", e)
+            return@withContext 0
         }
     }
 
@@ -300,7 +360,6 @@ class OverlayService : Service() {
             val lines = result.trim().lines()
             if (lines.size < 3) return@withContext 0
 
-            // Parse vsync period from first line
             val vsyncPeriod = lines[0].trim().toLongOrNull()
             if (vsyncPeriod != null && vsyncPeriod > 0) {
                 val fps = (1_000_000_000.0 / vsyncPeriod).roundToInt()
@@ -333,7 +392,6 @@ class OverlayService : Service() {
         try {
             var maxFreq = 0L
 
-            // Scan all cores (0-7) and get the highest
             for (core in 0..7) {
                 val path = "/sys/devices/system/cpu/cpu$core/cpufreq/scaling_cur_freq"
                 try {
@@ -349,7 +407,6 @@ class OverlayService : Service() {
                 }
             }
 
-            // If no non-root access, try root
             if (maxFreq == 0L && hasRoot) {
                 try {
                     val cpuInfo = kernelRepository.getCpuInfo()
@@ -377,7 +434,6 @@ class OverlayService : Service() {
                 "/sys/class/hwmon/hwmon1/temp1_input"
             )
 
-            // Try non-root first
             for (path in thermalPaths) {
                 try {
                     val file = File(path)
@@ -392,7 +448,6 @@ class OverlayService : Service() {
                 }
             }
 
-            // Try with root if available
             if (hasRoot) {
                 try {
                     val cpuInfo = kernelRepository.getCpuInfo()
@@ -421,7 +476,6 @@ class OverlayService : Service() {
                 "/sys/kernel/gpu/gpu_clock"
             )
 
-            // Try non-root first
             for (path in gpuPaths) {
                 try {
                     val file = File(path)
@@ -436,7 +490,6 @@ class OverlayService : Service() {
                 }
             }
 
-            // Try with root if available
             if (hasRoot) {
                 try {
                     val gpuInfo = kernelRepository.getGpuInfo()
@@ -501,7 +554,7 @@ class OverlayService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Performance Overlay")
             .setContentText("FPS: $currentFps | Tap to open")
-            .setSmallIcon(R.drawable.logo_a)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
