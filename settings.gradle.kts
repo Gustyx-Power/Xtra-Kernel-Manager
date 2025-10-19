@@ -15,8 +15,8 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             when (requested.id.id) {
-                "com.android.application" -> useModule("com.android.tools.build:gradle:8.12.1")
-                "org.jetbrains.kotlin.android" -> useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
+                "com.android.application" -> useModule("com.android.tools.build:gradle:8.13.0")
+                "org.jetbrains.kotlin.android" -> useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20")
             }
         }
     }
@@ -33,9 +33,9 @@ dependencyResolutionManagement {
     // Fix configuration cache version catalog
     versionCatalogs {
         create("libs") {
-            library("kotlin-stdlib", "org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
-            library("core-ktx", "androidx.core:core-ktx:1.13.1")
-            library("appcompat", "androidx.appcompat:appcompat:1.6.1")
+            library("kotlin-stdlib", "org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
+            library("core-ktx", "androidx.core:core-ktx:1.17.0")
+            library("appcompat", "androidx.appcompat:appcompat:1.7.1")
         }
     }
 }
