@@ -17,5 +17,7 @@ data class CpuCore(
     val maxFreq: Long,
     val governor: String,
     val availableGovernors: List<String>,
-    val availableFrequencies: List<Long>
+    val availableFrequencies: List<Long>,
+    val cluster: String = "Unknown",
+    val clusterType: String = "Unknown"
 )
