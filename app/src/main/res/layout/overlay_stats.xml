@@ -4,65 +4,84 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@android:color/transparent"
-    app:cardBackgroundColor="#DD000000"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="8dp">
+    app:cardBackgroundColor="#85000000"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="12dp"
+        android:background="@android:color/transparent">
 
+        <!-- FPS - Most important, bigger -->
         <TextView
             android:id="@+id/tvFps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="FPS: 0"
+            android:text="FPS: 120"
             android:textColor="#00FF00"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:fontFamily="monospace" />
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.03"
+            android:paddingBottom="6dp" />
 
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#30FFFFFF"
+            android:layout_marginBottom="6dp" />
+
+        <!-- CPU -->
         <TextView
             android:id="@+id/tvCpuFreq"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="CPU: 0 MHz"
+            android:text="CPU: 2500 MHz"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
-            android:fontFamily="monospace" />
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:paddingVertical="2dp" />
 
+        <!-- GPU -->
         <TextView
             android:id="@+id/tvGpuFreq"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="GPU: 0 MHz"
+            android:text="GPU: 950 MHz"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
-            android:fontFamily="monospace" />
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:paddingVertical="2dp" />
 
+        <!-- Temperature -->
         <TextView
             android:id="@+id/tvCpuTemp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Temp: 0°C"
+            android:text="Temp: 45°C"
             android:textColor="#FFB300"
             android:textSize="12sp"
-            android:fontFamily="monospace" />
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:paddingVertical="2dp" />
 
+        <!-- RAM -->
         <TextView
             android:id="@+id/tvRamUsage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="RAM: 0 MB"
+            android:text="RAM: 6800/11550 MB"
             android:textColor="#2196F3"
-            android:textSize="12sp"
-            android:fontFamily="monospace" />
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:paddingTop="2dp" />
 
     </LinearLayout>
 
