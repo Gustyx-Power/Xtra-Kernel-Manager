@@ -19,14 +19,14 @@ plugins {
 
 android {
     namespace = "id.xms.xtrakernelmanager"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
-        versionName = "2.0-alpha1"
+        versionName = "2.0-alpha2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
