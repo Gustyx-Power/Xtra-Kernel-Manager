@@ -63,6 +63,17 @@ object SysfsUtils {
             ?.split(" ")?.filter { it.isNotEmpty() } ?: emptyList()
     }
 
+    suspend fun getAvailableGpuGovernors(): List<String> = withContext(Dispatchers.IO) {
+        try {
+            val governorsPath = "/sys/class/kgsl/kgsl-3d0/devfreq/available_governors"
+            val governors = readSysfsFile(governorsPath)
+            governors?.trim()?.split("\\s+".toRegex()) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+
     suspend fun getAvailableFrequencies(core: Int): List<Long> = withContext(Dispatchers.IO) {
         readSysfsFile("${Constants.SYS_CPU}/cpu$core/cpufreq/scaling_available_frequencies")
             ?.split(" ")?.mapNotNull { it.toLongOrNull() } ?: emptyList()
