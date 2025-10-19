@@ -13,7 +13,7 @@ import kotlin.text.substringAfterLast
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
 }
 
 android {
@@ -76,13 +76,13 @@ android {
 
 dependencies {
     // Compose BOM
-    val composeBom = platform("androidx.compose:compose-bom:2024.10.01")
+    val composeBom = platform("androidx.compose:compose-bom:2025.10.00")
     implementation(composeBom)
 
     // Core Android
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation("androidx.activity:activity-compose:1.11.0")
 
     // Compose UI
     implementation("androidx.compose.ui:ui")
@@ -90,12 +90,12 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
 
     // Material 3 & Material 3 Expressive
-    implementation("androidx.compose.material3:material3:1.3.1")
-    implementation("androidx.compose.material3:material3-window-size-class:1.3.1")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
     implementation("androidx.compose.material:material-icons-extended")
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.8.4")
+    implementation("androidx.navigation:navigation-compose:2.9.5")
 
     // ViewModel Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
@@ -107,22 +107,22 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:service:6.0.0")
 
     // Accompanist
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
-    implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.37.3")
+    implementation("com.google.accompanist:accompanist-permissions:0.37.3")
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     // Kotlinx Serialization & TOML
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("com.akuleshov7:ktoml-core:0.5.2")
-    implementation("com.akuleshov7:ktoml-file:0.5.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.2")
+    implementation("com.akuleshov7:ktoml-core:0.7.1")
+    implementation("com.akuleshov7:ktoml-file:0.7.1")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
     // Chart Library
-    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.3.0-alpha.1")
 
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
