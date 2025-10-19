@@ -1,214 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Root & sysfs access -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.ACCESS_SUPERUSER"/>
-    <uses-permission android:name="android.permission.DUMP" tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.READ_FRAME_BUFFER" tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.GET_TASKS" tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.REAL_GET_TASKS" tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.READ_SECURE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        tools:ignore="ScopedStorage" />
-    <uses-permission android:name="android.permission.BATTERY_STATS"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.DEVICE_POWER"
-        tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android:project_media" />
 
     <application
-        android:name=".XtraApp"
+        android:name=".XtraKernelApp"
         android:allowBackup="true"
-        android:icon="@drawable/logo_a"
-        android:label="XKM"
-        android:roundIcon="@drawable/logo_a"
+        android:dataExtractionRules="@xml/backup_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.XtraKernelManager"
-        android:requestLegacyExternalStorage="true"
-        android:forceDarkAllowed="false"
-        tools:targetApi="33">
-
-        <meta-data
-            android:name="android.theme.customization.dynamicColor"
-            android:value="true" />
-
-        <!-- Force dark theme configuration -->
-        <meta-data
-            android:name="android.app.ui_mode"
-            android:value="night" />
-
-        <!-- Disable light mode support -->
-        <meta-data
-            android:name="android.support.ui_options"
-            android:value="forceDark" />
+        android:hardwareAccelerated="true"
+        tools:targetApi="35">
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.XtraKernelManager">
+            android:theme="@style/Theme.XtraKernelManager"
+            android:screenOrientation="fullUser"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Boot Receiver for auto-start functionality -->
-        <receiver
-            android:name=".receiver.BootReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
-            </intent-filter>
-        </receiver>
-
-        <!-- BatteryStatsService - Persistent foreground service -->
         <service
-            android:name=".service.BatteryStatsService"
+            android:name=".domain.service.OverlayService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
-
-        <!-- Game Control Service -->
-        <service
-            android:name=".service.GameControlService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
-
-        <!-- Game Control Settings Activity -->
-        <activity
-            android:name=".ui.GameControlSettingsActivity"
-            android:exported="false"
-            android:label="Game Control Settings"
-            android:theme="@style/Theme.XtraKernelManager" />
-
-        <!-- ThermalService -->
-        <service
-            android:name=".service.ThermalService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
-
-        <!-- OTA Update Listener Service -->
-        <service
-            android:name=".service.OtaUpdateListenerService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="false" />
-
-        <!-- FPSOverlayService - Foreground overlay service for FPS monitor -->
-        <service
-            android:name="id.xms.xtrakernelmanager.service.FPSOverlayService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Display the FPS overlay on top of other apps." />
-        </service>
-
-
-        <!-- Battery Notification Widget -->
-        <receiver
-            android:name=".widget.BatteryNotificationWidget"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="id.xms.xtrakernelmanager.TOGGLE_BATTERY_NOTIFICATION" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/battery_notification_widget_info" />
-        </receiver>
-
-        <!-- Battery Performance Widget -->
-        <receiver
-            android:name=".widget.BatteryPerformanceWidget"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="id.xms.xtrakernelmanager.TOGGLE_BATTERY_NOTIFICATION" />
-                <action android:name="id.xms.xtrakernelmanager.CYCLE_PERFORMANCE_MODE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/battery_performance_widget_info" />
-        </receiver>
-
-        <!-- Xtra Control Widget 4x4 -->
-        <receiver
-            android:name=".widget.XtraControlWidget"
-            android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="id.xms.xtrakernelmanager.TOGGLE_BATTERY" />
-                <action android:name="id.xms.xtrakernelmanager.CYCLE_PERFORMANCE" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/xtra_control_widget_info" />
-        </receiver>
-
-        <!-- Disable WorkManager's automatic initialization -->
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            tools:node="merge">
-            <meta-data
-                android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup"
-                tools:node="remove" />
-        </provider>
-
-        <!-- Single Quick Settings Tile for Performance Mode Cycling -->
-        <service
-            android:name=".service.PerformanceModeTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_balance"
-            android:label="Performance Mode"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-
+            android:foregroundServiceType="specialUse" />
     </application>
-
 </manifest>
