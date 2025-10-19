@@ -25,7 +25,6 @@ echo "Silakan masukkan detail keystore untuk menandatangani aplikasi:"
 
 # 1. Menampilkan path keystore yang digunakan
 echo "Menggunakan keystore di: $KEYSTORE_PATH"
-
 # 2. Meminta alias key
 read -p "Masukkan alias key Anda: " KEY_ALIAS
 

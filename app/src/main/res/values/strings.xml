@@ -1,106 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Xtra Kernel Manager</string>
-    <string name="welcome_message">Welcome to Xtra Kernel Manager!</string>
-    <string name="desc_about">Thank you for choosing Xtra Kernel Manager. We hope you enjoy the experience!</string>
-    <string name="about">About Apps</string>
-    <string name="telegram">Telegram</string>
-    <string name="github">Github</string>
-    <string name="credits">Developer Xtra Kernel Manager</string>
-    <string name="credits_author">1. Gustyx-Power : Founder &amp; Developer
-2. Pavellc : Ui Supports
-3. Ziyu : Tuning Supports</string>
-    <string name="kernel">Kernel</string>
-    <string name="version">Version Kernel</string>
-    <string name="kernel_type">Kernel Type: %1$s</string>
-    <string name="kernel_information">Kernel Information</string>
-    <string name="kernel_version">Kernel Version: %1$s</string>
-    <string name="xtra_kernel_manager">Xtra Kernel Manager</string>
     <string name="home">Home</string>
     <string name="tuning">Tuning</string>
     <string name="misc">Misc</string>
     <string name="info">Info</string>
-    <string name="sched">I/O Scheduler: %1$s</string>
-    <string name="github_link">https://github.com/Gustyx-Power/Xtra-Kernel-Manager</string>
-    <string name="telegram_link">https://t.me/XtraManagerSoftware</string>
-    <string name="reboot_system">Reboot System</string>
-    <string name="reboot_systemui">Reboot System Ui</string>
-    <string name="reboot_bootloader">Reboot Bootloader</string>
-    <string name="reboot_recovery">Reboot Recovery</string>
-    <string name="power_off">Power Off</string>
-
-    <!-- Settings strings -->
-    <string name="settings_language_label">Language</string>
-
-    <!-- ... string lainnya ... -->
-    <string name="central_proccessing_unit_cpu">Central Processing Unit (CPU)</string>
-    <string name="offline">Offline</string>
-    <string name="cpu_governor_label">Governor:</string>
-    <string name="cpu_cores_label">Cores:</string>
-    <string name="core_suffix">Cores</string> <!-- atau "Inti" -->
-    <string name="temperature_label">Temp:</string>
-    <string name="temperature_c_format">%.1f °C</string>
-    <string name="avg_load_label">Avg. Load:</string>
-    <string name="clock_speed">Clock Speed</string>
-    <string name="cpu_load">CPU Load</string>
-
-    <!-- String yang sudah ada dari kode sebelumnya, pastikan masih relevan -->
-    <string name="cpu_governor">Governor: %s</string>
-    <string name="cpu_cores_format">%d Cores</string>
-    <string name="temperature_c">Temp: %.1f °C</string>
-    <string name="uptime_regex">%02dh %02dm %02ds</string>
-
-    <!-- FPS Overlay strings -->
-    <string name="fps_format">FPS: %d</string>
-
-    <!-- Settings Screen -->
-    <string name="settings_title">Settings</string>
-    <string name="settings_back_button_desc">Back</string>
-
-    <!-- Widget strings -->
-    <string name="widget_description">Toggle battery notification on/off</string>
-    <string name="widget_battery_stats_on">Battery Stats: ON</string>
-    <string name="widget_battery_stats_off">Battery Stats: OFF</string>
-
-    <!-- Battery Performance Widget strings -->
-    <string name="widget_battery_on">Battery ON</string>
-    <string name="widget_battery_off">Battery OFF</string>
-    <string name="battery_performance_widget_description">Control battery notification and performance mode</string>
-
-    <!-- Xtra Control Widget strings -->
-    <string name="widget_title">Xtra Control</string>
-    <string name="xtra_control_widget_description">Battery notification and performance mode control</string>
-    <string name="battery_toggle">Toggle Battery Stats</string>
-    <string name="performance_cycle">Cycle Performance Mode</string>
-    <string name="performance_mode_balanced">Mode: Balanced</string>
-
-    <!-- CpuCard -->
-    <string name="cpu_soc_label">SoC</string>
-    <string name="cpu_cpu_label">CPU</string>
-    <string name="cpu_freq_mhz">%d MHz</string>
-    <string name="common_na">N/A</string>
-    <string name="cpu_avg_load_format">%.1f%%</string>
-    <string name="cpu_toggle_graph_mode_desc">Toggle Graph Mode</string>
-
-    <!-- HomeScreen -->
-    <string name="home_reboot_system_desc">Reboot System</string>
-    <string name="home_reboot_systemui_desc">Reboot SystemUI</string>
-    <string name="home_reboot_bootloader_desc">Reboot Bootloader</string>
-    <string name="home_reboot_recovery_desc">Reboot Recovery</string>
-    <string name="home_power_off_desc">Power Off</string>
-    <string name="home_toggle_fab_desc">Toggle FAB Menu</string>
-    <string name="home_settings_button_desc">Settings</string>
-    <string name="cpu_fallback_title">CPU</string>
-
-    <!-- Common -->
-    <string name="common_unknown_value">Unknown</string>
-    <string name="language">Language</string>
-    <string name="select_language">Choose Language</string>
-    <string name="close">Close</string>
-    <string name="system_info">System Info</string>
-
-
-    <!-- Language strings -->
-    <string name="language_english">English</string>
-    <string name="language_indonesian">Indonesian</string>
+    <string name="root_access_required">Root Access Required</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="loading">Loading…</string>
+    <string name="accessibility_service_description">Monitors app launches to automatically show game overlay for whitelisted apps</string>
 
 </resources>

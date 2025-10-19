@@ -1,24 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Night theme - identical to day theme to force dark mode always -->
-    <style name="Theme.XtraKernelManager" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <!-- Primary colors -->
-        <item name="colorPrimary">#90CAF9</item>
-        <item name="colorPrimaryDark">#1B263B</item>
-        <item name="colorAccent">#81C784</item>
-
-        <!-- Background and surface -->
-        <item name="android:colorBackground">#0A0E13</item>
-        <item name="android:textColorPrimary">#E3E3E3</item>
-        <item name="android:textColorSecondary">#BDBDBD</item>
-
-        <!-- System UI -->
+    <style name="Theme.XtraKernelManager" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Status bar color -->
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
-
-        <!-- Force dark theme -->
-        <item name="android:forceDarkAllowed">false</item>
+        <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
     </style>
 </resources>
