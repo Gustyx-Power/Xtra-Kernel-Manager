@@ -10,7 +10,32 @@ object RootUtils {
 
     suspend fun isRootAvailable(): Boolean = withContext(Dispatchers.IO) {
         if (rootGranted == null) {
-            rootGranted = Shell.isAppGrantedRoot() ?: false
+            try {
+                // Method 1: Try LibSu
+                val libsuResult = Shell.getShell().isRoot
+                if (libsuResult) {
+                    rootGranted = true
+                    return@withContext true
+                }
+
+                // Method 2: Try direct command
+                val result = Shell.cmd("su -c id").exec()
+                if (result.isSuccess && result.out.any { it.contains("uid=0") }) {
+                    rootGranted = true
+                    return@withContext true
+                }
+
+                // Method 3: Check su binary
+                val whichSu = Shell.cmd("which su").exec()
+                if (whichSu.isSuccess && whichSu.out.isNotEmpty()) {
+                    rootGranted = true
+                    return@withContext true
+                }
+
+                rootGranted = false
+            } catch (e: Exception) {
+                rootGranted = false
+            }
         }
         rootGranted ?: false
     }

@@ -94,24 +94,53 @@ object SysfsUtils {
         val clusters = mutableMapOf<String, MutableList<Int>>()
         val coreCount = getCpuCoreCount()
 
+        // Group cores by max frequency
+        val frequencyGroups = mutableMapOf<Long, MutableList<Int>>()
+
         for (core in 0 until coreCount) {
-            val policyPath = "${Constants.SYS_CPU}/cpu$core/cpufreq/related_cpus"
-            val policy = readSysfsFile(policyPath)
+            val maxFreq = getCpuMaxFreq(core) ?: continue
+            frequencyGroups.getOrPut(maxFreq) { mutableListOf() }.add(core)
+        }
 
-            if (policy != null) {
-                val maxFreq = getCpuMaxFreq(core) ?: continue
-                val clusterName = when {
-                    maxFreq < 1800000 -> "Little"
-                    maxFreq < 2400000 -> "Big"
-                    else -> "Prime"
-                }
+        // Sort frequency groups (ascending)
+        val sortedGroups = frequencyGroups.entries.sortedBy { it.key }
 
-                clusters.getOrPut(clusterName) { mutableListOf() }.add(core)
+        when (sortedGroups.size) {
+            1 -> {
+                // All cores same frequency (homogeneous)
+                clusters["Little"] = sortedGroups[0].value
             }
+            2 -> {
+                // 2 clusters: Little and Big
+                clusters["Little"] = sortedGroups[0].value
+                clusters["Big"] = sortedGroups[1].value
+            }
+            3 -> {
+                // 3 clusters: Little, Big, Prime
+                clusters["Little"] = sortedGroups[0].value
+                clusters["Big"] = sortedGroups[1].value
+                clusters["Prime"] = sortedGroups[2].value
+            }
+            else -> {
+                // More than 3 clusters (rare), group by performance
+                // Assume first group is Little, rest are Big
+                clusters["Little"] = sortedGroups[0].value
+                val bigCores = mutableListOf<Int>()
+                for (i in 1 until sortedGroups.size) {
+                    bigCores.addAll(sortedGroups[i].value)
+                }
+                clusters["Big"] = bigCores
+            }
+        }
+
+        // Sort cores in each cluster
+        clusters.forEach { (key, value) ->
+            clusters[key] = value.sorted().toMutableList()
         }
 
         clusters
     }
+
 
     suspend fun getBatteryCapacity(): Int = withContext(Dispatchers.IO) {
         readSysfsFile(Constants.BATTERY_CAPACITY)?.toIntOrNull() ?: 0
