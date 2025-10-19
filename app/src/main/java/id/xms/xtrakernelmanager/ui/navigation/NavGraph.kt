@@ -2,14 +2,22 @@ package id.xms.xtrakernelmanager.ui.navigation
 
 import android.content.Context
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -70,31 +78,18 @@ fun AppNavigation(
                 val currentDestination = navBackStackEntry?.destination
 
                 if (currentDestination?.route != Screen.Settings.route) {
-                    NavigationBar {
-                        val items = listOf(
-                            BottomNavItem.Home,
-                            BottomNavItem.Tuning,
-                            BottomNavItem.Misc,
-                            BottomNavItem.Info
-                        )
-
-                        items.forEach { item ->
-                            NavigationBarItem(
-                                icon = { Icon(item.icon, contentDescription = item.label) },
-                                label = { Text(item.label) },
-                                selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
-                                onClick = {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
+                    PillBottomNavigation(
+                        currentRoute = currentDestination?.route,
+                        onNavigate = { route ->
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
-                            )
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
-                    }
+                    )
                 }
             }
         ) { innerPadding ->
@@ -129,7 +124,7 @@ fun AppNavigation(
                 composable(Screen.Tuning.route) {
                     val viewModel = remember {
                         TuningViewModel(
-                            application = context.applicationContext as android.app.Application, // ✅ FIXED
+                            application = context.applicationContext as android.app.Application,
                             kernelRepository = KernelRepository()
                         )
                     }
@@ -165,6 +160,114 @@ fun AppNavigation(
                     SettingsScreen(
                         viewModel = viewModel,
                         onBack = { navController.popBackStack() }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PillBottomNavigation(
+    currentRoute: String?,
+    onNavigate: (String) -> Unit
+) {
+    val items = listOf(
+        BottomNavItem.Home,
+        BottomNavItem.Tuning,
+        BottomNavItem.Misc,
+        BottomNavItem.Info
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        shape = RoundedCornerShape(28.dp),
+        tonalElevation = 3.dp,
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEach { item ->
+                PillNavItem(
+                    item = item,
+                    selected = currentRoute == item.route,
+                    onClick = { onNavigate(item.route) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PillNavItem(
+    item: BottomNavItem,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        animationSpec = tween(300)
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        },
+        animationSpec = tween(300)
+    )
+
+    val iconSize by animateDpAsState(
+        targetValue = if (selected) 26.dp else 24.dp,
+        animationSpec = tween(300)
+    )
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(backgroundColor)
+            .clickable(
+                onClick = onClick,
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            )
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = item.icon,
+                contentDescription = item.label,
+                tint = contentColor,
+                modifier = Modifier.size(iconSize)
+            )
+
+            AnimatedVisibility(
+                visible = selected,
+                enter = fadeIn() + expandHorizontally(),
+                exit = fadeOut() + shrinkHorizontally()
+            ) {
+                Row {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = item.label,
+                        color = contentColor,
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
