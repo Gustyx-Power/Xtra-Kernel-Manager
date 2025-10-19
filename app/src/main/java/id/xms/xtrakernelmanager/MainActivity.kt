@@ -19,9 +19,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.topjohnwu.superuser.Shell
 import id.xms.xtrakernelmanager.ui.navigation.AppNavigation
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -35,6 +38,23 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize LibSu Shell
+        Shell.enableVerboseLogging = BuildConfig.DEBUG
+        Shell.setDefaultBuilder(
+            Shell.Builder.create()
+                .setFlags(Shell.FLAG_REDIRECT_STDERR)
+                .setTimeout(10)
+        )
+
+        // Request root access early
+        lifecycleScope.launch {
+            try {
+                Shell.getShell() // This will trigger root permission dialog
+            } catch (e: Exception) {
+                // Handle root request failure
+            }
+        }
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -63,6 +83,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestNecessaryPermissions() {
+        // Request Overlay Permission (for OverlayService)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this)) {
                 val intent = Intent(
@@ -73,6 +94,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Request Notification Permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -80,6 +102,18 @@ class MainActivity : ComponentActivity() {
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+
+        // Request Battery Optimization Exemption
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.parse("package:$packageName")
+            }
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                // Battery optimization settings not available
             }
         }
     }
