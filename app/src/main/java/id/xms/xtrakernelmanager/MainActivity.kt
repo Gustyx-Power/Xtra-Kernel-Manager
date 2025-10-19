@@ -1,38 +1,85 @@
 package id.xms.xtrakernelmanager
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
-import id.xms.xtrakernelmanager.ui.MainApp
+import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import id.xms.xtrakernelmanager.ui.navigation.AppNavigation
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
-import id.xms.xtrakernelmanager.ui.theme.ThemeStyle
 
 class MainActivity : ComponentActivity() {
+
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { }
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        setContent {
-            val appState = rememberAppState()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
-            XtraKernelManagerTheme(
-                darkTheme = appState.isDarkTheme,
-                themeStyle = appState.themeStyle
-            ) {
+        requestNecessaryPermissions()
+
+        setContent {
+            val isDarkTheme = isSystemInDarkTheme()
+            val systemUiController = rememberSystemUiController()
+
+            LaunchedEffect(isDarkTheme) {
+                systemUiController.setSystemBarsColor(
+                    color = Color.Transparent,
+                    darkIcons = !isDarkTheme
+                )
+            }
+
+            XtraKernelManagerTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainApp(appState = appState)
+                    AppNavigation(context = this@MainActivity)
                 }
+            }
+        }
+    }
+
+    private fun requestNecessaryPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.canDrawOverlays(this)) {
+                val intent = Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+                overlayPermissionLauncher.launch(intent)
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }

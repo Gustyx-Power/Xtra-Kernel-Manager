@@ -52,15 +52,26 @@ class KernelRepository {
     }
 
     suspend fun getGpuInfo(): GpuInfo = withContext(Dispatchers.IO) {
+        // Hardware GPU info from sysfs
+        val currentFreq = SysfsUtils.getGpuFreq() ?: 0
+        val minFreq = SysfsUtils.readSysfsFile("/sys/class/kgsl/kgsl-3d0/devfreq/min_freq")
+            ?.toLongOrNull() ?: 0
+        val maxFreq = SysfsUtils.getGpuMaxFreq() ?: 0
+        val availableFreqs = SysfsUtils.getGpuAvailableFreqs()
+        val governor = SysfsUtils.readSysfsFile("/sys/class/kgsl/kgsl-3d0/devfreq/governor") ?: ""
+        val powerLevel = SysfsUtils.readSysfsFile("/sys/class/kgsl/kgsl-3d0/max_pwrlevel")
+            ?.toIntOrNull() ?: 0
+
+        // Get renderer info from OpenGL (needs context)
+        // This will be passed from ViewModel
+
         GpuInfo(
-            currentFreq = SysfsUtils.getGpuFreq() ?: 0,
-            minFreq = SysfsUtils.readSysfsFile("/sys/class/kgsl/kgsl-3d0/devfreq/min_freq")
-                ?.toLongOrNull() ?: 0,
-            maxFreq = SysfsUtils.getGpuMaxFreq() ?: 0,
-            availableFreqs = SysfsUtils.getGpuAvailableFreqs(),
-            governor = SysfsUtils.readSysfsFile("/sys/class/kgsl/kgsl-3d0/devfreq/governor") ?: "",
-            powerLevel = SysfsUtils.readSysfsFile("/sys/class/kgsl/kgsl-3d0/max_pwrlevel")
-                ?.toIntOrNull() ?: 0
+            currentFreq = currentFreq,
+            minFreq = minFreq,
+            maxFreq = maxFreq,
+            availableFreqs = availableFreqs,
+            governor = governor,
+            powerLevel = powerLevel
         )
     }
 

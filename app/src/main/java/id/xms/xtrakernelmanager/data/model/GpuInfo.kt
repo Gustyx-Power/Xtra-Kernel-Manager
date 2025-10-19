@@ -8,6 +8,8 @@ data class GpuInfo(
     val governor: String = "",
     val powerLevel: Int = 0,
     val renderer: String = "",
+    val vendor: String = "",
     val openGLVersion: String = "",
-    val vulkanVersion: String = ""
+    val vulkanVersion: String = "",
+    val vulkanSupported: Boolean = false
 )
