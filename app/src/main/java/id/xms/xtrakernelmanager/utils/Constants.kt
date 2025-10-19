@@ -65,4 +65,17 @@ object Constants {
         "Dynamic" to 10,
         "Thermal 20" to 20
     )
+
+    // Android Codenames
+    val ANDROID_CODENAMES = mapOf(
+        36 to "Baklava",
+        35 to "Vanilla Ice Cream",
+        34 to "Upside Down Cake",
+        33 to "Tiramisu",
+        32 to "Snow Cone v2",
+        31 to "Snow Cone",
+        30 to "Red Velvet Cake",
+        29 to "Quince Tart"
+    )
+
 }
