@@ -26,7 +26,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 1
-        versionName = "2.0-alpha2"
+        versionName = "2.0-alpha3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -81,6 +81,7 @@ dependencies {
     implementation(composeBom)
 
     // Core Android
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
