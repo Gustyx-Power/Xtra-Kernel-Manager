@@ -128,7 +128,10 @@ fun AppNavigation(
 
                 composable(Screen.Tuning.route) {
                     val viewModel = remember {
-                        TuningViewModel(kernelRepository = KernelRepository())
+                        TuningViewModel(
+                            application = context.applicationContext as android.app.Application, // ✅ FIXED
+                            kernelRepository = KernelRepository()
+                        )
                     }
                     TuningScreen(viewModel = viewModel)
                 }
