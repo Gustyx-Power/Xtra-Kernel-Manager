@@ -6,8 +6,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import id.xms.xtrakernelmanager.data.model.SystemInfo
-import id.xms.xtrakernelmanager.utils.RootUtils
-import id.xms.xtrakernelmanager.utils.SysfsUtils
+import id.xms.xtrakernelmanager.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -22,17 +21,22 @@ class SystemInfoRepository(private val context: Context) {
         val totalStorage = storageStat.blockCountLong * storageStat.blockSizeLong
         val availableStorage = storageStat.availableBlocksLong * storageStat.blockSizeLong
 
-        val selinux = RootUtils.executeCommand("getenforce").getOrNull() ?: "Unknown"
+        val selinux = try {
+            RootUtils.executeCommand("getenforce").getOrNull()?.trim() ?: "Unknown"
+        } catch (e: Exception) {
+            "Unknown"
+        }
+
         val fingerprint = Build.FINGERPRINT
         val isTestKey = fingerprint.contains("test-keys")
 
         SystemInfo(
-            androidVersion = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
-            kernelVersion = System.getProperty("os.version") ?: "Unknown",
-            deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
-            abi = Build.SUPPORTED_ABIS.joinToString(", "),
+            androidVersion = getAndroidVersion(),
+            kernelVersion = getKernelVersion(),
+            deviceModel = getDeviceModel(),
+            abi = getAbi(),
             fingerprint = if (isTestKey) "test-keys" else "release-keys",
-            selinuxStatus = selinux.trim(),
+            selinuxStatus = selinux,
             totalRam = memInfo.totalMem,
             availableRam = memInfo.availMem,
             totalStorage = totalStorage,

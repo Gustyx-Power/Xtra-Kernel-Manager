@@ -5,9 +5,26 @@
     <string name="tuning">Tuning</string>
     <string name="misc">Misc</string>
     <string name="info">Info</string>
-    <string name="root_access_required">Root Access Required</string>
-    <string name="grant_permission">Grant Permission</string>
-    <string name="loading">Loading…</string>
-    <string name="accessibility_service_description">Monitors app launches to automatically show game overlay for whitelisted apps</string>
+    <string name="settings">Settings</string>
 
+    <!-- Home -->
+    <string name="cpu_information">CPU Information</string>
+    <string name="gpu_information">GPU Information</string>
+    <string name="battery_information">Battery Information</string>
+    <string name="system_information">System Information</string>
+
+    <!-- Tuning -->
+    <string name="cpu_control">CPU Control</string>
+    <string name="gpu_control">GPU Control</string>
+    <string name="ram_control">RAM Control</string>
+    <string name="additional_control">Additional Control</string>
+
+    <!-- Messages -->
+    <string name="root_not_available">Root access not available</string>
+    <string name="permission_required">Permission required</string>
+    <string name="overlay_permission_required">Overlay permission is required for game control</string>
+
+    <!-- Errors -->
+    <string name="error_loading_data">Error loading data</string>
+    <string name="error_applying_settings">Error applying settings</string>
 </resources>
