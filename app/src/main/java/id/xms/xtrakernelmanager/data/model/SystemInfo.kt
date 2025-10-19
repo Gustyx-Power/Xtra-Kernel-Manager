@@ -1,18 +1,16 @@
 package id.xms.xtrakernelmanager.data.model
-import kotlinx.serialization.Serializable
 
-@Serializable
 data class SystemInfo(
-    val model: String,
-    val codename: String,
-    val androidVersion: String,
-    val sdk: Int,
-    val soc: String,
-    val fingerprint: String,
-    // Display Information
-    val screenResolution: String,
-    val displayTechnology: String,
-    val refreshRate: String,
-    val screenDpi: String,
-    val gpuRenderer: String
+    val androidVersion: String = "",
+    val kernelVersion: String = "",
+    val deviceModel: String = "",
+    val abi: String = "",
+    val fingerprint: String = "",
+    val selinuxStatus: String = "",
+    val totalRam: Long = 0,
+    val availableRam: Long = 0,
+    val totalStorage: Long = 0,
+    val availableStorage: Long = 0,
+    val zramSize: Long = 0,
+    val swappiness: Int = 0
 )
