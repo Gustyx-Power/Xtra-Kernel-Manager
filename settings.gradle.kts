@@ -15,7 +15,7 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             when (requested.id.id) {
-                "com.android.application" -> useModule("com.android.tools.build:gradle:8.4.2")
+                "com.android.application" -> useModule("com.android.tools.build:gradle:8.12.1")
                 "org.jetbrains.kotlin.android" -> useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
             }
         }
