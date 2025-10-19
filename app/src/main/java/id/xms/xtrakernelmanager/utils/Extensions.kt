@@ -14,6 +14,11 @@ fun Long.toFrequencyString(): String {
     return DecimalFormat("#.##").format(ghz) + " GHz"
 }
 
+fun Long.toMhzString(): String {
+    val mhz = this / 1000
+    return "$mhz MHz"
+}
+
 fun Long.toMhz(): Long = this / 1000
 
 fun Float.format(decimals: Int = 2): String {
@@ -219,8 +224,8 @@ private val DEVICE_MODEL_MAPPING = mapOf(
     "RMX3301" to "Realme GT Neo 3",
     "RMX3302" to "Realme GT Neo 3T",
     "RMX3491" to "Realme 10 Pro+",
-    "RMX5010" to "Realme GT 7 Pro(China)",
-    "RMX5011" to "Realme GT 7 Pro(Global)",
+    "RMX5010" to "Realme GT 7 Pro (China)",
+    "RMX5011" to "Realme GT 7 Pro (Global)",
 
     // OnePlus Devices
     "CPH2573" to "OnePlus 12",
