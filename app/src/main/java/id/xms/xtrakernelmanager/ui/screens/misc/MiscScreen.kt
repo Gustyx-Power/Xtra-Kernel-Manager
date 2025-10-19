@@ -47,13 +47,15 @@ fun MiscScreen(
             Spacer(modifier = Modifier.height(12.dp))
         }
 
+
         item {
             MiscFeatureCard(
                 title = "Game Control",
                 description = "FPS meter and performance overlay",
                 icon = Icons.Default.Gamepad,
-                requiresRoot = true,
-                enabled = uiState.hasRoot,
+                requiresRoot = false,
+                enabled = true,
+                hasOverlayActive = uiState.overlayEnabled,
                 onClick = { showGameControl = true }
             )
         }
@@ -82,6 +84,7 @@ private fun MiscFeatureCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     requiresRoot: Boolean,
     enabled: Boolean = true,
+    hasOverlayActive: Boolean = false,
     onClick: () -> Unit
 ) {
     GlassmorphicCard(
@@ -102,8 +105,12 @@ private fun MiscFeatureCard(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = if (enabled) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                tint = if (enabled) {
+                    if (hasOverlayActive) androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                    else MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                }
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -128,6 +135,22 @@ private fun MiscFeatureCard(
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+
+
+                    if (hasOverlayActive) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = MaterialTheme.shapes.small,
+                            color = androidx.compose.ui.graphics.Color(0xFF4CAF50).copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = "ACTIVE",
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                color = androidx.compose.ui.graphics.Color(0xFF4CAF50)
                             )
                         }
                     }
