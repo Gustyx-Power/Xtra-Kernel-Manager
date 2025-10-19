@@ -44,7 +44,7 @@ fun HomeScreen(
         item {
             PillHeader(
                 title = "Xtra Kernel Manager",
-                version = "v2.0-alpha3",
+                version = "v2.0-alpha4",
                 onSettingsClick = onSettingsClick
             )
         }
