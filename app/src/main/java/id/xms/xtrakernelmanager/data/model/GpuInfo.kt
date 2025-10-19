@@ -6,6 +6,7 @@ data class GpuInfo(
     val maxFreq: Long = 0,
     val availableFreqs: List<Long> = emptyList(),
     val governor: String = "",
+    val availableGovernors: List<String> = emptyList(),
     val powerLevel: Int = 0,
     val renderer: String = "",
     val vendor: String = "",
