@@ -5,13 +5,16 @@ import id.xms.xtrakernelmanager.utils.RootUtils
 import id.xms.xtrakernelmanager.utils.SysfsUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class KernelRepository {
 
     suspend fun getCpuInfo(): CpuInfo = withContext(Dispatchers.IO) {
         val coreCount = SysfsUtils.getCpuCoreCount()
         val onlineCores = SysfsUtils.getOnlineCores()
-        val clusters = SysfsUtils.detectCpuClusters()
+
+        // Smart cluster detection based on frequency analysis
+        val clusterMap = detectClustersFromFrequency(coreCount)
 
         val cores = (0 until coreCount).map { core ->
             CpuCore(
@@ -29,14 +32,155 @@ class KernelRepository {
         val load = calculateCpuLoad()
         val temp = getCpuTemperature()
 
+        // Build clusters Map<String, List<Int>>
+        val clustersGrouped = mutableMapOf<String, MutableList<Int>>()
+        clusterMap.forEach { (coreId, clusterName) ->
+            if (!clustersGrouped.containsKey(clusterName)) {
+                clustersGrouped[clusterName] = mutableListOf()
+            }
+            clustersGrouped[clusterName]?.add(coreId)
+        }
+
         CpuInfo(
             coreCount = coreCount,
             onlineCores = onlineCores,
             cores = cores,
-            clusters = clusters,
+            clusters = clustersGrouped.toMap(),
             load = load,
             temperature = temp
         )
+    }
+
+    /**
+     * Smart cluster detection based on max frequency analysis
+     * Works for all Snapdragon configurations
+     */
+    private suspend fun detectClustersFromFrequency(coreCount: Int): Map<Int, String> = withContext(Dispatchers.IO) {
+        val result = mutableMapOf<Int, String>()
+
+        try {
+            // Get max frequency for each core
+            val freqMap = mutableMapOf<Int, Long>()
+            for (core in 0 until coreCount) {
+                val maxFreq = SysfsUtils.getCpuMaxFreq(core) ?: 0L
+                freqMap[core] = maxFreq
+            }
+
+            // Group cores by their max frequency
+            val freqGroups = freqMap.entries
+                .groupBy { it.value }
+                .toSortedMap() // Sort by frequency (ascending)
+
+            val uniqueFreqs = freqGroups.keys.toList()
+            val numClusters = uniqueFreqs.size
+
+            when (numClusters) {
+                1 -> {
+                    // All cores same frequency - single cluster
+                    for (core in 0 until coreCount) {
+                        result[core] = "Little"
+                    }
+                }
+
+                2 -> {
+                    // Dual cluster configuration
+                    // Lower frequency = Little
+                    // Higher frequency = Big
+
+                    freqGroups[uniqueFreqs[0]]?.forEach { (cpu, _) ->
+                        result[cpu] = "Little"
+                    }
+
+                    freqGroups[uniqueFreqs[1]]?.forEach { (cpu, _) ->
+                        result[cpu] = "Big"
+                    }
+                }
+
+                3 -> {
+                    // Triple cluster configuration
+                    // Need to determine if it's Little-Big-Prime or other layout
+
+                    val lowFreqCores = freqGroups[uniqueFreqs[0]]?.map { it.key } ?: emptyList()
+                    val midFreqCores = freqGroups[uniqueFreqs[1]]?.map { it.key } ?: emptyList()
+                    val highFreqCores = freqGroups[uniqueFreqs[2]]?.map { it.key } ?: emptyList()
+
+                    // Assign lowest frequency group as Little
+                    lowFreqCores.forEach { cpu ->
+                        result[cpu] = "Little"
+                    }
+
+                    // Check if CPU 7 is in mid or high freq group
+                    // to determine Big vs Prime assignment
+                    when {
+                        midFreqCores.contains(7) -> {
+                            // CPU 7 in middle freq → Middle=Big, High=Prime
+                            // This is Snapdragon 8 Gen 2/3 layout
+                            midFreqCores.forEach { cpu ->
+                                result[cpu] = "Big"
+                            }
+                            highFreqCores.forEach { cpu ->
+                                result[cpu] = "Prime"
+                            }
+                        }
+                        highFreqCores.contains(7) -> {
+                            // CPU 7 in highest freq → Middle=Prime, High=Big
+                            // Unusual but handle it
+                            midFreqCores.forEach { cpu ->
+                                result[cpu] = "Prime"
+                            }
+                            highFreqCores.forEach { cpu ->
+                                result[cpu] = "Big"
+                            }
+                        }
+                        else -> {
+                            // CPU 7 not in mid or high (maybe offline)
+                            // Use core count to determine:
+                            // Fewer cores in high group = Big
+                            // More cores in high group = Prime
+                            if (midFreqCores.size > highFreqCores.size) {
+                                // More in mid = mid is Prime, high is Big
+                                midFreqCores.forEach { cpu ->
+                                    result[cpu] = "Prime"
+                                }
+                                highFreqCores.forEach { cpu ->
+                                    result[cpu] = "Big"
+                                }
+                            } else {
+                                // Default: mid=Big, high=Prime
+                                midFreqCores.forEach { cpu ->
+                                    result[cpu] = "Big"
+                                }
+                                highFreqCores.forEach { cpu ->
+                                    result[cpu] = "Prime"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                else -> {
+                    // More than 3 clusters (rare) - just name them by frequency
+                    freqGroups.entries.forEachIndexed { index, entry ->
+                        val clusterName = when (index) {
+                            0 -> "Little"
+                            freqGroups.size - 1 -> "Prime"
+                            else -> "Big"
+                        }
+                        entry.value.forEach { (cpu, _) ->
+                            result[cpu] = clusterName
+                        }
+                    }
+                }
+            }
+
+        } catch (e: Exception) {
+            // Fallback to simple mapping
+            for (core in 0 until coreCount) {
+                result[core] = "Core $core"
+            }
+        }
+
+        result
     }
 
     suspend fun setCpuFrequency(core: Int, frequency: Long): Boolean = withContext(Dispatchers.IO) {
@@ -151,8 +295,6 @@ class KernelRepository {
     suspend fun getSwapSize(): Long = withContext(Dispatchers.IO) {
         try {
             val swapInfo = RootUtils.executeCommand("cat /proc/swaps").getOrNull()
-            // Parse swap file size from output
-            // Format: Filename Type Size Used Priority
             swapInfo?.lines()?.getOrNull(1)?.split("\\s+".toRegex())?.getOrNull(2)?.toLongOrNull()?.times(1024) ?: 0L
         } catch (e: Exception) {
             0L
@@ -165,11 +307,9 @@ class KernelRepository {
             val sizeMB = sizeBytes / (1024 * 1024)
 
             if (sizeBytes == 0L) {
-                // Disable swap
                 RootUtils.executeCommand("swapoff $swapFile")
                 RootUtils.executeCommand("rm -f $swapFile")
             } else {
-                // Create swap file
                 val commands = arrayOf(
                     "mkdir -p /data/swap",
                     "dd if=/dev/zero of=$swapFile bs=1M count=$sizeMB",
@@ -206,7 +346,7 @@ class KernelRepository {
                 "Dynamic" -> "10"
                 "Thermal 20" -> "20"
                 "Incalls" -> "8"
-                else -> "0" // Not Set
+                else -> "0"
             }
 
             RootUtils.writeFile("/sys/class/thermal/thermal_message/sconfig", value)
