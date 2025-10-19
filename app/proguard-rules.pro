@@ -1,40 +1,49 @@
-# Add project specific ProGuard rules here.
+# ===== AGGRESSIVE SHRINKING =====
+-optimizationpasses 5
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-verbose
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
 
-# LibSu
--keep class com.topjohnwu.superuser.** { *; }
--keepclassmembers class * extends com.topjohnwu.superuser.Shell.Initializer {
-    <init>(...);
+# ===== Keep Application class =====
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+-keep public class * extends android.content.ContentProvider
+
+# ===== Kotlin =====
+-dontwarn kotlin.**
+-dontwarn kotlinx.**
+-keep class kotlin.** { *; }
+-keep class kotlin.Metadata { *; }
+
+# ===== Coroutines =====
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
 }
 
-# Kotlinx Serialization
--keepattributes *Annotation*, InnerClasses
--dontnote kotlinx.serialization.AnnotationsKt
-
--keepclassmembers class kotlinx.serialization.json.** {
-    *** Companion;
-}
--keepclasseswithmembers class kotlinx.serialization.json.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
--keep,includedescriptorclasses class id.xms.xtrakernelmanager.**$$serializer { *; }
--keepclassmembers class id.xms.xtrakernelmanager.** {
-    *** Companion;
-}
--keepclasseswithmembers class id.xms.xtrakernelmanager.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
-# Compose
+# ===== Compose =====
 -keep class androidx.compose.** { *; }
--keep interface androidx.compose.** { *; }
+-dontwarn androidx.compose.**
 
-# Keep data classes
+# ===== Data classes & Models =====
 -keep class id.xms.xtrakernelmanager.data.model.** { *; }
+-keepclassmembers class id.xms.xtrakernelmanager.data.model.** { *; }
 
-# Remove logging
+# ===== Remove logging in release =====
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
 }
+
+# ===== LibSu (if used) =====
+-keep class com.topjohnwu.superuser.** { *; }
+-keepclassmembers class com.topjohnwu.superuser.** { *; }
+
+# ===== Remove unused classes =====
+-dontwarn org.bouncycastle.**
+-dontwarn org.conscrypt.**
+-dontwarn org.openjsse.**
