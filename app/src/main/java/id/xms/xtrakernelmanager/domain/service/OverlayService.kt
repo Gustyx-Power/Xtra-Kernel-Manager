@@ -5,12 +5,14 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.app.ActivityManager
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
+import android.util.Log
 import android.view.*
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
@@ -21,9 +23,6 @@ import id.xms.xtrakernelmanager.utils.RootUtils
 import kotlinx.coroutines.*
 import java.io.File
 import kotlin.math.roundToInt
-import android.app.ActivityManager
-
-
 
 class OverlayService : Service() {
 
@@ -44,19 +43,21 @@ class OverlayService : Service() {
     private var hasRoot = false
 
     companion object {
+        private const val TAG = "OverlayService"
         private const val CHANNEL_ID = "xtra_kernel_overlay"
         private const val NOTIFICATION_ID = 1002
 
         const val ACTION_START = "action_start_overlay"
         const val ACTION_STOP = "action_stop_overlay"
 
-        // DRM FPS paths
+        // DRM FPS paths (priority order)
         private val DRM_FPS_PATHS = listOf(
             "/sys/class/drm/sde-crtc-0/measured_fps",
             "/sys/class/drm/card0-DSI-1/measured_fps",
             "/sys/class/drm/card0/sde-crtc-0/measured_fps",
             "/sys/class/drm/card0/card0-DSI-1/measured_fps",
-            "/sys/kernel/debug/dri/0/sde_crtc_0_measured_fps"
+            "/sys/kernel/debug/dri/0/sde_crtc_0_measured_fps",
+            "/sys/kernel/debug/dri/0/primary-plane-measured_fps"
         )
     }
 
@@ -69,6 +70,7 @@ class OverlayService : Service() {
         // Check root access
         serviceScope.launch {
             hasRoot = RootUtils.isRootAvailable()
+            Log.d(TAG, "Root available: $hasRoot")
         }
     }
 
@@ -127,7 +129,7 @@ class OverlayService : Service() {
             startUpdatingStats()
 
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Error showing overlay", e)
             stopSelf()
         }
     }
@@ -165,7 +167,7 @@ class OverlayService : Service() {
                 overlayView = null
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Error hiding overlay", e)
         }
         serviceScope.cancel()
     }
@@ -176,7 +178,7 @@ class OverlayService : Service() {
                 try {
                     updateStats()
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e(TAG, "Error updating stats", e)
                 }
                 delay(500)
             }
@@ -185,11 +187,15 @@ class OverlayService : Service() {
 
     private suspend fun updateStats() = withContext(Dispatchers.IO) {
         try {
-            // Read FPS from DRM
-            currentFps = readDrmFps()
+            // Read FPS (strategy based on root)
+            currentFps = if (hasRoot) {
+                readFpsWithRoot()
+            } else {
+                readDisplayRefreshRate()
+            }
 
-            // Get CPU frequency
-            val cpuFreq = readCpuFrequency()
+            // Get CPU frequency (max from all cores)
+            val cpuFreq = readCpuMaxFrequency()
 
             // Get CPU temperature
             val cpuTemp = readCpuTemperature()
@@ -197,7 +203,7 @@ class OverlayService : Service() {
             // Get GPU frequency
             val gpuFreq = readGpuFrequency()
 
-            // REAL system RAM
+            // Get system RAM
             val (usedMemMB, totalMemMB) = getSystemRamInfo()
 
             withContext(Dispatchers.Main) {
@@ -232,10 +238,11 @@ class OverlayService : Service() {
                 // Update GPU Frequency
                 tvGpuFreq?.text = if (gpuFreq > 0) "GPU: ${gpuFreq / 1000000} MHz" else "GPU: N/A"
 
-                // Update RAM with REAL system memory
+                // Update RAM
                 tvRamUsage?.apply {
                     text = "RAM: $usedMemMB / $totalMemMB MB"
                     setTextColor(when {
+                        totalMemMB == 0 -> android.graphics.Color.WHITE
                         usedMemMB.toFloat() / totalMemMB < 0.6 -> android.graphics.Color.parseColor("#00FF00")
                         usedMemMB.toFloat() / totalMemMB < 0.8 -> android.graphics.Color.parseColor("#FFD700")
                         else -> android.graphics.Color.parseColor("#FF0000")
@@ -243,22 +250,22 @@ class OverlayService : Service() {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Error in updateStats", e)
         }
     }
 
+    // ========== FPS READING (ROOT STRATEGY) ==========
 
-    // Hybrid FPS reader (non-root first, then root)
-    private suspend fun readDrmFps(): Int = withContext(Dispatchers.IO) {
+    private suspend fun readFpsWithRoot(): Int = withContext(Dispatchers.IO) {
         try {
-            // Try non-root first
+            // Priority 1: Try DRM with root
             for (path in DRM_FPS_PATHS) {
                 try {
-                    val file = File(path)
-                    if (file.exists() && file.canRead()) {
-                        val fps = file.readText().trim()
-                        val fpsValue = fps.toFloatOrNull()?.roundToInt()
-                        if (fpsValue != null && fpsValue > 0) {
+                    val result = RootUtils.executeCommand("cat $path").getOrNull()
+                    if (!result.isNullOrEmpty()) {
+                        val fpsValue = result.trim().toFloatOrNull()?.roundToInt()
+                        if (fpsValue != null && fpsValue in 20..165) {
+                            Log.d(TAG, "FPS from DRM ($path): $fpsValue")
                             return@withContext fpsValue
                         }
                     }
@@ -267,45 +274,74 @@ class OverlayService : Service() {
                 }
             }
 
-            // Try with root if available
-            if (hasRoot) {
-                for (path in DRM_FPS_PATHS) {
-                    try {
-                        val result = RootUtils.readFile(path)
-                        if (!result.isNullOrEmpty()) {
-                            val fpsValue = result.trim().toFloatOrNull()?.roundToInt()
-                            if (fpsValue != null && fpsValue > 0) {
-                                return@withContext fpsValue
-                            }
-                        }
-                    } catch (e: Exception) {
-                        continue
-                    }
-                }
+            // Priority 2: Try SurfaceFlinger
+            val sfFps = readFpsFromSurfaceFlinger()
+            if (sfFps > 0) {
+                Log.d(TAG, "FPS from SurfaceFlinger: $sfFps")
+                return@withContext sfFps
             }
 
-            // Fallback: display refresh rate
-            val displayManager = getSystemService(DISPLAY_SERVICE) as DisplayManager
-            val display = displayManager.getDisplay(Display.DEFAULT_DISPLAY)
-            return@withContext display.refreshRate.roundToInt()
+            // Priority 3: Fallback to display refresh rate
+            val displayFps = readDisplayRefreshRate()
+            Log.d(TAG, "FPS from Display RR (fallback): $displayFps")
+            return@withContext displayFps
 
         } catch (e: Exception) {
-            return@withContext 60
+            Log.e(TAG, "Error reading FPS with root", e)
+            return@withContext readDisplayRefreshRate()
         }
     }
 
-    // Hybrid CPU frequency reader
-    private suspend fun readCpuFrequency(): Long = withContext(Dispatchers.IO) {
+    private suspend fun readFpsFromSurfaceFlinger(): Int = withContext(Dispatchers.IO) {
         try {
-            // Try non-root first
+            val result = RootUtils.executeCommand("dumpsys SurfaceFlinger --latency").getOrNull()
+            if (result.isNullOrEmpty()) return@withContext 0
+
+            val lines = result.trim().lines()
+            if (lines.size < 3) return@withContext 0
+
+            // Parse vsync period from first line
+            val vsyncPeriod = lines[0].trim().toLongOrNull()
+            if (vsyncPeriod != null && vsyncPeriod > 0) {
+                val fps = (1_000_000_000.0 / vsyncPeriod).roundToInt()
+                if (fps in 20..165) {
+                    return@withContext fps
+                }
+            }
+
+            return@withContext 0
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading SurfaceFlinger FPS", e)
+            return@withContext 0
+        }
+    }
+
+    private fun readDisplayRefreshRate(): Int {
+        return try {
+            val displayManager = getSystemService(DISPLAY_SERVICE) as DisplayManager
+            val display = displayManager.getDisplay(Display.DEFAULT_DISPLAY)
+            display.refreshRate.roundToInt()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading display refresh rate", e)
+            60
+        }
+    }
+
+    // ========== CPU FREQUENCY (MAX FROM ALL CORES) ==========
+
+    private suspend fun readCpuMaxFrequency(): Long = withContext(Dispatchers.IO) {
+        try {
+            var maxFreq = 0L
+
+            // Scan all cores (0-7) and get the highest
             for (core in 0..7) {
                 val path = "/sys/devices/system/cpu/cpu$core/cpufreq/scaling_cur_freq"
                 try {
                     val file = File(path)
                     if (file.exists() && file.canRead()) {
                         val freq = file.readText().trim().toLongOrNull()
-                        if (freq != null && freq > 0) {
-                            return@withContext freq
+                        if (freq != null && freq > maxFreq) {
+                            maxFreq = freq
                         }
                     }
                 } catch (e: Exception) {
@@ -313,26 +349,25 @@ class OverlayService : Service() {
                 }
             }
 
-            // Try with root if available
-            if (hasRoot) {
+            // If no non-root access, try root
+            if (maxFreq == 0L && hasRoot) {
                 try {
                     val cpuInfo = kernelRepository.getCpuInfo()
-                    val maxFreq = cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0L
-                    if (maxFreq > 0) {
-                        return@withContext maxFreq
-                    }
+                    maxFreq = cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0L
                 } catch (e: Exception) {
-                    // Ignore
+                    Log.e(TAG, "Error reading CPU freq with root", e)
                 }
             }
 
-            return@withContext 0L
+            return@withContext maxFreq
         } catch (e: Exception) {
+            Log.e(TAG, "Error reading CPU frequency", e)
             return@withContext 0L
         }
     }
 
-    // Hybrid CPU temperature reader
+    // ========== CPU TEMPERATURE ==========
+
     private suspend fun readCpuTemperature(): Float = withContext(Dispatchers.IO) {
         try {
             val thermalPaths = listOf(
@@ -371,11 +406,13 @@ class OverlayService : Service() {
 
             return@withContext 0f
         } catch (e: Exception) {
+            Log.e(TAG, "Error reading CPU temperature", e)
             return@withContext 0f
         }
     }
 
-    // Hybrid GPU frequency reader
+    // ========== GPU FREQUENCY ==========
+
     private suspend fun readGpuFrequency(): Long = withContext(Dispatchers.IO) {
         try {
             val gpuPaths = listOf(
@@ -413,9 +450,46 @@ class OverlayService : Service() {
 
             return@withContext 0L
         } catch (e: Exception) {
+            Log.e(TAG, "Error reading GPU frequency", e)
             return@withContext 0L
         }
     }
+
+    // ========== SYSTEM RAM ==========
+
+    private suspend fun getSystemRamInfo(): Pair<Int, Int> = withContext(Dispatchers.IO) {
+        try {
+            val memInfo = File("/proc/meminfo").readText()
+
+            val totalMatch = Regex("MemTotal:\\s+(\\d+)\\s+kB").find(memInfo)
+            val availableMatch = Regex("MemAvailable:\\s+(\\d+)\\s+kB").find(memInfo)
+
+            val totalKB = totalMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+            val availableKB = availableMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
+
+            val totalMB = totalKB / 1024
+            val usedMB = (totalKB - availableKB) / 1024
+
+            return@withContext Pair(usedMB, totalMB)
+        } catch (e: Exception) {
+            try {
+                val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+                val memInfo = ActivityManager.MemoryInfo()
+                activityManager.getMemoryInfo(memInfo)
+
+                val totalMB = (memInfo.totalMem / (1024 * 1024)).toInt()
+                val availMB = (memInfo.availMem / (1024 * 1024)).toInt()
+                val usedMB = totalMB - availMB
+
+                return@withContext Pair(usedMB, totalMB)
+            } catch (ex: Exception) {
+                Log.e(TAG, "Error reading RAM info", ex)
+                return@withContext Pair(0, 0)
+            }
+        }
+    }
+
+    // ========== NOTIFICATION ==========
 
     private fun createNotification(): Notification {
         val intent = Intent(this, MainActivity::class.java)
@@ -427,7 +501,7 @@ class OverlayService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Performance Overlay")
             .setContentText("FPS: $currentFps | Tap to open")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.logo_a)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
@@ -447,40 +521,6 @@ class OverlayService : Service() {
             notificationManager.createNotificationChannel(channel)
         }
     }
-
-    private suspend fun getSystemRamInfo(): Pair<Int, Int> = withContext(Dispatchers.IO) {
-        try {
-            // Read from /proc/meminfo (non-root readable)
-            val memInfo = File("/proc/meminfo").readText()
-
-            val totalMatch = Regex("MemTotal:\\s+(\\d+)\\s+kB").find(memInfo)
-            val availableMatch = Regex("MemAvailable:\\s+(\\d+)\\s+kB").find(memInfo)
-
-            val totalKB = totalMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
-            val availableKB = availableMatch?.groupValues?.get(1)?.toIntOrNull() ?: 0
-
-            val totalMB = totalKB / 1024
-            val usedMB = (totalKB - availableKB) / 1024
-
-            return@withContext Pair(usedMB, totalMB)
-        } catch (e: Exception) {
-            // Fallback to ActivityManager
-            try {
-                val activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-                val memInfo = ActivityManager.MemoryInfo()
-                activityManager.getMemoryInfo(memInfo)
-
-                val totalMB = (memInfo.totalMem / (1024 * 1024)).toInt()
-                val availMB = (memInfo.availMem / (1024 * 1024)).toInt()
-                val usedMB = totalMB - availMB
-
-                return@withContext Pair(usedMB, totalMB)
-            } catch (ex: Exception) {
-                return@withContext Pair(0, 0)
-            }
-        }
-    }
-
 
     override fun onBind(intent: Intent?): IBinder? = null
 
