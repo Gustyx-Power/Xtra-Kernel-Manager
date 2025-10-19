@@ -238,7 +238,7 @@ private fun AboutSection() {
             AboutItem(
                 icon = Icons.Default.Info,
                 title = "Version",
-                value = "2.0-alpha2"
+                value = "2.0-alpha3"
             )
 
             AboutItem(

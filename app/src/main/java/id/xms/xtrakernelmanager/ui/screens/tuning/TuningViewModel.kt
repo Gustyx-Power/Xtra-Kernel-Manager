@@ -1,10 +1,14 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
 import android.app.Application
+import android.content.Intent
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import id.xms.xtrakernelmanager.data.model.*
+import id.xms.xtrakernelmanager.data.model.CpuInfo
+import id.xms.xtrakernelmanager.data.model.GpuInfo
 import id.xms.xtrakernelmanager.data.repository.KernelRepository
+import id.xms.xtrakernelmanager.service.MonitoringService
 import id.xms.xtrakernelmanager.utils.RootUtils
 import id.xms.xtrakernelmanager.utils.SysfsUtils
 import kotlinx.coroutines.delay
@@ -110,7 +114,10 @@ class TuningViewModel(
                 message = if (success) "CPU $core frequency set to ${frequency / 1000} MHz"
                 else "Failed to update CPU $core frequency"
             )
-            if (success) loadTuningData()
+            if (success) {
+                updateMonitoringService()
+                loadTuningData()
+            }
         }
     }
 
@@ -121,7 +128,10 @@ class TuningViewModel(
                 message = if (success) "CPU $core governor set to $governor"
                 else "Failed to set governor"
             )
-            if (success) loadTuningData()
+            if (success) {
+                updateMonitoringService()
+                loadTuningData()
+            }
         }
     }
 
@@ -151,7 +161,10 @@ class TuningViewModel(
                 message = if (success) "GPU frequency set to ${frequency / 1000} MHz"
                 else "Failed to update GPU frequency"
             )
-            if (success) loadTuningData()
+            if (success) {
+                updateMonitoringService()
+                loadTuningData()
+            }
         }
     }
 
@@ -162,27 +175,10 @@ class TuningViewModel(
                 message = if (success) "GPU governor set to $governor"
                 else "Failed to set GPU governor"
             )
-            if (success) loadTuningData()
-        }
-    }
-
-    fun setGpuPowerLevel(level: Int) {
-        viewModelScope.launch {
-            val success = kernelRepository.setGpuPowerLevel(level)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "GPU power level set to $level"
-                else "Failed to set GPU power level"
-            )
-        }
-    }
-
-    fun setGpuRenderer(renderer: String) {
-        viewModelScope.launch {
-            val success = kernelRepository.setGpuRenderer(renderer)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "GPU renderer set to $renderer"
-                else "Failed to set GPU renderer"
-            )
+            if (success) {
+                updateMonitoringService()
+                loadTuningData()
+            }
         }
     }
 
@@ -195,6 +191,7 @@ class TuningViewModel(
                 message = if (success) "Swappiness set to $value"
                 else "Failed to set swappiness"
             )
+            if (success) updateMonitoringService()
         }
     }
 
@@ -207,6 +204,7 @@ class TuningViewModel(
                 message = if (success) "ZRAM size set to $sizeMB MB"
                 else "Failed to set ZRAM size"
             )
+            if (success) updateMonitoringService()
         }
     }
 
@@ -219,6 +217,7 @@ class TuningViewModel(
                 message = if (success) "Swap size set to $sizeMB MB"
                 else "Failed to set swap size"
             )
+            if (success) updateMonitoringService()
         }
     }
 
@@ -231,6 +230,36 @@ class TuningViewModel(
                 message = if (success) "Thermal mode set to $mode"
                 else "Failed to set thermal mode"
             )
+            if (success) {
+                startMonitoringService(mode)
+            }
+        }
+    }
+
+    // Service Management
+    private fun startMonitoringService(thermalMode: String) {
+        val intent = Intent(getApplication(), MonitoringService::class.java).apply {
+            action = MonitoringService.ACTION_START
+            putExtra(MonitoringService.EXTRA_THERMAL_MODE, thermalMode)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getApplication<Application>().startForegroundService(intent)
+        } else {
+            getApplication<Application>().startService(intent)
+        }
+    }
+
+    private fun updateMonitoringService() {
+        val intent = Intent(getApplication(), MonitoringService::class.java).apply {
+            action = MonitoringService.ACTION_UPDATE_SETTINGS
+            putExtra(MonitoringService.EXTRA_THERMAL_MODE, _uiState.value.thermalMode)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getApplication<Application>().startForegroundService(intent)
+        } else {
+            getApplication<Application>().startService(intent)
         }
     }
 
@@ -257,5 +286,10 @@ class TuningViewModel(
 
     fun refresh() {
         loadTuningData()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Service will keep running in background
     }
 }
