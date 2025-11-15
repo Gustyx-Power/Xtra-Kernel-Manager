@@ -1,7 +1,8 @@
 [versions]
 # Build
-agp = "8.7.3"
+agp = "8.7.2"
 kotlin = "2.0.21"
+compose = "1.7.5"
 
 # Compose
 compose-bom = "2024.10.01"
