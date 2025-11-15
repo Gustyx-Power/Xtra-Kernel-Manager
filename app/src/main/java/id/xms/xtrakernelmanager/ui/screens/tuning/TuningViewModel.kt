@@ -1,295 +1,397 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
-import android.app.Application
-import android.content.Intent
-import android.os.Build
-import androidx.lifecycle.AndroidViewModel
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import id.xms.xtrakernelmanager.data.model.CpuInfo
-import id.xms.xtrakernelmanager.data.model.GpuInfo
-import id.xms.xtrakernelmanager.data.repository.KernelRepository
-import id.xms.xtrakernelmanager.service.MonitoringService
-import id.xms.xtrakernelmanager.utils.RootUtils
-import id.xms.xtrakernelmanager.utils.SysfsUtils
+import id.xms.xtrakernelmanager.data.model.*
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
+import id.xms.xtrakernelmanager.data.preferences.TomlConfigManager
+import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.domain.usecase.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-data class TuningUiState(
-    val isLoading: Boolean = true,
-    val hasRoot: Boolean = false,
-    val cpuInfo: CpuInfo = CpuInfo(),
-    val gpuInfo: GpuInfo = GpuInfo(),
-    val isMediaTek: Boolean = false,
-    val swappiness: Int = 60,
-    val zramSize: Long = 0,
-    val swapSize: Long = 0,
-    val ioSchedulers: List<String> = emptyList(),
-    val tcpAlgorithms: List<String> = emptyList(),
-    val thermalMode: String = "Not Set",
-    val applyOnBoot: Boolean = false,
-    val message: String? = null,
-    val error: String? = null
-)
-
 class TuningViewModel(
-    application: Application,
-    private val kernelRepository: KernelRepository
-) : AndroidViewModel(application) {
+    val preferencesManager: PreferencesManager,
+    private val cpuUseCase: CPUControlUseCase = CPUControlUseCase(),
+    private val gpuUseCase: GPUControlUseCase = GPUControlUseCase(),
+    private val ramUseCase: RAMControlUseCase = RAMControlUseCase(),
+    private val thermalUseCase: ThermalControlUseCase = ThermalControlUseCase(),
+    private val tomlManager: TomlConfigManager = TomlConfigManager()
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TuningUiState())
-    val uiState: StateFlow<TuningUiState> = _uiState.asStateFlow()
+    class Factory(private val preferencesManager: PreferencesManager) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(TuningViewModel::class.java)) {
+                @Suppress("UNCHECKED_CAST")
+                return TuningViewModel(preferencesManager) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
+
+    private val _isRootAvailable = MutableStateFlow(false)
+    val isRootAvailable: StateFlow<Boolean> get() = _isRootAvailable.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(true)
+    val isLoading: StateFlow<Boolean> get() = _isLoading.asStateFlow()
+
+    private val _cpuClusters = MutableStateFlow<List<ClusterInfo>>(emptyList())
+    val cpuClusters: StateFlow<List<ClusterInfo>> get() = _cpuClusters.asStateFlow()
+
+    private val _gpuInfo = MutableStateFlow(GPUInfo())
+    val gpuInfo: StateFlow<GPUInfo> get() = _gpuInfo.asStateFlow()
+
+    private val _isMediatek = MutableStateFlow(false)
+    val isMediatek: StateFlow<Boolean> get() = _isMediatek.asStateFlow()
+
+    private val _currentConfig = MutableStateFlow(TuningConfig())
+    val currentConfig: StateFlow<TuningConfig> get() = _currentConfig.asStateFlow()
+
+    private val _availableIOSchedulers = MutableStateFlow<List<String>>(emptyList())
+    val availableIOSchedulers: StateFlow<List<String>> get() = _availableIOSchedulers.asStateFlow()
+
+    private val _availableTCPCongestion = MutableStateFlow<List<String>>(emptyList())
+    val availableTCPCongestion: StateFlow<List<String>> get() = _availableTCPCongestion.asStateFlow()
+
+    private val _clusterStates = MutableStateFlow<Map<Int, ClusterUIState>>(emptyMap())
+    val clusterStates: StateFlow<Map<Int, ClusterUIState>> get() = _clusterStates.asStateFlow()
 
     init {
-        checkRootAccess()
-        loadTuningData()
-        startRealtimeMonitoring()
+        checkRootAndLoadData()
+        applySavedCoreStates()
+        startAutoRefresh()
     }
 
-    private fun checkRootAccess() {
+    private fun checkRootAndLoadData() {
         viewModelScope.launch {
-            val hasRoot = RootUtils.isRootAvailable()
-            _uiState.value = _uiState.value.copy(hasRoot = hasRoot)
-        }
-    }
+            _isLoading.value = true
+            _isRootAvailable.value = RootManager.isRootAvailable()
 
-    private fun loadTuningData() {
-        viewModelScope.launch {
-            try {
-                val cpuInfo = kernelRepository.getCpuInfo()
-                val gpuInfo = kernelRepository.getGpuInfo()
-                val isMediaTek = SysfsUtils.isMediaTekDevice()
-                val swappiness = kernelRepository.getSwappiness()
-                val zramSize = kernelRepository.getZramSize()
-                val swapSize = kernelRepository.getSwapSize()
-                val thermalMode = kernelRepository.getThermalMode()
-
-                _uiState.value = _uiState.value.copy(
-                    cpuInfo = cpuInfo,
-                    gpuInfo = gpuInfo,
-                    isMediaTek = isMediaTek,
-                    swappiness = swappiness,
-                    zramSize = zramSize,
-                    swapSize = swapSize,
-                    thermalMode = thermalMode,
-                    isLoading = false
-                )
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    message = "Error: ${e.message}",
-                    isLoading = false
-                )
+            if (_isRootAvailable.value) {
+                loadSystemInfo()
+                refreshCurrentValues()
             }
+
+            _isLoading.value = false
         }
     }
 
-    private fun startRealtimeMonitoring() {
+    private fun startAutoRefresh() {
         viewModelScope.launch {
-            while (isActive) {
-                try {
-                    val cpuInfo = kernelRepository.getCpuInfo()
-                    val gpuInfo = kernelRepository.getGpuInfo()
-
-                    _uiState.value = _uiState.value.copy(
-                        cpuInfo = cpuInfo,
-                        gpuInfo = gpuInfo,
-                        error = null
-                    )
-                } catch (e: Exception) {
-                    _uiState.value = _uiState.value.copy(error = e.message)
-                }
+            while(true) {
                 delay(2000)
+                if (_isRootAvailable.value && !_isLoading.value) {
+                    refreshCurrentValues()
+                }
             }
         }
     }
 
-    // CPU Controls
-    fun setCpuFrequency(core: Int, frequency: Long) {
-        viewModelScope.launch {
-            val success = kernelRepository.setCpuFrequency(core, frequency)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "CPU $core frequency set to ${frequency / 1000} MHz"
-                else "Failed to update CPU $core frequency"
+    private suspend fun refreshCurrentValues() {
+        val updatedClusters = cpuUseCase.detectClusters()
+        _cpuClusters.value = updatedClusters
+
+        if (!_isMediatek.value) {
+            _gpuInfo.value = gpuUseCase.getGPUInfo()
+        }
+
+        val states = mutableMapOf<Int, ClusterUIState>()
+        updatedClusters.forEach { cluster ->
+            states[cluster.clusterNumber] = ClusterUIState(
+                minFreq = cluster.currentMinFreq.toFloat(),
+                maxFreq = cluster.currentMaxFreq.toFloat(),
+                governor = cluster.governor
             )
-            if (success) {
-                updateMonitoringService()
-                loadTuningData()
+        }
+        _clusterStates.value = states
+    }
+
+    private suspend fun loadSystemInfo() {
+        _cpuClusters.value = cpuUseCase.detectClusters()
+        _isMediatek.value = detectMediatek()
+
+        if (!_isMediatek.value) {
+            _gpuInfo.value = gpuUseCase.getGPUInfo()
+        }
+
+        _availableIOSchedulers.value = getAvailableIOSchedulers()
+        _availableTCPCongestion.value = getAvailableTCPCongestion()
+
+        refreshCurrentValues()
+    }
+
+    private suspend fun detectMediatek(): Boolean {
+        val hwPlatform = RootManager.executeCommand("getprop ro.hardware").getOrNull()?.lowercase() ?: ""
+        val soc = RootManager.executeCommand("getprop ro.board.platform").getOrNull()?.lowercase() ?: ""
+
+        return hwPlatform.contains("mt") || soc.contains("mt") ||
+                hwPlatform.contains("mediatek") || soc.contains("mediatek")
+    }
+
+    private suspend fun getAvailableIOSchedulers(): List<String> {
+        val schedulers = RootManager.executeCommand("cat /sys/block/sda/queue/scheduler 2>/dev/null").getOrNull() ?: return emptyList()
+        return schedulers.replace("[", "").replace("]", "").split("\\s+".toRegex()).filter { it.isNotBlank() }
+    }
+
+    private suspend fun getAvailableTCPCongestion(): List<String> {
+        val congestion = RootManager.executeCommand("cat /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null").getOrNull() ?: return emptyList()
+        return congestion.split("\\s+".toRegex()).filter { it.isNotBlank() }
+    }
+
+    fun updateClusterUIState(cluster: Int, minFreq: Float, maxFreq: Float) {
+        val currentStates = _clusterStates.value.toMutableMap()
+        val currentState = currentStates[cluster] ?: ClusterUIState()
+        currentStates[cluster] = currentState.copy(minFreq = minFreq, maxFreq = maxFreq)
+        _clusterStates.value = currentStates
+    }
+
+    fun updateClusterGovernor(cluster: Int, governor: String) {
+        val currentStates = _clusterStates.value.toMutableMap()
+        val currentState = currentStates[cluster] ?: ClusterUIState()
+        currentStates[cluster] = currentState.copy(governor = governor)
+        _clusterStates.value = currentStates
+    }
+
+    fun setCPUFrequency(cluster: Int, minFreq: Int, maxFreq: Int) {
+        viewModelScope.launch {
+            val result = cpuUseCase.setClusterFrequency(cluster, minFreq, maxFreq)
+            if (result.isSuccess) {
+                updateClusterUIState(cluster, minFreq.toFloat(), maxFreq.toFloat())
             }
         }
     }
 
-    fun setCpuGovernor(core: Int, governor: String) {
+    fun setCPUGovernor(cluster: Int, governor: String) {
         viewModelScope.launch {
-            val success = kernelRepository.setCpuGovernor(core, governor)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "CPU $core governor set to $governor"
-                else "Failed to set governor"
-            )
-            if (success) {
-                updateMonitoringService()
-                loadTuningData()
+            val result = cpuUseCase.setClusterGovernor(cluster, governor)
+            if (result.isSuccess) {
+                updateClusterGovernor(cluster, governor)
             }
         }
     }
 
-    fun toggleCpuCore(core: Int, online: Boolean) {
+    fun disableCPUCore(core: Int, disable: Boolean) {
         viewModelScope.launch {
-            if (core == 0) {
-                _uiState.value = _uiState.value.copy(
-                    message = "Cannot offline CPU 0"
-                )
-                return@launch
+            Log.d("TuningViewModel", "Set core $core online = ${!disable}")
+            val result = cpuUseCase.setCoreOnline(core, !disable)
+            Log.d("TuningViewModel", "Result of setCoreOnline for core $core: $result")
+            preferencesManager.setCpuCoreEnabled(core, !disable)
+            delay(500)
+            refreshCurrentValues()
+        }
+    }
+
+    private fun applySavedCoreStates() {
+        viewModelScope.launch {
+            for (core in 0..7) {
+                val enabled = preferencesManager.isCpuCoreEnabled(core).first()
+                Log.d("TuningViewModel", "Applying core $core state: enabled=$enabled")
+                cpuUseCase.setCoreOnline(core, enabled)
             }
-
-            val success = kernelRepository.setCpuOnline(core, online)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "CPU $core ${if (online) "online" else "offline"}"
-                else "Failed to toggle CPU $core"
-            )
-            if (success) loadTuningData()
+            refreshCurrentValues()
         }
     }
 
-    // GPU Controls
-    fun setGpuFrequency(frequency: Long) {
+    suspend fun applyAllConfigurations() {
+        // Apply CPU cores
+        for(core in 0..7) {
+            val enabled = preferencesManager.isCpuCoreEnabled(core).first()
+            cpuUseCase.setCoreOnline(core, enabled)
+        }
+
+        // Apply thermal config
+        val thermalPreset = preferencesManager.getThermalPreset().first()
+        val setOnBoot = preferencesManager.getThermalSetOnBoot().first()
+        if (thermalPreset.isNotEmpty()) {
+            thermalUseCase.setThermalMode(thermalPreset, setOnBoot)
+        }
+
+        // Apply I/O scheduler
+        val ioScheduler = preferencesManager.getIOScheduler().first()
+        if (ioScheduler.isNotBlank()) {
+            RootManager.executeCommand("echo $ioScheduler > /sys/block/sda/queue/scheduler")
+        }
+
+        // Apply TCP congestion control
+        val tcpCongestion = preferencesManager.getTCPCongestion().first()
+        if (tcpCongestion.isNotBlank()) {
+            RootManager.executeCommand("echo $tcpCongestion > /proc/sys/net/ipv4/tcp_congestion_control")
+        }
+    }
+
+    init {
+        checkRootAndLoadData()
         viewModelScope.launch {
-            val success = kernelRepository.setGpuFrequency(frequency)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "GPU frequency set to ${frequency / 1000} MHz"
-                else "Failed to update GPU frequency"
-            )
-            if (success) {
-                updateMonitoringService()
-                loadTuningData()
+            applyAllConfigurations()
+        }
+        startAutoRefresh()
+    }
+
+
+
+    fun setGPUFrequency(minFreq: Int, maxFreq: Int) {
+        viewModelScope.launch {
+            gpuUseCase.setGPUFrequency(minFreq, maxFreq)
+        }
+    }
+
+    fun setGPUPowerLevel(level: Int) {
+        viewModelScope.launch {
+            gpuUseCase.setGPUPowerLevel(level)
+        }
+    }
+
+    fun setGPURenderer(renderer: String) {
+        viewModelScope.launch {
+            gpuUseCase.setGPURenderer(renderer)
+        }
+    }
+
+    suspend fun verifyRendererChange(renderer: String): Boolean {
+        return gpuUseCase.verifyRendererChange(renderer).getOrDefault(false)
+    }
+
+    fun performReboot() {
+        viewModelScope.launch {
+            gpuUseCase.performReboot()
+        }
+    }
+
+    fun setThermalPreset(preset: String, setOnBoot: Boolean) {
+        viewModelScope.launch {
+            thermalUseCase.setThermalMode(preset, setOnBoot)
+            preferencesManager.setThermalConfig(preset, setOnBoot)
+        }
+    }
+
+    fun setIOScheduler(scheduler: String) {
+        viewModelScope.launch {
+            RootManager.executeCommand("echo $scheduler > /sys/block/sda/queue/scheduler")
+            preferencesManager.setIOScheduler(scheduler)
+        }
+    }
+
+    fun setTCPCongestion(congestion: String) {
+        viewModelScope.launch {
+            RootManager.executeCommand("echo $congestion > /proc/sys/net/ipv4/tcp_congestion_control")
+            preferencesManager.setTCPCongestion(congestion)
+        }
+    }
+
+    fun setRAMParameters(config: RAMConfig) {
+        viewModelScope.launch {
+            ramUseCase.setSwappiness(config.swappiness)
+            ramUseCase.setZRAMSize(config.zramSize.toLong()*1024*1024)
+            ramUseCase.setDirtyRatio(config.dirtyRatio)
+            ramUseCase.setMinFreeMem(config.minFreeMem)
+        }
+    }
+
+
+
+    fun setPerfMode(mode: String) {
+        viewModelScope.launch {
+            val governor = when(mode) {
+                "battery" -> "powersave"
+                "balance" -> "schedutil"
+                "performance" -> "performance"
+                else -> "schedutil"
+            }
+            _cpuClusters.value.forEach { cluster ->
+                cpuUseCase.setClusterGovernor(cluster.clusterNumber, governor)
+            }
+            delay(500)
+            refreshCurrentValues()
+        }
+    }
+
+    fun exportConfig() {
+        viewModelScope.launch {
+            val config = buildCurrentConfig()
+            tomlManager.exportConfig(config)
+        }
+    }
+
+    fun importConfig() {
+        viewModelScope.launch {
+            val config = tomlManager.importConfig()
+            if(config!=null){
+                applyConfig(config)
             }
         }
     }
 
-    fun setGpuGovernor(governor: String) {
+    fun applyPreset(config: TuningConfig) {
         viewModelScope.launch {
-            val success = kernelRepository.setGpuGovernor(governor)
-            _uiState.value = _uiState.value.copy(
-                message = if (success) "GPU governor set to $governor"
-                else "Failed to set GPU governor"
+            applyConfig(config)
+        }
+    }
+
+    private fun buildCurrentConfig(): TuningConfig {
+        val cpuConfigs = _cpuClusters.value.map { cluster ->
+            CPUClusterConfig(
+                cluster = cluster.clusterNumber,
+                minFreq=cluster.currentMinFreq,
+                maxFreq=cluster.currentMaxFreq,
+                governor=cluster.governor,
+                disabledCores = emptyList()
             )
-            if (success) {
-                updateMonitoringService()
-                loadTuningData()
+        }
+        return TuningConfig(
+            cpuClusters = cpuConfigs,
+            gpu = null,
+            thermal = ThermalConfig(),
+            ram = RAMConfig(),
+            additional = AdditionalConfig()
+        )
+    }
+
+    private suspend fun applyConfig(config: TuningConfig) {
+        config.cpuClusters.forEach { clusterConfig ->
+            cpuUseCase.setClusterFrequency(
+                clusterConfig.cluster,
+                clusterConfig.minFreq,
+                clusterConfig.maxFreq
+            )
+            cpuUseCase.setClusterGovernor(clusterConfig.cluster, clusterConfig.governor)
+            clusterConfig.disabledCores.forEach { core ->
+                cpuUseCase.setCoreOnline(core, false)
             }
         }
-    }
-
-    // RAM Controls
-    fun setSwappiness(value: Int) {
-        viewModelScope.launch {
-            val success = kernelRepository.setSwappiness(value)
-            _uiState.value = _uiState.value.copy(
-                swappiness = if (success) value else _uiState.value.swappiness,
-                message = if (success) "Swappiness set to $value"
-                else "Failed to set swappiness"
-            )
-            if (success) updateMonitoringService()
-        }
-    }
-
-    fun setZramSize(sizeBytes: Long) {
-        viewModelScope.launch {
-            val success = kernelRepository.setZramSize(sizeBytes)
-            val sizeMB = sizeBytes / (1024 * 1024)
-            _uiState.value = _uiState.value.copy(
-                zramSize = if (success) sizeBytes else _uiState.value.zramSize,
-                message = if (success) "ZRAM size set to $sizeMB MB"
-                else "Failed to set ZRAM size"
-            )
-            if (success) updateMonitoringService()
-        }
-    }
-
-    fun setSwapSize(sizeBytes: Long) {
-        viewModelScope.launch {
-            val success = kernelRepository.setSwapSize(sizeBytes)
-            val sizeMB = sizeBytes / (1024 * 1024)
-            _uiState.value = _uiState.value.copy(
-                swapSize = if (success) sizeBytes else _uiState.value.swapSize,
-                message = if (success) "Swap size set to $sizeMB MB"
-                else "Failed to set swap size"
-            )
-            if (success) updateMonitoringService()
-        }
-    }
-
-    // Additional Controls
-    fun setThermalMode(mode: String) {
-        viewModelScope.launch {
-            val success = kernelRepository.setThermalMode(mode)
-            _uiState.value = _uiState.value.copy(
-                thermalMode = if (success) mode else _uiState.value.thermalMode,
-                message = if (success) "Thermal mode set to $mode"
-                else "Failed to set thermal mode"
-            )
-            if (success) {
-                startMonitoringService(mode)
+        config.gpu?.let { gpu ->
+            if (!_isMediatek.value) {
+                gpuUseCase.setGPUFrequency(gpu.minFreq, gpu.maxFreq)
+                gpuUseCase.setGPUPowerLevel(gpu.powerLevel)
+                gpuUseCase.setGPURenderer(gpu.renderer)
             }
         }
+        thermalUseCase.setThermalMode(config.thermal.preset, config.thermal.setOnBoot)
+        setRAMParameters(config.ram)
+        config.additional.ioScheduler.takeIf { it.isNotBlank() }?.let { setIOScheduler(it) }
+        config.additional.tcpCongestion.takeIf { it.isNotBlank() }?.let { setTCPCongestion(it) }
+        delay(1000)
+        refreshCurrentValues()
     }
 
-    // Service Management
-    private fun startMonitoringService(thermalMode: String) {
-        val intent = Intent(getApplication(), MonitoringService::class.java).apply {
-            action = MonitoringService.ACTION_START
-            putExtra(MonitoringService.EXTRA_THERMAL_MODE, thermalMode)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getApplication<Application>().startForegroundService(intent)
-        } else {
-            getApplication<Application>().startService(intent)
-        }
+    suspend fun checkMagiskAvailability(): Boolean {
+        return gpuUseCase.checkMagiskAvailability()
     }
 
-    private fun updateMonitoringService() {
-        val intent = Intent(getApplication(), MonitoringService::class.java).apply {
-            action = MonitoringService.ACTION_UPDATE_SETTINGS
-            putExtra(MonitoringService.EXTRA_THERMAL_MODE, _uiState.value.thermalMode)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getApplication<Application>().startForegroundService(intent)
-        } else {
-            getApplication<Application>().startService(intent)
-        }
-    }
-
-    // Profile Management
-    fun exportProfile() {
+    fun refreshData() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                message = "Export profile feature coming soon"
-            )
+            refreshCurrentValues()
         }
-    }
-
-    fun importProfile() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(
-                message = "Import profile feature coming soon"
-            )
-        }
-    }
-
-    fun clearMessage() {
-        _uiState.value = _uiState.value.copy(message = null)
-    }
-
-    fun refresh() {
-        loadTuningData()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        // Service will keep running in background
     }
 }
+
+data class ClusterUIState(
+    val minFreq: Float = 0f,
+    val maxFreq: Float = 0f,
+    val governor: String = ""
+)
