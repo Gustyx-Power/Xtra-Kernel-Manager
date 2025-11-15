@@ -1,880 +1,515 @@
 package id.xms.xtrakernelmanager.ui.screens.home
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
-import id.xms.xtrakernelmanager.ui.components.PillHeader
-import id.xms.xtrakernelmanager.utils.format
-import id.xms.xtrakernelmanager.utils.toFrequencyString
-import id.xms.xtrakernelmanager.utils.toMhzString
+import androidx.lifecycle.viewmodel.compose.viewModel
+import id.xms.xtrakernelmanager.BuildConfig
+import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
+import id.xms.xtrakernelmanager.ui.components.EnhancedCard
+import id.xms.xtrakernelmanager.ui.components.PillCard
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
-    onSettingsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    preferencesManager: PreferencesManager,
+    viewModel: HomeViewModel = viewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val listState = rememberLazyListState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val cpuInfo by viewModel.cpuInfo.collectAsState()
+    val gpuInfo by viewModel.gpuInfo.collectAsState()
+    val batteryInfo by viewModel.batteryInfo.collectAsState()
+    val systemInfo by viewModel.systemInfo.collectAsState()
 
-    LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 80.dp)
-    ) {
-        item {
-            PillHeader(
-                title = "Xtra Kernel Manager",
-                version = "v2.0-alpha4",
-                onSettingsClick = onSettingsClick
-            )
-        }
+    var showThemeDialog by remember { mutableStateOf(false) }
+    val currentTheme by preferencesManager.themeMode.collectAsState(initial = 0)
+    val coroutineScope = rememberCoroutineScope()
 
-        if (!uiState.hasRoot) {
-            item {
-                GlassmorphicCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    backgroundColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Root access not available. Some features will be limited.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer
-                        )
+    LaunchedEffect(Unit) {
+        viewModel.loadBatteryInfo(context)
+    }
+
+    if (showThemeDialog) {
+        AlertDialog(
+            onDismissRequest = { showThemeDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Palette,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = {
+                Text(
+                    text = "Theme Settings",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        0 to "Material 3 Dynamic",
+                        1 to "Material 3 Solid",
+                        2 to "Material 3 Glass"
+                    ).forEach { (mode, label) ->
+                        Surface(
+                            onClick = {
+                                coroutineScope.launch {
+                                    preferencesManager.setThemeMode(mode)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            color = if (currentTheme == mode)
+                                MaterialTheme.colorScheme.primaryContainer
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant,
+                            tonalElevation = if (currentTheme == mode) 4.dp else 1.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                RadioButton(
+                                    selected = currentTheme == mode,
+                                    onClick = null
+                                )
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (currentTheme == mode) FontWeight.SemiBold else FontWeight.Normal
+                                )
+                            }
+                        }
                     }
                 }
+            },
+            confirmButton = {
+                TextButton(onClick = { showThemeDialog = false }) {
+                    Text("OK")
+                }
             }
-        }
-
-        item {
-            CpuInfoSection(uiState)
-        }
-
-        item {
-            GpuInfoSection(uiState)
-        }
-
-        item {
-            BatteryInfoSection(uiState)
-        }
-
-        item {
-            SystemInfoSection(uiState)
-        }
+        )
     }
-}
 
-@Composable
-private fun CpuInfoSection(uiState: HomeUiState) {
-    GlassmorphicCard(
+    LazyColumn(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        contentPadding = PaddingValues(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column {
+        item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Speed,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    PillCard(text = "Xtra Kernel Manager")
+                    Text(
+                        text = "v${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
+                }
+                FilledIconButton(
+                    onClick = { showThemeDialog = true },
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Palette,
+                        contentDescription = "Theme"
+                    )
+                }
+            }
+        }
+
+        item {
+            InfoCard(
+                title = "CPU Information",
+                icon = Icons.Default.Memory,
+                content = {
+                    Text(
+                        "Clockspeed per Core",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Grid manual dengan FlowRow atau Column+Row
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        // Buat 2 baris, masing-masing 4 core
+                        val rows = cpuInfo.cores.chunked(4)
+                        rows.forEach { rowCores ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                rowCores.forEach { core ->
+                                    Column(
+                                        modifier = Modifier.width(70.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Bolt,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(20.dp),
+                                            tint = if (core.isOnline)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.outline
+                                        )
+                                        Text(
+                                            text = "${core.currentFreq} MHz",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "CPU${core.coreNumber}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    InfoIconRow(Icons.Default.Dashboard, "Governor", cpuInfo.cores.firstOrNull()?.governor ?: "-")
+                    InfoIconRow(Icons.Default.Thermostat, "Temperature", "${cpuInfo.temperature}°C")
+                    InfoIconRow(Icons.Default.Speed, "Load", "${String.format("%.1f", cpuInfo.totalLoad)}%")
+                    InfoIconRow(Icons.Default.Adb, "Online", "${cpuInfo.cores.count { it.isOnline }}/${cpuInfo.cores.size}")
+                }
+            )
+        }
+
+
+        item {
+            InfoCard(
+                title = "GPU Information",
+                icon = Icons.Default.Videocam,
+                content = {
+                    // OpenGL ES version highlight
+                    Text(
+                        text = gpuInfo.openglVersion,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    )
+                    // Grid Freq mirip CPU jika availableFreqs.size > 1
+                    if (gpuInfo.availableFreqs.size > 1) {
                         Text(
-                            text = "CPU Information",
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                        )
-                        Text(
-                            text = "${uiState.cpuInfo.coreCount} Cores • ${uiState.cpuInfo.onlineCores.size} Online",
+                            "Frequencies",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            fontWeight = FontWeight.SemiBold,
                         )
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            // grid 4 kolom
+                            gpuInfo.availableFreqs.chunked(4).forEachIndexed { rowIdx, rowFreqs ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceEvenly
+                                ) {
+                                    rowFreqs.forEachIndexed { i, freq ->
+                                        Column(
+                                            modifier = Modifier.width(70.dp).padding(vertical = 6.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Bolt,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                                tint = if (freq == gpuInfo.currentFreq) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                            )
+                                            Text(
+                                                text = "$freq MHz",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = "GPU${rowIdx*4 + i}",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = if (freq == gpuInfo.currentFreq)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                    } else if (gpuInfo.currentFreq > 0) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(Icons.Default.Bolt, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                Text("${gpuInfo.currentFreq} MHz", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text("GPU", style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    }
+                    InfoIconRow(Icons.Default.Memory, "Vendor", gpuInfo.vendor)
+                    InfoIconRow(Icons.Default.Dashboard, "Renderer", gpuInfo.renderer)
+                    InfoIconRow(Icons.Default.Bolt, "Max Freq", "${gpuInfo.maxFreq} MHz")
+                    InfoIconRow(Icons.Default.Bolt, "Min Freq", "${gpuInfo.minFreq} MHz")
+                }
+            )
+        }
+
+
+
+        item {
+            InfoCard(
+                title = "Battery Information",
+                icon = Icons.Default.BatteryChargingFull
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,    // <-- Ganti ke Center supaya ada di tengah
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Circular Battery Level
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            progress = batteryInfo.level / 100f,
+                            strokeWidth = 8.dp,
+                            modifier = Modifier.size(72.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "${batteryInfo.level}%",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        Text("Level")
+                    }
+
+                    Spacer(modifier = Modifier.width(32.dp))  // Jarak antara dua circle
+
+                    // Circular Battery Health
+                    val healthProgress = (batteryInfo.healthPercent.coerceIn(0f, 100f)) / 100f
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(
+                            progress = healthProgress,
+                            strokeWidth = 8.dp,
+                            modifier = Modifier.size(72.dp),
+                            color = if (healthProgress > 0.8f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        )
+                        Text(
+                            text = String.format("%.1f%%", batteryInfo.healthPercent),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                        Text("Health")
                     }
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Detail lainnya
+                InfoIconRow(Icons.Default.Thermostat, "Temperature", "${batteryInfo.temperature}°C")
+                InfoIconRow(Icons.Default.Favorite, "Health (Text)", batteryInfo.health)
+                InfoIconRow(Icons.Default.Power, "Status", batteryInfo.status)
+                InfoIconRow(Icons.Default.FlashOn, "Current Now", "${batteryInfo.currentNow} mA")
+                InfoIconRow(Icons.Default.BatteryStd, "Voltage", "${batteryInfo.voltage} mV")
+                InfoIconRow(Icons.Default.Refresh, "Cycle Count", batteryInfo.cycleCount.toString())
+                InfoIconRow(Icons.Default.Memory, "Technology", batteryInfo.technology)
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // CPU Clusters Display
-            uiState.cpuInfo.clusters.forEach { (clusterName, cores) ->
-                val firstCore = uiState.cpuInfo.cores.getOrNull(cores.firstOrNull() ?: 0)
-                firstCore?.let { core ->
-                    CpuClusterCard(
-                        clusterName = clusterName,
-                        cores = cores,
-                        frequency = core.currentFreq,
-                        maxFrequency = core.maxFreq,
-                        governor = core.governor
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-
-            Divider(
-                modifier = Modifier.padding(vertical = 12.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            )
-
-            // CPU Stats Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+        item {
+            InfoCard(
+                title = "Memory & Storage",
+                icon = Icons.Default.Storage
             ) {
-                CpuStatItem(
-                    icon = Icons.Default.Thermostat,
-                    label = "Temperature",
-                    value = "${uiState.cpuInfo.temperature.format(1)}°C",
-                    color = getTempColor(uiState.cpuInfo.temperature)
+                // RAM
+                val totalRamGB = systemInfo.totalRam / (1024f * 1024f * 1024f)
+                val availRamGB = systemInfo.availableRam / (1024f * 1024f * 1024f)
+                val usedRamGB = totalRamGB - availRamGB
+                val ramProgress = usedRamGB / totalRamGB
+
+                Text("RAM Usage")
+                LinearProgressIndicator(
+                    progress = ramProgress.coerceIn(0f, 1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = String.format("%.2f/%.2f GB (%.1f%%)", usedRamGB, totalRamGB, ramProgress * 100),
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 10.dp)
                 )
 
-                CpuStatItem(
-                    icon = Icons.Default.TrendingUp,
-                    label = "Load",
-                    value = "${uiState.cpuInfo.load.format(1)}%",
-                    color = MaterialTheme.colorScheme.secondary
+                // ZRAM (tambahkan jika ada yang didapat dalam SystemInfo)
+                if (systemInfo.zramSize > 0) {
+                    val zramGB = systemInfo.zramSize / (1024f * 1024f * 1024f)
+                    InfoIconRow(
+                        Icons.Default.Memory,
+                        "ZRAM",
+                        String.format("%.2f GB", zramGB)
+                    )
+                }
+
+                if (systemInfo.swapTotal > 0L) {
+                    val swapGB = systemInfo.swapTotal / (1024f * 1024f * 1024f)
+                    InfoIconRow(
+                        Icons.Default.Memory,
+                        "Swap",
+                        String.format("%.2f GB", swapGB)
+                    )
+                }
+
+                // STORAGE
+                val totalStorageGB = systemInfo.totalStorage / (1024f * 1024f * 1024f)
+                val availStorageGB = systemInfo.availableStorage / (1024f * 1024f * 1024f)
+                val usedStorageGB = totalStorageGB - availStorageGB
+                val storageProgress = usedStorageGB / totalStorageGB
+
+                Text("Storage Usage")
+                LinearProgressIndicator(
+                    progress = storageProgress.coerceIn(0f, 1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = String.format("%.2f/%.2f GB (%.1f%%)", usedStorageGB, totalStorageGB, storageProgress * 100),
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
+        }
+
+
+
+
+        item {
+            InfoCard(
+                title = "System Information",
+                icon = Icons.Default.PhoneAndroid,
+                content = {
+                    InfoIconRow(Icons.Default.Info, "Android", systemInfo.androidVersion)
+                    InfoIconRow(Icons.Default.Dashboard, "ABI", systemInfo.abi)
+                    InfoIconRow(Icons.Default.Settings, "Kernel", systemInfo.kernelVersion)
+                    InfoIconRow(Icons.Default.PhoneIphone, "Device", systemInfo.deviceModel)
+                    InfoIconRow(Icons.Default.Verified, "Build", systemInfo.fingerprint)
+                    InfoIconRow(Icons.Default.Security, "SELinux", systemInfo.selinux)
+                }
+            )
         }
     }
 }
 
+
 @Composable
-private fun CpuClusterCard(
-    clusterName: String,
-    cores: List<Int>,
-    frequency: Long,
-    maxFrequency: Long,
-    governor: String
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+fun InfoIconRow(icon: ImageVector, label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Text(value, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+@Composable
+private fun InfoCard(
+    title: String,
+    icon: ImageVector,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(true) }
+    EnhancedCard(onClick = { isExpanded = !isExpanded }) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "$clusterName Cluster",
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                    color = when (clusterName) {
-                        "Little" -> Color(0xFF4CAF50)
-                        "Big" -> Color(0xFFFF9800)
-                        "Prime" -> Color(0xFFF44336)
-                        else -> MaterialTheme.colorScheme.primary
-                    }
-                )
-                Text(
-                    text = "CPU ${cores.joinToString(", ")}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = frequency.toFrequencyString(),
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                )
-                Text(
-                    text = governor,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CpuStatItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    value: String,
-    color: Color
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-            color = color
-        )
-    }
-}
-
-@Composable
-private fun GpuInfoSection(uiState: HomeUiState) {
-    GlassmorphicCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Memory,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "GPU Information",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                    Text(
-                        text = uiState.gpuRenderer.ifEmpty { "Detecting..." },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Frequency & Governor Card
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Frequency",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        if (uiState.hasRoot && uiState.gpuInfo.currentFreq > 0) {
-                            Text(
-                                text = uiState.gpuInfo.currentFreq.toMhzString(),
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                        } else if (!uiState.hasRoot) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "Root Needed",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        } else {
-                            Text(
-                                text = "N/A",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Text(
-                            text = "Governor",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        if (uiState.hasRoot && uiState.gpuInfo.governor.isNotEmpty()) {
-                            Text(
-                                text = uiState.gpuInfo.governor,
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                            )
-                        } else if (!uiState.hasRoot) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.Lock,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = "Root Needed",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        } else {
-                            Text(
-                                text = "N/A",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            )
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // OpenGL & Vendor Info
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "OpenGL ES",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = uiState.openGLVersion.ifEmpty { "Detecting..." },
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Vendor",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = uiState.gpuVendor.ifEmpty { "Unknown" },
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BatteryInfoSection(uiState: HomeUiState) {
-    GlassmorphicCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.BatteryChargingFull,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "Battery Information",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                    )
-                    Text(
-                        text = uiState.batteryInfo.status,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Circular Battery Level
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                CircularProgressIndicator(
-                    percentage = uiState.batteryInfo.level,
-                    label = "Level",
-                    color = getBatteryColor(uiState.batteryInfo.level)
-                )
-
-                CircularProgressIndicator(
-                    percentage = uiState.batteryInfo.healthPercentage.toInt(),
-                    label = "Health",
-                    color = getHealthColor(uiState.batteryInfo.healthPercentage)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Divider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            )
-
-            // Battery Details Grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                BatteryDetailItem(
-                    icon = Icons.Default.Thermostat,
-                    label = "Temperature",
-                    value = "${uiState.batteryInfo.temperature.format(1)}°C"
-                )
-
-                BatteryDetailItem(
-                    icon = Icons.Default.ElectricBolt,
-                    label = "Voltage",
-                    value = "${uiState.batteryInfo.voltage.format(2)}V"
-                )
-
-                BatteryDetailItem(
-                    icon = Icons.Default.Loop,
-                    label = "Cycles",
-                    value = if (uiState.batteryInfo.cycleCount > 0)
-                        uiState.batteryInfo.cycleCount.toString()
-                    else "N/A"
-                )
-            }
-
-            if (uiState.batteryInfo.capacityMah > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
                 Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    tonalElevation = 2.dp
                 ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = "Capacity",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                        Text(
-                            text = "${uiState.batteryInfo.capacityMah} / ${uiState.batteryInfo.designCapacityMah} mAh",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CircularProgressIndicator(
-    percentage: Int,
-    label: String,
-    color: Color
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.size(100.dp)
-        ) {
-            Canvas(modifier = Modifier.size(100.dp)) {
-                val strokeWidth = 12.dp.toPx()
-
-                // Background circle
-                drawArc(
-                    color = color.copy(alpha = 0.2f),
-                    startAngle = -90f,
-                    sweepAngle = 360f,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-                    size = Size(size.width - strokeWidth, size.height - strokeWidth),
-                    topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
-                )
-
-                // Progress arc
-                drawArc(
-                    color = color,
-                    startAngle = -90f,
-                    sweepAngle = (percentage / 100f) * 360f,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-                    size = Size(size.width - strokeWidth, size.height - strokeWidth),
-                    topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "$percentage%",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = color
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-    }
-}
-
-@Composable
-private fun BatteryDetailItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    value: String
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-        )
-    }
-}
-
-@Composable
-private fun SystemInfoSection(uiState: HomeUiState) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        // Header
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.PhoneAndroid,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "System Information",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-                )
-            }
-        }
-
-        // RAM Card
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Memory,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "RAM",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
-
-                    Text(
-                        text = "${(uiState.systemInfo.totalRam - uiState.systemInfo.availableRam) / (1024 * 1024 * 1024)} GB / ${uiState.systemInfo.totalRam / (1024 * 1024 * 1024)} GB",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val ramPercentage = if (uiState.systemInfo.totalRam > 0) {
-                    ((uiState.systemInfo.totalRam - uiState.systemInfo.availableRam).toFloat() / uiState.systemInfo.totalRam.toFloat())
-                } else 0f
-
-                LinearProgressIndicator(
-                    progress = ramPercentage,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "${(ramPercentage * 100).toInt()}% Used • ${uiState.systemInfo.availableRam / (1024 * 1024 * 1024)} GB Available",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-        }
-
-        // Storage Card
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.Storage,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Storage",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                        )
-                    }
-
-                    Text(
-                        text = "${(uiState.systemInfo.totalStorage - uiState.systemInfo.availableStorage) / (1024 * 1024 * 1024)} GB / ${uiState.systemInfo.totalStorage / (1024 * 1024 * 1024)} GB",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val storagePercentage = if (uiState.systemInfo.totalStorage > 0) {
-                    ((uiState.systemInfo.totalStorage - uiState.systemInfo.availableStorage).toFloat() / uiState.systemInfo.totalStorage.toFloat())
-                } else 0f
-
-                LinearProgressIndicator(
-                    progress = storagePercentage,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "${(storagePercentage * 100).toInt()}% Used • ${uiState.systemInfo.availableStorage / (1024 * 1024 * 1024)} GB Free",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-        }
-
-        // Device Info Card - Card Per Item Style
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Info,
+                        imageVector = icon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Device Details",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        modifier = Modifier.padding(8.dp).size(24.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
-
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SystemDetailItemCard(
-                        icon = Icons.Default.Android,
-                        label = "Android",
-                        value = uiState.systemInfo.androidVersion
-                    )
-
-                    SystemDetailItemCard(
-                        icon = Icons.Default.DeveloperMode,
-                        label = "Kernel",
-                        value = uiState.systemInfo.kernelVersion
-                    )
-
-                    SystemDetailItemCard(
-                        icon = Icons.Default.PhoneIphone,
-                        label = "Device",
-                        value = uiState.systemInfo.deviceModel
-                    )
-
-                    SystemDetailItemCard(
-                        icon = Icons.Default.Architecture,
-                        label = "ABI",
-                        value = uiState.systemInfo.abi
-                    )
-
-                    SystemDetailItemCard(
-                        icon = Icons.Default.Fingerprint,
-                        label = "Build",
-                        value = uiState.systemInfo.fingerprint
-                    )
-
-                    SystemDetailItemCard(
-                        icon = Icons.Default.Security,
-                        label = "SELinux",
-                        value = uiState.systemInfo.selinuxStatus,
-                        valueColor = when (uiState.systemInfo.selinuxStatus.uppercase()) {
-                            "ENFORCING" -> Color(0xFF4CAF50)
-                            "PERMISSIVE" -> Color(0xFFFF9800)
-                            else -> MaterialTheme.colorScheme.error
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SystemDetailItemCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    value: String,
-    valueColor: Color? = null
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                color = valueColor ?: MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 24.dp),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
+            IconButton(onClick = { isExpanded = !isExpanded }) {
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = null
+                )
+            }
+        }
+
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(
+                modifier = Modifier.padding(top = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                content()
+            }
         }
     }
-}
-
-private fun getTempColor(temp: Float): Color = when {
-    temp < 45 -> Color(0xFF4CAF50)
-    temp < 60 -> Color(0xFFFF9800)
-    else -> Color(0xFFF44336)
-}
-
-private fun getBatteryColor(level: Int): Color = when {
-    level > 60 -> Color(0xFF4CAF50)
-    level > 20 -> Color(0xFFFF9800)
-    else -> Color(0xFFF44336)
-}
-
-private fun getHealthColor(health: Float): Color = when {
-    health > 85 -> Color(0xFF4CAF50)
-    health > 70 -> Color(0xFFFF9800)
-    else -> Color(0xFFF44336)
 }
