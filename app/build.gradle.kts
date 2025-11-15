@@ -13,7 +13,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "2.0-alpha5"
+        versionName = "2.0-alpha6-rt1"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -42,6 +42,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -57,6 +58,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.core:core-splashscreen:1.2.0-alpha02")
+    implementation("com.google.android.material:material:1.13.0")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
 
     // Compose BOM
     val composeBom = platform("androidx.compose:compose-bom:2024.11.00")
