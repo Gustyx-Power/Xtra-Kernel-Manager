@@ -3,7 +3,6 @@
 -dontusemixedcaseclassnames
 -dontskipnonpubliclibraryclasses
 -verbose
--optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
 
 # ===== Keep Application class =====
 -keep public class * extends android.app.Application

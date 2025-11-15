@@ -1,24 +1,8 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
-    }
-
-    // Fix configuration cache
-    resolutionStrategy {
-        eachPlugin {
-            when (requested.id.id) {
-                "com.android.application" -> useModule("com.android.tools.build:gradle:8.12.1")
-                "org.jetbrains.kotlin.android" -> useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
-            }
-        }
     }
 }
 
@@ -29,16 +13,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
     }
-
-    // Fix configuration cache version catalog
-    versionCatalogs {
-        create("libs") {
-            library("kotlin-stdlib", "org.jetbrains.kotlin:kotlin-stdlib:2.0.21")
-            library("core-ktx", "androidx.core:core-ktx:1.13.1")
-            library("appcompat", "androidx.appcompat:appcompat:1.6.1")
-        }
-    }
 }
 
-rootProject.name = "XtraKernelManager"
+rootProject.name = "Xtra Kernel Manager"
 include(":app")
