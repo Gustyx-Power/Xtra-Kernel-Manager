@@ -1,30 +1,178 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- App Name -->
     <string name="app_name">Xtra Kernel Manager</string>
-    <string name="home">Home</string>
-    <string name="tuning">Tuning</string>
-    <string name="misc">Misc</string>
-    <string name="info">Info</string>
-    <string name="settings">Settings</string>
+    <string name="app_version">v%s</string>
 
-    <!-- Home -->
-    <string name="cpu_information">CPU Information</string>
-    <string name="gpu_information">GPU Information</string>
-    <string name="battery_information">Battery Information</string>
-    <string name="system_information">System Information</string>
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_tuning">Tuning</string>
+    <string name="nav_misc">Misc</string>
+    <string name="nav_info">Info</string>
 
-    <!-- Tuning -->
+    <!-- Home Screen -->
+    <string name="home_header">Xtra Kernel Manager</string>
+    <string name="home_settings">Settings</string>
+    <string name="cpu_info">CPU Information</string>
+    <string name="cpu_clockspeed">Clockspeed</string>
+    <string name="cpu_governor">Governor</string>
+    <string name="cpu_cores">Cores</string>
+    <string name="cpu_temperature">Temperature</string>
+    <string name="cpu_load">Load</string>
+    <string name="gpu_info">GPU Information</string>
+    <string name="gpu_vendor">Vendor</string>
+    <string name="gpu_renderer">Renderer</string>
+    <string name="gpu_opengl">OpenGL ES</string>
+    <string name="battery_info">Battery Information</string>
+    <string name="battery_level">Level</string>
+    <string name="battery_temperature">Temperature</string>
+    <string name="battery_health">Health</string>
+    <string name="battery_capacity">Capacity</string>
+    <string name="battery_current">Current</string>
+    <string name="battery_cycle">Cycle Count</string>
+    <string name="ram_info">RAM Information</string>
+    <string name="ram_total">Total</string>
+    <string name="ram_available">Available</string>
+    <string name="ram_used">Used</string>
+    <string name="zram_info">ZRAM</string>
+    <string name="storage_info">Storage</string>
+    <string name="system_info">System Information</string>
+    <string name="android_version">Android Version</string>
+    <string name="abi">ABI</string>
+    <string name="kernel_version">Kernel Version</string>
+    <string name="device_model">Device Model</string>
+    <string name="fingerprint">Fingerprint</string>
+    <string name="selinux">SELinux</string>
+    <string name="thermal_mode">Thermal Mode</string>
+
+    <!-- Tuning Screen -->
+    <string name="tuning_title">Kernel Tuning</string>
+    <string name="tuning_requires_root">Root access required</string>
+    <string name="tuning_export">Export Config</string>
+    <string name="tuning_import">Import Config</string>
+    <string name="tuning_apply">Apply Preset</string>
     <string name="cpu_control">CPU Control</string>
+    <string name="cpu_cluster_0">CPU Cluster 0 (Little)</string>
+    <string name="cpu_cluster_1">CPU Cluster 1 (Mid)</string>
+    <string name="cpu_cluster_2">CPU Cluster 2 (Big)</string>
+    <string name="min_frequency">Min Frequency</string>
+    <string name="max_frequency">Max Frequency</string>
+    <string name="governor_select">Governor</string>
+    <string name="core_control">Core Control</string>
+    <string name="disable_cores">Disable Cores</string>
     <string name="gpu_control">GPU Control</string>
+    <string name="gpu_min_freq">Min Frequency</string>
+    <string name="gpu_max_freq">Max Frequency</string>
+    <string name="gpu_power_level">Power Level</string>
+    <string name="gpu_renderer_select">Renderer</string>
+    <string name="thermal_control">Thermal Control</string>
+    <string name="thermal_preset">Thermal Preset</string>
+    <string name="thermal_dynamic">Dynamic</string>
+    <string name="thermal_incalls">In Calls</string>
+    <string name="thermal_20">Thermal 20</string>
+    <string name="thermal_not_set">Not Set</string>
+    <string name="set_on_boot">Set on Boot</string>
     <string name="ram_control">RAM Control</string>
+    <string name="swappiness">Swappiness</string>
+    <string name="zram_size">ZRAM Size</string>
+    <string name="swap_size">Swap Size</string>
+    <string name="dirty_ratio">Dirty Ratio</string>
+    <string name="min_free_memory">Min Free Memory</string>
     <string name="additional_control">Additional Control</string>
+    <string name="io_scheduler">I/O Scheduler</string>
+    <string name="tcp_congestion">TCP Congestion</string>
+    <string name="perf_controller">Performance Controller</string>
+    <string name="perf_battery">Battery</string>
+    <string name="perf_balance">Balance</string>
+    <string name="perf_performance">Performance</string>
+
+    <!-- Misc Screen -->
+    <string name="misc_title">Miscellaneous</string>
+    <string name="battery_guru">Battery Information</string>
+    <string name="battery_guru_desc">Detailed battery statistics and health</string>
+    <string name="game_control">Game Control</string>
+    <string name="game_control_desc">FPS meter and performance overlay</string>
+    <string name="game_control_requires_root">Requires root access</string>
+    <string name="game_overlay_fps">FPS</string>
+    <string name="game_overlay_cpu">CPU</string>
+    <string name="game_overlay_gpu">GPU</string>
+    <string name="game_overlay_temp">Temp</string>
+    <string name="game_overlay_dnd">Do Not Disturb</string>
+    <string name="game_overlay_clear_ram">Clear RAM</string>
+    <string name="game_stats">Performance Statistics</string>
+    <string name="game_stats_export">Export as PNG</string>
+    <string name="overlay_settings">Overlay Settings</string>
+    <string name="enable_fps_meter">Enable FPS Meter</string>
+    <string name="enable_cpu_monitor">Enable CPU Monitor</string>
+    <string name="enable_gpu_monitor">Enable GPU Monitor</string>
+    <string name="enable_temp_monitor">Enable Temperature Monitor</string>
+    <!-- Add to res/values/strings.xml -->
+    <string name="battery_cycle_count">Cycle Count</string>
+
+
+    <!-- Info Screen -->
+    <string name="info_title">About</string>
+    <string name="info_developer">Developer</string>
+    <string name="info_developer_name">XMS Team</string>
+    <string name="info_license">License</string>
+    <string name="info_license_type">MIT Open Source</string>
+    <string name="info_source_code">Source Code</string>
+    <string name="info_pling">Available on Pling.com</string>
+    <string name="info_description">An open-source Android kernel management application built with Kotlin Native and Jetpack Compose</string>
+    <string name="info_features">Features</string>
+    <string name="info_feature_1">• Real-time CPU/GPU monitoring</string>
+    <string name="info_feature_2">• Advanced kernel tuning (root)</string>
+    <string name="info_feature_3">• Game performance overlay</string>
+    <string name="info_feature_4">• Material 3 Expressive UI</string>
+    <string name="info_feature_5">• Glassmorphism theme support</string>
+
+    <!-- Theme Settings -->
+    <string name="theme_settings">Theme Settings</string>
+    <string name="theme_glassmorphism">Glassmorphism</string>
+    <string name="theme_material3_solid">Material 3 Solid</string>
+    <string name="theme_material3_glass">Material 3 + Glassmorphism</string>
 
     <!-- Messages -->
     <string name="root_not_available">Root access not available</string>
-    <string name="permission_required">Permission required</string>
-    <string name="overlay_permission_required">Overlay permission is required for game control</string>
+    <string name="root_granted">Root access granted</string>
+    <string name="config_exported">Configuration exported successfully</string>
+    <string name="config_imported">Configuration imported successfully</string>
+    <string name="config_applied">Configuration applied</string>
+    <string name="error_export">Failed to export configuration</string>
+    <string name="error_import">Failed to import configuration</string>
+    <string name="error_apply">Failed to apply settings</string>
+    <string name="mediatek_gpu_notice">GPU control not available on MediaTek devices</string>
 
-    <!-- Errors -->
-    <string name="error_loading_data">Error loading data</string>
-    <string name="error_applying_settings">Error applying settings</string>
+    <!-- Units -->
+    <string name="mhz">MHz</string>
+    <string name="celsius">°C</string>
+    <string name="percent">%</string>
+    <string name="mb">MB</string>
+    <string name="gb">GB</string>
+    <string name="mah">mAh</string>
+    <string name="ma">mA</string>
+
+    <!-- Common -->
+    <string name="apply">Apply</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="reset">Reset</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    <string name="loading">Loading…</string>
+    <string name="unknown">Unknown</string>
+
+    <string name="gpu_renderer_reboot_title">Reboot Required</string>
+    <string name="gpu_renderer_reboot_message">Changing GPU renderer requires a system reboot to take effect. Do you want to reboot now?</string>
+    <string name="gpu_renderer_reboot_confirm">Reboot Now</string>
+    <string name="gpu_renderer_reboot_later">Apply Later</string>
+    <string name="gpu_renderer_warning">⚠️ Changing renderer requires reboot for permanent change</string>
+    <string name="gpu_renderer_opengl_desc">Default Android renderer</string>
+    <string name="gpu_renderer_vulkan_desc">Modern high-performance API</string>
+    <string name="gpu_renderer_angle_desc">OpenGL ES over Vulkan/D3D</string>
+    <string name="gpu_renderer_skiagl_desc">Skia with OpenGL backend</string>
+    <string name="gpu_renderer_skiavulkan_desc">Skia with Vulkan backend</string>
+    <string name="thermal_select_preset">Select Thermal</string>
+
 </resources>
