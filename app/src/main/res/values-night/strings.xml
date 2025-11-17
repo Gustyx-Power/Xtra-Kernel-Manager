@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="gpu_information">GPU Information</string>
+    <string name="current_frequency">Current Frequency</string>
+    <string name="unknown_gpu">Unknown GPU</string>
+    <string name="frequencies">Frequencies</string>
+    <string name="max_freq">Max Freq</string>
+    <string name="min_freq">Min Freq</string>
+    <string name="memory_storage"><![CDATA[Memory & Storage]]></string>
+    <string name="storage">Storage</string>
+    <string name="ram_usage">RAM Usage</string>
+    <string name="storage_usage">Storage Usage</string>
+    <string name="system_information">System Information</string>
+    <string name="load">%1$s% Load</string>
+    <string name="clockspeed_per_core">Clockspeed Core</string>
+    <string name="battery_information">Battery Information</string>
+    <string name="cpu_information">CPU Information</string>
+    <string name="info_build_type_short">%1$s build</string>
+
+</resources>
