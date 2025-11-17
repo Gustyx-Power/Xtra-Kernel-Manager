@@ -9,6 +9,7 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.preferences.TomlConfigManager
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import id.xms.xtrakernelmanager.domain.usecase.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,32 +64,30 @@ class TuningViewModel(
     val clusterStates: StateFlow<Map<Int, ClusterUIState>> get() = _clusterStates.asStateFlow()
 
     init {
-        checkRootAndLoadData()
-        applySavedCoreStates()
-        startAutoRefresh()
-    }
-
-    private fun checkRootAndLoadData() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _isRootAvailable.value = RootManager.isRootAvailable()
-
-            if (_isRootAvailable.value) {
-                loadSystemInfo()
-                refreshCurrentValues()
-            }
-
-            _isLoading.value = false
+            checkRootAndLoadData()
+            applySavedCoreStates()
+            startAutoRefresh()
         }
     }
 
-    private fun startAutoRefresh() {
-        viewModelScope.launch {
-            while(true) {
-                delay(2000)
-                if (_isRootAvailable.value && !_isLoading.value) {
-                    refreshCurrentValues()
-                }
+    private suspend fun checkRootAndLoadData() {
+        _isLoading.value = true
+        _isRootAvailable.value = RootManager.isRootAvailable()
+
+        if (_isRootAvailable.value) {
+            loadSystemInfo()
+            refreshCurrentValues()
+        }
+
+        _isLoading.value = false
+    }
+
+    private suspend fun startAutoRefresh() {
+        while (true) {
+            delay(2000)
+            if (_isRootAvailable.value && !_isLoading.value) {
+                refreshCurrentValues()
             }
         }
     }
@@ -187,20 +186,19 @@ class TuningViewModel(
         }
     }
 
-    private fun applySavedCoreStates() {
-        viewModelScope.launch {
-            for (core in 0..7) {
-                val enabled = preferencesManager.isCpuCoreEnabled(core).first()
-                Log.d("TuningViewModel", "Applying core $core state: enabled=$enabled")
-                cpuUseCase.setCoreOnline(core, enabled)
-            }
-            refreshCurrentValues()
+    private suspend fun applySavedCoreStates() {
+        for (core in 0..7) {
+            val enabled = preferencesManager.isCpuCoreEnabled(core).first()
+            Log.d("TuningViewModel", "Applying core $core state: enabled=$enabled")
+            cpuUseCase.setCoreOnline(core, enabled)
         }
+        refreshCurrentValues()
     }
 
+    // Fungsi ini hanya dipanggil oleh ApplyConfigWorker atau tombol manual "Apply All"
     suspend fun applyAllConfigurations() {
         // Apply CPU cores
-        for(core in 0..7) {
+        for (core in 0..7) {
             val enabled = preferencesManager.isCpuCoreEnabled(core).first()
             cpuUseCase.setCoreOnline(core, enabled)
         }
@@ -223,17 +221,15 @@ class TuningViewModel(
         if (tcpCongestion.isNotBlank()) {
             RootManager.executeCommand("echo $tcpCongestion > /proc/sys/net/ipv4/tcp_congestion_control")
         }
+
+        // Apply RAM config (swappiness, ZRAM, swap, dirty, min_free)
+        val ramConfig = preferencesManager.getRamConfig().first()
+        ramUseCase.setSwappiness(ramConfig.swappiness)
+        ramUseCase.setZRAMSize(ramConfig.zramSize.toLong() * 1024L * 1024L)
+        ramUseCase.setDirtyRatio(ramConfig.dirtyRatio)
+        ramUseCase.setMinFreeMem(ramConfig.minFreeMem)
+        ramUseCase.setSwapFileSizeMb(ramConfig.swapSize)
     }
-
-    init {
-        checkRootAndLoadData()
-        viewModelScope.launch {
-            applyAllConfigurations()
-        }
-        startAutoRefresh()
-    }
-
-
 
     fun setGPUFrequency(minFreq: Int, maxFreq: Int) {
         viewModelScope.launch {
@@ -264,40 +260,63 @@ class TuningViewModel(
     }
 
     fun setThermalPreset(preset: String, setOnBoot: Boolean) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             thermalUseCase.setThermalMode(preset, setOnBoot)
             preferencesManager.setThermalConfig(preset, setOnBoot)
         }
     }
 
     fun setIOScheduler(scheduler: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             RootManager.executeCommand("echo $scheduler > /sys/block/sda/queue/scheduler")
             preferencesManager.setIOScheduler(scheduler)
         }
     }
 
     fun setTCPCongestion(congestion: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             RootManager.executeCommand("echo $congestion > /proc/sys/net/ipv4/tcp_congestion_control")
             preferencesManager.setTCPCongestion(congestion)
         }
     }
 
     fun setRAMParameters(config: RAMConfig) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             ramUseCase.setSwappiness(config.swappiness)
-            ramUseCase.setZRAMSize(config.zramSize.toLong()*1024*1024)
+            ramUseCase.setZRAMSize(config.zramSize.toLong() * 1024L * 1024L)
             ramUseCase.setDirtyRatio(config.dirtyRatio)
             ramUseCase.setMinFreeMem(config.minFreeMem)
+            ramUseCase.setSwapFileSizeMb(config.swapSize)
+            preferencesManager.setRamConfig(config)
+        }
+    }
+    
+
+    fun setZRAMWithLiveLog(
+        sizeBytes: Long,
+        onLog: (String) -> Unit,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = ramUseCase.setZRAMSize(sizeBytes, onLog)
+            onComplete(result.isSuccess)
+        }
+    }
+    
+    fun setSwapWithLiveLog(
+        sizeMb: Int,
+        onLog: (String) -> Unit,
+        onComplete: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = ramUseCase.setSwapFileSizeMb(sizeMb, onLog)
+            onComplete(result.isSuccess)
         }
     }
 
-
-
     fun setPerfMode(mode: String) {
         viewModelScope.launch {
-            val governor = when(mode) {
+            val governor = when (mode) {
                 "battery" -> "powersave"
                 "balance" -> "schedutil"
                 "performance" -> "performance"
@@ -321,7 +340,7 @@ class TuningViewModel(
     fun importConfig() {
         viewModelScope.launch {
             val config = tomlManager.importConfig()
-            if(config!=null){
+            if (config != null) {
                 applyConfig(config)
             }
         }
@@ -337,9 +356,9 @@ class TuningViewModel(
         val cpuConfigs = _cpuClusters.value.map { cluster ->
             CPUClusterConfig(
                 cluster = cluster.clusterNumber,
-                minFreq=cluster.currentMinFreq,
-                maxFreq=cluster.currentMaxFreq,
-                governor=cluster.governor,
+                minFreq = cluster.currentMinFreq,
+                maxFreq = cluster.currentMaxFreq,
+                governor = cluster.governor,
                 disabledCores = emptyList()
             )
         }
@@ -364,6 +383,7 @@ class TuningViewModel(
                 cpuUseCase.setCoreOnline(core, false)
             }
         }
+
         config.gpu?.let { gpu ->
             if (!_isMediatek.value) {
                 gpuUseCase.setGPUFrequency(gpu.minFreq, gpu.maxFreq)
@@ -371,10 +391,15 @@ class TuningViewModel(
                 gpuUseCase.setGPURenderer(gpu.renderer)
             }
         }
+
         thermalUseCase.setThermalMode(config.thermal.preset, config.thermal.setOnBoot)
+        preferencesManager.setThermalConfig(config.thermal.preset, config.thermal.setOnBoot)
+
         setRAMParameters(config.ram)
+
         config.additional.ioScheduler.takeIf { it.isNotBlank() }?.let { setIOScheduler(it) }
         config.additional.tcpCongestion.takeIf { it.isNotBlank() }?.let { setTCPCongestion(it) }
+
         delay(1000)
         refreshCurrentValues()
     }

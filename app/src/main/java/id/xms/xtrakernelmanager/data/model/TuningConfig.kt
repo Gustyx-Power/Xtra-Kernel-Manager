@@ -36,11 +36,11 @@ data class ThermalConfig(
 
 @Serializable
 data class RAMConfig(
-    val swappiness: Int = 60,
-    val zramSize: Int = 0,
-    val swapSize: Int = 0,
-    val dirtyRatio: Int = 20,
-    val minFreeMem: Int = 0
+    val swappiness: Int = 60,    // /proc/sys/vm/swappiness
+    val zramSize: Int = 0,       // MB
+    val swapSize: Int = 0,       // MB (0 = disable, max 16384)
+    val dirtyRatio: Int = 20,    // /proc/sys/vm/dirty_ratio
+    val minFreeMem: Int = 0      // /proc/sys/vm/min_free_kbytes
 )
 
 @Serializable
