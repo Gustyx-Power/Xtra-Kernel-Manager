@@ -101,9 +101,9 @@ fun CPUControlSection(viewModel: TuningViewModel) {
                 clusters.forEachIndexed { index, cluster ->
 
                     val clusterName = when (index) {
-                        0 -> "Little Cluster (CPU ${cluster.cores.joinToString(", ")})"
-                        1 -> "Mid Cluster (CPU ${cluster.cores.joinToString(", ")})"
-                        2 -> "Big Cluster (CPU ${cluster.cores.joinToString(", ")})"
+                        0 -> "Cluster 1 (CPU ${cluster.cores.joinToString(", ")})"
+                        1 -> "Cluster 2 (CPU ${cluster.cores.joinToString(", ")})"
+                        2 -> "Cluster 3 (CPU ${cluster.cores.joinToString(", ")})"
                         else -> "Cluster $index (CPU ${cluster.cores.joinToString(", ")})"
                     }
 
