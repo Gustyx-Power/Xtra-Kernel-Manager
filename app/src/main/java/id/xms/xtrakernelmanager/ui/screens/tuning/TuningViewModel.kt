@@ -60,11 +60,22 @@ class TuningViewModel(
     private val _availableTCPCongestion = MutableStateFlow<List<String>>(emptyList())
     val availableTCPCongestion: StateFlow<List<String>> get() = _availableTCPCongestion.asStateFlow()
 
+    // Current active I/O and TCP values
+    private val _currentIOScheduler = MutableStateFlow<String>("")
+    val currentIOScheduler: StateFlow<String> get() = _currentIOScheduler.asStateFlow()
+
+    private val _currentTCPCongestion = MutableStateFlow<String>("")
+    val currentTCPCongestion: StateFlow<String> get() = _currentTCPCongestion.asStateFlow()
+
     private val _clusterStates = MutableStateFlow<Map<Int, ClusterUIState>>(emptyMap())
     val clusterStates: StateFlow<Map<Int, ClusterUIState>> get() = _clusterStates.asStateFlow()
 
     init {
         viewModelScope.launch {
+            // UPDATED: Load preferences sebagai initial value
+            _currentIOScheduler.value = preferencesManager.getIOScheduler().first()
+            _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
+            
             checkRootAndLoadData()
             applySavedCoreStates()
             startAutoRefresh()
@@ -109,6 +120,17 @@ class TuningViewModel(
             )
         }
         _clusterStates.value = states
+        
+        // Refresh current I/O and TCP values
+        val currentIO = getCurrentIOScheduler()
+        if (currentIO.isNotEmpty()) {
+            _currentIOScheduler.value = currentIO
+        }
+        
+        val currentTCP = getCurrentTCPCongestion()
+        if (currentTCP.isNotEmpty()) {
+            _currentTCPCongestion.value = currentTCP
+        }
     }
 
     private suspend fun loadSystemInfo() {
@@ -121,6 +143,17 @@ class TuningViewModel(
 
         _availableIOSchedulers.value = getAvailableIOSchedulers()
         _availableTCPCongestion.value = getAvailableTCPCongestion()
+        
+        // Load current active values
+        val currentIO = getCurrentIOScheduler()
+        if (currentIO.isNotEmpty()) {
+            _currentIOScheduler.value = currentIO
+        }
+        
+        val currentTCP = getCurrentTCPCongestion()
+        if (currentTCP.isNotEmpty()) {
+            _currentTCPCongestion.value = currentTCP
+        }
 
         refreshCurrentValues()
     }
@@ -141,6 +174,41 @@ class TuningViewModel(
     private suspend fun getAvailableTCPCongestion(): List<String> {
         val congestion = RootManager.executeCommand("cat /proc/sys/net/ipv4/tcp_available_congestion_control 2>/dev/null").getOrNull() ?: return emptyList()
         return congestion.split("\\s+".toRegex()).filter { it.isNotBlank() }
+    }
+
+    // Get current active I/O scheduler
+    private suspend fun getCurrentIOScheduler(): String {
+        val output = RootManager.executeCommand("cat /sys/block/sda/queue/scheduler 2>/dev/null").getOrNull()
+        Log.d("TuningViewModel", "IO Scheduler raw output: $output")
+        
+        if (output.isNullOrEmpty()) {
+            val saved = preferencesManager.getIOScheduler().first()
+            Log.d("TuningViewModel", "IO Scheduler from prefs (fallback): $saved")
+            return saved
+        }
+        
+        // Format: noop deadline [cfq] - extract the one in brackets
+        val match = Regex("\\[(.*?)\\]").find(output)
+        val result = match?.groupValues?.get(1) ?: ""
+        Log.d("TuningViewModel", "IO Scheduler parsed: $result")
+        
+        return result.ifEmpty {
+            preferencesManager.getIOScheduler().first()
+        }
+    }
+
+    // Get current active TCP congestion
+    private suspend fun getCurrentTCPCongestion(): String {
+        val output = RootManager.executeCommand("cat /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null").getOrNull()?.trim()
+        Log.d("TuningViewModel", "TCP Congestion raw output: $output")
+        
+        if (output.isNullOrEmpty()) {
+            val saved = preferencesManager.getTCPCongestion().first()
+            Log.d("TuningViewModel", "TCP Congestion from prefs (fallback): $saved")
+            return saved
+        }
+        
+        return output
     }
 
     fun updateClusterUIState(cluster: Int, minFreq: Float, maxFreq: Float) {
@@ -195,7 +263,6 @@ class TuningViewModel(
         refreshCurrentValues()
     }
 
-    // Fungsi ini hanya dipanggil oleh ApplyConfigWorker atau tombol manual "Apply All"
     suspend fun applyAllConfigurations() {
         // Apply CPU cores
         for (core in 0..7) {
@@ -222,7 +289,7 @@ class TuningViewModel(
             RootManager.executeCommand("echo $tcpCongestion > /proc/sys/net/ipv4/tcp_congestion_control")
         }
 
-        // Apply RAM config (swappiness, ZRAM, swap, dirty, min_free)
+        // Apply RAM config
         val ramConfig = preferencesManager.getRamConfig().first()
         ramUseCase.setSwappiness(ramConfig.swappiness)
         ramUseCase.setZRAMSize(ramConfig.zramSize.toLong() * 1024L * 1024L)
@@ -268,15 +335,49 @@ class TuningViewModel(
 
     fun setIOScheduler(scheduler: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            RootManager.executeCommand("echo $scheduler > /sys/block/sda/queue/scheduler")
-            preferencesManager.setIOScheduler(scheduler)
+            Log.d("TuningViewModel", "Setting IO Scheduler to: $scheduler")
+            
+            // UPDATED: Force update UI dulu
+            _currentIOScheduler.value = scheduler
+            
+            val result = RootManager.executeCommand("echo $scheduler > /sys/block/sda/queue/scheduler")
+            Log.d("TuningViewModel", "IO Scheduler command result: ${result.isSuccess}")
+            
+            if (result.isSuccess) {
+                preferencesManager.setIOScheduler(scheduler)
+                // Delay kecil untuk ensure sistem update
+                delay(200)
+                // Verify dengan baca ulang
+                val verified = getCurrentIOScheduler()
+                Log.d("TuningViewModel", "Verified IO Scheduler: $verified")
+                if (verified.isNotEmpty()) {
+                    _currentIOScheduler.value = verified
+                }
+            }
         }
     }
 
     fun setTCPCongestion(congestion: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            RootManager.executeCommand("echo $congestion > /proc/sys/net/ipv4/tcp_congestion_control")
-            preferencesManager.setTCPCongestion(congestion)
+            Log.d("TuningViewModel", "Setting TCP Congestion to: $congestion")
+            
+            // UPDATED: Force update UI dulu
+            _currentTCPCongestion.value = congestion
+            
+            val result = RootManager.executeCommand("echo $congestion > /proc/sys/net/ipv4/tcp_congestion_control")
+            Log.d("TuningViewModel", "TCP Congestion command result: ${result.isSuccess}")
+            
+            if (result.isSuccess) {
+                preferencesManager.setTCPCongestion(congestion)
+                // Delay kecil untuk ensure sistem update
+                delay(200)
+                // Verify dengan baca ulang
+                val verified = getCurrentTCPCongestion()
+                Log.d("TuningViewModel", "Verified TCP Congestion: $verified")
+                if (verified.isNotEmpty()) {
+                    _currentTCPCongestion.value = verified
+                }
+            }
         }
     }
 

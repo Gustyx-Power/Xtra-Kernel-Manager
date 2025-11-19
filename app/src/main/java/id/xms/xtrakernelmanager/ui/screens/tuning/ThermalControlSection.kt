@@ -1,17 +1,23 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Thermostat
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,182 +27,423 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThermalControlSection(viewModel: TuningViewModel) {
+    val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
+    val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
+    
+    var expanded by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+
+    val presetMap = mapOf(
+        "Not Set" to R.string.thermal_not_set,
+        "Dynamic" to R.string.thermal_dynamic,
+        "Incalls" to R.string.thermal_incalls,
+        "Thermal 20" to R.string.thermal_20
+    )
+
+    // Deskripsi untuk setiap preset
+    fun getPresetDescription(preset: String): String {
+        return when (preset) {
+            "Not Set" -> "No thermal profile applied"
+            "Dynamic" -> "Adaptive thermal based on usage"
+            "Incalls" -> "Optimized for calls and audio"
+            "Thermal 20" -> "Maximum cooling threshold"
+            else -> "Unknown preset"
+        }
+    }
+
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 4.dp)
+            .padding(vertical = 8.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(20.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Thermostat,
-                    contentDescription = null,
-                    modifier = Modifier.size(27.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = stringResource(R.string.thermal_control),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            // Tambahkan deskripsi/help tip
-            Text(
-                text = "Set the thermal mode to optimize device temperature and performance. Choose a preset according to your usage needs!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f),
-                modifier = Modifier.padding(top = 1.dp, bottom = 6.dp)
-            )
-
-            val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
-            val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
-            var showDialog by remember { mutableStateOf(false) }
-
-            val presetMap = mapOf(
-                "Not Set" to R.string.thermal_not_set,
-                "Dynamic" to R.string.thermal_dynamic,
-                "Incalls" to R.string.thermal_incalls,
-                "Thermal 20" to R.string.thermal_20
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showDialog = true }
+            // ===== HEADER (TANPA BADGE) =====
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f),
-                            shape = RoundedCornerShape(13.dp)
-                        )
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Column {
-                        Text(
-                            text = "Thermal Preset",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
-                        )
-                        Text(
-                            text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.error,
+                                        MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Thermostat,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onError,
+                            modifier = Modifier.size(28.dp)
                         )
                     }
+
+                    Column {
+                        Text(
+                            text = stringResource(R.string.thermal_control),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Temperature management settings",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Dropdown button dengan area click lebih besar
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)  // Lebih besar dari default
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f))
+                        .clickable { expanded = !expanded },
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
-                        imageVector = Icons.Default.Done,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        modifier = Modifier.size(32.dp),  // Icon lebih besar
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
 
-            if (showDialog) {
-                AlertDialog(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    shape = RoundedCornerShape(17.dp),
-                    onDismissRequest = { showDialog = false },
-                    confirmButton = {},
-                    title = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(bottom = 3.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Thermostat,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(19.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "Pilih Thermal Preset",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    text = {
+            // ===== COLLAPSIBLE CONTENT =====
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column(
+                    modifier = Modifier.padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Thermal Preset Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(7.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            presetMap.forEach { (preset, stringRes) ->
+                            // Header dengan badge di bawah
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Tune,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.thermal_preset),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                                
+                                // Badge current preset di bawah title
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.errorContainer
+                                ) {
+                                    Text(
+                                        text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                            // Card untuk ganti preset
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showDialog = true },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .background(
-                                            if (preset == prefsThermal)
-                                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.18f)
-                                            else
-                                                Color.Transparent,
-                                            shape = RoundedCornerShape(11.dp)
-                                        )
-                                        .clickable {
-                                            viewModel.setThermalPreset(preset, prefsOnBoot)
-                                            showDialog = false
-                                        }
-                                        .padding(vertical = 8.dp, horizontal = 14.dp),
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = stringResource(stringRes),
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            fontWeight = if (preset == prefsThermal)
-                                                FontWeight.Bold else FontWeight.Normal,
-                                            color = if (preset == prefsThermal)
-                                                MaterialTheme.colorScheme.primary
-                                            else
-                                                MaterialTheme.colorScheme.onSurface
-                                        )
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.error),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = when (prefsThermal) {
+                                                    "Dynamic" -> Icons.Default.AutoMode
+                                                    "Incalls" -> Icons.Default.Call
+                                                    "Thermal 20" -> Icons.Default.LocalFireDepartment
+                                                    else -> Icons.Default.Block
+                                                },
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onError,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Column {
+                                            Text(
+                                                text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = "Tap to change preset",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(24.dp)
                                     )
-                                    if (preset == prefsThermal)
+                                }
+                            }
+
+                            // Set on Boot
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         Icon(
-                                            imageVector = Icons.Default.Done,
+                                            imageVector = Icons.Default.PowerSettingsNew,
                                             contentDescription = null,
                                             tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.padding(start = 8.dp)
+                                            modifier = Modifier.size(20.dp)
                                         )
+                                        Column {
+                                            Text(
+                                                text = stringResource(R.string.set_on_boot),
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = "Apply on device startup",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                    Switch(
+                                        checked = prefsOnBoot,
+                                        onCheckedChange = {
+                                            viewModel.setThermalPreset(prefsThermal, it)
+                                        }
+                                    )
                                 }
                             }
                         }
                     }
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Set on Boot",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Switch(
-                    checked = prefsOnBoot,
-                    onCheckedChange = {
-                        viewModel.setThermalPreset(prefsThermal, it)
-                    }
-                )
+                }
             }
         }
+    }
+
+    // ===== MODERN THERMAL PRESET DIALOG =====
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.error,
+                                    MaterialTheme.colorScheme.errorContainer
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Thermostat,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onError,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            },
+            title = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = stringResource(R.string.thermal_select_preset),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Choose thermal management mode",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    presetMap.forEach { (preset, stringRes) ->
+                        val isSelected = preset == prefsThermal
+                        
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.setThermalPreset(preset, prefsOnBoot)
+                                    showDialog = false
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected)
+                                    MaterialTheme.colorScheme.errorContainer
+                                else
+                                    MaterialTheme.colorScheme.surface
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = if (isSelected) 3.dp else 1.dp
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape)
+                                            .background(
+                                                if (isSelected)
+                                                    MaterialTheme.colorScheme.error
+                                                else
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = when (preset) {
+                                                "Dynamic" -> Icons.Default.AutoMode
+                                                "Incalls" -> Icons.Default.Call
+                                                "Thermal 20" -> Icons.Default.LocalFireDepartment
+                                                else -> Icons.Default.Block
+                                            },
+                                            contentDescription = null,
+                                            tint = if (isSelected)
+                                                MaterialTheme.colorScheme.onError
+                                            else
+                                                MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                    }
+                                    
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(stringRes),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected)
+                                                MaterialTheme.colorScheme.onErrorContainer
+                                            else
+                                                MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = getPresetDescription(preset),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }

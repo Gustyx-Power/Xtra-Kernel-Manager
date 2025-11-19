@@ -1,12 +1,23 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,14 +31,24 @@ fun GPUControlSection(viewModel: TuningViewModel) {
     val isMediatek by viewModel.isMediatek.collectAsState()
     val gpuInfo by viewModel.gpuInfo.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-
+    
+    var expanded by remember { mutableStateOf(false) }
     var showRebootDialog by remember { mutableStateOf(false) }
     var showVerificationDialog by remember { mutableStateOf(false) }
     var showRomInfoDialog by remember { mutableStateOf(false) }
+    var showRendererDialog by remember { mutableStateOf(false) }
     var pendingRenderer by remember { mutableStateOf("") }
     var verificationSuccess by remember { mutableStateOf(false) }
     var verificationMessage by remember { mutableStateOf("") }
     var isProcessing by remember { mutableStateOf(false) }
+
+    // FIXED: selectedRenderer dipindah ke scope luar
+    var selectedRenderer by remember { mutableStateOf(gpuInfo.rendererType) }
+
+    // Update selectedRenderer saat gpuInfo berubah
+    LaunchedEffect(gpuInfo.rendererType) {
+        selectedRenderer = gpuInfo.rendererType
+    }
 
     if (isMediatek) {
         Card(
@@ -50,14 +71,14 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                         tint = MaterialTheme.colorScheme.onErrorContainer
                     )
                     Text(
-                        text = "MediaTek Device Detected",
+                        text = stringResource(R.string.mediatek_device_detected),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
                 Text(
-                    text = "GPU control is not available on MediaTek devices due to hardware limitations.",
+                    text = stringResource(R.string.mediatek_gpu_unavailable),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
@@ -80,7 +101,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
             },
             title = {
                 Text(
-                    text = "GPU Renderer Compatibility",
+                    text = stringResource(R.string.gpu_renderer_compatibility_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -88,7 +109,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "GPU renderer switching depends on ROM support:",
+                        text = stringResource(R.string.gpu_renderer_compatibility_intro),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -103,13 +124,13 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "✓ Fully Supported:",
+                                text = stringResource(R.string.gpu_fully_supported),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "• Custom ROMs (Pixel Experience, LineageOS)\n• AOSP-based ROMs\n• ROMs with unlocked build.prop",
+                                text = stringResource(R.string.gpu_supported_roms),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -126,13 +147,13 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
-                                text = "✗ Limited/Not Supported:",
+                                text = stringResource(R.string.gpu_limited_support),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.error
                             )
                             Text(
-                                text = "• Stock ROMs (MIUI, ColorOS, OneUI)\n• SELinux enforcing + locked props\n• Hardcoded renderer in vendor HAL",
+                                text = stringResource(R.string.gpu_unsupported_roms),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
@@ -142,18 +163,18 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 
                     Text(
-                        text = "Why it might not work:",
+                        text = stringResource(R.string.gpu_why_not_work),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
 
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         listOf(
-                            "ROM hardcodes renderer in vendor HAL",
-                            "SELinux blocks property changes",
-                            "System partition truly read-only (A/B)",
-                            "Vendor props override system props",
-                            "Graphics driver incompatibility"
+                            stringResource(R.string.gpu_reason_1),
+                            stringResource(R.string.gpu_reason_2),
+                            stringResource(R.string.gpu_reason_3),
+                            stringResource(R.string.gpu_reason_4),
+                            stringResource(R.string.gpu_reason_5)
                         ).forEach { reason ->
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -175,7 +196,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                         )
                     ) {
                         Text(
-                            text = "💡 Tip: Verify after reboot with:\nadb shell dumpsys gfxinfo | grep -i pipeline",
+                            text = stringResource(R.string.gpu_verify_tip),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(12.dp),
                             color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -184,10 +205,8 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = { showRomInfoDialog = false }
-                ) {
-                    Text("Got It")
+                Button(onClick = { showRomInfoDialog = false }) {
+                    Text(stringResource(R.string.gpu_got_it))
                 }
             }
         )
@@ -223,11 +242,11 @@ fun GPUControlSection(viewModel: TuningViewModel) {
             title = {
                 Text(
                     text = if (isProcessing) {
-                        "Applying Changes..."
+                        stringResource(R.string.gpu_applying_changes)
                     } else if (verificationSuccess) {
-                        "Changes Applied"
+                        stringResource(R.string.gpu_changes_applied)
                     } else {
-                        "Warning"
+                        stringResource(R.string.gpu_warning)
                     },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
@@ -242,11 +261,11 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "Writing to system files...",
+                                text = stringResource(R.string.gpu_writing_system_files),
                                 style = MaterialTheme.typography.bodyMedium
                             )
                             Text(
-                                text = "Renderer: $pendingRenderer",
+                                text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -272,14 +291,14 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Text(
-                                        text = "Runtime property updated",
+                                        text = stringResource(R.string.gpu_runtime_property_updated),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
                                 Text(
-                                    text = "Renderer: $pendingRenderer",
+                                    text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
@@ -296,49 +315,17 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 Text(
-                                    text = "⚠️ REBOOT REQUIRED",
+                                    text = stringResource(R.string.gpu_reboot_required),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                                 Text(
-                                    text = "Changes will take effect after system reboot",
+                                    text = stringResource(R.string.gpu_reboot_required_desc),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
                             }
-                        }
-
-                        Spacer(modifier = Modifier.height(4.dp))
-
-                        Text(
-                            text = "Verify after reboot:",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant
-                            )
-                        ) {
-                            Text(
-                                text = "adb shell dumpsys gfxinfo | grep -i pipeline",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
-
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-                            )
-                        ) {
-                            Text(
-                                text = "💡 If renderer doesn't change: Your ROM may have it hardcoded at vendor level.",
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(12.dp)
-                            )
                         }
                     } else {
                         Card(
@@ -351,7 +338,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
-                                    text = "Failed to apply changes",
+                                    text = stringResource(R.string.gpu_failed_apply),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onErrorContainer
@@ -388,23 +375,19 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Reboot Now")
+                            Text(stringResource(R.string.gpu_reboot_now))
                         }
                     } else {
-                        Button(
-                            onClick = { showVerificationDialog = false }
-                        ) {
-                            Text("Close")
+                        Button(onClick = { showVerificationDialog = false }) {
+                            Text(stringResource(R.string.gpu_close))
                         }
                     }
                 }
             },
             dismissButton = {
                 if (!isProcessing && verificationSuccess) {
-                    TextButton(
-                        onClick = { showVerificationDialog = false }
-                    ) {
-                        Text("Reboot Later")
+                    TextButton(onClick = { showVerificationDialog = false }) {
+                        Text(stringResource(R.string.gpu_reboot_later))
                     }
                 }
             }
@@ -425,7 +408,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
             },
             title = {
                 Text(
-                    text = "Change GPU Renderer",
+                    text = stringResource(R.string.gpu_change_renderer_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -433,7 +416,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = "You are about to change the GPU renderer:",
+                        text = stringResource(R.string.gpu_change_renderer_intro),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
@@ -443,7 +426,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Current:",
+                            text = stringResource(R.string.gpu_current),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -475,7 +458,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "New:",
+                            text = stringResource(R.string.gpu_new),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -506,12 +489,12 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = "⚠️ Important:",
+                                text = stringResource(R.string.gpu_important),
                                 style = MaterialTheme.typography.bodySmall,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "• System reboot required\n• May not work on all ROMs\n• Stock ROMs often lock this setting",
+                                text = stringResource(R.string.gpu_change_warnings),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -530,7 +513,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Check ROM Compatibility")
+                        Text(stringResource(R.string.gpu_check_rom_compatibility))
                     }
                 }
             },
@@ -562,269 +545,592 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
-                    Text("Apply Changes")
+                    Text(stringResource(R.string.gpu_apply_changes))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRebootDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.gpu_cancel))
                 }
             }
         )
     }
 
-    GlassmorphicCard {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    // ===== MAIN CARD =====
+    GlassmorphicCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            // ===== HEADER =====
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.gpu_control),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-
-                IconButton(
-                    onClick = { showRomInfoDialog = true },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = "ROM Compatibility Info",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            // GPU Frequency Controls
-            var minFreqSlider by remember(gpuInfo.minFreq) {
-                mutableFloatStateOf(gpuInfo.minFreq.toFloat())
-            }
-            var maxFreqSlider by remember(gpuInfo.maxFreq) {
-                mutableFloatStateOf(gpuInfo.maxFreq.toFloat())
-            }
-
-            if (gpuInfo.availableFreqs.isNotEmpty()) {
-                Text(
-                    text = "${stringResource(R.string.gpu_min_freq)}: ${minFreqSlider.toInt()} MHz",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Slider(
-                    value = minFreqSlider,
-                    onValueChange = { minFreqSlider = it },
-                    onValueChangeFinished = {
-                        viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
-                    },
-                    valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-
-                Text(
-                    text = "${stringResource(R.string.gpu_max_freq)}: ${maxFreqSlider.toInt()} MHz",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Slider(
-                    value = maxFreqSlider,
-                    onValueChange = { maxFreqSlider = it },
-                    onValueChangeFinished = {
-                        viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
-                    },
-                    valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-            }
-
-            // GPU Power Level
-            var powerLevel by remember(gpuInfo.powerLevel) {
-                mutableFloatStateOf(gpuInfo.powerLevel.toFloat())
-            }
-
-            Text(
-                text = "${stringResource(R.string.gpu_power_level)}: ${powerLevel.toInt()}",
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-            Slider(
-                value = powerLevel,
-                onValueChange = { powerLevel = it },
-                onValueChangeFinished = {
-                    viewModel.setGPUPowerLevel(powerLevel.toInt())
-                },
-                valueRange = 0f..7f,
-                steps = 6,
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary
-                )
-            )
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            )
-
-            // GPU Renderer Selection
-            var selectedRenderer by remember { mutableStateOf(gpuInfo.rendererType) }
-            var expanded by remember { mutableStateOf(false) }
-
-            LaunchedEffect(gpuInfo.rendererType) {
-                selectedRenderer = gpuInfo.rendererType
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "GPU Renderer",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Text(
-                        text = selectedRenderer,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
-                }
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
-                )
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.tertiary,
+                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Memory,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiary,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.gpu_control),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.tertiaryContainer
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Info,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(20.dp)
+                                        .clickable { showRomInfoDialog = true }
+                                        .padding(2.dp),
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                            }
+                        }
+                        Text(
+                            text = stringResource(R.string.gpu_control_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Dropdown button LEBIH BESAR
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f))
+                        .clickable { expanded = !expanded },
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                    Text(
-                        text = "ROM-dependent feature. Tap ℹ️ for compatibility info.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
+            // ===== COLLAPSIBLE CONTENT =====
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
             ) {
-                OutlinedTextField(
-                    value = selectedRenderer,
-                    onValueChange = {},
-                    readOnly = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                Column(
+                    modifier = Modifier.padding(top = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    listOf(
-                        "OpenGL ES" to "Default Android renderer - Best compatibility",
-                        "Vulkan" to "Modern high-performance API - Better for games",
-                        "ANGLE" to "OpenGL ES over Vulkan - Compatibility layer",
-                        "SkiaGL" to "Skia with OpenGL backend - UI rendering",
-                        "SkiaVulkan" to "Skia with Vulkan backend - Modern UI"
-                    ).forEach { (renderer, description) ->
-                        DropdownMenuItem(
-                            text = {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    var minFreqSlider by remember(gpuInfo.minFreq) {
+                        mutableFloatStateOf(gpuInfo.minFreq.toFloat())
+                    }
+                    var maxFreqSlider by remember(gpuInfo.maxFreq) {
+                        mutableFloatStateOf(gpuInfo.maxFreq.toFloat())
+                    }
+
+                    if (gpuInfo.availableFreqs.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Speed,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.gpu_frequency),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                                // Min Frequency
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Row(
+                                        modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
+                                        verticalAlignment = Alignment.Bottom
                                     ) {
                                         Text(
-                                            text = renderer,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = if (renderer == selectedRenderer) FontWeight.Bold else FontWeight.Normal
+                                            text = stringResource(R.string.gpu_min_freq),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.SemiBold
                                         )
-                                        if (renderer == selectedRenderer) {
+                                        Text(
+                                            text = "${minFreqSlider.toInt()} MHz",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    }
+
+                                    LinearProgressIndicator(
+                                        progress = {
+                                            val min = gpuInfo.availableFreqs.minOrNull()?.toFloat() ?: 0f
+                                            val max = gpuInfo.availableFreqs.maxOrNull()?.toFloat() ?: 1f
+                                            if (max > min) (minFreqSlider - min) / (max - min) else 0f
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    )
+
+                                    Slider(
+                                        value = minFreqSlider,
+                                        onValueChange = { minFreqSlider = it },
+                                        onValueChangeFinished = {
+                                            viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
+                                        },
+                                        valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
+                                        colors = SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.tertiary,
+                                            activeTrackColor = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    )
+                                }
+
+                                // Max Frequency
+                                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.Bottom
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.gpu_max_freq),
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(
+                                            text = "${maxFreqSlider.toInt()} MHz",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    }
+
+                                    LinearProgressIndicator(
+                                        progress = {
+                                            val min = gpuInfo.availableFreqs.minOrNull()?.toFloat() ?: 0f
+                                            val max = gpuInfo.availableFreqs.maxOrNull()?.toFloat() ?: 1f
+                                            if (max > min) (maxFreqSlider - min) / (max - min) else 0f
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    )
+
+                                    Slider(
+                                        value = maxFreqSlider,
+                                        onValueChange = { maxFreqSlider = it },
+                                        onValueChangeFinished = {
+                                            viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
+                                        },
+                                        valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
+                                        colors = SliderDefaults.colors(
+                                            thumbColor = MaterialTheme.colorScheme.secondary,
+                                            activeTrackColor = MaterialTheme.colorScheme.secondary
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // GPU Power Level Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.BatteryChargingFull,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = stringResource(R.string.gpu_power_level_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                            var powerLevel by remember(gpuInfo.powerLevel) {
+                                mutableFloatStateOf(gpuInfo.powerLevel.toFloat())
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.Bottom
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.gpu_power_level),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = "${powerLevel.toInt()}",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+
+                            Slider(
+                                value = powerLevel,
+                                onValueChange = { powerLevel = it },
+                                onValueChangeFinished = {
+                                    viewModel.setGPUPowerLevel(powerLevel.toInt())
+                                },
+                                valueRange = 0f..7f,
+                                steps = 6,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.tertiary,
+                                    activeTrackColor = MaterialTheme.colorScheme.tertiary
+                                )
+                            )
+                        }
+                    }
+
+                    // GPU Renderer Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Header dengan badge di bawah
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.gpu_renderer),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.tertiary
+                                    )
+                                }
+                                
+                                // Badge current renderer di bawah title
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.tertiaryContainer
+                                ) {
+                                    Text(
+                                        text = selectedRenderer,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Info,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.gpu_renderer_rom_info),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                }
+                            }
+
+                            // Card untuk ganti renderer
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showRendererDialog = true },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.tertiary),
+                                            contentAlignment = Alignment.Center
+                                        ) {
                                             Icon(
-                                                imageVector = Icons.Default.Check,
+                                                imageVector = Icons.Default.Palette,
                                                 contentDescription = null,
-                                                modifier = Modifier.size(16.dp),
-                                                tint = MaterialTheme.colorScheme.primary
+                                                tint = MaterialTheme.colorScheme.onTertiary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Column {
+                                            Text(
+                                                text = selectedRenderer,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = "Tap to change renderer",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
-                                    Text(
-                                        text = description,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(24.dp)
                                     )
                                 }
-                            },
-                            onClick = {
-                                if (renderer != selectedRenderer) {
-                                    pendingRenderer = renderer
-                                    expanded = false
-                                    showRebootDialog = true
-                                } else {
-                                    expanded = false
-                                }
-                            },
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
-
-                        if (renderer != "SkiaVulkan") {
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                            )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    // ===== RENDERER DIALOG =====
+    if (showRendererDialog) {
+        AlertDialog(
+            onDismissRequest = { showRendererDialog = false },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.tertiary,
+                                    MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Palette,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            },
+            title = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Select GPU Renderer",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Choose graphics rendering API",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        stringResource(R.string.gpu_renderer_opengl) to stringResource(R.string.gpu_renderer_opengl_desc),
+                        stringResource(R.string.gpu_renderer_vulkan) to stringResource(R.string.gpu_renderer_vulkan_desc),
+                        stringResource(R.string.gpu_renderer_angle) to stringResource(R.string.gpu_renderer_angle_desc),
+                        stringResource(R.string.gpu_renderer_skiagl) to stringResource(R.string.gpu_renderer_skiagl_desc),
+                        stringResource(R.string.gpu_renderer_skiavulkan) to stringResource(R.string.gpu_renderer_skiavulkan_desc)
+                    ).forEach { (renderer, description) ->
+                        val isSelected = renderer == selectedRenderer
+                        
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (renderer != selectedRenderer) {
+                                        pendingRenderer = renderer
+                                        showRendererDialog = false
+                                        showRebootDialog = true
+                                    } else {
+                                        showRendererDialog = false
+                                    }
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected)
+                                    MaterialTheme.colorScheme.tertiaryContainer
+                                else
+                                    MaterialTheme.colorScheme.surface
+                            ),
+                            elevation = CardDefaults.cardElevation(
+                                defaultElevation = if (isSelected) 3.dp else 1.dp
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = renderer,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected)
+                                            MaterialTheme.colorScheme.onTertiaryContainer
+                                        else
+                                            MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                
+                                if (isSelected) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showRendererDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
