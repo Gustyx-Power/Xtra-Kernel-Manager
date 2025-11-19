@@ -13,34 +13,62 @@
     <!-- Home Screen -->
     <string name="home_header">Xtra Kernel Manager</string>
     <string name="home_settings">Settings</string>
+
+    <!-- CPU Information -->
     <string name="cpu_info">CPU Information</string>
+    <string name="cpu_information">CPU Information</string>
     <string name="cpu_clockspeed">Clockspeed</string>
+    <string name="clockspeed_per_core">Clockspeed Core</string>
     <string name="cpu_governor">Governor</string>
     <string name="cpu_cores">Cores</string>
     <string name="cpu_temperature">Temperature</string>
     <string name="cpu_load">Load</string>
+    <string name="load">%1$s%% Load</string>
+
+    <!-- GPU Information -->
     <string name="gpu_info">GPU Information</string>
+    <string name="gpu_information">GPU Information</string>
     <string name="gpu_vendor">Vendor</string>
     <string name="gpu_renderer">Renderer</string>
     <string name="gpu_opengl">OpenGL ES</string>
+    <string name="unknown_gpu">Unknown GPU</string>
+    <string name="current_frequency">Current Frequency</string>
+    <string name="frequencies">Frequencies</string>
+    <string name="max_freq">Max Freq</string>
+    <string name="min_freq">Min Freq</string>
+
+    <!-- Battery Information -->
     <string name="battery_info">Battery Information</string>
+    <string name="battery_information">Battery Information</string>
     <string name="battery_level">Level</string>
     <string name="battery_temperature">Temperature</string>
     <string name="battery_health">Health</string>
     <string name="battery_capacity">Capacity</string>
     <string name="battery_current">Current</string>
     <string name="battery_cycle">Cycle Count</string>
+    <string name="battery_cycle_count">Cycle Count</string>
     <string name="current_now">Current Now</string>
     <string name="voltage">Voltage</string>
     <string name="cycle_count">Cycle Count</string>
     <string name="technology">Technology</string>
+
+    <!-- RAM Information -->
     <string name="ram_info">RAM Information</string>
     <string name="ram_total">Total</string>
     <string name="ram_available">Available</string>
     <string name="ram_used">Used</string>
+    <string name="ram_usage">RAM Usage</string>
     <string name="zram_info">ZRAM</string>
+
+    <!-- Storage Information -->
     <string name="storage_info">Storage</string>
+    <string name="storage">Storage</string>
+    <string name="storage_usage">Storage Usage</string>
+    <string name="memory_storage">Memory And Storage</string>
+
+    <!-- System Information -->
     <string name="system_info">System Information</string>
+    <string name="system_information">System Information</string>
     <string name="android_version">Android Version</string>
     <string name="abi">ABI</string>
     <string name="kernel_version">Kernel Version</string>
@@ -55,33 +83,125 @@
     <string name="tuning_export">Export Config</string>
     <string name="tuning_import">Import Config</string>
     <string name="tuning_apply">Apply Preset</string>
+
+    <!-- CPU Control -->
     <string name="cpu_control">CPU Control</string>
-    <string name="cpu_cluster_0">CPU Cluster 0 (Little)</string>
-    <string name="cpu_cluster_1">CPU Cluster 1 (Mid)</string>
-    <string name="cpu_cluster_2">CPU Cluster 2 (Big)</string>
+    <string name="cpu_control_description">Fine tune your CPU clusters for performance, efficiency, or battery life by controlling frequency, governor, and core status per cluster.</string>
+    <string name="cpu_no_clusters">No CPU clusters detected</string>
+    <string name="cpu_cluster_0">CPU Cluster 0</string>
+    <string name="cpu_cluster_1">CPU Cluster 1</string>
+    <string name="cpu_cluster_2">CPU Cluster 2</string>
+    <string name="cpu_cluster_generic">Cluster %1$d</string>
+    <string name="cpu_cluster_cores_label">CPU %1$s</string>
+    <string name="cpu_freq_range_label">%1$d – %2$d MHz</string>
+    <string name="cpu_min_frequency_value">Min frequency: %1$d MHz</string>
+    <string name="cpu_max_frequency_value">Max frequency: %1$d MHz</string>
+    <string name="cpu_governor_value">Governor: %1$s</string>
+    <string name="cpu_core_label">CPU %1$d</string>
     <string name="min_frequency">Min Frequency</string>
     <string name="max_frequency">Max Frequency</string>
     <string name="governor_select">Governor</string>
     <string name="core_control">Core Control</string>
     <string name="disable_cores">Disable Cores</string>
+
+    <!-- CPU Governor Dialog -->
+    <string name="cpu_governor_dialog_title">Select governor</string>
+    <string name="cpu_governor_dialog_message">Choose a CPU governor profile for this cluster.</string>
+    <string name="cpu_governor_dialog_cancel">Cancel</string>
+
+    <!-- GPU Control -->
     <string name="gpu_control">GPU Control</string>
+    <string name="gpu_control_description">Graphics performance settings</string>
     <string name="gpu_min_freq">Min Frequency</string>
     <string name="gpu_max_freq">Max Frequency</string>
+    <string name="gpu_frequency">GPU Frequency</string>
     <string name="gpu_power_level">Power Level</string>
+    <string name="gpu_power_level_title">Power Level</string>
     <string name="gpu_renderer_select">Renderer</string>
+    <string name="gpu_renderer_rom_info">ROM-dependent feature. May require reboot.</string>
+
+    <!-- GPU Renderer Options -->
+    <string name="gpu_renderer_opengl">OpenGL ES</string>
+    <string name="gpu_renderer_opengl_desc">Default Android renderer - Best compatibility</string>
+    <string name="gpu_renderer_vulkan">Vulkan</string>
+    <string name="gpu_renderer_vulkan_desc">Modern high-performance API - Better for games</string>
+    <string name="gpu_renderer_angle">ANGLE</string>
+    <string name="gpu_renderer_angle_desc">OpenGL ES over Vulkan - Compatibility layer</string>
+    <string name="gpu_renderer_skiagl">SkiaGL</string>
+    <string name="gpu_renderer_skiagl_desc">Skia with OpenGL backend - UI rendering</string>
+    <string name="gpu_renderer_skiavulkan">SkiaVulkan</string>
+    <string name="gpu_renderer_skiavulkan_desc">Skia with Vulkan backend - Modern UI</string>
+
+    <!-- GPU Renderer Compatibility Dialog -->
+    <string name="gpu_renderer_compatibility_title">GPU Renderer Compatibility</string>
+    <string name="gpu_renderer_compatibility_intro">GPU renderer switching depends on ROM support:</string>
+    <string name="gpu_fully_supported">✓ Fully Supported:</string>
+    <string name="gpu_supported_roms">• Custom ROMs (Pixel Experience, LineageOS)
+• AOSP-based ROMs
+• ROMs with unlocked build.prop</string>
+    <string name="gpu_limited_support">✗ Limited/Not Supported:</string>
+    <string name="gpu_unsupported_roms">• Stock ROMs (MIUI, ColorOS, OneUI)
+• SELinux enforcing + locked props
+• Hardcoded renderer in vendor HAL</string>
+    <string name="gpu_why_not_work">Why it might not work:</string>
+    <string name="gpu_reason_1">ROM hardcodes renderer in vendor HAL</string>
+    <string name="gpu_reason_2">SELinux blocks property changes</string>
+    <string name="gpu_reason_3">System partition truly read-only (A/B)</string>
+    <string name="gpu_reason_4">Vendor props override system props</string>
+    <string name="gpu_reason_5">Graphics driver incompatibility</string>
+    <string name="gpu_verify_tip">💡 Tip: Verify after reboot with: adb shell dumpsys gfxinfo</string>
+    <string name="gpu_got_it">Got It</string>
+
+    <!-- GPU Renderer Change Dialog -->
+    <string name="gpu_change_renderer_title">Change GPU Renderer</string>
+    <string name="gpu_change_renderer_intro">You are about to change the GPU renderer:</string>
+    <string name="gpu_current">Current:</string>
+    <string name="gpu_new">New:</string>
+    <string name="gpu_important">⚠️ Important:</string>
+    <string name="gpu_change_warnings">• System reboot required
+• May not work on all ROMs
+• Stock ROMs often lock this setting</string>
+    <string name="gpu_check_rom_compatibility">Check ROM Compatibility</string>
+    <string name="gpu_apply_changes">Apply Changes</string>
+    <string name="gpu_cancel">Cancel</string>
+
+    <!-- GPU Verification Dialog -->
+    <string name="gpu_applying_changes">Applying Changes…</string>
+    <string name="gpu_changes_applied">Changes Applied</string>
+    <string name="gpu_warning">Warning</string>
+    <string name="gpu_writing_system_files">Writing to system files…</string>
+    <string name="gpu_renderer_label">Renderer: %s</string>
+    <string name="gpu_runtime_property_updated">Runtime property updated</string>
+    <string name="gpu_reboot_required">⚠️ REBOOT REQUIRED</string>
+    <string name="gpu_reboot_required_desc">Changes will take effect after system reboot</string>
+    <string name="gpu_failed_apply">Failed to apply changes</string>
+    <string name="gpu_reboot_now">Reboot Now</string>
+    <string name="gpu_reboot_later">Reboot Later</string>
+    <string name="gpu_close">Close</string>
+
+    <!-- MediaTek Warning -->
+    <string name="mediatek_device_detected">MediaTek Device Detected</string>
+    <string name="mediatek_gpu_unavailable">GPU control is not available on MediaTek devices due to hardware limitations.</string>
+    <string name="mediatek_gpu_notice">GPU control not available on MediaTek devices</string>
+
+    <!-- Thermal Control -->
     <string name="thermal_control">Thermal Control</string>
     <string name="thermal_preset">Thermal Preset</string>
+    <string name="thermal_select_preset">Select Thermal</string>
     <string name="thermal_dynamic">Dynamic</string>
     <string name="thermal_incalls">In Calls</string>
     <string name="thermal_20">Thermal 20</string>
     <string name="thermal_not_set">Not Set</string>
-    <string name="set_on_boot">Set on Boot</string>
+
+    <!-- RAM Control -->
     <string name="ram_control">RAM Control</string>
     <string name="swappiness">Swappiness</string>
     <string name="zram_size">ZRAM Size</string>
     <string name="swap_size">Swap Size</string>
     <string name="dirty_ratio">Dirty Ratio</string>
     <string name="min_free_memory">Min Free Memory</string>
+
+    <!-- Additional Control -->
     <string name="additional_control">Additional Control</string>
     <string name="io_scheduler">I/O Scheduler</string>
     <string name="tcp_congestion">TCP Congestion</string>
@@ -89,6 +209,7 @@
     <string name="perf_battery">Battery</string>
     <string name="perf_balance">Balance</string>
     <string name="perf_performance">Performance</string>
+    <string name="set_on_boot">Set on Boot</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>
@@ -110,46 +231,30 @@
     <string name="enable_cpu_monitor">Enable CPU Monitor</string>
     <string name="enable_gpu_monitor">Enable GPU Monitor</string>
     <string name="enable_temp_monitor">Enable Temperature Monitor</string>
-    <!-- Add to res/values/strings.xml -->
-    <string name="battery_cycle_count">Cycle Count</string>
-
 
     <!-- Info Screen -->
     <string name="info_title">About</string>
-    <string name="info_tagline">
-        Advanced kernel manager for rooted Android devices
-    </string>
-    <string name="info_description">
-        An open-source Android kernel management application built with Kotlin and Jetpack Compose.
-    </string>
-
+    <string name="info_tagline">Advanced kernel manager for rooted Android devices</string>
+    <string name="info_description">An open-source Android kernel management application built with Kotlin and Jetpack Compose.</string>
     <string name="info_features">Features</string>
     <string name="info_feature_1">CPU frequency and governor control</string>
     <string name="info_feature_2">GPU renderer and power management</string>
     <string name="info_feature_3">Thermal optimization presets</string>
     <string name="info_feature_4">RAM, ZRAM and swap configuration</string>
     <string name="info_feature_5">Performance profiles for different scenarios</string>
-
     <string name="info_developer_section_title">Project</string>
     <string name="info_developer">Developer</string>
     <string name="info_developer_name">XMS Team</string>
     <string name="info_build_type">Build type</string>
+    <string name="info_build_type_short">%1$s build</string>
     <string name="info_license">License</string>
     <string name="info_license_type">MIT Open Source</string>
-
     <string name="info_links_title">Links</string>
     <string name="info_source_code">Source code</string>
-    <string name="info_source_code_url">
-        https://github.com/your-org/xtra-kernel-manager
-    </string>
+    <string name="info_source_code_url">https://github.com/your-org/xtra-kernel-manager</string>
     <string name="info_pling">Available on Pling.com</string>
-    <string name="info_pling_url">
-        https://www.pling.com/p/your-project-id
-    </string>
-
-    <!-- %1$s = year -->
+    <string name="info_pling_url">https://www.pling.com/p/your-project-id</string>
     <string name="info_copyright">© %1$s XMS Project</string>
-
 
     <!-- Theme Settings -->
     <string name="theme_settings">Theme Settings</string>
@@ -166,7 +271,6 @@
     <string name="error_export">Failed to export configuration</string>
     <string name="error_import">Failed to import configuration</string>
     <string name="error_apply">Failed to apply settings</string>
-    <string name="mediatek_gpu_notice">GPU control not available on MediaTek devices</string>
 
     <!-- Units -->
     <string name="mhz">MHz</string>
@@ -177,7 +281,7 @@
     <string name="mah">mAh</string>
     <string name="ma">mA</string>
 
-    <!-- Common -->
+    <!-- Common Actions -->
     <string name="apply">Apply</string>
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
@@ -185,35 +289,16 @@
     <string name="reset">Reset</string>
     <string name="enable">Enable</string>
     <string name="disable">Disable</string>
+    <string name="expand">Expand</string>
+    <string name="collapse">Collapse</string>
     <string name="loading">Loading…</string>
     <string name="unknown">Unknown</string>
 
+    <!-- GPU Renderer Reboot (Legacy - might be unused) -->
     <string name="gpu_renderer_reboot_title">Reboot Required</string>
     <string name="gpu_renderer_reboot_message">Changing GPU renderer requires a system reboot to take effect. Do you want to reboot now?</string>
     <string name="gpu_renderer_reboot_confirm">Reboot Now</string>
     <string name="gpu_renderer_reboot_later">Apply Later</string>
     <string name="gpu_renderer_warning">⚠️ Changing renderer requires reboot for permanent change</string>
-    <string name="gpu_renderer_opengl_desc">Default Android renderer</string>
-    <string name="gpu_renderer_vulkan_desc">Modern high-performance API</string>
-    <string name="gpu_renderer_angle_desc">OpenGL ES over Vulkan/D3D</string>
-    <string name="gpu_renderer_skiagl_desc">Skia with OpenGL backend</string>
-    <string name="gpu_renderer_skiavulkan_desc">Skia with Vulkan backend</string>
-    <string name="thermal_select_preset">Select Thermal</string>
-    <string name="gpu_information">GPU Information</string>
-    <string name="current_frequency">Current Frequency</string>
-    <string name="unknown_gpu">Unknown GPU</string>
-    <string name="frequencies">Frequencies</string>
-    <string name="max_freq">Max Freq</string>
-    <string name="min_freq">Min Freq</string>
-    <string name="memory_storage">Memory And Storage</string>
-    <string name="storage">Storage</string>
-    <string name="ram_usage">RAM Usage</string>
-    <string name="storage_usage">Storage Usage</string>
-    <string name="system_information">System Information</string>
-    <string name="load">%1$s%% Load</string>
-    <string name="clockspeed_per_core">Clockspeed Core</string>
-    <string name="battery_information">Battery Information</string>
-    <string name="cpu_information">CPU Information</string>
-    <string name="info_build_type_short">%1$s build</string>
 
 </resources>

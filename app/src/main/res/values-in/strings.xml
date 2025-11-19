@@ -13,34 +13,62 @@
     <!-- Home Screen -->
     <string name="home_header">Xtra Kernel Manager</string>
     <string name="home_settings">Pengaturan</string>
+
+    <!-- CPU Information -->
     <string name="cpu_info">Informasi CPU</string>
+    <string name="cpu_information">Informasi CPU</string>
     <string name="cpu_clockspeed">Kecepatan Clock</string>
+    <string name="clockspeed_per_core">Kecepatan Core</string>
     <string name="cpu_governor">Governor</string>
     <string name="cpu_cores">Inti (Core)</string>
     <string name="cpu_temperature">Suhu</string>
     <string name="cpu_load">Beban</string>
+    <string name="load">%1$s%% Beban</string>
+
+    <!-- GPU Information -->
     <string name="gpu_info">Informasi GPU</string>
+    <string name="gpu_information">Informasi GPU</string>
     <string name="gpu_vendor">Vendor</string>
     <string name="gpu_renderer">Renderer</string>
     <string name="gpu_opengl">OpenGL ES</string>
+    <string name="unknown_gpu">GPU tidak dikenal</string>
+    <string name="current_frequency">Frekuensi saat ini</string>
+    <string name="frequencies">Frekuensi</string>
+    <string name="max_freq">Frekuensi maks</string>
+    <string name="min_freq">Frekuensi min</string>
+
+    <!-- Battery Information -->
     <string name="battery_info">Informasi Baterai</string>
+    <string name="battery_information">Informasi Baterai</string>
     <string name="battery_level">Level</string>
     <string name="battery_temperature">Suhu</string>
     <string name="battery_health">Kesehatan</string>
     <string name="battery_capacity">Kapasitas</string>
     <string name="battery_current">Arus</string>
     <string name="battery_cycle">Jumlah Siklus</string>
+    <string name="battery_cycle_count">Jumlah Siklus</string>
     <string name="current_now">Arus Saat Ini</string>
     <string name="voltage">Tegangan</string>
     <string name="cycle_count">Jumlah Siklus</string>
     <string name="technology">Teknologi</string>
+
+    <!-- RAM Information -->
     <string name="ram_info">Informasi RAM</string>
     <string name="ram_total">Total</string>
     <string name="ram_available">Tersedia</string>
     <string name="ram_used">Terpakai</string>
+    <string name="ram_usage">Penggunaan RAM</string>
     <string name="zram_info">ZRAM</string>
+
+    <!-- Storage Information -->
     <string name="storage_info">Penyimpanan</string>
+    <string name="storage">Penyimpanan</string>
+    <string name="storage_usage">Penggunaan penyimpanan</string>
+    <string name="memory_storage">Memori dan penyimpanan</string>
+
+    <!-- System Information -->
     <string name="system_info">Informasi Sistem</string>
+    <string name="system_information">Informasi sistem</string>
     <string name="android_version">Versi Android</string>
     <string name="abi">ABI</string>
     <string name="kernel_version">Versi Kernel</string>
@@ -55,33 +83,125 @@
     <string name="tuning_export">Ekspor Konfigurasi</string>
     <string name="tuning_import">Impor Konfigurasi</string>
     <string name="tuning_apply">Terapkan Preset</string>
+
+    <!-- CPU Control -->
     <string name="cpu_control">Kontrol CPU</string>
-    <string name="cpu_cluster_0">Cluster CPU 0 (Little)</string>
-    <string name="cpu_cluster_1">Cluster CPU 1 (Mid)</string>
-    <string name="cpu_cluster_2">Cluster CPU 2 (Big)</string>
+    <string name="cpu_control_description">Atur cluster CPU untuk performa, efisiensi, atau hemat daya dengan mengontrol frekuensi, governor, dan status core per cluster.</string>
+    <string name="cpu_no_clusters">Tidak ada cluster CPU yang terdeteksi</string>
+    <string name="cpu_cluster_0">Klaster CPU 0</string>
+    <string name="cpu_cluster_1">Klaster CPU 1</string>
+    <string name="cpu_cluster_2">Klaster CPU 2</string>
+    <string name="cpu_cluster_generic">Cluster %1$d</string>
+    <string name="cpu_cluster_cores_label">CPU %1$s</string>
+    <string name="cpu_freq_range_label">%1$d – %2$d MHz</string>
+    <string name="cpu_min_frequency_value">Frekuensi minimum: %1$d MHz</string>
+    <string name="cpu_max_frequency_value">Frekuensi maksimum: %1$d MHz</string>
+    <string name="cpu_governor_value">Governor: %1$s</string>
+    <string name="cpu_core_label">CPU %1$d</string>
     <string name="min_frequency">Frekuensi Minimum</string>
     <string name="max_frequency">Frekuensi Maksimum</string>
     <string name="governor_select">Governor</string>
     <string name="core_control">Kontrol Core</string>
     <string name="disable_cores">Nonaktifkan Core</string>
+
+    <!-- CPU Governor Dialog -->
+    <string name="cpu_governor_dialog_title">Pilih governor</string>
+    <string name="cpu_governor_dialog_message">Pilih profil governor CPU untuk cluster ini.</string>
+    <string name="cpu_governor_dialog_cancel">Batal</string>
+
+    <!-- GPU Control -->
     <string name="gpu_control">Kontrol GPU</string>
+    <string name="gpu_control_description">Pengaturan performa grafis</string>
     <string name="gpu_min_freq">Frekuensi Minimum</string>
     <string name="gpu_max_freq">Frekuensi Maksimum</string>
+    <string name="gpu_frequency">Frekuensi GPU</string>
     <string name="gpu_power_level">Level Daya</string>
+    <string name="gpu_power_level_title">Level Daya</string>
     <string name="gpu_renderer_select">Renderer</string>
+    <string name="gpu_renderer_rom_info">Fitur tergantung ROM. Mungkin perlu reboot.</string>
+
+    <!-- GPU Renderer Options -->
+    <string name="gpu_renderer_opengl">OpenGL ES</string>
+    <string name="gpu_renderer_opengl_desc">Renderer Android default - Paling kompatibel</string>
+    <string name="gpu_renderer_vulkan">Vulkan</string>
+    <string name="gpu_renderer_vulkan_desc">API modern performa tinggi - Lebih bagus buat game</string>
+    <string name="gpu_renderer_angle">ANGLE</string>
+    <string name="gpu_renderer_angle_desc">OpenGL ES lewat Vulkan - Layer kompatibilitas</string>
+    <string name="gpu_renderer_skiagl">SkiaGL</string>
+    <string name="gpu_renderer_skiagl_desc">Skia dengan backend OpenGL - Render UI</string>
+    <string name="gpu_renderer_skiavulkan">SkiaVulkan</string>
+    <string name="gpu_renderer_skiavulkan_desc">Skia dengan backend Vulkan - UI modern</string>
+
+    <!-- GPU Renderer Compatibility Dialog -->
+    <string name="gpu_renderer_compatibility_title">Kompatibilitas Renderer GPU</string>
+    <string name="gpu_renderer_compatibility_intro">Ganti renderer GPU tergantung dukungan ROM:</string>
+    <string name="gpu_fully_supported">✓ Full Support:</string>
+    <string name="gpu_supported_roms">• ROM Custom (Pixel Experience, LineageOS)
+• ROM berbasis AOSP
+• ROM dengan build.prop terbuka</string>
+    <string name="gpu_limited_support">✗ Terbatas/Gak Support:</string>
+    <string name="gpu_unsupported_roms">• ROM Stock (MIUI, ColorOS, OneUI)
+• SELinux enforcing + props terkunci
+• Renderer hardcode di vendor HAL</string>
+    <string name="gpu_why_not_work">Kenapa bisa gak work:</string>
+    <string name="gpu_reason_1">ROM hardcode renderer di vendor HAL</string>
+    <string name="gpu_reason_2">SELinux blokir perubahan property</string>
+    <string name="gpu_reason_3">Partisi system read-only (A/B)</string>
+    <string name="gpu_reason_4">Vendor props override system props</string>
+    <string name="gpu_reason_5">Driver grafis gak kompatibel</string>
+    <string name="gpu_verify_tip">💡 Tips: Verifikasi setelah reboot: adb shell dumpsys gfxinfo</string>
+    <string name="gpu_got_it">Oke Paham</string>
+
+    <!-- GPU Renderer Change Dialog -->
+    <string name="gpu_change_renderer_title">Ganti Renderer GPU</string>
+    <string name="gpu_change_renderer_intro">Lo bakal ganti renderer GPU:</string>
+    <string name="gpu_current">Sekarang:</string>
+    <string name="gpu_new">Baru:</string>
+    <string name="gpu_important">⚠️ Penting:</string>
+    <string name="gpu_change_warnings">• Harus reboot sistem
+• Mungkin gak work di semua ROM
+• ROM stock biasanya lock fitur ini</string>
+    <string name="gpu_check_rom_compatibility">Cek Kompatibilitas ROM</string>
+    <string name="gpu_apply_changes">Terapkan Perubahan</string>
+    <string name="gpu_cancel">Batal</string>
+
+    <!-- GPU Verification Dialog -->
+    <string name="gpu_applying_changes">Menerapkan Perubahan…</string>
+    <string name="gpu_changes_applied">Perubahan Diterapkan</string>
+    <string name="gpu_warning">Peringatan</string>
+    <string name="gpu_writing_system_files">Nulis ke file sistem…</string>
+    <string name="gpu_renderer_label">Renderer: %s</string>
+    <string name="gpu_runtime_property_updated">Runtime property berhasil diupdate</string>
+    <string name="gpu_reboot_required">⚠️ HARUS REBOOT</string>
+    <string name="gpu_reboot_required_desc">Perubahan akan aktif setelah reboot sistem</string>
+    <string name="gpu_failed_apply">Gagal terapkan perubahan</string>
+    <string name="gpu_reboot_now">Reboot Sekarang</string>
+    <string name="gpu_reboot_later">Reboot Nanti</string>
+    <string name="gpu_close">Tutup</string>
+
+    <!-- MediaTek Warning -->
+    <string name="mediatek_device_detected">Device MediaTek Terdeteksi</string>
+    <string name="mediatek_gpu_unavailable">Kontrol GPU gak tersedia di device MediaTek karena limitasi hardware.</string>
+    <string name="mediatek_gpu_notice">Kontrol GPU tidak tersedia di perangkat MediaTek</string>
+
+    <!-- Thermal Control -->
     <string name="thermal_control">Kontrol Termal</string>
     <string name="thermal_preset">Preset Termal</string>
+    <string name="thermal_select_preset">Pilih profil termal</string>
     <string name="thermal_dynamic">Dinamis</string>
     <string name="thermal_incalls">Saat Panggilan</string>
     <string name="thermal_20">Termal 20</string>
     <string name="thermal_not_set">Belum diatur</string>
-    <string name="set_on_boot">Atur saat boot</string>
+
+    <!-- RAM Control -->
     <string name="ram_control">Kontrol RAM</string>
     <string name="swappiness">Swappiness</string>
     <string name="zram_size">Ukuran ZRAM</string>
     <string name="swap_size">Ukuran Swap</string>
     <string name="dirty_ratio">Dirty Ratio</string>
     <string name="min_free_memory">Minimal Memori Bebas</string>
+
+    <!-- Additional Control -->
     <string name="additional_control">Kontrol Tambahan</string>
     <string name="io_scheduler">Penjadwal I/O</string>
     <string name="tcp_congestion">Kongesti TCP</string>
@@ -89,6 +209,7 @@
     <string name="perf_battery">Hemat baterai</string>
     <string name="perf_balance">Seimbang</string>
     <string name="perf_performance">Performa</string>
+    <string name="set_on_boot">Atur saat boot</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>
@@ -110,45 +231,30 @@
     <string name="enable_cpu_monitor">Aktifkan monitor CPU</string>
     <string name="enable_gpu_monitor">Aktifkan monitor GPU</string>
     <string name="enable_temp_monitor">Aktifkan monitor suhu</string>
-    <!-- Add to res/values/strings.xml -->
-    <string name="battery_cycle_count">Jumlah Siklus</string>
 
-    <!-- Layar Info -->
+    <!-- Info Screen -->
     <string name="info_title">Tentang Aplikasi</string>
-    <string name="info_tagline">
-        Kernel manager tingkat lanjut untuk perangkat Android yang sudah di-root
-    </string>
-    <string name="info_description">
-        Aplikasi manajemen kernel Android open-source yang dibangun dengan Kotlin dan Jetpack Compose.
-    </string>
-
+    <string name="info_tagline">Kernel manager tingkat lanjut untuk perangkat Android yang sudah di-root</string>
+    <string name="info_description">Aplikasi manajemen kernel Android open-source yang dibangun dengan Kotlin dan Jetpack Compose.</string>
     <string name="info_features">Fitur</string>
     <string name="info_feature_1">Kontrol frekuensi dan governor CPU</string>
     <string name="info_feature_2">Pengaturan renderer dan daya GPU</string>
     <string name="info_feature_3">Optimasi termal dengan preset</string>
     <string name="info_feature_4">Konfigurasi RAM, ZRAM, dan swap</string>
     <string name="info_feature_5">Profil performa untuk berbagai skenario</string>
-
     <string name="info_developer_section_title">Proyek</string>
     <string name="info_developer">Pengembang</string>
     <string name="info_developer_name">Tim XMS</string>
     <string name="info_build_type">Tipe build</string>
+    <string name="info_build_type_short">Build %1$s</string>
     <string name="info_license">Lisensi</string>
     <string name="info_license_type">MIT Open Source</string>
-
     <string name="info_links_title">Tautan</string>
     <string name="info_source_code">Kode sumber</string>
-    <string name="info_source_code_url">
-        https://github.com/your-org/xtra-kernel-manager
-    </string>
+    <string name="info_source_code_url">https://github.com/your-org/xtra-kernel-manager</string>
     <string name="info_pling">Tersedia di Pling.com</string>
-    <string name="info_pling_url">
-        https://www.pling.com/p/your-project-id
-    </string>
-
-    <!-- %1$s = tahun -->
+    <string name="info_pling_url">https://www.pling.com/p/your-project-id</string>
     <string name="info_copyright">© %1$s Proyek XMS</string>
-
 
     <!-- Theme Settings -->
     <string name="theme_settings">Pengaturan Tema</string>
@@ -165,7 +271,6 @@
     <string name="error_export">Gagal mengekspor konfigurasi</string>
     <string name="error_import">Gagal mengimpor konfigurasi</string>
     <string name="error_apply">Gagal menerapkan pengaturan</string>
-    <string name="mediatek_gpu_notice">Kontrol GPU tidak tersedia di perangkat MediaTek</string>
 
     <!-- Units -->
     <string name="mhz">MHz</string>
@@ -176,7 +281,7 @@
     <string name="mah">mAh</string>
     <string name="ma">mA</string>
 
-    <!-- Common -->
+    <!-- Common Actions -->
     <string name="apply">Terapkan</string>
     <string name="cancel">Batal</string>
     <string name="ok">OK</string>
@@ -184,36 +289,16 @@
     <string name="reset">Reset</string>
     <string name="enable">Aktifkan</string>
     <string name="disable">Nonaktifkan</string>
+    <string name="expand">Perluas</string>
+    <string name="collapse">Ciutkan</string>
     <string name="loading">Memuat…</string>
     <string name="unknown">Tidak diketahui</string>
 
+    <!-- GPU Renderer Reboot (Legacy - might be unused) -->
     <string name="gpu_renderer_reboot_title">Diperlukan mulai ulang</string>
     <string name="gpu_renderer_reboot_message">Mengubah renderer GPU memerlukan restart sistem agar berlaku. Apakah Anda ingin mulai ulang sekarang?</string>
     <string name="gpu_renderer_reboot_confirm">Mulai ulang sekarang</string>
     <string name="gpu_renderer_reboot_later">Terapkan nanti</string>
     <string name="gpu_renderer_warning">⚠️ Mengganti renderer memerlukan restart untuk perubahan permanen</string>
-    <string name="gpu_renderer_opengl_desc">Renderer Android bawaan</string>
-    <string name="gpu_renderer_vulkan_desc">API modern berperforma tinggi</string>
-    <string name="gpu_renderer_angle_desc">OpenGL ES di atas Vulkan/D3D</string>
-    <string name="gpu_renderer_skiagl_desc">Skia dengan backend OpenGL</string>
-    <string name="gpu_renderer_skiavulkan_desc">Skia dengan backend Vulkan</string>
-    <string name="thermal_select_preset">Pilih profil termal</string>
-    <string name="gpu_information">Informasi GPU</string>
-    <string name="current_frequency">Frekuensi saat ini</string>
-    <string name="unknown_gpu">GPU tidak dikenal</string>
-    <string name="frequencies">Frekuensi</string>
-    <string name="max_freq">Frekuensi maks</string>
-    <string name="min_freq">Frekuensi min</string>
-    <string name="memory_storage">Memori dan penyimpanan</string>
-    <string name="storage">Penyimpanan</string>
-    <string name="ram_usage">Penggunaan RAM</string>
-    <string name="storage_usage">Penggunaan penyimpanan</string>
-    <string name="system_information">Informasi sistem</string>
-    <string name="load">%1$s%% Beban</string>
-    <string name="clockspeed_per_core">Kecepatan Core</string>
-    <string name="battery_information">Informasi Baterai</string>
-    <string name="cpu_information">Informasi CPU</string>
-    <string name="info_build_type_short">Build %1$s</string>
-
 
 </resources>
