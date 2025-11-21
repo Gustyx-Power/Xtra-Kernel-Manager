@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REBOOT"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"
         tools:ignore="ForegroundServicesPolicy" />
@@ -29,18 +30,38 @@
         android:theme="@style/Theme.XtraKernelManager"
         tools:targetApi="31">
 
+        <!-- Splash Activity - LAUNCHER (Entry Point) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true"
             android:label=""
-            android:theme="@style/Theme.XtraKernelManager"
-            android:windowSoftInputMode="adjustResize">
+            android:theme="@style/Theme.XtraKernelManager.Splash"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:label=""
+            android:theme="@style/Theme.XtraKernelManager"
+            android:windowSoftInputMode="adjustResize" />
+        
+        <!-- Boot Receiver -->
+        <receiver
+            android:name=".domain.receiver.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        
+        <!-- Game Overlay Service -->
         <service
             android:name=".service.GameOverlayService"
             android:enabled="true"
@@ -51,6 +72,7 @@
                 android:value="game_performance_monitoring" />
         </service>
 
+        <!-- File Provider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
