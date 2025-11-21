@@ -8,11 +8,9 @@
 
     <style name="Theme.XtraKernelManager" parent="Base.Theme.XtraKernelManager" />
 
-    <!-- Splash Screen Theme -->
-    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/splash_background</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
-        <item name="windowSplashScreenAnimationDuration">500</item>
-        <item name="postSplashScreenTheme">@style/Theme.XtraKernelManager</item>
+    <!-- Splash Activity Theme (untuk custom Compose splash) -->
+    <style name="Theme.XtraKernelManager.Splash" parent="Base.Theme.XtraKernelManager">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">false</item>
     </style>
 </resources>
