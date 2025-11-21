@@ -90,8 +90,6 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:nio:6.0.0")
 
     // TOML Parser
-    implementation("com.akuleshov7:ktoml-core:0.5.1")
-    implementation("com.akuleshov7:ktoml-file:0.5.1")
     implementation("org.tomlj:tomlj:1.1.0")
 
 
