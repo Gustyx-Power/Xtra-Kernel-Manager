@@ -6,14 +6,14 @@ plugins {
 
 android {
     namespace = "id.xms.xtrakernelmanager"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
-        versionName = "2.0-alpha6-rt1"
+        versionName = "2.0-Alpha-rc1"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -92,6 +92,8 @@ dependencies {
     // TOML Parser
     implementation("com.akuleshov7:ktoml-core:0.5.1")
     implementation("com.akuleshov7:ktoml-file:0.5.1")
+    implementation("org.tomlj:tomlj:1.1.0")
+
 
     // Accompanist (for system UI controller)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
