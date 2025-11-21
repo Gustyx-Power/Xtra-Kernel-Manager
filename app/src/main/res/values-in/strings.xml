@@ -76,6 +76,7 @@
     <string name="fingerprint">Fingerprint Build</string>
     <string name="selinux">SELinux</string>
     <string name="thermal_mode">Mode Termal</string>
+    <string name="build_type">Tipe Build</string>
 
     <!-- Tuning Screen -->
     <string name="tuning_title">Pengaturan Kernel</string>
@@ -147,14 +148,14 @@
     <string name="gpu_reason_1">ROM hardcode renderer di vendor HAL</string>
     <string name="gpu_reason_2">SELinux blokir perubahan property</string>
     <string name="gpu_reason_3">Partisi system read-only (A/B)</string>
-    <string name="gpu_reason_4">Vendor props override system props</string>
-    <string name="gpu_reason_5">Driver grafis gak kompatibel</string>
+    <string name="gpu_reason_4">Properti vendor menimpa properti sistem</string>
+    <string name="gpu_reason_5">Driver grafis tidak kompatibel</string>
     <string name="gpu_verify_tip">💡 Tips: Verifikasi setelah reboot: adb shell dumpsys gfxinfo</string>
     <string name="gpu_got_it">Oke Paham</string>
 
     <!-- GPU Renderer Change Dialog -->
     <string name="gpu_change_renderer_title">Ganti Renderer GPU</string>
-    <string name="gpu_change_renderer_intro">Lo bakal ganti renderer GPU:</string>
+    <string name="gpu_change_renderer_intro">Kamu bakal ganti renderer GPU:</string>
     <string name="gpu_current">Sekarang:</string>
     <string name="gpu_new">Baru:</string>
     <string name="gpu_important">⚠️ Penting:</string>
@@ -300,5 +301,18 @@
     <string name="gpu_renderer_reboot_confirm">Mulai ulang sekarang</string>
     <string name="gpu_renderer_reboot_later">Terapkan nanti</string>
     <string name="gpu_renderer_warning">⚠️ Mengganti renderer memerlukan restart untuk perubahan permanen</string>
+
+    <!-- Power Actions -->
+    <string name="reboot">Mulai Ulang</string>
+    <string name="power_off">Matikan Daya</string>
+    <string name="recovery">Pemulihan</string>
+    <string name="bootloader">Pemuatan Boot</string>
+    <string name="restart_ui">Mulai Ulang UI</string>
+    <string name="lockscreen">Kunci Layar</string>
+    <string name="processing_action">Sedang Memproses Aksi…</string>
+
+    <!-- Splash -->
+    <string name="initializing_kernel_modules">Menginisialisasi modul kernel…</string>
+    <string name="advanced_kernel_control">Kontrol Kernel Tingkat Lanjut</string>
 
 </resources>

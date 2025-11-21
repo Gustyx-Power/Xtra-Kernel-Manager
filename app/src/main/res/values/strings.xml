@@ -76,6 +76,7 @@
     <string name="fingerprint">Fingerprint</string>
     <string name="selinux">SELinux</string>
     <string name="thermal_mode">Thermal Mode</string>
+    <string name="build_type">Build Type</string>
 
     <!-- Tuning Screen -->
     <string name="tuning_title">Kernel Tuning</string>
@@ -300,5 +301,19 @@
     <string name="gpu_renderer_reboot_confirm">Reboot Now</string>
     <string name="gpu_renderer_reboot_later">Apply Later</string>
     <string name="gpu_renderer_warning">⚠️ Changing renderer requires reboot for permanent change</string>
+
+   <!-- Power Actions -->
+    <string name="reboot">Reboot</string>
+    <string name="power_off">Power Off</string>
+    <string name="recovery">Recovery</string>
+    <string name="bootloader">Bootloader</string>
+    <string name="restart_ui">Restart UI</string>
+    <string name="lockscreen">LockScreen</string>
+    <string name="processing_action">Processing action...</string>
+
+    <!-- Splash -->
+    <string name="initializing_kernel_modules">Initializing kernel modules…</string>
+    <string name="advanced_kernel_control">Advanced Kernel Control</string>
+
 
 </resources>
