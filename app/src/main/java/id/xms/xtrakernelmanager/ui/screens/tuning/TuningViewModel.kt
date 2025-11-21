@@ -1,5 +1,7 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 
 class TuningViewModel(
     val preferencesManager: PreferencesManager,
@@ -42,6 +48,10 @@ class TuningViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> get() = _isLoading.asStateFlow()
 
+    // TAMBAHAN: State untuk loading dialog saat import
+    private val _isImporting = MutableStateFlow(false)
+    val isImporting: StateFlow<Boolean> get() = _isImporting.asStateFlow()
+
     private val _cpuClusters = MutableStateFlow<List<ClusterInfo>>(emptyList())
     val cpuClusters: StateFlow<List<ClusterInfo>> get() = _cpuClusters.asStateFlow()
 
@@ -60,7 +70,6 @@ class TuningViewModel(
     private val _availableTCPCongestion = MutableStateFlow<List<String>>(emptyList())
     val availableTCPCongestion: StateFlow<List<String>> get() = _availableTCPCongestion.asStateFlow()
 
-    // Current active I/O and TCP values
     private val _currentIOScheduler = MutableStateFlow<String>("")
     val currentIOScheduler: StateFlow<String> get() = _currentIOScheduler.asStateFlow()
 
@@ -70,12 +79,14 @@ class TuningViewModel(
     private val _clusterStates = MutableStateFlow<Map<Int, ClusterUIState>>(emptyMap())
     val clusterStates: StateFlow<Map<Int, ClusterUIState>> get() = _clusterStates.asStateFlow()
 
+    // TAMBAHAN: Cache untuk device info (SOC, codename, model)
+    private var deviceInfoCache: Triple<String, String, String>? = null
+
     init {
         viewModelScope.launch {
-            // UPDATED: Load preferences sebagai initial value
             _currentIOScheduler.value = preferencesManager.getIOScheduler().first()
             _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
-            
+
             checkRootAndLoadData()
             applySavedCoreStates()
             startAutoRefresh()
@@ -120,13 +131,12 @@ class TuningViewModel(
             )
         }
         _clusterStates.value = states
-        
-        // Refresh current I/O and TCP values
+
         val currentIO = getCurrentIOScheduler()
         if (currentIO.isNotEmpty()) {
             _currentIOScheduler.value = currentIO
         }
-        
+
         val currentTCP = getCurrentTCPCongestion()
         if (currentTCP.isNotEmpty()) {
             _currentTCPCongestion.value = currentTCP
@@ -143,13 +153,12 @@ class TuningViewModel(
 
         _availableIOSchedulers.value = getAvailableIOSchedulers()
         _availableTCPCongestion.value = getAvailableTCPCongestion()
-        
-        // Load current active values
+
         val currentIO = getCurrentIOScheduler()
         if (currentIO.isNotEmpty()) {
             _currentIOScheduler.value = currentIO
         }
-        
+
         val currentTCP = getCurrentTCPCongestion()
         if (currentTCP.isNotEmpty()) {
             _currentTCPCongestion.value = currentTCP
@@ -176,38 +185,35 @@ class TuningViewModel(
         return congestion.split("\\s+".toRegex()).filter { it.isNotBlank() }
     }
 
-    // Get current active I/O scheduler
     private suspend fun getCurrentIOScheduler(): String {
         val output = RootManager.executeCommand("cat /sys/block/sda/queue/scheduler 2>/dev/null").getOrNull()
         Log.d("TuningViewModel", "IO Scheduler raw output: $output")
-        
+
         if (output.isNullOrEmpty()) {
             val saved = preferencesManager.getIOScheduler().first()
             Log.d("TuningViewModel", "IO Scheduler from prefs (fallback): $saved")
             return saved
         }
-        
-        // Format: noop deadline [cfq] - extract the one in brackets
+
         val match = Regex("\\[(.*?)\\]").find(output)
         val result = match?.groupValues?.get(1) ?: ""
         Log.d("TuningViewModel", "IO Scheduler parsed: $result")
-        
+
         return result.ifEmpty {
             preferencesManager.getIOScheduler().first()
         }
     }
 
-    // Get current active TCP congestion
     private suspend fun getCurrentTCPCongestion(): String {
         val output = RootManager.executeCommand("cat /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null").getOrNull()?.trim()
         Log.d("TuningViewModel", "TCP Congestion raw output: $output")
-        
+
         if (output.isNullOrEmpty()) {
             val saved = preferencesManager.getTCPCongestion().first()
             Log.d("TuningViewModel", "TCP Congestion from prefs (fallback): $saved")
             return saved
         }
-        
+
         return output
     }
 
@@ -264,32 +270,27 @@ class TuningViewModel(
     }
 
     suspend fun applyAllConfigurations() {
-        // Apply CPU cores
         for (core in 0..7) {
             val enabled = preferencesManager.isCpuCoreEnabled(core).first()
             cpuUseCase.setCoreOnline(core, enabled)
         }
 
-        // Apply thermal config
         val thermalPreset = preferencesManager.getThermalPreset().first()
         val setOnBoot = preferencesManager.getThermalSetOnBoot().first()
         if (thermalPreset.isNotEmpty()) {
             thermalUseCase.setThermalMode(thermalPreset, setOnBoot)
         }
 
-        // Apply I/O scheduler
         val ioScheduler = preferencesManager.getIOScheduler().first()
         if (ioScheduler.isNotBlank()) {
             RootManager.executeCommand("echo $ioScheduler > /sys/block/sda/queue/scheduler")
         }
 
-        // Apply TCP congestion control
         val tcpCongestion = preferencesManager.getTCPCongestion().first()
         if (tcpCongestion.isNotBlank()) {
             RootManager.executeCommand("echo $tcpCongestion > /proc/sys/net/ipv4/tcp_congestion_control")
         }
 
-        // Apply RAM config
         val ramConfig = preferencesManager.getRamConfig().first()
         ramUseCase.setSwappiness(ramConfig.swappiness)
         ramUseCase.setZRAMSize(ramConfig.zramSize.toLong() * 1024L * 1024L)
@@ -336,18 +337,15 @@ class TuningViewModel(
     fun setIOScheduler(scheduler: String) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d("TuningViewModel", "Setting IO Scheduler to: $scheduler")
-            
-            // UPDATED: Force update UI dulu
+
             _currentIOScheduler.value = scheduler
-            
+
             val result = RootManager.executeCommand("echo $scheduler > /sys/block/sda/queue/scheduler")
             Log.d("TuningViewModel", "IO Scheduler command result: ${result.isSuccess}")
-            
+
             if (result.isSuccess) {
                 preferencesManager.setIOScheduler(scheduler)
-                // Delay kecil untuk ensure sistem update
                 delay(200)
-                // Verify dengan baca ulang
                 val verified = getCurrentIOScheduler()
                 Log.d("TuningViewModel", "Verified IO Scheduler: $verified")
                 if (verified.isNotEmpty()) {
@@ -360,18 +358,15 @@ class TuningViewModel(
     fun setTCPCongestion(congestion: String) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d("TuningViewModel", "Setting TCP Congestion to: $congestion")
-            
-            // UPDATED: Force update UI dulu
+
             _currentTCPCongestion.value = congestion
-            
+
             val result = RootManager.executeCommand("echo $congestion > /proc/sys/net/ipv4/tcp_congestion_control")
             Log.d("TuningViewModel", "TCP Congestion command result: ${result.isSuccess}")
-            
+
             if (result.isSuccess) {
                 preferencesManager.setTCPCongestion(congestion)
-                // Delay kecil untuk ensure sistem update
                 delay(200)
-                // Verify dengan baca ulang
                 val verified = getCurrentTCPCongestion()
                 Log.d("TuningViewModel", "Verified TCP Congestion: $verified")
                 if (verified.isNotEmpty()) {
@@ -391,7 +386,6 @@ class TuningViewModel(
             preferencesManager.setRamConfig(config)
         }
     }
-    
 
     fun setZRAMWithLiveLog(
         sizeBytes: Long,
@@ -403,7 +397,7 @@ class TuningViewModel(
             onComplete(result.isSuccess)
         }
     }
-    
+
     fun setSwapWithLiveLog(
         sizeMb: Int,
         onLog: (String) -> Unit,
@@ -431,20 +425,84 @@ class TuningViewModel(
         }
     }
 
-    fun exportConfig() {
-        viewModelScope.launch {
-            val config = buildCurrentConfig()
-            tomlManager.exportConfig(config)
+    suspend fun getExportFileName(): String {
+        deviceInfoCache?.let { (soc, codename, model) ->
+            return "tuning-$soc-$codename-$model.toml"
+        }
+        
+        val soc = RootManager.executeCommand("getprop ro.board.platform")
+            .getOrNull()?.trim()?.lowercase() ?: "unknownsoc"
+        val codename = RootManager.executeCommand("getprop ro.product.device")
+            .getOrNull()?.trim()?.lowercase() ?: "unknowncode"
+        val model = RootManager.executeCommand("getprop ro.product.model")
+            .getOrNull()?.trim()?.replace("\\s+".toRegex(), "")?.uppercase() ?: "UNKNOWN"
+        
+        deviceInfoCache = Triple(soc, codename, model)
+        return "tuning-$soc-$codename-$model.toml"
+    }
+
+    // Export dengan Uri
+    suspend fun exportConfigToUri(context: Context, uri: Uri): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val config = buildCurrentConfig()
+                val tomlString = tomlManager.configToTomlString(config)
+
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    OutputStreamWriter(outputStream).use { writer ->
+                        writer.write(tomlString)
+                        writer.flush()
+                    }
+                }
+                Log.d("TuningViewModel", "Config exported successfully to $uri")
+                true
+            } catch (e: Exception) {
+                Log.e("TuningViewModel", "Export failed", e)
+                false
+            }
         }
     }
 
-    fun importConfig() {
-        viewModelScope.launch {
-            val config = tomlManager.importConfig()
-            if (config != null) {
-                applyConfig(config)
+    suspend fun importConfigFromUri(context: Context, uri: Uri): ImportResult {
+        _isImporting.value = true
+        
+        val result = withContext(Dispatchers.IO) {
+            try {
+                val tomlString = context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                    BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                        reader.readText()
+                    }
+                } ?: return@withContext ImportResult.Error("Failed to read file")
+
+                Log.d("TuningViewModel", "Read config from $uri")
+
+                val parseResult = tomlManager.tomlStringToConfig(tomlString)
+                if (parseResult != null) {
+                    // Check SOC compatibility
+                    if (!parseResult.isCompatible && parseResult.compatibilityWarning != null) {
+                        // Return warning untuk user confirmation
+                        return@withContext ImportResult.Warning(
+                            config = parseResult.config,
+                            warning = parseResult.compatibilityWarning
+                        )
+                    }
+
+                    // Compatible - apply directly
+                    applyConfig(parseResult.config)
+                    Log.d("TuningViewModel", "Config imported and applied successfully")
+                    ImportResult.Success
+                } else {
+                    Log.e("TuningViewModel", "Failed to parse config")
+                    ImportResult.Error("Failed to parse configuration file")
+                }
+            } catch (e: Exception) {
+                Log.e("TuningViewModel", "Import failed", e)
+                ImportResult.Error(e.message ?: "Unknown error")
             }
         }
+        
+        _isImporting.value = false
+        return result
     }
 
     fun applyPreset(config: TuningConfig) {
@@ -453,7 +511,7 @@ class TuningViewModel(
         }
     }
 
-    private fun buildCurrentConfig(): TuningConfig {
+    fun buildCurrentConfig(): TuningConfig {
         val cpuConfigs = _cpuClusters.value.map { cluster ->
             CPUClusterConfig(
                 cluster = cluster.clusterNumber,
@@ -463,12 +521,29 @@ class TuningViewModel(
                 disabledCores = emptyList()
             )
         }
+
+        val gpu = if (!_isMediatek.value && _gpuInfo.value.minFreq > 0) {
+            GPUConfig(
+                minFreq = _gpuInfo.value.minFreq,
+                maxFreq = _gpuInfo.value.maxFreq,
+                powerLevel = 0,
+                renderer = "auto"
+            )
+        } else {
+            null
+        }
+
+        // FIXED: Jangan ambil dari PreferencesManager di sini (butuh suspend)
+        // Cukup default values, nanti di apply config akan di-set
         return TuningConfig(
             cpuClusters = cpuConfigs,
-            gpu = null,
+            gpu = gpu,
             thermal = ThermalConfig(),
             ram = RAMConfig(),
-            additional = AdditionalConfig()
+            additional = AdditionalConfig(
+                ioScheduler = _currentIOScheduler.value,
+                tcpCongestion = _currentTCPCongestion.value
+            )
         )
     }
 
@@ -514,6 +589,13 @@ class TuningViewModel(
             refreshCurrentValues()
         }
     }
+}
+
+// Sealed class for import result with SOC detection
+sealed class ImportResult {
+    object Success : ImportResult()
+    data class Warning(val config: TuningConfig, val warning: String) : ImportResult()
+    data class Error(val message: String) : ImportResult()
 }
 
 data class ClusterUIState(
