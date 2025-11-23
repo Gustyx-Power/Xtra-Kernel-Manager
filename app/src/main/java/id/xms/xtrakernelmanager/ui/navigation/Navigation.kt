@@ -3,10 +3,12 @@ package id.xms.xtrakernelmanager.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -40,7 +42,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         BottomNavItem(
             route = "profiles",
             icon = Icons.Default.Speed,
-            label = R.string.nav_misc
+            label = R.string.nav_misc // Pastikan string resource ini ada (Profil/Misc)
         ),
         BottomNavItem(
             route = "info",
@@ -50,16 +52,19 @@ fun Navigation(preferencesManager: PreferencesManager) {
     )
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             ModernBottomBar(
                 currentRoute = currentRoute,
                 onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
+                    if (currentRoute != route) {
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                        launchSingleTop = true
-                        restoreState = true
                     }
                 },
                 items = bottomNavItems
