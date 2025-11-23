@@ -40,6 +40,7 @@ leakcanary = "2.14"
 # KSP
 ksp = "2.0.21-1.0.25"
 lifecycle-service = "2.9.4"
+foundation = "1.9.5"
 
 [libraries]
 # AndroidX Core
@@ -89,6 +90,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 # Debug
 leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycle-service" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
