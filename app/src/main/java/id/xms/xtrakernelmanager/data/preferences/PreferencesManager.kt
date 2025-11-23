@@ -33,6 +33,9 @@ class PreferencesManager(private val context: Context) {
     // TCP congestion control key
     private val TCP_CONGESTION = stringPreferencesKey("tcp_congestion")
 
+    // Performance mode key
+    private val PERF_MODE = stringPreferencesKey("perf_mode")
+
     // RAM configuration keys
     private val RAM_SWAPPINESS = intPreferencesKey("ram_swappiness")
     private val RAM_ZRAM_SIZE = intPreferencesKey("ram_zram_size")   // MB
@@ -101,6 +104,17 @@ class PreferencesManager(private val context: Context) {
     fun getTCPCongestion(): Flow<String> =
         context.dataStore.data.map { prefs ->
             prefs[TCP_CONGESTION] ?: ""
+        }
+
+    suspend fun setPerfMode(mode: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PERF_MODE] = mode
+        }
+    }
+
+    fun getPerfMode(): Flow<String> =
+        context.dataStore.data.map { prefs ->
+            prefs[PERF_MODE] ?: "balance"  // Default: balance
         }
 
     // RAM configuration: simpan & baca RAMConfig
