@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.data.model
 
-import kotlinx.serialization.Serializable
-
 @Serializable
 data class TuningConfig(
     val cpuClusters: List<CPUClusterConfig> = emptyList(),
@@ -10,6 +8,8 @@ data class TuningConfig(
     val ram: RAMConfig = RAMConfig(),
     val additional: AdditionalConfig = AdditionalConfig()
 )
+
+annotation class Serializable
 
 @Serializable
 data class CPUClusterConfig(
