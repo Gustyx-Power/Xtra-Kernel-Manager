@@ -1,9 +1,13 @@
 package id.xms.xtrakernelmanager.ui.splash
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,11 +16,16 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material.icons.rounded.WifiOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,34 +35,80 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.MainActivity
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
+import kotlin.math.max
+
+// --- PREFERENCES MANAGER (Untuk menyimpan info update) ---
+object UpdatePrefs {
+    private const val PREF_NAME = "update_prefs"
+    private const val KEY_PENDING_VERSION = "pending_version"
+    private const val KEY_UPDATE_URL = "update_url"
+    private const val KEY_CHANGELOG = "update_changelog"
+
+    fun savePendingUpdate(context: Context, version: String, url: String, changelog: String) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().apply {
+            putString(KEY_PENDING_VERSION, version)
+            putString(KEY_UPDATE_URL, url)
+            putString(KEY_CHANGELOG, changelog)
+            apply()
+        }
+    }
+
+    fun getPendingUpdate(context: Context): UpdateConfig? {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val version = prefs.getString(KEY_PENDING_VERSION, null) ?: return null
+        val url = prefs.getString(KEY_UPDATE_URL, "") ?: ""
+        val changelog = prefs.getString(KEY_CHANGELOG, "") ?: ""
+        return UpdateConfig(version, changelog, url, force = true) // Diasumsikan force jika tersimpan
+    }
+
+    fun clear(context: Context) {
+        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+    }
+}
+
+data class UpdateConfig(
+    val version: String = "",
+    val changelog: String = "",
+    val url: String = "",
+    val force: Boolean = false
+)
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        
+
         setContent {
             XtraKernelManagerTheme {
-                ImplodeSplashScreen(
-                    onTimeout = {
+                SplashScreenContent(
+                    onNavigateToMain = {
                         startActivity(Intent(this, MainActivity::class.java))
                         finish()
-                        // Disable default activity transition
-                        overridePendingTransition(0, 0)
+                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
                     }
                 )
             }
@@ -62,394 +117,265 @@ class SplashActivity : ComponentActivity() {
 }
 
 @Composable
-fun ImplodeSplashScreen(onTimeout: () -> Unit) {
-    val isDark = isSystemInDarkTheme()
+fun SplashScreenContent(onNavigateToMain: () -> Unit) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     
-    // Monet or Green
-    val hasMonet = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val loadingColor = if (hasMonet) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        if (isDark) Color(0xFF4CAF50) else Color(0xFF2E7D32)
-    }
-    
-    var splashVisible by remember { mutableStateOf(true) }
-    var logoVisible by remember { mutableStateOf(false) }
-    var textVisible by remember { mutableStateOf(false) }
-    var subtitleVisible by remember { mutableStateOf(false) }
-    var loadingVisible by remember { mutableStateOf(false) }
-    var versionVisible by remember { mutableStateOf(false) }
-    
-    var loadingStyle by remember { mutableStateOf(0) }
-    
+    var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var showOfflineLockDialog by remember { mutableStateOf(false) }
+    var isChecking by remember { mutableStateOf(true) }
+    var startExitAnimation by remember { mutableStateOf(false) }
+
+    // --- LOGIC UTAMA (ANTI-LOOPHOLE) ---
     LaunchedEffect(Unit) {
-        // Enter animations
-        delay(200)
-        logoVisible = true
-        delay(300)
-        textVisible = true
-        delay(200)
-        subtitleVisible = true
-        delay(200)
-        loadingVisible = true
-        delay(100)
-        versionVisible = true
+        val minSplashTime = launch { delay(2000) }
+
+        // 1. CEK DATA LOKAL DULU: Apakah ada hutang update?
+        val pendingUpdate = UpdatePrefs.getPendingUpdate(context)
         
-        // Loading style changes
-        delay(1400)
-        loadingStyle = 1
-        delay(1400)
-        loadingStyle = 2
-        delay(1400)
-        
-        // Exit animation - implode!
-        splashVisible = false
-        delay(600) // Wait for animation to complete
-        onTimeout()
-    }
-    
-    val backgroundColor = if (isDark) {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFF0D0D0D),
-                Color(0xFF1A1A2E)
-            )
-        )
-    } else {
-        Brush.verticalGradient(
-            colors = listOf(
-                Color(0xFFF8F9FA),
-                Color(0xFFE9ECEF)
-            )
-        )
-    }
-    
-    // Animated visibility with implode effect
-    AnimatedVisibility(
-        visible = splashVisible,
-        enter = fadeIn(tween(300)),
-        exit = fadeOut(tween(400)) + scaleOut(
-            targetScale = 0.3f,
-            animationSpec = tween(
-                durationMillis = 500,
-                easing = FastOutSlowInEasing
-            ),
-            transformOrigin = androidx.compose.ui.graphics.TransformOrigin.Center
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(backgroundColor)
-                .systemBarsPadding()
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                // Logo with Circular Background
-                AnimatedVisibility(
-                    visible = logoVisible,
-                    enter = fadeIn(
-                        animationSpec = tween(700, easing = FastOutSlowInEasing)
-                    ) + scaleIn(
-                        initialScale = 0.3f,
-                        animationSpec = tween(700, easing = FastOutSlowInEasing)
-                    )
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(140.dp)
-                            .clip(CircleShape)
-                            .background(
-                                brush = Brush.radialGradient(
-                                    colors = if (isDark) {
-                                        listOf(
-                                            Color(0xFF2D2D3D),
-                                            Color(0xFF1A1A2E)
-                                        )
-                                    } else {
-                                        listOf(
-                                            Color(0xFFFFFFFF),
-                                            Color(0xFFF0F0F0)
-                                        )
-                                    }
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo_a),
-                            contentDescription = "App Logo",
-                            modifier = Modifier.size(90.dp)
-                        )
-                    }
+        if (pendingUpdate != null && isUpdateAvailable(BuildConfig.VERSION_NAME, pendingUpdate.version)) {
+            if (isInternetAvailable(context)) {
+                // Jika online, kita verifikasi ulang ke Firebase (siapa tahu dev menarik update)
+                // Tapi untuk keamanan, tampilkan dialog dulu dari cache
+                minSplashTime.join()
+                updateConfig = pendingUpdate
+                isChecking = false
+                showUpdateDialog = true
+                
+                // Background check untuk memastikan info terbaru (opsional, tapi bagus)
+                val freshConfig = withTimeoutOrNull(3000L) { fetchUpdateConfig() }
+                if (freshConfig != null) {
+                    // Update info dialog dengan data terbaru
+                    updateConfig = freshConfig
+                    // Update penyimpanan lokal
+                    UpdatePrefs.savePendingUpdate(context, freshConfig.version, freshConfig.url, freshConfig.changelog)
                 }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // App name
-                AnimatedVisibility(
-                    visible = textVisible,
-                    enter = fadeIn(animationSpec = tween(600)) + 
-                            slideInVertically(
-                                initialOffsetY = { 20 },
-                                animationSpec = tween(600)
-                            )
-                ) {
-                    Text(
-                        text = "Xtra Kernel Manager",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isDark) Color.White else Color(0xFF1A1A2E)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Subtitle
-                AnimatedVisibility(
-                    visible = subtitleVisible,
-                    enter = fadeIn(animationSpec = tween(500))
-                ) {
-                    Text(
-                        text = stringResource(R.string.advanced_kernel_control),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = if (isDark) Color(0xFFB0B0C0) else Color(0xFF6C757D)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                
-                // Hybrid Loading
-                AnimatedVisibility(
-                    visible = loadingVisible,
-                    enter = fadeIn(animationSpec = tween(500)) + 
-                            scaleIn(
-                                initialScale = 0.8f,
-                                animationSpec = tween(500)
-                            )
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        AnimatedContent(
-                            targetState = loadingStyle,
-                            transitionSpec = {
-                                fadeIn(tween(500, easing = FastOutSlowInEasing)) + 
-                                        scaleIn(tween(500, easing = FastOutSlowInEasing)) togetherWith
-                                        fadeOut(tween(400, easing = FastOutSlowInEasing)) + 
-                                        scaleOut(tween(400, easing = FastOutSlowInEasing))
-                            },
-                            label = "loading_style"
-                        ) { style ->
-                            when (style) {
-                                0 -> CircularLoading(
-                                    modifier = Modifier.size(48.dp),
-                                    color = loadingColor
-                                )
-                                1 -> DotsLoading(
-                                    color = loadingColor
-                                )
-                                else -> LinesLoading(
-                                    modifier = Modifier.width(200.dp),
-                                    color = loadingColor
-                                )
-                            }
-                        }
-                        
-                        PulsingText(
-                            text = stringResource(R.string.initializing_kernel_modules),
-                            isDark = isDark
-                        )
-                    }
-                }
+            } else {
+                minSplashTime.join()
+                isChecking = false
+                showOfflineLockDialog = true
             }
-            
-            // Version at bottom
-            AnimatedVisibility(
-                visible = versionVisible,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp),
-                enter = fadeIn(animationSpec = tween(400)) + 
-                        slideInVertically(
-                            initialOffsetY = { 30 },
-                            animationSpec = tween(400)
-                        )
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = "Version ${BuildConfig.VERSION_NAME}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isDark) Color(0xFF606070) else Color(0xFF868E96)
-                    )
-                    Text(
-                        text = "Build ${BuildConfig.VERSION_CODE}",
-                        fontSize = 10.sp,
-                        color = if (isDark) Color(0xFF404050) else Color(0xFFADB5BD)
-                    )
-                }
-            }
-        }
-    }
-}
-
-// Loading Style 1: Circular
-@Composable
-fun CircularLoading(
-    modifier: Modifier = Modifier,
-    color: Color
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "circular")
-    
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "rotation"
-    )
-    
-    Canvas(modifier = modifier) {
-        val strokeWidth = size.minDimension / 6f
-        
-        drawCircle(
-            color = color.copy(alpha = 0.15f),
-            radius = (size.minDimension - strokeWidth) / 2f,
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-        )
-        
-        drawArc(
-            color = color,
-            startAngle = rotation - 90f,
-            sweepAngle = 270f,
-            useCenter = false,
-            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-        )
-    }
-}
-
-// Loading Style 2: Dots
-@Composable
-fun DotsLoading(color: Color) {
-    val infiniteTransition = rememberInfiniteTransition(label = "dots")
-    
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        repeat(3) { index ->
-            val scale by infiniteTransition.animateFloat(
-                initialValue = 0.5f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(
-                        durationMillis = 900,
-                        delayMillis = index * 250,
-                        easing = FastOutSlowInEasing
-                    ),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "scale_$index"
-            )
-            
-            Box(
-                modifier = Modifier
-                    .size(14.dp)
-                    .scale(scale)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                color,
-                                color.copy(alpha = 0.6f)
-                            )
-                        ),
-                        shape = CircleShape
-                    )
-            )
-        }
-    }
-}
-
-// Loading Style 3: Lines
-@Composable
-fun LinesLoading(
-    modifier: Modifier = Modifier,
-    color: Color
-) {
-    val infiniteTransition = rememberInfiniteTransition(label = "lines")
-    
-    val offset by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1600, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "offset"
-    )
-    
-    Canvas(modifier = modifier.height(8.dp)) {
-        val strokeWidth = size.height
-        val trackColor = color.copy(alpha = 0.15f)
-        
-        drawLine(
-            color = trackColor,
-            start = androidx.compose.ui.geometry.Offset(0f, size.height / 2),
-            end = androidx.compose.ui.geometry.Offset(size.width, size.height / 2),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
-        
-        val progressWidth = size.width * 0.4f
-        val startX = (size.width - progressWidth) * offset
-        val endX = startX + progressWidth
-        
-        drawLine(
-            color = color,
-            start = androidx.compose.ui.geometry.Offset(startX, size.height / 2),
-            end = androidx.compose.ui.geometry.Offset(endX.coerceAtMost(size.width), size.height / 2),
-            strokeWidth = strokeWidth,
-            cap = StrokeCap.Round
-        )
-    }
-}
-
-@Composable
-fun PulsingText(text: String, isDark: Boolean) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse_text")
-    
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.5f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1400, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "text_alpha"
-    )
-    
-    Text(
-        text = text,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.Normal,
-        color = if (isDark) {
-            Color.White.copy(alpha = alpha * 0.7f)
         } else {
-            Color(0xFF495057).copy(alpha = alpha * 0.8f)
-        },
-        letterSpacing = 0.3.sp
-    )
+            if (pendingUpdate != null) {
+                UpdatePrefs.clear(context)
+            }
+
+            // 2. PROSES NORMAL: Cek Firebase baru
+            if (isInternetAvailable(context)) {
+                try {
+                    val config = withTimeoutOrNull(5000L) { fetchUpdateConfig() }
+                    minSplashTime.join()
+
+                    if (config != null && isUpdateAvailable(BuildConfig.VERSION_NAME, config.version)) {
+                        // Update Ditemukan!
+                        UpdatePrefs.savePendingUpdate(context, config.version, config.url, config.changelog)
+                        
+                        updateConfig = config
+                        isChecking = false
+                        showUpdateDialog = true
+                    } else {
+                        isChecking = false
+                        startExitAnimation = true
+                    }
+                } catch (e: Exception) {
+                    minSplashTime.join()
+                    isChecking = false
+                    startExitAnimation = true
+                }
+            } else {
+                minSplashTime.join()
+                isChecking = false
+                startExitAnimation = true
+            }
+        }
+    }
+
+    if (startExitAnimation) {
+        LaunchedEffect(Unit) {
+            delay(500)
+            onNavigateToMain()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceContainerLowest))),
+        contentAlignment = Alignment.Center
+    ) {
+        BackgroundCircles()
+
+        AnimatedVisibility(
+            visible = !startExitAnimation,
+            enter = fadeIn(),
+            exit = fadeOut() + scaleOut(targetScale = 1.5f)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Box(modifier = Modifier.size(120.dp).clip(RoundedCornerShape(32.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh).border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(32.dp)), contentAlignment = Alignment.Center) {
+                    Image(painter = painterResource(id = R.drawable.logo_a), contentDescription = "Logo", modifier = Modifier.size(80.dp).scale(1.2f))
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Xtra Kernel Manager", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(modifier = Modifier.height(48.dp))
+                if (isChecking) {
+                    ModernLoader()
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Initializing...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+
+        if (showUpdateDialog && updateConfig != null) {
+            ForceUpdateDialog(
+                config = updateConfig!!,
+                onUpdateClick = {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateConfig!!.url))
+                        context.startActivity(intent)
+                    } catch (e: Exception) { Log.e("OTA", "Browser error", e) }
+                }
+            )
+        }
+
+        if (showOfflineLockDialog) {
+            OfflineLockDialog(
+                onRetry = {
+                    val intent = (context as ComponentActivity).intent
+                    context.finish()
+                    context.startActivity(intent)
+                }
+            )
+        }
+    }
+}
+
+// --- HELPERS ---
+
+fun isInternetAvailable(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val network = connectivityManager.activeNetwork ?: return false
+    val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+    return when {
+        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+        else -> false
+    }
+}
+
+suspend fun fetchUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { continuation ->
+    val database = Firebase.database("https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app")
+    val myRef = database.getReference("update")
+    val listener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            try {
+                val versionRaw = snapshot.child("version").value
+                val version = versionRaw?.toString() ?: ""
+                val changelog = snapshot.child("changelog").getValue(String::class.java) ?: ""
+                val url = snapshot.child("url").getValue(String::class.java) ?: ""
+                val force = snapshot.child("force").getValue(Boolean::class.java) ?: false
+                if (continuation.isActive) continuation.resume(UpdateConfig(version, changelog, url, force))
+            } catch (e: Exception) { if (continuation.isActive) continuation.resume(null) }
+        }
+        override fun onCancelled(error: DatabaseError) { if (continuation.isActive) continuation.resume(null) }
+    }
+    myRef.addListenerForSingleValueEvent(listener)
+    continuation.invokeOnCancellation { myRef.removeEventListener(listener) }
+}
+
+fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
+    return try {
+        val localBase = currentVersion.substringBefore("-").trim()
+        val remoteBase = remoteVersion.substringBefore("-").trim()
+        val cleanCurrent = localBase.replace(Regex("[^0-9.]"), "")
+        val cleanRemote = remoteBase.replace(Regex("[^0-9.]"), "")
+        val cParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
+        val rParts = cleanRemote.split(".").map { it.toIntOrNull() ?: 0 }
+        val length = max(cParts.size, rParts.size)
+        for (i in 0 until length) {
+            val c = cParts.getOrElse(i) { 0 }
+            val r = rParts.getOrElse(i) { 0 }
+            if (r > c) return true
+            if (r < c) return false
+        }
+        if (!remoteVersion.contains("-") && currentVersion.contains("-")) return true
+        false
+    } catch (e: Exception) { false }
+}
+
+// --- UI COMPONENTS ---
+
+@Composable
+fun ForceUpdateDialog(config: UpdateConfig, onUpdateClick: () -> Unit) {
+    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+        Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), elevation = CardDefaults.cardElevation(8.dp), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(modifier = Modifier.size(72.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.CloudDownload, null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Update Required", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text("New Version: ${config.version}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                Spacer(modifier = Modifier.height(16.dp))
+                Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp)).padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Rounded.SystemUpdate, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.secondary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Changelog", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(config.changelog, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = onUpdateClick, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
+                    Text("Update Now")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun OfflineLockDialog(onRetry: () -> Unit) {
+    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
+        Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Rounded.WifiOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Connection Required", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "A pending update was detected previously. You must enable internet connection to update the app before proceeding.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+                    Text("Retry Connection")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ModernLoader() {
+    val infiniteTransition = rememberInfiniteTransition(label = "loader")
+    val rotation by infiniteTransition.animateFloat(initialValue = 0f, targetValue = 360f, animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)), label = "rotation")
+    val brushColor = MaterialTheme.colorScheme.primary
+    Canvas(modifier = Modifier.size(48.dp)) {
+        drawArc(brush = Brush.sweepGradient(listOf(Color.Transparent, Color.Transparent, brushColor)), startAngle = rotation, sweepAngle = 200f, useCenter = false, style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round))
+    }
+}
+
+@Composable
+fun BackgroundCircles() {
+    val color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        drawCircle(color = color, radius = size.width * 0.6f, center = androidx.compose.ui.geometry.Offset(size.width, 0f))
+        drawCircle(color = color.copy(alpha = 0.1f), radius = size.width * 0.4f, center = androidx.compose.ui.geometry.Offset(0f, size.height))
+    }
 }
