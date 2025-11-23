@@ -48,7 +48,6 @@ class TuningViewModel(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> get() = _isLoading.asStateFlow()
 
-    // TAMBAHAN: State untuk loading dialog saat import
     private val _isImporting = MutableStateFlow(false)
     val isImporting: StateFlow<Boolean> get() = _isImporting.asStateFlow()
 
@@ -76,16 +75,19 @@ class TuningViewModel(
     private val _currentTCPCongestion = MutableStateFlow<String>("")
     val currentTCPCongestion: StateFlow<String> get() = _currentTCPCongestion.asStateFlow()
 
+    private val _currentPerfMode = MutableStateFlow("balance")
+    val currentPerfMode: StateFlow<String> get() = _currentPerfMode.asStateFlow()
+
     private val _clusterStates = MutableStateFlow<Map<Int, ClusterUIState>>(emptyMap())
     val clusterStates: StateFlow<Map<Int, ClusterUIState>> get() = _clusterStates.asStateFlow()
 
-    // TAMBAHAN: Cache untuk device info (SOC, codename, model)
     private var deviceInfoCache: Triple<String, String, String>? = null
 
     init {
         viewModelScope.launch {
             _currentIOScheduler.value = preferencesManager.getIOScheduler().first()
             _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
+            _currentPerfMode.value = preferencesManager.getPerfMode().first()
 
             checkRootAndLoadData()
             applySavedCoreStates()
@@ -411,17 +413,27 @@ class TuningViewModel(
 
     fun setPerfMode(mode: String) {
         viewModelScope.launch {
+            Log.d("TuningViewModel", "Setting Performance Mode to: $mode")
+            
+            _currentPerfMode.value = mode
+            
             val governor = when (mode) {
                 "battery" -> "powersave"
                 "balance" -> "schedutil"
                 "performance" -> "performance"
                 else -> "schedutil"
             }
+            
             _cpuClusters.value.forEach { cluster ->
                 cpuUseCase.setClusterGovernor(cluster.clusterNumber, governor)
             }
+            
+            preferencesManager.setPerfMode(mode)
+            
             delay(500)
             refreshCurrentValues()
+            
+            Log.d("TuningViewModel", "Performance Mode set to: $mode")
         }
     }
 
@@ -441,7 +453,6 @@ class TuningViewModel(
         return "tuning-$soc-$codename-$model.toml"
     }
 
-    // Export dengan Uri
     suspend fun exportConfigToUri(context: Context, uri: Uri): Boolean {
         return withContext(Dispatchers.IO) {
             try {
@@ -478,16 +489,13 @@ class TuningViewModel(
 
                 val parseResult = tomlManager.tomlStringToConfig(tomlString)
                 if (parseResult != null) {
-                    // Check SOC compatibility
                     if (!parseResult.isCompatible && parseResult.compatibilityWarning != null) {
-                        // Return warning untuk user confirmation
                         return@withContext ImportResult.Warning(
                             config = parseResult.config,
                             warning = parseResult.compatibilityWarning
                         )
                     }
 
-                    // Compatible - apply directly
                     applyConfig(parseResult.config)
                     Log.d("TuningViewModel", "Config imported and applied successfully")
                     ImportResult.Success
@@ -533,8 +541,6 @@ class TuningViewModel(
             null
         }
 
-        // FIXED: Jangan ambil dari PreferencesManager di sini (butuh suspend)
-        // Cukup default values, nanti di apply config akan di-set
         return TuningConfig(
             cpuClusters = cpuConfigs,
             gpu = gpu,
@@ -542,7 +548,8 @@ class TuningViewModel(
             ram = RAMConfig(),
             additional = AdditionalConfig(
                 ioScheduler = _currentIOScheduler.value,
-                tcpCongestion = _currentTCPCongestion.value
+                tcpCongestion = _currentTCPCongestion.value,
+                perfMode = _currentPerfMode.value
             )
         )
     }
@@ -575,6 +582,7 @@ class TuningViewModel(
 
         config.additional.ioScheduler.takeIf { it.isNotBlank() }?.let { setIOScheduler(it) }
         config.additional.tcpCongestion.takeIf { it.isNotBlank() }?.let { setTCPCongestion(it) }
+        config.additional.perfMode.takeIf { it.isNotBlank() }?.let { setPerfMode(it) }
 
         delay(1000)
         refreshCurrentValues()
@@ -591,7 +599,6 @@ class TuningViewModel(
     }
 }
 
-// Sealed class for import result with SOC detection
 sealed class ImportResult {
     object Success : ImportResult()
     data class Warning(val config: TuningConfig, val warning: String) : ImportResult()
