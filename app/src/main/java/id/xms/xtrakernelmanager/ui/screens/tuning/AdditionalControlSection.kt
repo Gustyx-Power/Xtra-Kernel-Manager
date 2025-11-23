@@ -31,11 +31,11 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
     
     val currentIO by viewModel.currentIOScheduler.collectAsState()
     val currentTCP by viewModel.currentTCPCongestion.collectAsState()
+    val currentPerfMode by viewModel.currentPerfMode.collectAsState() // FIXED: dari ViewModel
     
     var expanded by remember { mutableStateOf(false) }
     var showIODialog by remember { mutableStateOf(false) }
     var showTCPDialog by remember { mutableStateOf(false) }
-    var selectedPerf by remember { mutableStateOf("balance") }
 
     GlassmorphicCard(
         modifier = Modifier
@@ -338,8 +338,6 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                             }
                         }
                     }
-
-                    // UPDATED: Performance Controller Card - Layout Vertical
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -377,7 +375,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                     color = MaterialTheme.colorScheme.secondaryContainer
                                 ) {
                                     Text(
-                                        text = when(selectedPerf) {
+                                        text = when(currentPerfMode) { // FIXED: Gunakan state dari ViewModel
                                             "battery" -> stringResource(R.string.perf_battery)
                                             "balance" -> stringResource(R.string.perf_balance)
                                             "performance" -> stringResource(R.string.perf_performance)
@@ -393,7 +391,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
 
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-                            // UPDATED: Vertical Layout untuk Button
+                            // Vertical Layout untuk Button
                             Column(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -403,11 +401,10 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            selectedPerf = "battery"
                                             viewModel.setPerfMode("battery")
                                         },
                                     colors = CardDefaults.cardColors(
-                                        containerColor = if (selectedPerf == "battery")
+                                        containerColor = if (currentPerfMode == "battery") // FIXED
                                             MaterialTheme.colorScheme.secondaryContainer
                                         else
                                             MaterialTheme.colorScheme.surfaceVariant
@@ -426,7 +423,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                                 .size(40.dp)
                                                 .clip(CircleShape)
                                                 .background(
-                                                    if (selectedPerf == "battery")
+                                                    if (currentPerfMode == "battery") // FIXED
                                                         MaterialTheme.colorScheme.secondary
                                                     else
                                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -436,7 +433,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             Icon(
                                                 imageVector = Icons.Default.BatteryFull,
                                                 contentDescription = null,
-                                                tint = if (selectedPerf == "battery")
+                                                tint = if (currentPerfMode == "battery") // FIXED
                                                     MaterialTheme.colorScheme.onSecondary
                                                 else
                                                     MaterialTheme.colorScheme.onSurfaceVariant,
@@ -447,7 +444,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             Text(
                                                 text = stringResource(R.string.perf_battery),
                                                 style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = if (selectedPerf == "battery") FontWeight.Bold else FontWeight.Normal
+                                                fontWeight = if (currentPerfMode == "battery") FontWeight.Bold else FontWeight.Normal // FIXED
                                             )
                                             Text(
                                                 text = "Power saving mode",
@@ -455,7 +452,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
-                                        if (selectedPerf == "battery") {
+                                        if (currentPerfMode == "battery") { // FIXED
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
                                                 contentDescription = null,
@@ -471,11 +468,10 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            selectedPerf = "balance"
                                             viewModel.setPerfMode("balance")
                                         },
                                     colors = CardDefaults.cardColors(
-                                        containerColor = if (selectedPerf == "balance")
+                                        containerColor = if (currentPerfMode == "balance") // FIXED
                                             MaterialTheme.colorScheme.secondaryContainer
                                         else
                                             MaterialTheme.colorScheme.surfaceVariant
@@ -494,7 +490,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                                 .size(40.dp)
                                                 .clip(CircleShape)
                                                 .background(
-                                                    if (selectedPerf == "balance")
+                                                    if (currentPerfMode == "balance") // FIXED
                                                         MaterialTheme.colorScheme.secondary
                                                     else
                                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -504,7 +500,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             Icon(
                                                 imageVector = Icons.Default.Balance,
                                                 contentDescription = null,
-                                                tint = if (selectedPerf == "balance")
+                                                tint = if (currentPerfMode == "balance") // FIXED
                                                     MaterialTheme.colorScheme.onSecondary
                                                 else
                                                     MaterialTheme.colorScheme.onSurfaceVariant,
@@ -515,7 +511,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             Text(
                                                 text = stringResource(R.string.perf_balance),
                                                 style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = if (selectedPerf == "balance") FontWeight.Bold else FontWeight.Normal
+                                                fontWeight = if (currentPerfMode == "balance") FontWeight.Bold else FontWeight.Normal // FIXED
                                             )
                                             Text(
                                                 text = "Balanced performance",
@@ -523,7 +519,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
-                                        if (selectedPerf == "balance") {
+                                        if (currentPerfMode == "balance") { // FIXED
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
                                                 contentDescription = null,
@@ -539,11 +535,10 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            selectedPerf = "performance"
                                             viewModel.setPerfMode("performance")
                                         },
                                     colors = CardDefaults.cardColors(
-                                        containerColor = if (selectedPerf == "performance")
+                                        containerColor = if (currentPerfMode == "performance") // FIXED
                                             MaterialTheme.colorScheme.secondaryContainer
                                         else
                                             MaterialTheme.colorScheme.surfaceVariant
@@ -562,7 +557,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                                 .size(40.dp)
                                                 .clip(CircleShape)
                                                 .background(
-                                                    if (selectedPerf == "performance")
+                                                    if (currentPerfMode == "performance") // FIXED
                                                         MaterialTheme.colorScheme.secondary
                                                     else
                                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
@@ -572,7 +567,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             Icon(
                                                 imageVector = Icons.Default.Speed,
                                                 contentDescription = null,
-                                                tint = if (selectedPerf == "performance")
+                                                tint = if (currentPerfMode == "performance") // FIXED
                                                     MaterialTheme.colorScheme.onSecondary
                                                 else
                                                     MaterialTheme.colorScheme.onSurfaceVariant,
@@ -583,7 +578,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             Text(
                                                 text = stringResource(R.string.perf_performance),
                                                 style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = if (selectedPerf == "performance") FontWeight.Bold else FontWeight.Normal
+                                                fontWeight = if (currentPerfMode == "performance") FontWeight.Bold else FontWeight.Normal // FIXED
                                             )
                                             Text(
                                                 text = "Maximum performance",
@@ -591,7 +586,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
-                                        if (selectedPerf == "performance") {
+                                        if (currentPerfMode == "performance") { // FIXED
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
                                                 contentDescription = null,
@@ -609,7 +604,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
         }
     }
 
-    // ===== I/O SCHEDULER DIALOG (sama seperti sebelumnya) =====
+    // ===== I/O SCHEDULER DIALOG =====
     if (showIODialog) {
         AlertDialog(
             onDismissRequest = { showIODialog = false },
@@ -709,13 +704,13 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showIODialog = false }) {
-                    Text("Cancel")
+                    Text("Close")
                 }
             }
         )
     }
 
-    // ===== TCP CONGESTION DIALOG (sama seperti sebelumnya) =====
+    // ===== TCP CONGESTION DIALOG =====
     if (showTCPDialog) {
         AlertDialog(
             onDismissRequest = { showTCPDialog = false },
@@ -760,14 +755,14 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    tcpCongestion.forEach { congestion ->
-                        val isSelected = congestion == currentTCP
+                    tcpCongestion.forEach { algorithm ->
+                        val isSelected = algorithm == currentTCP
                         
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    viewModel.setTCPCongestion(congestion)
+                                    viewModel.setTCPCongestion(algorithm)
                                     showTCPDialog = false
                                 },
                             colors = CardDefaults.cardColors(
@@ -789,7 +784,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = congestion,
+                                    text = algorithm,
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                     color = if (isSelected)
@@ -815,7 +810,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showTCPDialog = false }) {
-                    Text("Cancel")
+                    Text("Close")
                 }
             }
         )
