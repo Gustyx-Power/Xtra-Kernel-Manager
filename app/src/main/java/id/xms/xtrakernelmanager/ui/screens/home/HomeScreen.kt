@@ -49,6 +49,7 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.PillCard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.DataOutputStream
@@ -235,7 +236,7 @@ fun HomeScreen(
                             Text(text = "${batteryInfo.level}%", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                 InfoChipCompact(icon = Icons.Default.Power, text = batteryInfo.status)
-                                InfoChipCompact(icon = Icons.Default.HealthAndSafety, text = "${batteryInfo.health} (${String.format("%.0f", batteryInfo.healthPercent)}%)")
+                                InfoChipCompact(icon = Icons.Default.HealthAndSafety, text = "${batteryInfo.health} (${String.format(Locale.US, "%.0f", batteryInfo.healthPercent)}%)")
                             }
                         }
                     }
@@ -282,8 +283,8 @@ fun HomeScreen(
                     // RAM
                     LinearUsageItemDetailed(
                         title = "RAM",
-                        used = String.format("%.2f GB", usedRamGB),
-                        total = String.format("%.2f GB", totalRamGB),
+                        used = String.format(Locale.US, "%.2f GB", usedRamGB),
+                        total = String.format(Locale.US, "%.2f GB", totalRamGB),
                         progress = ramProgress,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -291,8 +292,8 @@ fun HomeScreen(
                     // Storage
                     LinearUsageItemDetailed(
                         title = stringResource(R.string.storage),
-                        used = String.format("%.2f GB", usedStorageGB),
-                        total = String.format("%.2f GB", totalStorageGB),
+                        used = String.format(Locale.US, "%.2f GB", usedStorageGB),
+                        total = String.format(Locale.US, "%.2f GB", totalStorageGB),
                         progress = storageProgress,
                         color = MaterialTheme.colorScheme.tertiary
                     )
@@ -301,10 +302,10 @@ fun HomeScreen(
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (systemInfo.zramSize > 0) {
-                            MemoryTagChip(Icons.Default.Memory, "ZRAM", String.format("%.2f GB", systemInfo.zramSize / (1024f * 1024f * 1024f)))
+                            MemoryTagChip(Icons.Default.Memory, "ZRAM", String.format(Locale.US, "%.2f GB", systemInfo.zramSize / (1024f * 1024f * 1024f)))
                         }
                         if (systemInfo.swapTotal > 0L) {
-                            MemoryTagChip(Icons.Default.SwapHoriz, "Swap", String.format("%.2f GB", systemInfo.swapTotal / (1024f * 1024f * 1024f)))
+                            MemoryTagChip(Icons.Default.SwapHoriz, "Swap", String.format(Locale.US, "%.2f GB", systemInfo.swapTotal / (1024f * 1024f * 1024f)))
                         }
                     }
                 }
@@ -515,7 +516,7 @@ fun CPUInfoCardNoDropdown(cpuInfo: CPUInfo) {
                 Column(modifier = Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                         InfoChipCompact(Icons.Default.Thermostat, "${cpuInfo.temperature}°C")
-                        InfoChipCompact(Icons.Default.Speed, stringResource(R.string.load, String.format("%.0f", cpuInfo.totalLoad)))
+                        InfoChipCompact(Icons.Default.Speed, stringResource(R.string.load, String.format(Locale.US, "%.0f", cpuInfo.totalLoad)))
                         InfoChipCompact(Icons.Default.Dashboard, cpuInfo.cores.firstOrNull()?.governor ?: stringResource(R.string.unknown))
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))

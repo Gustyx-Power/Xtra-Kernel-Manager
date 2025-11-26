@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.PillCard
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,6 +47,7 @@ fun TuningScreen(
     var socWarningMessage by remember { mutableStateOf("") }
     var pendingImportConfig by remember { mutableStateOf<id.xms.xtrakernelmanager.data.model.TuningConfig?>(null) }
     var isImporting by remember { mutableStateOf(false) }
+    var detectionTimeoutReached by remember { mutableStateOf(false) }
 
     // Export launcher - Create file
     val exportLauncher = rememberLauncherForActivityResult(
@@ -120,6 +122,15 @@ fun TuningScreen(
 
     LaunchedEffect(resumeKey) {
         viewModel.applyAllConfigurations()
+    }
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            detectionTimeoutReached = false
+            delay(3_000)
+            detectionTimeoutReached = true
+        } else {
+            detectionTimeoutReached = false
+        }
     }
 
     Box {
@@ -216,7 +227,7 @@ fun TuningScreen(
                         }
                     }
                 }
-            } else if (isLoading) {
+            } else if (isLoading && !detectionTimeoutReached) {
                 item {
                     ElevatedCard(
                         modifier = Modifier.fillMaxWidth()

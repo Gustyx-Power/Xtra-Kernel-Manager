@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import java.util.Locale
 
 @Composable
 fun RAMControlSection(viewModel: TuningViewModel) {
@@ -517,7 +518,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                 ) {
                                     val swapText = if (swapSize.toInt() > 0) {
                                         val gb = swapSize / 1024f
-                                        String.format("%.1f GB", gb)
+                                        String.format(Locale.US, "%.1f GB", gb)
                                     } else "Disabled"
                                     Text(
                                         text = swapText,
@@ -844,7 +845,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                             ) {
                                 val gb = tempSwap / 1024f
                                 Text(
-                                    text = if (tempSwap.toInt() == 0) "Disabled" else String.format("%.1f GB", gb),
+                                    text = if (tempSwap.toInt() == 0) "Disabled" else String.format(Locale.US, "%.1f GB", gb),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -895,7 +896,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                 showSwapApplyingDialog = false
                                 resultSuccess = success
                                 val gb = tempSwap / 1024f
-                                resultMessage = if (success) "Swap applied: ${String.format("%.1f GB", gb)}" else "Failed to apply swap"
+                                resultMessage = if (success) "Swap applied: ${String.format(Locale.US, "%.1f GB", gb)}" else "Failed to apply swap"
                                 showResultDialog = true
                             }
                         )
