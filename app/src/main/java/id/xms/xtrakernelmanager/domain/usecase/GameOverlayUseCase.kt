@@ -5,9 +5,23 @@ import id.xms.xtrakernelmanager.domain.root.RootManager
 class GameOverlayUseCase {
 
     suspend fun getCurrentFPS(): Int {
-        val drmPath = "/sys/class/drm/card0/fbc/fps"
+        // Baca dari sde-crtc-0/measured_fps
+        val drmRaw = RootManager.executeCommand("cat /sys/class/drm/sde-crtc-0/measured_fps")
+            .getOrNull() ?: ""
 
-        return RootManager.readFile(drmPath)
+        if (drmRaw.contains("fps:")) {
+            val fps = drmRaw
+                .substringAfter("fps:")
+                .substringBefore("duration")
+                .trim()
+                .toFloatOrNull()?.toInt() ?: 0
+            if (fps > 0) return fps
+        }
+
+        // Fallback ke path lama jika sde-crtc-0 tidak tersedia
+        val fallbackPath = "/sys/class/drm/card0/fbc/fps"
+        return RootManager.readFile(fallbackPath)
+            // Fallback ke 60 jika keduanya tidak tersedia
             .getOrNull()?.trim()?.toIntOrNull() ?: 60
     }
 
@@ -26,7 +40,7 @@ class GameOverlayUseCase {
     }
 
     suspend fun getCPULoad(): Float {
-        // Perbaikan: Gunakan root access untuk membaca /proc/stat
+        // Gunakan root access untuk membaca /proc/stat
         return try {
             val stat = RootManager.readFile("/proc/stat").getOrNull() ?: return 0f
             val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
