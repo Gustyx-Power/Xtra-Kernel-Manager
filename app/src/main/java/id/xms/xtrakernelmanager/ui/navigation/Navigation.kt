@@ -7,8 +7,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -20,6 +22,7 @@ import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 
 @Composable
@@ -83,8 +86,13 @@ fun Navigation(preferencesManager: PreferencesManager) {
                 TuningScreen(preferencesManager = preferencesManager)
             }
             composable("profiles") {
-                MiscScreen()
+                val context = LocalContext.current
+                val miscViewModel = remember {
+                    MiscViewModel(preferencesManager)
+                }
+                MiscScreen(viewModel = miscViewModel)
             }
+
             composable("info") {
                 InfoScreen()
             }
