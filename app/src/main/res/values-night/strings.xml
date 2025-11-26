@@ -11,7 +11,7 @@
     <string name="ram_usage">RAM Usage</string>
     <string name="storage_usage">Storage Usage</string>
     <string name="system_information">System Information</string>
-    <string name="load">%1$s% Load</string>
+    <string name="load">%1$s%% Load</string>
     <string name="clockspeed_per_core">Clockspeed Core</string>
     <string name="battery_information">Battery Information</string>
     <string name="cpu_information">CPU Information</string>
