@@ -36,6 +36,10 @@ class PreferencesManager(private val context: Context) {
     // Performance mode key
     private val PERF_MODE = stringPreferencesKey("perf_mode")
 
+    // Miscellaneous - Battery Notification & Game Overlay keys
+    private val SHOW_BATTERY_NOTIF = booleanPreferencesKey("show_battery_notif")
+    private val ENABLE_GAME_OVERLAY = booleanPreferencesKey("enable_game_overlay")
+
     // RAM configuration keys
     private val RAM_SWAPPINESS = intPreferencesKey("ram_swappiness")
     private val RAM_ZRAM_SIZE = intPreferencesKey("ram_zram_size")   // MB
@@ -106,6 +110,7 @@ class PreferencesManager(private val context: Context) {
             prefs[TCP_CONGESTION] ?: ""
         }
 
+    // Performance Mode
     suspend fun setPerfMode(mode: String) {
         context.dataStore.edit { prefs ->
             prefs[PERF_MODE] = mode
@@ -115,6 +120,28 @@ class PreferencesManager(private val context: Context) {
     fun getPerfMode(): Flow<String> =
         context.dataStore.data.map { prefs ->
             prefs[PERF_MODE] ?: "balance"  // Default: balance
+        }
+
+    // Miscellaneous ===> Battery Info Notification
+    suspend fun setShowBatteryNotif(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[SHOW_BATTERY_NOTIF] = enabled
+        }
+    }
+    fun isShowBatteryNotif(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[SHOW_BATTERY_NOTIF] ?: false
+        }
+
+    // Miscellaneous ===> Game Control Overlay
+    suspend fun setEnableGameOverlay(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[ENABLE_GAME_OVERLAY] = enabled
+        }
+    }
+    fun isEnableGameOverlay(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[ENABLE_GAME_OVERLAY] ?: false
         }
 
     // RAM configuration: simpan & baca RAMConfig
