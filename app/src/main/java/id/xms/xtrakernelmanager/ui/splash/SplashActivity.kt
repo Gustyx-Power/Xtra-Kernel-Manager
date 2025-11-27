@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.SystemUpdate
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -119,8 +118,7 @@ class SplashActivity : ComponentActivity() {
 @Composable
 fun SplashScreenContent(onNavigateToMain: () -> Unit) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    
+
     var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
     var showUpdateDialog by remember { mutableStateOf(false) }
     var showOfflineLockDialog by remember { mutableStateOf(false) }
@@ -136,14 +134,11 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
         
         if (pendingUpdate != null && isUpdateAvailable(BuildConfig.VERSION_NAME, pendingUpdate.version)) {
             if (isInternetAvailable(context)) {
-                // Jika online, kita verifikasi ulang ke Firebase (siapa tahu dev menarik update)
-                // Tapi untuk keamanan, tampilkan dialog dulu dari cache
                 minSplashTime.join()
                 updateConfig = pendingUpdate
                 isChecking = false
                 showUpdateDialog = true
                 
-                // Background check untuk memastikan info terbaru (opsional, tapi bagus)
                 val freshConfig = withTimeoutOrNull(3000L) { fetchUpdateConfig() }
                 if (freshConfig != null) {
                     // Update info dialog dengan data terbaru
@@ -287,22 +282,79 @@ suspend fun fetchUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { c
 
 fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
     return try {
-        val localBase = currentVersion.substringBefore("-").trim()
+        // Parse base version (sebelum tanda -)
+        val currentBase = currentVersion.substringBefore("-").trim()
         val remoteBase = remoteVersion.substringBefore("-").trim()
-        val cleanCurrent = localBase.replace(Regex("[^0-9.]"), "")
+
+        // Parse suffix (setelah tanda -, misal: Beta1, Beta2, RC1, dll)
+        val currentSuffix = if (currentVersion.contains("-")) currentVersion.substringAfter("-").trim() else ""
+        val remoteSuffix = if (remoteVersion.contains("-")) remoteVersion.substringAfter("-").trim() else ""
+
+        // Bersihkan dan bandingkan base version (2.0, 2.1, dll)
+        val cleanCurrent = currentBase.replace(Regex("[^0-9.]"), "")
         val cleanRemote = remoteBase.replace(Regex("[^0-9.]"), "")
         val cParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
         val rParts = cleanRemote.split(".").map { it.toIntOrNull() ?: 0 }
         val length = max(cParts.size, rParts.size)
+
+        // Bandingkan base version
         for (i in 0 until length) {
             val c = cParts.getOrElse(i) { 0 }
             val r = rParts.getOrElse(i) { 0 }
-            if (r > c) return true
-            if (r < c) return false
+            if (r > c) return true  // Remote lebih tinggi (2.1 > 2.0)
+            if (r < c) return false // Current lebih tinggi (2.1 > 2.0)
         }
-        if (!remoteVersion.contains("-") && currentVersion.contains("-")) return true
+
+        // Jika base version sama, bandingkan suffix
+        // Release version (tanpa suffix) > Beta/RC/Alpha (dengan suffix)
+        if (remoteSuffix.isEmpty() && currentSuffix.isNotEmpty()) {
+            return true // 2.0 (release) > 2.0-Beta1
+        }
+        if (remoteSuffix.isNotEmpty() && currentSuffix.isEmpty()) {
+            return false // 2.0 > 2.0-Beta2
+        }
+
+        // Jika keduanya punya suffix, bandingkan suffix-nya
+        if (currentSuffix.isNotEmpty() && remoteSuffix.isNotEmpty()) {
+            return compareSuffix(currentSuffix, remoteSuffix)
+        }
+
+        // Jika semua sama persis
         false
-    } catch (e: Exception) { false }
+    } catch (e: Exception) {
+        Log.e("OTA", "Error comparing versions: $currentVersion vs $remoteVersion", e)
+        false
+    }
+}
+
+/**
+ * Membandingkan suffix versi (Beta1, Beta2, RC1, Alpha1, dll)
+ * @return true jika remote suffix lebih baru dari current suffix
+ */
+fun compareSuffix(currentSuffix: String, remoteSuffix: String): Boolean {
+    try {
+        // Ekstrak tipe (Beta, RC, Alpha) dan nomor (1, 2, 3)
+        val currentType = currentSuffix.replace(Regex("[0-9]"), "").trim().lowercase()
+        val remoteType = remoteSuffix.replace(Regex("[0-9]"), "").trim().lowercase()
+
+        val currentNum = Regex("[0-9]+").find(currentSuffix)?.value?.toIntOrNull() ?: 0
+        val remoteNum = Regex("[0-9]+").find(remoteSuffix)?.value?.toIntOrNull() ?: 0
+
+        // Jika tipe berbeda, gunakan urutan: Alpha < Beta < RC
+        if (currentType != remoteType) {
+            val priority = mapOf("alpha" to 1, "beta" to 2, "rc" to 3)
+            val currentPriority = priority[currentType] ?: 0
+            val remotePriority = priority[remoteType] ?: 0
+            return remotePriority > currentPriority
+        }
+
+        // Jika tipe sama, bandingkan nomor
+        return remoteNum > currentNum
+    } catch (e: Exception) {
+        Log.e("OTA", "Error comparing suffix: $currentSuffix vs $remoteSuffix", e)
+        // Fallback: bandingkan string secara langsung
+        return remoteSuffix > currentSuffix
+    }
 }
 
 // --- UI COMPONENTS ---
