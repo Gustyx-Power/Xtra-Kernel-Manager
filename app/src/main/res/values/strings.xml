@@ -214,11 +214,11 @@
 
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>
-    <string name="battery_guru">Battery Information</string>
-    <string name="battery_guru_desc">Detailed battery statistics and health</string>
+    <string name="battery_guru">Battery Notification</string>
+    <string name="battery_guru_desc">Battery information in notification</string>
     <string name="game_control">Game Control</string>
     <string name="game_control_desc">FPS meter and performance overlay</string>
-    <string name="game_control_requires_root">Requires root access</string>
+    <string name="game_control_requires_root">Use this if you root user</string>
     <string name="game_overlay_fps">FPS</string>
     <string name="game_overlay_cpu">CPU</string>
     <string name="game_overlay_gpu">GPU</string>

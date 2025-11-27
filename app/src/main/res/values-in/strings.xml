@@ -214,11 +214,11 @@
 
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>
-    <string name="battery_guru">Informasi Baterai</string>
-    <string name="battery_guru_desc">Statistik dan kesehatan baterai yang detail</string>
+    <string name="battery_guru">Notifikasi Baterai</string>
+    <string name="battery_guru_desc">Informasi Baterai kini di notifikasi</string>
     <string name="game_control">Kontrol Gim</string>
     <string name="game_control_desc">FPS meter dan overlay performa</string>
-    <string name="game_control_requires_root">Memerlukan akses root</string>
+    <string name="game_control_requires_root">Hanya untuk pengguna root</string>
     <string name="game_overlay_fps">FPS</string>
     <string name="game_overlay_cpu">CPU</string>
     <string name="game_overlay_gpu">GPU</string>
