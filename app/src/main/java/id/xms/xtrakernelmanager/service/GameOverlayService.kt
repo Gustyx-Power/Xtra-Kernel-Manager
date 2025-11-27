@@ -134,7 +134,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
             ) {
                 Icon(
                     Icons.Default.Speed,
