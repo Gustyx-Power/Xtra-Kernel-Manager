@@ -1,12 +1,16 @@
 package id.xms.xtrakernelmanager.ui.screens.misc
 
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
+import id.xms.xtrakernelmanager.service.GameOverlayService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,10 +19,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MiscViewModel(
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
+    private val context: Context
 ) : ViewModel() {
 
     private val batteryRepository = BatteryRepository()
+    private val gameControlUseCase = GameControlUseCase(context)
 
     private val _isRootAvailable = MutableStateFlow(false)
     val isRootAvailable: StateFlow<Boolean> = _isRootAvailable.asStateFlow()
@@ -26,19 +32,33 @@ class MiscViewModel(
     private val _batteryInfo = MutableStateFlow(BatteryInfo())
     val batteryInfo: StateFlow<BatteryInfo> = _batteryInfo.asStateFlow()
 
+    private val _performanceMode = MutableStateFlow("balanced")
+    val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
+
+    private val _clearRAMStatus = MutableStateFlow("")
+    val clearRAMStatus: StateFlow<String> = _clearRAMStatus.asStateFlow()
+
     val showBatteryNotif = preferencesManager.isShowBatteryNotif()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val enableGameOverlay = preferencesManager.isEnableGameOverlay()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val gameControlDND = preferencesManager.isGameControlDNDEnabled()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val gameControlHideNotif = preferencesManager.isGameControlHideNotifEnabled()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         checkRoot()
+        loadCurrentPerformanceMode()
     }
 
     private fun checkRoot() {
         viewModelScope.launch {
             _isRootAvailable.value = RootManager.isRootAvailable()
+            Log.d("MiscViewModel", "Root available: ${_isRootAvailable.value}")
         }
     }
 
@@ -51,12 +71,116 @@ class MiscViewModel(
     fun setShowBatteryNotification(enabled: Boolean) {
         viewModelScope.launch {
             preferencesManager.setShowBatteryNotif(enabled)
+            Log.d("MiscViewModel", "Battery notification: $enabled")
         }
     }
 
     fun setEnableGameOverlay(enabled: Boolean) {
         viewModelScope.launch {
             preferencesManager.setEnableGameOverlay(enabled)
+            Log.d("MiscViewModel", "Game overlay: $enabled")
+
+            // Start/Stop GameOverlayService
+            if (enabled) {
+                startGameOverlayService()
+            } else {
+                stopGameOverlayService()
+            }
         }
+    }
+
+    private fun startGameOverlayService() {
+        try {
+            val intent = Intent(context, GameOverlayService::class.java)
+            context.startService(intent)
+            Log.d("MiscViewModel", "GameOverlayService started")
+        } catch (e: Exception) {
+            Log.e("MiscViewModel", "Failed to start GameOverlayService: ${e.message}")
+        }
+    }
+
+    private fun stopGameOverlayService() {
+        try {
+            val intent = Intent(context, GameOverlayService::class.java)
+            context.stopService(intent)
+            Log.d("MiscViewModel", "GameOverlayService stopped")
+        } catch (e: Exception) {
+            Log.e("MiscViewModel", "Failed to stop GameOverlayService: ${e.message}")
+        }
+    }
+
+    // Game Control Functions
+    fun setPerformanceMode(mode: String) {
+        viewModelScope.launch {
+            val result = gameControlUseCase.setPerformanceMode(mode)
+            if (result.isSuccess) {
+                _performanceMode.value = mode
+                preferencesManager.setPerfMode(mode)
+                Log.d("MiscViewModel", "Performance mode set to: $mode")
+            } else {
+                Log.e("MiscViewModel", "Failed to set performance mode: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    private fun loadCurrentPerformanceMode() {
+        viewModelScope.launch {
+            val mode = gameControlUseCase.getCurrentPerformanceMode()
+            _performanceMode.value = mode
+        }
+    }
+
+    fun setDND(enabled: Boolean) {
+        viewModelScope.launch {
+            val result = if (enabled) {
+                gameControlUseCase.enableDND()
+            } else {
+                gameControlUseCase.disableDND()
+            }
+
+            if (result.isSuccess) {
+                preferencesManager.setGameControlDND(enabled)
+                Log.d("MiscViewModel", "DND ${if (enabled) "enabled" else "disabled"}")
+            } else {
+                Log.e("MiscViewModel", "Failed to set DND: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    fun setHideNotifications(enabled: Boolean) {
+        viewModelScope.launch {
+            preferencesManager.setGameControlHideNotif(enabled)
+            Log.d("MiscViewModel", "Hide notifications: $enabled")
+        }
+    }
+
+    fun clearRAM() {
+        viewModelScope.launch {
+            _clearRAMStatus.value = "Clearing..."
+            val result = gameControlUseCase.clearRAM()
+
+            if (result.isSuccess) {
+                _clearRAMStatus.value = "RAM Cleared!"
+                Log.d("MiscViewModel", "RAM cleared successfully")
+
+                // Refresh battery info after clearing RAM
+                loadBatteryInfo(context)
+
+                // Reset status after 3 seconds
+                kotlinx.coroutines.delay(3000)
+                _clearRAMStatus.value = ""
+            } else {
+                _clearRAMStatus.value = "Failed"
+                Log.e("MiscViewModel", "Failed to clear RAM: ${result.exceptionOrNull()?.message}")
+
+                kotlinx.coroutines.delay(3000)
+                _clearRAMStatus.value = ""
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("MiscViewModel", "ViewModel cleared")
     }
 }

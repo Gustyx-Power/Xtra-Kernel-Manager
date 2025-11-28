@@ -20,6 +20,9 @@ class PreferencesManager(private val context: Context) {
     private val THEME_MODE = intPreferencesKey("theme_mode")
     private val SET_ON_BOOT = booleanPreferencesKey("set_on_boot")
 
+    // Performance mode
+    private val PERF_MODE = stringPreferencesKey("perf_mode")
+
     // CPU core enable/disable keys
     private fun cpuCoreKey(core: Int) = booleanPreferencesKey("cpu_core_$core")
 
@@ -33,21 +36,21 @@ class PreferencesManager(private val context: Context) {
     // TCP congestion control key
     private val TCP_CONGESTION = stringPreferencesKey("tcp_congestion")
 
-    // Performance mode key
-    private val PERF_MODE = stringPreferencesKey("perf_mode")
+    // RAM configuration keys
+    private val RAM_SWAPPINESS = intPreferencesKey("ram_swappiness")
+    private val RAM_ZRAM_SIZE = intPreferencesKey("ram_zram_size")
+    private val RAM_SWAP_SIZE = intPreferencesKey("ram_swap_size")
+    private val RAM_DIRTY_RATIO = intPreferencesKey("ram_dirty_ratio")
+    private val RAM_MIN_FREE_MEM = intPreferencesKey("ram_min_free_mem")
 
-    // Miscellaneous - Battery Notification & Game Overlay keys
+    // Misc features
     private val SHOW_BATTERY_NOTIF = booleanPreferencesKey("show_battery_notif")
     private val ENABLE_GAME_OVERLAY = booleanPreferencesKey("enable_game_overlay")
 
-    // RAM configuration keys
-    private val RAM_SWAPPINESS = intPreferencesKey("ram_swappiness")
-    private val RAM_ZRAM_SIZE = intPreferencesKey("ram_zram_size")   // MB
-    private val RAM_SWAP_SIZE = intPreferencesKey("ram_swap_size")   // MB
-    private val RAM_DIRTY_RATIO = intPreferencesKey("ram_dirty_ratio")
-    private val RAM_MIN_FREE_MEM = intPreferencesKey("ram_min_free_mem") // kB
+    // Game Control preferences
+    private val GAME_CONTROL_DND_ENABLED = booleanPreferencesKey("game_control_dnd_enabled")
+    private val GAME_CONTROL_HIDE_NOTIF = booleanPreferencesKey("game_control_hide_notif")
 
-    // Flow for basic preferences
     val themeMode: Flow<Int> = context.dataStore.data.map { prefs ->
         prefs[THEME_MODE] ?: 0
     }
@@ -56,7 +59,17 @@ class PreferencesManager(private val context: Context) {
         prefs[SET_ON_BOOT] ?: false
     }
 
-    // CPU core enable/disable preferences
+    suspend fun setPerfMode(mode: String) {
+        context.dataStore.edit { prefs ->
+            prefs[PERF_MODE] = mode
+        }
+    }
+
+    fun getPerfMode(): Flow<String> =
+        context.dataStore.data.map { prefs ->
+            prefs[PERF_MODE] ?: "balanced"
+        }
+
     suspend fun setCpuCoreEnabled(core: Int, enabled: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[cpuCoreKey(core)] = enabled
@@ -68,7 +81,6 @@ class PreferencesManager(private val context: Context) {
             prefs[cpuCoreKey(core)] ?: true
         }
 
-    // Thermal configuration
     suspend fun setThermalConfig(preset: String, setOnBoot: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[THERMAL_PRESET] = preset
@@ -86,7 +98,6 @@ class PreferencesManager(private val context: Context) {
             prefs[THERMAL_SET_ON_BOOT] ?: false
         }
 
-    // I/O scheduler
     suspend fun setIOScheduler(scheduler: String) {
         context.dataStore.edit { prefs ->
             prefs[IO_SCHEDULER] = scheduler
@@ -98,7 +109,6 @@ class PreferencesManager(private val context: Context) {
             prefs[IO_SCHEDULER] ?: ""
         }
 
-    // TCP congestion control
     suspend fun setTCPCongestion(congestion: String) {
         context.dataStore.edit { prefs ->
             prefs[TCP_CONGESTION] = congestion
@@ -110,41 +120,6 @@ class PreferencesManager(private val context: Context) {
             prefs[TCP_CONGESTION] ?: ""
         }
 
-    // Performance Mode
-    suspend fun setPerfMode(mode: String) {
-        context.dataStore.edit { prefs ->
-            prefs[PERF_MODE] = mode
-        }
-    }
-
-    fun getPerfMode(): Flow<String> =
-        context.dataStore.data.map { prefs ->
-            prefs[PERF_MODE] ?: "balance"  // Default: balance
-        }
-
-    // Miscellaneous ===> Battery Info Notification
-    suspend fun setShowBatteryNotif(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[SHOW_BATTERY_NOTIF] = enabled
-        }
-    }
-    fun isShowBatteryNotif(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[SHOW_BATTERY_NOTIF] ?: false
-        }
-
-    // Miscellaneous ===> Game Control Overlay
-    suspend fun setEnableGameOverlay(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[ENABLE_GAME_OVERLAY] = enabled
-        }
-    }
-    fun isEnableGameOverlay(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[ENABLE_GAME_OVERLAY] ?: false
-        }
-
-    // RAM configuration: simpan & baca RAMConfig
     suspend fun setRamConfig(config: RAMConfig) {
         context.dataStore.edit { prefs ->
             prefs[RAM_SWAPPINESS] = config.swappiness
@@ -166,7 +141,52 @@ class PreferencesManager(private val context: Context) {
             )
         }
 
-    // Additional helpers for theme and boot, if needed
+    suspend fun setShowBatteryNotif(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[SHOW_BATTERY_NOTIF] = enabled
+        }
+    }
+
+    fun isShowBatteryNotif(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[SHOW_BATTERY_NOTIF] ?: false
+        }
+
+    suspend fun setEnableGameOverlay(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[ENABLE_GAME_OVERLAY] = enabled
+        }
+    }
+
+    fun isEnableGameOverlay(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[ENABLE_GAME_OVERLAY] ?: false
+        }
+
+    // Game Control DND
+    suspend fun setGameControlDND(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[GAME_CONTROL_DND_ENABLED] = enabled
+        }
+    }
+
+    fun isGameControlDNDEnabled(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[GAME_CONTROL_DND_ENABLED] ?: false
+        }
+
+    // Game Control Hide Notifications
+    suspend fun setGameControlHideNotif(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[GAME_CONTROL_HIDE_NOTIF] = enabled
+        }
+    }
+
+    fun isGameControlHideNotifEnabled(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[GAME_CONTROL_HIDE_NOTIF] ?: false
+        }
+
     suspend fun setThemeMode(mode: Int) {
         context.dataStore.edit { prefs ->
             prefs[THEME_MODE] = mode

@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,7 +44,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         BottomNavItem(
             route = "profiles",
             icon = Icons.Default.Speed,
-            label = R.string.nav_misc // Pastikan string resource ini ada (Profil/Misc)
+            label = R.string.nav_misc
         ),
         BottomNavItem(
             route = "info",
@@ -88,7 +87,10 @@ fun Navigation(preferencesManager: PreferencesManager) {
             composable("profiles") {
                 val context = LocalContext.current
                 val miscViewModel = remember {
-                    MiscViewModel(preferencesManager)
+                    MiscViewModel(
+                        preferencesManager = preferencesManager,
+                        context = context.applicationContext
+                    )
                 }
                 MiscScreen(viewModel = miscViewModel)
             }
