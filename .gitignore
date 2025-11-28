@@ -26,3 +26,5 @@ test-telegram.bat
 **/GameControlSection.kt
 **/GameOverlayService.kt
 **/GameOverlayUseCase.kt
+**/GameControlUseCase.kt
+**/GameControLBottomSheet.kt
