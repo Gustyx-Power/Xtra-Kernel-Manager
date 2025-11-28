@@ -568,12 +568,12 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                         }
                                         Column {
                                             Text(
-                                                text = "Configure Swap File",
+                                                text = stringResource(R.string.swap_configure),
                                                 style = MaterialTheme.typography.titleMedium,
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(
-                                                text = "Tap to adjust size",
+                                                text = stringResource(R.string.tap_to_adjust_size),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -633,12 +633,12 @@ fun RAMControlSection(viewModel: TuningViewModel) {
             title = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Configure ZRAM",
+                        text = stringResource(R.string.zram_configure),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Compressed RAM allocation",
+                        text = stringResource(R.string.zram_compressed_allocation),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -663,7 +663,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Set compressed RAM size. Set to 0 to disable ZRAM.",
+                                text = stringResource(R.string.zram_set_size_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -677,7 +677,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                text = "ZRAM Size",
+                                text = stringResource(R.string.zram_size),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -791,12 +791,12 @@ fun RAMControlSection(viewModel: TuningViewModel) {
             title = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Configure Swap File",
+                        text = stringResource(R.string.swap_configure),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Virtual memory on storage",
+                        text = stringResource(R.string.swap_virtual_memory),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -821,7 +821,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "Set swap file size (max 16 GB). Set to 0 to disable swap.",
+                                text = stringResource(R.string.swap_set_size_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
@@ -835,7 +835,7 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                text = "Swap Size",
+                                text = stringResource(R.string.swap_size),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.SemiBold
                             )

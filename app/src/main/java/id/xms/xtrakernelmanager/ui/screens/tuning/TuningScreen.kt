@@ -61,14 +61,14 @@ fun TuningScreen(
                     val success = viewModel.exportConfigToUri(context, it)
                     Toast.makeText(
                         context,
-                        if (success) "Configuration exported successfully"
-                        else "Failed to export configuration",
+                        if (success) context.getString(R.string.tuning_export_success)
+                        else context.getString(R.string.tuning_export_failed),
                         Toast.LENGTH_SHORT
                     ).show()
                 } catch (e: Exception) {
                     Toast.makeText(
                         context,
-                        "Error: ${e.message}",
+                        context.getString(R.string.tuning_error_format, e.message),
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -89,7 +89,7 @@ fun TuningScreen(
                     is ImportResult.Success -> {
                         Toast.makeText(
                             context,
-                            "Configuration imported and applied successfully",
+                            context.getString(R.string.tuning_import_success),
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -101,7 +101,7 @@ fun TuningScreen(
                     is ImportResult.Error -> {
                         Toast.makeText(
                             context,
-                            "Error: ${result.message}",
+                            context.getString(R.string.tuning_error_format, result.message),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -220,7 +220,7 @@ fun TuningScreen(
                                 )
                             }
                             Text(
-                                text = "Please grant root access to use kernel tuning features. Make sure your device is rooted with Magisk.",
+                                text = stringResource(R.string.tuning_requires_root_desc),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                             )
@@ -247,7 +247,7 @@ fun TuningScreen(
                                     color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Text(
-                                    text = "Detecting hardware configuration...",
+                                    text = stringResource(R.string.tuning_detecting_hardware),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -279,18 +279,18 @@ fun TuningScreen(
                 },
                 title = {
                     Text(
-                        text = "Export Configuration",
+                        text = stringResource(R.string.tuning_export_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Export current tuning configuration to a file?",
+                            text = stringResource(R.string.tuning_export_message),
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = "This will save all CPU, GPU, RAM, thermal settings, and device information.",
+                            text = stringResource(R.string.tuning_export_description),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -312,12 +312,12 @@ fun TuningScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Export")
+                        Text(stringResource(R.string.tuning_export_button))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showExportDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -336,18 +336,18 @@ fun TuningScreen(
                 },
                 title = {
                     Text(
-                        text = "Import Configuration",
+                        text = stringResource(R.string.tuning_import_title),
                         style = MaterialTheme.typography.headlineSmall
                     )
                 },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "Import and apply tuning configuration from a file?",
+                            text = stringResource(R.string.tuning_import_message),
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            text = "⚠️ This will override all current settings and apply the imported configuration immediately.",
+                            text = stringResource(R.string.tuning_import_warning),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -370,12 +370,12 @@ fun TuningScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Import")
+                        Text(stringResource(R.string.tuning_import_button))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showImportDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -388,9 +388,9 @@ fun TuningScreen(
                 icon = {
                     CircularProgressIndicator()
                 },
-                title = { Text("Importing...") },
+                title = { Text(stringResource(R.string.tuning_importing)) },
                 text = {
-                    Text("Applying configuration. Please wait...")
+                    Text(stringResource(R.string.tuning_applying_config))
                 },
                 confirmButton = {},
                 dismissButton = {}
@@ -413,7 +413,7 @@ fun TuningScreen(
                 },
                 title = {
                     Text(
-                        text = "Device Compatibility Warning",
+                        text = stringResource(R.string.tuning_soc_warning_title),
                         style = MaterialTheme.typography.headlineSmall,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -426,12 +426,12 @@ fun TuningScreen(
                         )
                         Divider()
                         Text(
-                            text = "Do you want to proceed anyway?",
+                            text = stringResource(R.string.tuning_soc_warning_question),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Applying incompatible configurations may cause system instability, boot loops, or device malfunction.",
+                            text = stringResource(R.string.tuning_soc_warning_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -445,7 +445,7 @@ fun TuningScreen(
                                     viewModel.applyPreset(config)
                                     Toast.makeText(
                                         context,
-                                        "Configuration applied (with warnings)",
+                                        context.getString(R.string.tuning_apply_with_warning),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -463,7 +463,7 @@ fun TuningScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Apply Anyway")
+                        Text(stringResource(R.string.tuning_apply_anyway))
                     }
                 },
                 dismissButton = {
@@ -471,7 +471,7 @@ fun TuningScreen(
                         showSOCWarning = false
                         pendingImportConfig = null
                     }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )

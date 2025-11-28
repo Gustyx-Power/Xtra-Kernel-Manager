@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
+    <string name="app_name_short">XKM</string>
     <string name="app_name">Xtra Kernel Manager</string>
     <string name="app_version">v%s</string>
 
@@ -81,9 +82,38 @@
     <!-- Tuning Screen -->
     <string name="tuning_title">Kernel Tuning</string>
     <string name="tuning_requires_root">Root access required</string>
+    <string name="tuning_requires_root_desc">Please grant root access to use kernel tuning features. Make sure your device is rooted with Magisk.</string>
     <string name="tuning_export">Export Config</string>
     <string name="tuning_import">Import Config</string>
     <string name="tuning_apply">Apply Preset</string>
+    <string name="tuning_detecting_hardware">Detecting hardware configuration…</string>
+
+    <!-- Export Dialog -->
+    <string name="tuning_export_title">Export Configuration</string>
+    <string name="tuning_export_message">Export current tuning configuration to a file?</string>
+    <string name="tuning_export_description">This will save all CPU, GPU, RAM, thermal settings, and device information.</string>
+    <string name="tuning_export_success">Configuration exported successfully</string>
+    <string name="tuning_export_failed">Failed to export configuration</string>
+    <string name="tuning_export_button">Export</string>
+
+    <!-- Import Dialog -->
+    <string name="tuning_import_title">Import Configuration</string>
+    <string name="tuning_import_message">Import and apply tuning configuration from a file?</string>
+    <string name="tuning_import_warning">⚠️ This will override all current settings and apply the imported configuration immediately.</string>
+    <string name="tuning_import_success">Configuration imported and applied successfully</string>
+    <string name="tuning_import_button">Import</string>
+    <string name="tuning_importing">Importing…</string>
+    <string name="tuning_applying_config">Applying configuration. Please wait…</string>
+
+    <!-- SOC Compatibility Warning -->
+    <string name="tuning_soc_warning_title">Device Compatibility Warning</string>
+    <string name="tuning_soc_warning_question">Do you want to proceed anyway?</string>
+    <string name="tuning_soc_warning_desc">Applying incompatible configurations may cause system instability, boot loops, or device malfunction.</string>
+    <string name="tuning_apply_with_warning">Configuration applied (with warnings)</string>
+    <string name="tuning_apply_anyway">Apply Anyway</string>
+
+    <!-- Error Messages -->
+    <string name="tuning_error_format">Error: %s</string>
 
     <!-- CPU Control -->
     <string name="cpu_control">CPU Control</string>
@@ -107,8 +137,10 @@
 
     <!-- CPU Governor Dialog -->
     <string name="cpu_governor_dialog_title">Select governor</string>
+    <string name="cpu_governor_select">Select CPU governor</string>
     <string name="cpu_governor_dialog_message">Choose a CPU governor profile for this cluster.</string>
     <string name="cpu_governor_dialog_cancel">Cancel</string>
+    <string name="cpu_core_active">Active</string>
 
     <!-- GPU Control -->
     <string name="gpu_control">GPU Control</string>
@@ -122,6 +154,9 @@
     <string name="gpu_renderer_rom_info">ROM-dependent feature. May require reboot.</string>
 
     <!-- GPU Renderer Options -->
+    <string name="gpu_renderer_select_title">Select GPU Renderer</string>
+    <string name="gpu_renderer_select_desc">Choose graphics rendering API</string>
+    <string name="gpu_renderer_tap_to_change">Tap to change renderer</string>
     <string name="gpu_renderer_opengl">OpenGL ES</string>
     <string name="gpu_renderer_opengl_desc">Default Android renderer - Best compatibility</string>
     <string name="gpu_renderer_vulkan">Vulkan</string>
@@ -187,30 +222,55 @@
 
     <!-- Thermal Control -->
     <string name="thermal_control">Thermal Control</string>
+    <string name="thermal_control_desc">Temperature management settings</string>
     <string name="thermal_preset">Thermal Preset</string>
     <string name="thermal_select_preset">Select Thermal</string>
+    <string name="thermal_choose_mode">Choose thermal management mode</string>
+    <string name="thermal_tap_to_change">Tap to change preset</string>
+    <string name="thermal_apply_on_boot">Apply on device startup</string>
     <string name="thermal_dynamic">Dynamic</string>
+    <string name="thermal_dynamic_desc">Adaptive thermal based on usage</string>
     <string name="thermal_incalls">In Calls</string>
+    <string name="thermal_incalls_desc">Optimized for calls and audio</string>
     <string name="thermal_20">Thermal 20</string>
+    <string name="thermal_20_desc">Maximum cooling threshold</string>
     <string name="thermal_not_set">Not Set</string>
+    <string name="thermal_not_set_desc">No thermal profile applied</string>
+    <string name="thermal_unknown_desc">Unknown preset</string>
 
     <!-- RAM Control -->
     <string name="ram_control">RAM Control</string>
+    <string name="ram_control_desc">Virtual memory management</string>
     <string name="swappiness">Swappiness</string>
+    <string name="swappiness_value">Value</string>
     <string name="zram_size">ZRAM Size</string>
+    <string name="zram_configure">Configure ZRAM</string>
+    <string name="zram_compressed_allocation">Compressed RAM allocation</string>
+    <string name="zram_set_size_desc">Set compressed RAM size. Set to 0 to disable ZRAM.</string>
     <string name="swap_size">Swap Size</string>
+    <string name="swap_configure">Configure Swap File</string>
+    <string name="swap_virtual_memory">Virtual memory on storage</string>
+    <string name="swap_set_size_desc">Set swap file size (max 16 GB). Set to 0 to disable swap.</string>
     <string name="dirty_ratio">Dirty Ratio</string>
+    <string name="dirty_ratio_percentage">Percentage</string>
     <string name="min_free_memory">Min Free Memory</string>
+    <string name="min_free_memory_size">Size (KB)</string>
+    <string name="tap_to_adjust_size">Tap to adjust size</string>
 
     <!-- Additional Control -->
     <string name="additional_control">Additional Control</string>
+    <string name="additional_control_desc">I/O, Network &amp; Performance</string>
     <string name="io_scheduler">I/O Scheduler</string>
+    <string name="io_scheduler_select">Select I/O Scheduler</string>
     <string name="tcp_congestion">TCP Congestion</string>
+    <string name="tcp_algorithm_select">Select TCP Algorithm</string>
     <string name="perf_controller">Performance Controller</string>
     <string name="perf_battery">Battery</string>
     <string name="perf_balance">Balance</string>
     <string name="perf_performance">Performance</string>
     <string name="set_on_boot">Set on Boot</string>
+    <string name="tap_to_change">Tap to change</string>
+    <string name="not_set">Not Set</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>

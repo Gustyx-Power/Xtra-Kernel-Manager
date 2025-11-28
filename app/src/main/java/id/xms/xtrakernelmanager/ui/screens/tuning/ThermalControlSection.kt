@@ -41,13 +41,14 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
     )
 
     // Deskripsi untuk setiap preset
+    @Composable
     fun getPresetDescription(preset: String): String {
         return when (preset) {
-            "Not Set" -> "No thermal profile applied"
-            "Dynamic" -> "Adaptive thermal based on usage"
-            "Incalls" -> "Optimized for calls and audio"
-            "Thermal 20" -> "Maximum cooling threshold"
-            else -> "Unknown preset"
+            "Not Set" -> stringResource(R.string.thermal_not_set_desc)
+            "Dynamic" -> stringResource(R.string.thermal_dynamic_desc)
+            "Incalls" -> stringResource(R.string.thermal_incalls_desc)
+            "Thermal 20" -> stringResource(R.string.thermal_20_desc)
+            else -> stringResource(R.string.thermal_unknown_desc)
         }
     }
 
@@ -336,7 +337,7 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Choose thermal management mode",
+                        text = stringResource(R.string.thermal_choose_mode),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

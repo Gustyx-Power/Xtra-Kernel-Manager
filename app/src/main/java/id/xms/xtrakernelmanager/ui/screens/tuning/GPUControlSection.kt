@@ -990,7 +990,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(
-                                                text = "Tap to change renderer",
+                                                text = stringResource(R.string.gpu_renderer_tap_to_change),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -1041,12 +1041,12 @@ fun GPUControlSection(viewModel: TuningViewModel) {
             title = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Select GPU Renderer",
+                        text = stringResource(R.string.gpu_renderer_select_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Choose graphics rendering API",
+                        text = stringResource(R.string.gpu_renderer_select_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

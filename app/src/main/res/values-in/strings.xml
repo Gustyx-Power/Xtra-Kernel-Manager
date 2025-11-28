@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App Name -->
+    <string name="app_name_short">XKM</string>
     <string name="app_name">Xtra Kernel Manager</string>
     <string name="app_version">v%s</string>
 
@@ -81,9 +82,38 @@
     <!-- Tuning Screen -->
     <string name="tuning_title">Pengaturan Kernel</string>
     <string name="tuning_requires_root">Memerlukan akses root</string>
+    <string name="tuning_requires_root_desc">Mohon berikan akses root untuk menggunakan fitur pengaturan kernel. Pastikan perangkat Anda di-root dengan Magisk.</string>
     <string name="tuning_export">Ekspor Konfigurasi</string>
     <string name="tuning_import">Impor Konfigurasi</string>
     <string name="tuning_apply">Terapkan Preset</string>
+    <string name="tuning_detecting_hardware">Mendeteksi konfigurasi hardware…</string>
+
+    <!-- Export Dialog -->
+    <string name="tuning_export_title">Ekspor Konfigurasi</string>
+    <string name="tuning_export_message">Ekspor konfigurasi tuning saat ini ke file?</string>
+    <string name="tuning_export_description">Ini akan menyimpan semua pengaturan CPU, GPU, RAM, termal, dan informasi perangkat.</string>
+    <string name="tuning_export_success">Konfigurasi berhasil diekspor</string>
+    <string name="tuning_export_failed">Gagal mengekspor konfigurasi</string>
+    <string name="tuning_export_button">Ekspor</string>
+
+    <!-- Import Dialog -->
+    <string name="tuning_import_title">Impor Konfigurasi</string>
+    <string name="tuning_import_message">Impor dan terapkan konfigurasi tuning dari file?</string>
+    <string name="tuning_import_warning">⚠️ Ini akan menimpa semua pengaturan saat ini dan menerapkan konfigurasi yang diimpor secara langsung.</string>
+    <string name="tuning_import_success">Konfigurasi berhasil diimpor dan diterapkan</string>
+    <string name="tuning_import_button">Impor</string>
+    <string name="tuning_importing">Mengimpor…</string>
+    <string name="tuning_applying_config">Menerapkan konfigurasi. Mohon tunggu…</string>
+
+    <!-- SOC Compatibility Warning -->
+    <string name="tuning_soc_warning_title">Peringatan Kompatibilitas Perangkat</string>
+    <string name="tuning_soc_warning_question">Apakah Anda ingin melanjutkan?</string>
+    <string name="tuning_soc_warning_desc">Menerapkan konfigurasi yang tidak kompatibel dapat menyebabkan ketidakstabilan sistem, boot loop, atau kerusakan perangkat.</string>
+    <string name="tuning_apply_with_warning">Konfigurasi diterapkan (dengan peringatan)</string>
+    <string name="tuning_apply_anyway">Tetap Terapkan</string>
+
+    <!-- Error Messages -->
+    <string name="tuning_error_format">Error: %s</string>
 
     <!-- CPU Control -->
     <string name="cpu_control">Kontrol CPU</string>
@@ -107,8 +137,10 @@
 
     <!-- CPU Governor Dialog -->
     <string name="cpu_governor_dialog_title">Pilih governor</string>
+    <string name="cpu_governor_select">Pilih governor CPU</string>
     <string name="cpu_governor_dialog_message">Pilih profil governor CPU untuk cluster ini.</string>
     <string name="cpu_governor_dialog_cancel">Batal</string>
+    <string name="cpu_core_active">Aktif</string>
 
     <!-- GPU Control -->
     <string name="gpu_control">Kontrol GPU</string>
@@ -122,6 +154,9 @@
     <string name="gpu_renderer_rom_info">Fitur tergantung ROM. Mungkin perlu reboot.</string>
 
     <!-- GPU Renderer Options -->
+    <string name="gpu_renderer_select_title">Pilih Renderer GPU</string>
+    <string name="gpu_renderer_select_desc">Pilih API rendering grafis</string>
+    <string name="gpu_renderer_tap_to_change">Ketuk untuk mengubah renderer</string>
     <string name="gpu_renderer_opengl">OpenGL ES</string>
     <string name="gpu_renderer_opengl_desc">Renderer Android default - Paling kompatibel</string>
     <string name="gpu_renderer_vulkan">Vulkan</string>
@@ -187,30 +222,55 @@
 
     <!-- Thermal Control -->
     <string name="thermal_control">Kontrol Termal</string>
+    <string name="thermal_control_desc">Pengaturan manajemen suhu</string>
     <string name="thermal_preset">Preset Termal</string>
     <string name="thermal_select_preset">Pilih profil termal</string>
+    <string name="thermal_choose_mode">Pilih mode manajemen termal</string>
+    <string name="thermal_tap_to_change">Ketuk untuk mengubah preset</string>
+    <string name="thermal_apply_on_boot">Terapkan saat perangkat menyala</string>
     <string name="thermal_dynamic">Dinamis</string>
+    <string name="thermal_dynamic_desc">Termal adaptif berdasarkan penggunaan</string>
     <string name="thermal_incalls">Saat Panggilan</string>
+    <string name="thermal_incalls_desc">Dioptimalkan untuk panggilan dan audio</string>
     <string name="thermal_20">Termal 20</string>
+    <string name="thermal_20_desc">Ambang pendinginan maksimum</string>
     <string name="thermal_not_set">Belum diatur</string>
+    <string name="thermal_not_set_desc">Tidak ada profil termal diterapkan</string>
+    <string name="thermal_unknown_desc">Preset tidak dikenal</string>
 
     <!-- RAM Control -->
     <string name="ram_control">Kontrol RAM</string>
+    <string name="ram_control_desc">Manajemen memori virtual</string>
     <string name="swappiness">Swappiness</string>
+    <string name="swappiness_value">Nilai</string>
     <string name="zram_size">Ukuran ZRAM</string>
+    <string name="zram_configure">Konfigurasi ZRAM</string>
+    <string name="zram_compressed_allocation">Alokasi RAM terkompresi</string>
+    <string name="zram_set_size_desc">Atur ukuran RAM terkompresi. Atur ke 0 untuk menonaktifkan ZRAM.</string>
     <string name="swap_size">Ukuran Swap</string>
+    <string name="swap_configure">Konfigurasi File Swap</string>
+    <string name="swap_virtual_memory">Memori virtual di penyimpanan</string>
+    <string name="swap_set_size_desc">Atur ukuran file swap (maks 16 GB). Atur ke 0 untuk menonaktifkan swap.</string>
     <string name="dirty_ratio">Dirty Ratio</string>
-    <string name="min_free_memory">Minimal Memori Bebas</string>
+    <string name="dirty_ratio_percentage">Persentase</string>
+    <string name="min_free_memory">Memori Bebas Minimum</string>
+    <string name="min_free_memory_size">Ukuran (KB)</string>
+    <string name="tap_to_adjust_size">Ketuk untuk menyesuaikan ukuran</string>
 
     <!-- Additional Control -->
     <string name="additional_control">Kontrol Tambahan</string>
-    <string name="io_scheduler">Penjadwal I/O</string>
-    <string name="tcp_congestion">Kongesti TCP</string>
-    <string name="perf_controller">Pengendali Performa</string>
-    <string name="perf_battery">Hemat baterai</string>
+    <string name="additional_control_desc">I/O, Jaringan &amp; Performa</string>
+    <string name="io_scheduler">I/O Scheduler</string>
+    <string name="io_scheduler_select">Pilih I/O Scheduler</string>
+    <string name="tcp_congestion">TCP Congestion</string>
+    <string name="tcp_algorithm_select">Pilih Algoritma TCP</string>
+    <string name="perf_controller">Pengontrol Performa</string>
+    <string name="perf_battery">Hemat Baterai</string>
     <string name="perf_balance">Seimbang</string>
     <string name="perf_performance">Performa</string>
-    <string name="set_on_boot">Atur saat boot</string>
+    <string name="set_on_boot">Terapkan saat boot</string>
+    <string name="tap_to_change">Ketuk untuk mengubah</string>
+    <string name="not_set">Belum diatur</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>

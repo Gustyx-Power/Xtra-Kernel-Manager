@@ -87,7 +87,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "I/O, Network & Performance",
+                            text = stringResource(R.string.additional_control_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -160,7 +160,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                         color = MaterialTheme.colorScheme.secondaryContainer
                                     ) {
                                         Text(
-                                            text = currentIO.ifEmpty { "Not Set" },
+                                            text = currentIO.ifEmpty { stringResource(R.string.not_set) },
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -207,12 +207,12 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             }
                                             Column {
                                                 Text(
-                                                    text = currentIO.ifEmpty { "Select I/O Scheduler" },
+                                                    text = currentIO.ifEmpty { stringResource(R.string.io_scheduler_select) },
                                                     style = MaterialTheme.typography.titleMedium,
                                                     fontWeight = FontWeight.Bold
                                                 )
                                                 Text(
-                                                    text = "Tap to change",
+                                                    text = stringResource(R.string.tap_to_change),
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
@@ -269,7 +269,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                         color = MaterialTheme.colorScheme.secondaryContainer
                                     ) {
                                         Text(
-                                            text = currentTCP.ifEmpty { "Not Set" },
+                                            text = currentTCP.ifEmpty { stringResource(R.string.not_set) },
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -316,12 +316,12 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             }
                                             Column {
                                                 Text(
-                                                    text = currentTCP.ifEmpty { "Select TCP Algorithm" },
+                                                    text = currentTCP.ifEmpty { stringResource(R.string.tcp_algorithm_select) },
                                                     style = MaterialTheme.typography.titleMedium,
                                                     fontWeight = FontWeight.Bold
                                                 )
                                                 Text(
-                                                    text = "Tap to change",
+                                                    text = stringResource(R.string.tap_to_change),
                                                     style = MaterialTheme.typography.bodySmall,
                                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
@@ -379,7 +379,7 @@ fun AdditionalControlSection(viewModel: TuningViewModel) {
                                             "battery" -> stringResource(R.string.perf_battery)
                                             "balance" -> stringResource(R.string.perf_balance)
                                             "performance" -> stringResource(R.string.perf_performance)
-                                            else -> "Balance"
+                                            else -> stringResource(R.string.perf_balance)
                                         },
                                         style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold,

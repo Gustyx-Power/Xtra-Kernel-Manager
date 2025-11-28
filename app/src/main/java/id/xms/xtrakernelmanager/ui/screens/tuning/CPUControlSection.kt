@@ -450,7 +450,7 @@ private fun ClusterCard(
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = "Tap to change",
+                                            text = stringResource(R.string.tap_to_change),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -585,7 +585,7 @@ private fun ClusterCard(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Select CPU governor",
+                            text = stringResource(R.string.cpu_governor_select),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -675,7 +675,7 @@ private fun ClusterCard(
                                         color = MaterialTheme.colorScheme.primary
                                     ) {
                                         Text(
-                                            text = "Active",
+                                            text = stringResource(R.string.cpu_core_active),
                                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                             style = MaterialTheme.typography.labelSmall,
                                             fontWeight = FontWeight.Bold,
