@@ -1,7 +1,11 @@
 package id.xms.xtrakernelmanager
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.DisplayMetrics
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +20,10 @@ import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 
 class MainActivity : ComponentActivity() {
     private val preferencesManager by lazy { PreferencesManager(this) }
+
+    companion object {
+        private const val TARGET_DENSITY_DPI = 410
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,8 +44,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(updateDensity(newBase))
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        updateDensity(this)
+    }
+
+    @SuppressLint("DiscouragedApi")
+    @Suppress("DEPRECATION")
+    private fun updateDensity(context: Context): Context {
+        val configuration = Configuration(context.resources.configuration)
+        val displayMetrics = context.resources.displayMetrics
+
+        configuration.densityDpi = DisplayMetrics.DENSITY_420
+        displayMetrics.density = TARGET_DENSITY_DPI / 160f
+        displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
+
+        return context.createConfigurationContext(configuration)
+    }
+
     override fun onDestroy() {
-        // Optional: stop service jika diperlukan saat app ditutup total
         stopService(Intent(this, KernelConfigService::class.java))
         super.onDestroy()
     }
