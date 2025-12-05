@@ -222,8 +222,8 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                                         ) {
                                             Icon(
                                                 imageVector = when (prefsThermal) {
-                                                    "Class 0" -> Icons.Default.Rocket
-                                                    "Extreme" -> Icons.Default.Bolt
+                                                    "Class 0" -> Icons.Default.Speed
+                                                    "Extreme" -> Icons.Default.Whatshot
                                                     "Dynamic" -> Icons.Default.AutoMode
                                                     "Incalls" -> Icons.Default.Call
                                                     "Thermal 20" -> Icons.Default.LocalFireDepartment
@@ -400,6 +400,8 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                                     ) {
                                         Icon(
                                             imageVector = when (preset) {
+                                                "Class 0" -> Icons.Default.Speed
+                                                "Extreme" -> Icons.Default.Whatshot
                                                 "Dynamic" -> Icons.Default.AutoMode
                                                 "Incalls" -> Icons.Default.Call
                                                 "Thermal 20" -> Icons.Default.LocalFireDepartment
