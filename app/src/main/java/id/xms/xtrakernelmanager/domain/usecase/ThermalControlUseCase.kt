@@ -8,6 +8,8 @@ class ThermalControlUseCase {
 
     suspend fun setThermalMode(preset: String, setOnBoot: Boolean): Result<Unit> {
         val index = when (preset) {
+            "Class 0" -> 11
+            "Extreme" -> 2
             "Dynamic" -> 10
             "Incalls" -> 8
             "Thermal 20" -> 20

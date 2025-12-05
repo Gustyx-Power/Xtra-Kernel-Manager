@@ -35,6 +35,8 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
 
     val presetMap = mapOf(
         "Not Set" to R.string.thermal_not_set,
+        "Class 0" to R.string.thermal_class_0,
+        "Extreme" to R.string.thermal_extreme,
         "Dynamic" to R.string.thermal_dynamic,
         "Incalls" to R.string.thermal_incalls,
         "Thermal 20" to R.string.thermal_20
@@ -45,6 +47,8 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
     fun getPresetDescription(preset: String): String {
         return when (preset) {
             "Not Set" -> stringResource(R.string.thermal_not_set_desc)
+            "Class 0" -> stringResource(R.string.thermal_class_0_desc)
+            "Extreme" -> stringResource(R.string.thermal_extreme_desc)
             "Dynamic" -> stringResource(R.string.thermal_dynamic_desc)
             "Incalls" -> stringResource(R.string.thermal_incalls_desc)
             "Thermal 20" -> stringResource(R.string.thermal_20_desc)
@@ -102,7 +106,7 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Temperature management settings",
+                            text = stringResource(R.string.thermal_control_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -218,6 +222,8 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                                         ) {
                                             Icon(
                                                 imageVector = when (prefsThermal) {
+                                                    "Class 0" -> Icons.Default.Rocket
+                                                    "Extreme" -> Icons.Default.Bolt
                                                     "Dynamic" -> Icons.Default.AutoMode
                                                     "Incalls" -> Icons.Default.Call
                                                     "Thermal 20" -> Icons.Default.LocalFireDepartment
@@ -235,7 +241,7 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(
-                                                text = "Tap to change preset",
+                                                text = stringResource(R.string.thermal_tap_to_change),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
