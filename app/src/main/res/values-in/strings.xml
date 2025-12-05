@@ -228,6 +228,10 @@
     <string name="thermal_choose_mode">Pilih mode manajemen termal</string>
     <string name="thermal_tap_to_change">Ketuk untuk mengubah preset</string>
     <string name="thermal_apply_on_boot">Terapkan saat perangkat menyala</string>
+    <string name="thermal_class_0">Kelas 0</string>
+    <string name="thermal_class_0_desc">Performa tertinggi, throttling minimal</string>
+    <string name="thermal_extreme">Ekstrem</string>
+    <string name="thermal_extreme_desc">Mode performa maksimum</string>
     <string name="thermal_dynamic">Dinamis</string>
     <string name="thermal_dynamic_desc">Termal adaptif berdasarkan penggunaan</string>
     <string name="thermal_incalls">Saat Panggilan</string>
@@ -278,7 +282,10 @@
     <string name="battery_guru_desc">Informasi Baterai kini di notifikasi</string>
     <string name="game_control">Kontrol Gim</string>
     <string name="game_control_desc">FPS meter dan overlay performa</string>
+    <string name="game_control_tap_fps">Ketuk ikon FPS untuk membuka panel kontrol</string>
     <string name="game_control_requires_root">Hanya untuk pengguna root</string>
+    <string name="grant_notification_permission">Berikan Izin Notifikasi</string>
+    <string name="grant_overlay_permission">Berikan Izin Overlay</string>
     <string name="game_overlay_fps">FPS</string>
     <string name="game_overlay_cpu">CPU</string>
     <string name="game_overlay_gpu">GPU</string>

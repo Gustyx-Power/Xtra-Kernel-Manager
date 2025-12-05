@@ -228,6 +228,10 @@
     <string name="thermal_choose_mode">Choose thermal management mode</string>
     <string name="thermal_tap_to_change">Tap to change preset</string>
     <string name="thermal_apply_on_boot">Apply on device startup</string>
+    <string name="thermal_class_0">Class 0</string>
+    <string name="thermal_class_0_desc">Highest performance, minimal throttling</string>
+    <string name="thermal_extreme">Extreme</string>
+    <string name="thermal_extreme_desc">Maximum performance mode</string>
     <string name="thermal_dynamic">Dynamic</string>
     <string name="thermal_dynamic_desc">Adaptive thermal based on usage</string>
     <string name="thermal_incalls">In Calls</string>
@@ -278,7 +282,10 @@
     <string name="battery_guru_desc">Battery information in notification</string>
     <string name="game_control">Game Control</string>
     <string name="game_control_desc">FPS meter and performance overlay</string>
+    <string name="game_control_tap_fps">Tap FPS icon to open control panel</string>
     <string name="game_control_requires_root">Use this if you root user</string>
+    <string name="grant_notification_permission">Grant Notification Permission</string>
+    <string name="grant_overlay_permission">Grant Overlay Permission</string>
     <string name="game_overlay_fps">FPS</string>
     <string name="game_overlay_cpu">CPU</string>
     <string name="game_overlay_gpu">GPU</string>
