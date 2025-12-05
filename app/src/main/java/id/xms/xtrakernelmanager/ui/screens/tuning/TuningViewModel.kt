@@ -69,11 +69,17 @@ class TuningViewModel(
     private val _availableTCPCongestion = MutableStateFlow<List<String>>(emptyList())
     val availableTCPCongestion: StateFlow<List<String>> get() = _availableTCPCongestion.asStateFlow()
 
+    private val _availableCompressionAlgorithms = MutableStateFlow<List<String>>(emptyList())
+    val availableCompressionAlgorithms: StateFlow<List<String>> get() = _availableCompressionAlgorithms.asStateFlow()
+
     private val _currentIOScheduler = MutableStateFlow<String>("")
     val currentIOScheduler: StateFlow<String> get() = _currentIOScheduler.asStateFlow()
 
     private val _currentTCPCongestion = MutableStateFlow<String>("")
     val currentTCPCongestion: StateFlow<String> get() = _currentTCPCongestion.asStateFlow()
+
+    private val _currentCompressionAlgorithm = MutableStateFlow<String>("lz4")
+    val currentCompressionAlgorithm: StateFlow<String> get() = _currentCompressionAlgorithm.asStateFlow()
 
     private val _currentPerfMode = MutableStateFlow("balance")
     val currentPerfMode: StateFlow<String> get() = _currentPerfMode.asStateFlow()
@@ -155,6 +161,7 @@ class TuningViewModel(
 
         _availableIOSchedulers.value = getAvailableIOSchedulers()
         _availableTCPCongestion.value = getAvailableTCPCongestion()
+        _availableCompressionAlgorithms.value = ramUseCase.getAvailableCompressionAlgorithms()
 
         val currentIO = getCurrentIOScheduler()
         if (currentIO.isNotEmpty()) {
@@ -164,6 +171,11 @@ class TuningViewModel(
         val currentTCP = getCurrentTCPCongestion()
         if (currentTCP.isNotEmpty()) {
             _currentTCPCongestion.value = currentTCP
+        }
+
+        val currentComp = ramUseCase.getCurrentCompressionAlgorithm()
+        if (currentComp.isNotEmpty()) {
+            _currentCompressionAlgorithm.value = currentComp
         }
 
         refreshCurrentValues()
@@ -197,7 +209,7 @@ class TuningViewModel(
             return saved
         }
 
-        val match = Regex("\\[(.*?)\\]").find(output)
+        val match = Regex("\\[(.*?)]").find(output)
         val result = match?.groupValues?.get(1) ?: ""
         Log.d("TuningViewModel", "IO Scheduler parsed: $result")
 
@@ -381,21 +393,29 @@ class TuningViewModel(
     fun setRAMParameters(config: RAMConfig) {
         viewModelScope.launch(Dispatchers.IO) {
             ramUseCase.setSwappiness(config.swappiness)
-            ramUseCase.setZRAMSize(config.zramSize.toLong() * 1024L * 1024L)
+            ramUseCase.setZRAMSize(
+                config.zramSize.toLong() * 1024L * 1024L,
+                config.compressionAlgorithm
+            )
             ramUseCase.setDirtyRatio(config.dirtyRatio)
             ramUseCase.setMinFreeMem(config.minFreeMem)
             ramUseCase.setSwapFileSizeMb(config.swapSize)
             preferencesManager.setRamConfig(config)
+            _currentCompressionAlgorithm.value = config.compressionAlgorithm
         }
     }
 
     fun setZRAMWithLiveLog(
         sizeBytes: Long,
+        compressionAlgorithm: String = "lz4",
         onLog: (String) -> Unit,
         onComplete: (Boolean) -> Unit
     ) {
         viewModelScope.launch(Dispatchers.IO) {
-            val result = ramUseCase.setZRAMSize(sizeBytes, onLog)
+            val result = ramUseCase.setZRAMSize(sizeBytes, compressionAlgorithm, onLog)
+            if (result.isSuccess) {
+                _currentCompressionAlgorithm.value = compressionAlgorithm
+            }
             onComplete(result.isSuccess)
         }
     }

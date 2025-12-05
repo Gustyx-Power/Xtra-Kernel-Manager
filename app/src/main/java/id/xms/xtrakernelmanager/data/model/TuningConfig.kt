@@ -40,7 +40,8 @@ data class RAMConfig(
     val zramSize: Int = 0,       // MB
     val swapSize: Int = 0,       // MB (0 = disable, max 16384)
     val dirtyRatio: Int = 20,    // /proc/sys/vm/dirty_ratio
-    val minFreeMem: Int = 0      // /proc/sys/vm/min_free_kbytes
+    val minFreeMem: Int = 0,     // /proc/sys/vm/min_free_kbytes
+    val compressionAlgorithm: String = "lz4" // ZRAM compression algorithm
 )
 
 @Serializable
