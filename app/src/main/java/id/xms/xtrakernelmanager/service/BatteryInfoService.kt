@@ -169,22 +169,26 @@ class BatteryInfoService : Service() {
             "$currentNow mA"
         }
 
+        // Calculate drain percentages
+        val totalDrain = batteryDrainWhileScreenOn + batteryDrainWhileScreenOff
+        val activeDrainPercent = if (totalDrain > 0) {
+            (batteryDrainWhileScreenOn.toFloat() / totalDrain * 100)
+        } else 0f
+        val idleDrainPercent = if (totalDrain > 0) {
+            (batteryDrainWhileScreenOff.toFloat() / totalDrain * 100)
+        } else 0f
+
         val bigTextStyle = NotificationCompat.BigTextStyle()
-            .setBigContentTitle("Battery: $level% | $tempStr°C ${if(charging) "Charging" else "Discharging"}")
+            .setBigContentTitle("Battery: $level% | $tempStr°C | $currentStr ${if(charging) "⚡" else "📉"}")
             .bigText(buildString {
-                appendLine("Current: $currentStr")
-                appendLine("Voltage: ${voltageStr}V")
-                appendLine("Health: $health")
-                appendLine("Screen On: $screenOnStr")
-                appendLine("Screen Off: $screenOffStr")
-                appendLine("Deep Sleep: $deepSleepStr")
-                appendLine("Awake: $awakeStr")
-                appendLine("Active Drain: $activeDrainStr%/h")
-                append("Idle Drain: $idleDrainStr%/h")
+                appendLine("Voltage: ${voltageStr}V | Health: $health")
+                appendLine("Screen On: $screenOnStr | Screen Off: $screenOffStr")
+                appendLine("Deep Sleep: $deepSleepStr | Awake: $awakeStr")
+                append("Active: $activeDrainStr%%/h (%.0f%%) | Idle: $idleDrainStr%%/h (%.0f%%)".format(activeDrainPercent, idleDrainPercent))
             })
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Battery: $level% | $tempStr°C ${if(charging) "Charging" else "Discharging"}")
+            .setContentTitle("Battery: $level% | $tempStr°C | $currentStr")
             .setContentText("Screen: $screenOnStr | Drain: $activeDrainStr%/h")
             .setStyle(bigTextStyle)
             .setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
