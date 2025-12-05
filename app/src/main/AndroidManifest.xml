@@ -54,7 +54,7 @@
 
         <!-- Boot Receiver -->
         <receiver
-            android:name=".domain.receiver.BootReceiver"
+            android:name=".receiver.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
