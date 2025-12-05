@@ -30,6 +30,7 @@ import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RAMControlSection(viewModel: TuningViewModel) {
     val persistedConfig by viewModel.preferencesManager
@@ -64,12 +65,15 @@ fun RAMControlSection(viewModel: TuningViewModel) {
     var zramLogs by remember { mutableStateOf(listOf<String>()) }
     var swapLogs by remember { mutableStateOf(listOf<String>()) }
 
+    val currentCompAlgo by viewModel.currentCompressionAlgorithm.collectAsState()
+
     fun pushConfig(
         sw: Int = swappiness.toInt(),
         zr: Int = zramSize.toInt(),
         sp: Int = swapSize.toInt(),
         dr: Int = dirtyRatio.toInt(),
-        mf: Int = minFreeMem.toInt()
+        mf: Int = minFreeMem.toInt(),
+        compAlgo: String = currentCompAlgo
     ) {
         viewModel.setRAMParameters(
             RAMConfig(
@@ -77,7 +81,8 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                 zramSize = zr,
                 swapSize = sp,
                 dirtyRatio = dr,
-                minFreeMem = mf
+                minFreeMem = mf,
+                compressionAlgorithm = compAlgo
             )
         )
     }
@@ -398,17 +403,48 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                     )
                                 }
                                 
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Text(
-                                        text = if (zramSize.toInt() > 0) "${zramSize.toInt()} MB" else "Disabled",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = MaterialTheme.colorScheme.primaryContainer
+                                    ) {
+                                        Text(
+                                            text = if (zramSize.toInt() > 0) "${zramSize.toInt()} MB" else "Disabled",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                        )
+                                    }
+
+                                    val currentCompAlgorithm by viewModel.currentCompressionAlgorithm.collectAsState()
+                                    if (zramSize.toInt() > 0) {
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colorScheme.tertiaryContainer
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Archive,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(14.dp),
+                                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                                )
+                                                Text(
+                                                    text = currentCompAlgorithm.uppercase(),
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
@@ -604,6 +640,14 @@ fun RAMControlSection(viewModel: TuningViewModel) {
     // ===== ENHANCED ZRAM CONFIG DIALOG =====
     if (showZramDialog) {
         var tempZram by remember { mutableFloatStateOf(zramSize.coerceAtLeast(256f)) }
+        val availableAlgorithms by viewModel.availableCompressionAlgorithms.collectAsState()
+        val currentAlgorithm by viewModel.currentCompressionAlgorithm.collectAsState()
+        var selectedAlgorithm by remember { mutableStateOf(currentAlgorithm) }
+        var expandedAlgoDropdown by remember { mutableStateOf(false) }
+
+        LaunchedEffect(currentAlgorithm) {
+            selectedAlgorithm = currentAlgorithm
+        }
 
         AlertDialog(
             onDismissRequest = { if (!isApplyingZram) showZramDialog = false },
@@ -645,7 +689,10 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                 }
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     Card(
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -667,6 +714,80 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer
                             )
+                        }
+                    }
+
+                    // Compression Algorithm Selection
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Archive,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Compression Algorithm",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        ExposedDropdownMenuBox(
+                            expanded = expandedAlgoDropdown,
+                            onExpandedChange = { expandedAlgoDropdown = !expandedAlgoDropdown }
+                        ) {
+                            OutlinedTextField(
+                                value = selectedAlgorithm,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = {
+                                    Icon(
+                                        imageVector = if (expandedAlgoDropdown) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            ExposedDropdownMenu(
+                                expanded = expandedAlgoDropdown,
+                                onDismissRequest = { expandedAlgoDropdown = false }
+                            ) {
+                                availableAlgorithms.forEach { algo ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(algo.uppercase())
+                                                if (algo == selectedAlgorithm) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Check,
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(16.dp),
+                                                        tint = MaterialTheme.colorScheme.primary
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onClick = {
+                                            selectedAlgorithm = algo
+                                            expandedAlgoDropdown = false
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
 
@@ -729,14 +850,15 @@ fun RAMControlSection(viewModel: TuningViewModel) {
                         
                         viewModel.setZRAMWithLiveLog(
                             sizeBytes = tempZram.toLong() * 1024L * 1024L,
+                            compressionAlgorithm = selectedAlgorithm,
                             onLog = { log -> zramLogs = zramLogs + log },
                             onComplete = { success ->
                                 zramSize = tempZram
-                                pushConfig(zr = tempZram.toInt())
+                                pushConfig(zr = tempZram.toInt(), compAlgo = selectedAlgorithm)
                                 isApplyingZram = false
                                 showZramApplyingDialog = false
                                 resultSuccess = success
-                                resultMessage = if (success) "ZRAM applied: ${tempZram.toInt()} MB" else "Failed to apply ZRAM"
+                                resultMessage = if (success) "ZRAM applied: ${tempZram.toInt()} MB ($selectedAlgorithm)" else "Failed to apply ZRAM"
                                 showResultDialog = true
                             }
                         )

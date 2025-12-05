@@ -8,8 +8,39 @@ class RAMControlUseCase {
         return RootManager.writeFile("/proc/sys/vm/swappiness", value.toString())
     }
 
+    suspend fun getAvailableCompressionAlgorithms(): List<String> {
+        val result = RootManager.executeCommand("cat /sys/block/zram0/comp_algorithm 2>/dev/null || echo 'lz4'")
+        return if (result.isSuccess) {
+            val output = result.getOrNull() ?: "lz4"
+            // Output format: "lzo lzo-rle lz4 [lz4hc] 842 zstd"
+            // Parse and extract available algorithms
+            output.replace("[", "").replace("]", "")
+                .split(" ")
+                .filter { it.isNotBlank() }
+        } else {
+            listOf("lz4", "lzo", "lzo-rle", "zstd", "lz4hc", "842")
+        }
+    }
+
+    suspend fun getCurrentCompressionAlgorithm(): String {
+        val result = RootManager.executeCommand("cat /sys/block/zram0/comp_algorithm 2>/dev/null || echo 'lz4'")
+        return if (result.isSuccess) {
+            val output = result.getOrNull() ?: "lz4"
+            // Extract the current algorithm (the one in brackets)
+            val regex = "\\[(\\w+(-\\w+)?)]".toRegex()
+            regex.find(output)?.groupValues?.get(1) ?: output.trim().split(" ").firstOrNull() ?: "lz4"
+        } else {
+            "lz4"
+        }
+    }
+
+    suspend fun setCompressionAlgorithm(algorithm: String): Result<Unit> {
+        return RootManager.writeFile("/sys/block/zram0/comp_algorithm", algorithm)
+    }
+
     suspend fun setZRAMSize(
         sizeBytes: Long,
+        compressionAlgorithm: String = "lz4",
         onLog: ((String) -> Unit)? = null
     ): Result<Unit> {
         val disable = sizeBytes <= 0L
@@ -33,6 +64,14 @@ class RAMControlUseCase {
         if (reset.isFailure) {
             onLog?.invoke("Failed to reset zram0")
             return reset
+        }
+
+        onLog?.invoke("Setting compression algorithm to $compressionAlgorithm...")
+        val compResult = setCompressionAlgorithm(compressionAlgorithm)
+        if (compResult.isFailure) {
+            onLog?.invoke("Warning: Failed to set compression algorithm, using default")
+        } else {
+            onLog?.invoke("Compression algorithm set to $compressionAlgorithm")
         }
 
         onLog?.invoke("Setting ZRAM disksize to ${sizeBytes / (1024 * 1024)} MB...")
