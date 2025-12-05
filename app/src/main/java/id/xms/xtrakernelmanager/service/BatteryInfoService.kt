@@ -44,7 +44,7 @@ class BatteryInfoService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIF_ID, buildNotification(0, false, 0, 0, "Unknown"))
+        startForeground(NOTIF_ID, buildNotification(0, false, 0, 0, "Unknown", 0))
         return START_STICKY
     }
 
@@ -58,6 +58,14 @@ class BatteryInfoService : Service() {
                 val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
                 val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
                 val isCharging = (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL)
+
+                // Read current_now and invert sign
+                val currentNowRaw = try {
+                    File("/sys/class/power_supply/battery/current_now").readText().trim().toIntOrNull()?.div(1000) ?: 0
+                } catch (e: Exception) {
+                    0
+                }
+                val currentNow = -currentNowRaw // Invert: positive when charging, negative when discharging
 
                 // Track battery drain
                 if (lastBatteryLevel != -1 && level < lastBatteryLevel && !isCharging) {
@@ -78,7 +86,7 @@ class BatteryInfoService : Service() {
                     BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Failure"
                     else -> "Unknown"
                 }
-                val notif = buildNotification(level, isCharging, temp, voltage, healthTxt)
+                val notif = buildNotification(level, isCharging, temp, voltage, healthTxt, currentNow)
                 startForeground(NOTIF_ID, notif)
             }
         }
@@ -115,7 +123,7 @@ class BatteryInfoService : Service() {
         registerReceiver(screenReceiver, filter)
     }
 
-    private fun buildNotification(level: Int, charging: Boolean, temp: Int, voltage: Int, health: String): Notification {
+    private fun buildNotification(level: Int, charging: Boolean, temp: Int, voltage: Int, health: String, currentNow: Int): Notification {
         // Calculate current times
         val currentTime = SystemClock.elapsedRealtime()
         val totalScreenOn = if (isScreenOn) {
@@ -154,9 +162,17 @@ class BatteryInfoService : Service() {
         val activeDrainStr = "%.2f".format(activeDrainRate)
         val idleDrainStr = "%.2f".format(idleDrainRate)
 
+        // Format current with proper sign
+        val currentStr = if (currentNow >= 0) {
+            "+$currentNow mA"
+        } else {
+            "$currentNow mA"
+        }
+
         val bigTextStyle = NotificationCompat.BigTextStyle()
             .setBigContentTitle("Battery: $level% | $tempStr°C ${if(charging) "Charging" else "Discharging"}")
             .bigText(buildString {
+                appendLine("Current: $currentStr")
                 appendLine("Voltage: ${voltageStr}V")
                 appendLine("Health: $health")
                 appendLine("Screen On: $screenOnStr")

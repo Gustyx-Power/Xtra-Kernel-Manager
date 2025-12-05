@@ -67,12 +67,16 @@ class BatteryRepository {
                 ?.toIntOrNull()
                 ?.div(1000) ?: 0
 
-            val currentNow = RootManager
+            val currentNowRaw = RootManager
                 .readFile("/sys/class/power_supply/battery/current_now")
                 .getOrNull()
                 ?.trim()
                 ?.toIntOrNull()
                 ?.div(1000) ?: 0 // µA -> mA
+
+            // Invert the sign: kernel reports negative when charging, positive when discharging
+            // We want: positive when charging, negative when discharging
+            val currentNow = -currentNowRaw
 
             val cycleCount = RootManager
                 .readFile("/sys/class/power_supply/battery/cycle_count")

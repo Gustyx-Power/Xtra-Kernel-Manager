@@ -242,7 +242,12 @@ fun HomeScreen(
                     }
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        BatteryStatItemVertical(Icons.Default.FlashOn, stringResource(R.string.current_now), "${batteryInfo.currentNow} mA", Modifier.weight(1f))
+                        val currentText = if (batteryInfo.currentNow >= 0) {
+                            "+${batteryInfo.currentNow} mA"
+                        } else {
+                            "${batteryInfo.currentNow} mA"
+                        }
+                        BatteryStatItemVertical(Icons.Default.FlashOn, stringResource(R.string.current_now), currentText, Modifier.weight(1f))
                         BatteryStatItemVertical(Icons.Default.BatteryStd, stringResource(R.string.voltage), "${batteryInfo.voltage} mV", Modifier.weight(1f))
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
