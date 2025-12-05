@@ -122,7 +122,7 @@ fun BatteryInfoSection(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Grant Notification Permission")
+                    Text(stringResource(R.string.grant_notification_permission))
                 }
             }
         }
