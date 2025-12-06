@@ -78,6 +78,7 @@
             android:name=".service.BatteryInfoService"
             android:enabled="true"
             android:exported="false"
+            android:stopWithTask="false"
             android:foregroundServiceType="dataSync" />
 
         <!-- File Provider -->

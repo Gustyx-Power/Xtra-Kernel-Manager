@@ -6,8 +6,14 @@ import android.os.*
 import android.graphics.Color
 import android.os.BatteryManager
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.io.File
 
 class BatteryInfoService : Service() {
@@ -27,6 +33,10 @@ class BatteryInfoService : Service() {
     private var batteryDrainWhileScreenOn: Int = 0
     private var batteryDrainWhileScreenOff: Int = 0
     private var isScreenOn: Boolean = true
+    
+    // Deep sleep tracking
+    private var initialDeepSleep: Long = 0L
+    private var initialElapsedRealtime: Long = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -37,6 +47,10 @@ class BatteryInfoService : Service() {
         // Check initial screen state
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         isScreenOn = powerManager.isInteractive
+        
+        // Initialize deep sleep baseline
+        initialElapsedRealtime = SystemClock.elapsedRealtime()
+        initialDeepSleep = getSystemDeepSleepTime()
 
         createNotificationChannel()
         registerReceiver()
@@ -44,8 +58,41 @@ class BatteryInfoService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("BatteryInfoService", "Service started with flags: $flags, startId: $startId")
         startForeground(NOTIF_ID, buildNotification(0, false, 0, 0, "Unknown", 0))
         return START_STICKY
+    }
+    
+    /**
+     * Called when the app is removed from recents.
+     * We restart the service to keep it running.
+     */
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        Log.d("BatteryInfoService", "Task removed, restarting service...")
+        
+        // Check if notification is still enabled before restarting
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val preferencesManager = PreferencesManager(applicationContext)
+                val isEnabled = preferencesManager.isShowBatteryNotif().first()
+                
+                if (isEnabled) {
+                    val restartIntent = Intent(applicationContext, BatteryInfoService::class.java)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        applicationContext.startForegroundService(restartIntent)
+                    } else {
+                        applicationContext.startService(restartIntent)
+                    }
+                    Log.d("BatteryInfoService", "Service restart scheduled")
+                } else {
+                    Log.d("BatteryInfoService", "Service disabled, not restarting")
+                }
+            } catch (e: Exception) {
+                Log.e("BatteryInfoService", "Failed to restart service: ${e.message}")
+            }
+        }
+        
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun registerReceiver() {
@@ -139,7 +186,7 @@ class BatteryInfoService : Service() {
 
         // Get deep sleep time from system
         val deepSleepTime = getDeepSleepTime()
-        val awakeTime = totalScreenOff - deepSleepTime
+        val awakeTime = (totalScreenOff - deepSleepTime).coerceAtLeast(0L)
 
         // Calculate drain rates (% per hour)
         val activeDrainRate = if (totalScreenOn > 0) {
@@ -205,23 +252,48 @@ class BatteryInfoService : Service() {
         return "%dh %02dm %02ds".format(hours, minutes % 60, seconds % 60)
     }
 
+    /**
+     * Calculate deep sleep time since service started.
+     * Deep sleep = Total elapsed realtime - CPU uptime
+     * This works because uptimeMillis doesn't count when CPU is in suspend state.
+     */
     private fun getDeepSleepTime(): Long {
         return try {
-            // Read deep sleep time from kernel
-            val suspendTimeFile = File("/sys/power/suspend_stats/total_time")
-            if (suspendTimeFile.exists()) {
-                val suspendTimeStr = suspendTimeFile.readText().trim()
-                (suspendTimeStr.toLongOrNull() ?: 0L) * 1000 // Convert to milliseconds
+            // elapsedRealtime counts even during deep sleep
+            // uptimeMillis only counts when CPU is awake
+            val currentElapsedRealtime = SystemClock.elapsedRealtime()
+            val currentUptime = SystemClock.uptimeMillis()
+            
+            // Total deep sleep since boot = elapsedRealtime - uptimeMillis
+            val totalDeepSleepSinceBoot = currentElapsedRealtime - currentUptime
+            
+            // Deep sleep since service started
+            val deepSleepSinceServiceStart = totalDeepSleepSinceBoot - initialDeepSleep
+            
+            if (deepSleepSinceServiceStart > 0L) {
+                deepSleepSinceServiceStart
             } else {
-                // Alternative: try reading from /sys/kernel/wakeup_reasons/last_suspend_time
-                val altFile = File("/sys/kernel/debug/suspend_stats")
-                if (altFile.exists()) {
-                    0L // Would need more complex parsing
-                } else {
-                    0L
-                }
+                // Fallback to total deep sleep since boot if calculation gives negative
+                totalDeepSleepSinceBoot.coerceAtLeast(0L)
             }
         } catch (e: Exception) {
+            Log.e("BatteryInfoService", "Error calculating deep sleep", e)
+            0L
+        }
+    }
+    
+    /**
+     * Get initial deep sleep time from system.
+     * Used to establish a baseline when service starts.
+     */
+    private fun getSystemDeepSleepTime(): Long {
+        return try {
+            // Calculate from system clocks
+            val elapsedRealtime = SystemClock.elapsedRealtime()
+            val uptime = SystemClock.uptimeMillis()
+            (elapsedRealtime - uptime).coerceAtLeast(0L)
+        } catch (e: Exception) {
+            Log.e("BatteryInfoService", "Error getting system deep sleep", e)
             0L
         }
     }

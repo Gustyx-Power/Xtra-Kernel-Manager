@@ -95,10 +95,16 @@ fun BatteryInfoSection(
                     onCheckedChange = { checked ->
                         viewModel.setShowBatteryNotification(checked)
                         scope.launch {
+                            val serviceIntent = Intent(context, BatteryInfoService::class.java)
                             if (checked) {
-                                context.startService(Intent(context, BatteryInfoService::class.java))
+                                // Use startForegroundService for Android 8+ to ensure service starts properly
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    context.startForegroundService(serviceIntent)
+                                } else {
+                                    context.startService(serviceIntent)
+                                }
                             } else {
-                                context.stopService(Intent(context, BatteryInfoService::class.java))
+                                context.stopService(serviceIntent)
                             }
                         }
                     }

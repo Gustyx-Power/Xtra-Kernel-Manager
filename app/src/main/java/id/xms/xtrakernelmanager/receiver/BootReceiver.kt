@@ -3,26 +3,57 @@ package id.xms.xtrakernelmanager.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.util.Log
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.service.BatteryInfoService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d("BootReceiver", "Boot completed, activating swap file...")
+            Log.d("BootReceiver", "Boot completed received")
 
             val pendingResult = goAsync()
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+                    // Start BatteryInfoService if enabled
+                    startBatteryServiceIfEnabled(context)
+                    
+                    // Activate swap file
                     activateSwapFile()
                 } finally {
                     pendingResult.finish()
                 }
             }
+        }
+    }
+    
+    private suspend fun startBatteryServiceIfEnabled(context: Context) {
+        try {
+            val preferencesManager = PreferencesManager(context)
+            val showBatteryNotif = preferencesManager.isShowBatteryNotif().first()
+            
+            if (showBatteryNotif) {
+                Log.d("BootReceiver", "Battery notification enabled, starting service...")
+                val serviceIntent = Intent(context, BatteryInfoService::class.java)
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+                Log.d("BootReceiver", "BatteryInfoService started on boot")
+            } else {
+                Log.d("BootReceiver", "Battery notification disabled, skipping service start")
+            }
+        } catch (e: Exception) {
+            Log.e("BootReceiver", "Failed to start BatteryInfoService: ${e.message}")
         }
     }
 
@@ -54,4 +85,3 @@ class BootReceiver : BroadcastReceiver() {
         }
     }
 }
-
