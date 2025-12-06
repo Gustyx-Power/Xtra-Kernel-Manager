@@ -282,11 +282,13 @@ suspend fun fetchUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { c
 
 fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
     return try {
+        Log.d("OTA", "Comparing versions: current=$currentVersion, remote=$remoteVersion")
+        
         // Parse base version (sebelum tanda -)
         val currentBase = currentVersion.substringBefore("-").trim()
         val remoteBase = remoteVersion.substringBefore("-").trim()
 
-        // Parse suffix (setelah tanda -, misal: Beta1, Beta2, RC1, dll)
+        // Parse suffix (setelah tanda -)
         val currentSuffix = if (currentVersion.contains("-")) currentVersion.substringAfter("-").trim() else ""
         val remoteSuffix = if (remoteVersion.contains("-")) remoteVersion.substringAfter("-").trim() else ""
 
@@ -301,26 +303,29 @@ fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
         for (i in 0 until length) {
             val c = cParts.getOrElse(i) { 0 }
             val r = rParts.getOrElse(i) { 0 }
-            if (r > c) return true  // Remote lebih tinggi (2.1 > 2.0)
-            if (r < c) return false // Current lebih tinggi (2.1 > 2.0)
+            if (r > c) {
+                Log.d("OTA", "Remote base version is higher: $r > $c")
+                return true  // Remote lebih tinggi (2.1 > 2.0)
+            }
+            if (r < c) {
+                Log.d("OTA", "Current base version is higher: $c > $r")
+                return false // Current lebih tinggi (2.1 > 2.0)
+            }
         }
 
         // Jika base version sama, bandingkan suffix
-        // Release version (tanpa suffix) > Beta/RC/Alpha (dengan suffix)
-        if (remoteSuffix.isEmpty() && currentSuffix.isNotEmpty()) {
-            return true // 2.0 (release) > 2.0-Beta1
-        }
-        if (remoteSuffix.isNotEmpty() && currentSuffix.isEmpty()) {
-            return false // 2.0 > 2.0-Beta2
-        }
-
-        // Jika keduanya punya suffix, bandingkan suffix-nya
-        if (currentSuffix.isNotEmpty() && remoteSuffix.isNotEmpty()) {
-            return compareSuffix(currentSuffix, remoteSuffix)
-        }
-
-        // Jika semua sama persis
-        false
+        Log.d("OTA", "Base versions equal, comparing suffixes: current='$currentSuffix', remote='$remoteSuffix'")
+        
+        // Get priorities for both suffixes
+        val currentPriority = getSuffixPriority(currentSuffix)
+        val remotePriority = getSuffixPriority(remoteSuffix)
+        
+        Log.d("OTA", "Suffix priorities: current=$currentPriority, remote=$remotePriority")
+        
+        // Hanya update available jika remote priority lebih tinggi
+        val result = remotePriority > currentPriority
+        Log.d("OTA", "Update available: $result")
+        result
     } catch (e: Exception) {
         Log.e("OTA", "Error comparing versions: $currentVersion vs $remoteVersion", e)
         false
@@ -328,33 +333,44 @@ fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
 }
 
 /**
- * Membandingkan suffix versi (Beta1, Beta2, RC1, Alpha1, dll)
+ * Mendapatkan priority suffix untuk perbandingan versi.
+ * Urutan prioritas: (tanpa suffix/stable) < Alpha < Beta < RC < Release
+ * Semakin tinggi angka = semakin baru/stabil
+ */
+fun getSuffixPriority(suffix: String): Int {
+    if (suffix.isEmpty()) return 50 // Versi tanpa suffix (2.0) = stable release
+    
+    val lowerSuffix = suffix.lowercase()
+    
+    return when {
+        lowerSuffix.startsWith("release") -> 100  // Release adalah yang tertinggi
+        lowerSuffix.startsWith("stable") -> 90   // Stable setara release
+        lowerSuffix.startsWith("rc") -> {
+            // RC dengan nomor: RC1 = 40, RC2 = 41, dst
+            val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
+            40 + num
+        }
+        lowerSuffix.startsWith("beta") -> {
+            // Beta dengan nomor: Beta1 = 20, Beta2 = 21, dst
+            val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
+            20 + num
+        }
+        lowerSuffix.startsWith("alpha") -> {
+            // Alpha dengan nomor: Alpha1 = 10, Alpha2 = 11, dst
+            val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
+            10 + num
+        }
+        else -> 0 // Unknown suffix = lowest priority
+    }
+}
+
+/**
+ * Membandingkan suffix versi (Beta1, Beta2, RC1, Alpha1, Release, dll)
  * @return true jika remote suffix lebih baru dari current suffix
+ * @deprecated Use getSuffixPriority instead for more accurate comparison
  */
 fun compareSuffix(currentSuffix: String, remoteSuffix: String): Boolean {
-    try {
-        // Ekstrak tipe (Beta, RC, Alpha) dan nomor (1, 2, 3)
-        val currentType = currentSuffix.replace(Regex("[0-9]"), "").trim().lowercase()
-        val remoteType = remoteSuffix.replace(Regex("[0-9]"), "").trim().lowercase()
-
-        val currentNum = Regex("[0-9]+").find(currentSuffix)?.value?.toIntOrNull() ?: 0
-        val remoteNum = Regex("[0-9]+").find(remoteSuffix)?.value?.toIntOrNull() ?: 0
-
-        // Jika tipe berbeda, gunakan urutan: Alpha < Beta < RC
-        if (currentType != remoteType) {
-            val priority = mapOf("alpha" to 1, "beta" to 2, "rc" to 3)
-            val currentPriority = priority[currentType] ?: 0
-            val remotePriority = priority[remoteType] ?: 0
-            return remotePriority > currentPriority
-        }
-
-        // Jika tipe sama, bandingkan nomor
-        return remoteNum > currentNum
-    } catch (e: Exception) {
-        Log.e("OTA", "Error comparing suffix: $currentSuffix vs $remoteSuffix", e)
-        // Fallback: bandingkan string secara langsung
-        return remoteSuffix > currentSuffix
-    }
+    return getSuffixPriority(remoteSuffix) > getSuffixPriority(currentSuffix)
 }
 
 // --- UI COMPONENTS ---
