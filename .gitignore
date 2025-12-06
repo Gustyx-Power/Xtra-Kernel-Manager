@@ -21,10 +21,3 @@ gradle.properties
 build-release.bat
 build-release-with-changelog.bat
 test-telegram.bat
-
-# Game Control / Game Overlay feature files
-**/GameControlSection.kt
-**/GameOverlayService.kt
-**/GameOverlayUseCase.kt
-**/GameControlUseCase.kt
-**/GameControlBottomSheet.kt
