@@ -51,6 +51,10 @@ class PreferencesManager(private val context: Context) {
     private val GAME_CONTROL_DND_ENABLED = booleanPreferencesKey("game_control_dnd_enabled")
     private val GAME_CONTROL_HIDE_NOTIF = booleanPreferencesKey("game_control_hide_notif")
 
+    // Per-App Profile preferences
+    private val APP_PROFILES = stringPreferencesKey("app_profiles")
+    private val PER_APP_PROFILE_ENABLED = booleanPreferencesKey("per_app_profile_enabled")
+
     val themeMode: Flow<Int> = context.dataStore.data.map { prefs ->
         prefs[THEME_MODE] ?: 0
     }
@@ -198,4 +202,27 @@ class PreferencesManager(private val context: Context) {
             prefs[SET_ON_BOOT] = enabled
         }
     }
+
+    // Per-App Profile Functions
+    suspend fun setPerAppProfileEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[PER_APP_PROFILE_ENABLED] = enabled
+        }
+    }
+
+    fun isPerAppProfileEnabled(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[PER_APP_PROFILE_ENABLED] ?: false
+        }
+
+    suspend fun saveAppProfiles(profilesJson: String) {
+        context.dataStore.edit { prefs ->
+            prefs[APP_PROFILES] = profilesJson
+        }
+    }
+
+    fun getAppProfiles(): Flow<String> =
+        context.dataStore.data.map { prefs ->
+            prefs[APP_PROFILES] ?: "[]"
+        }
 }

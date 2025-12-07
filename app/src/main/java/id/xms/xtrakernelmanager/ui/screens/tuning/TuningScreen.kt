@@ -263,6 +263,13 @@ fun TuningScreen(
                 item { ThermalControlSection(viewModel = viewModel) }
                 item { RAMControlSection(viewModel = viewModel) }
                 item { AdditionalControlSection(viewModel = viewModel) }
+                item { 
+                    val availableGovernors = cpuClusters.firstOrNull()?.availableGovernors ?: emptyList()
+                    PerAppProfileSection(
+                        preferencesManager = preferencesManager,
+                        availableGovernors = availableGovernors
+                    )
+                }
             }
         }
 
