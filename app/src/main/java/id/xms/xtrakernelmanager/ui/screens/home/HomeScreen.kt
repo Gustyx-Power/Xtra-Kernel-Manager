@@ -126,7 +126,29 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PillCard(text = "Xtra Kernel Manager • v${BuildConfig.VERSION_NAME}")
+                // Custom PillCard with title and version
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shadowElevation = 1.dp,
+                    tonalElevation = 2.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                    ) {
+                        Text(
+                            text = "Xtra Kernel Manager",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                }
                 FilledTonalIconButton(
                     onClick = { showPowerMenu = true },
                     modifier = Modifier.size(40.dp),
