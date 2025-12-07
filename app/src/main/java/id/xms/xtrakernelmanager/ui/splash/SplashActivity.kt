@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,6 +37,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -122,12 +124,28 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
     var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
     var showUpdateDialog by remember { mutableStateOf(false) }
     var showOfflineLockDialog by remember { mutableStateOf(false) }
+    var showRootRequiredDialog by remember { mutableStateOf(false) }
     var isChecking by remember { mutableStateOf(true) }
+    var checkingStatus by remember { mutableStateOf(context.getString(R.string.splash_initializing)) }
     var startExitAnimation by remember { mutableStateOf(false) }
+    var hasRootAccess by remember { mutableStateOf<Boolean?>(null) }
 
-    // --- LOGIC UTAMA (ANTI-LOOPHOLE) ---
+    // --- ROOT CHECK & MAIN LOGIC ---
     LaunchedEffect(Unit) {
         val minSplashTime = launch { delay(2000) }
+
+        // Check root access first
+        checkingStatus = context.getString(R.string.splash_checking_root)
+        hasRootAccess = checkRootAccess()
+        
+        if (hasRootAccess != true) {
+            minSplashTime.join()
+            isChecking = false
+            showRootRequiredDialog = true
+            return@LaunchedEffect
+        }
+
+        checkingStatus = context.getString(R.string.splash_checking_updates)
 
         // 1. CEK DATA LOKAL DULU: Apakah ada hutang update?
         val pendingUpdate = UpdatePrefs.getPendingUpdate(context)
@@ -207,17 +225,75 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
             exit = fadeOut() + scaleOut(targetScale = 1.5f)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Box(modifier = Modifier.size(120.dp).clip(RoundedCornerShape(32.dp)).background(MaterialTheme.colorScheme.surfaceContainerHigh).border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(32.dp)), contentAlignment = Alignment.Center) {
-                    Image(painter = painterResource(id = R.drawable.logo_a), contentDescription = "Logo", modifier = Modifier.size(80.dp).scale(1.2f))
+                // Logo with glow effect
+                Box(
+                    modifier = Modifier
+                        .size(140.dp)
+                        .clip(RoundedCornerShape(36.dp))
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.surfaceContainerHigh
+                                )
+                            )
+                        )
+                        .border(
+                            2.dp,
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                )
+                            ),
+                            RoundedCornerShape(36.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_a),
+                        contentDescription = "Logo",
+                        modifier = Modifier.size(90.dp).scale(1.2f)
+                    )
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-                Text("Xtra Kernel Manager", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // App name and version in chip style
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shadowElevation = 2.dp,
+                    tonalElevation = 4.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Xtra Kernel Manager",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Text(
+                            text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+                
                 Spacer(modifier = Modifier.height(48.dp))
+                
                 if (isChecking) {
                     ModernLoader()
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Initializing...", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = checkingStatus,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
         }
@@ -243,6 +319,29 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
                 }
             )
         }
+
+        if (showRootRequiredDialog) {
+            RootRequiredDialog(
+                onDismiss = {
+                    // Exit the app
+                    (context as ComponentActivity).finishAffinity()
+                }
+            )
+        }
+    }
+}
+
+/**
+ * Check if the device has root access
+ */
+private suspend fun checkRootAccess(): Boolean = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+    try {
+        val process = Runtime.getRuntime().exec("su -c id")
+        val result = process.waitFor()
+        result == 0
+    } catch (e: Exception) {
+        Log.e("RootCheck", "Root check failed: ${e.message}")
+        false
     }
 }
 
@@ -384,21 +483,21 @@ fun ForceUpdateDialog(config: UpdateConfig, onUpdateClick: () -> Unit) {
                     Icon(Icons.Rounded.CloudDownload, null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Update Required", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text("New Version: ${config.version}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.update_required), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.update_new_version, config.version), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.height(16.dp))
                 Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp)).padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Rounded.SystemUpdate, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.secondary)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Changelog", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
+                        Text(stringResource(R.string.update_changelog), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(config.changelog, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = onUpdateClick, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-                    Text("Update Now")
+                    Text(stringResource(R.string.update_now))
                 }
             }
         }
@@ -412,17 +511,110 @@ fun OfflineLockDialog(onRetry: () -> Unit) {
             Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.Rounded.WifiOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Connection Required", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
+                Text(stringResource(R.string.connection_required), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "A pending update was detected previously. You must enable internet connection to update the app before proceeding.",
+                    stringResource(R.string.connection_required_message),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                    Text("Retry Connection")
+                    Text(stringResource(R.string.retry_connection))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RootRequiredDialog(onDismiss: () -> Unit) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false
+        )
+    ) {
+        Card(
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer
+            ),
+            elevation = CardDefaults.cardElevation(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Warning Icon
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(
+                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Warning,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Text(
+                    text = stringResource(R.string.root_required_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = stringResource(R.string.root_required_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Surface(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.root_required_instructions),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(android.R.string.ok),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -432,18 +624,287 @@ fun OfflineLockDialog(onRetry: () -> Unit) {
 @Composable
 fun ModernLoader() {
     val infiniteTransition = rememberInfiniteTransition(label = "loader")
-    val rotation by infiniteTransition.animateFloat(initialValue = 0f, targetValue = 360f, animationSpec = infiniteRepeatable(tween(1500, easing = LinearEasing)), label = "rotation")
-    val brushColor = MaterialTheme.colorScheme.primary
-    Canvas(modifier = Modifier.size(48.dp)) {
-        drawArc(brush = Brush.sweepGradient(listOf(Color.Transparent, Color.Transparent, brushColor)), startAngle = rotation, sweepAngle = 200f, useCenter = false, style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round))
+    
+    // Main rotation
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f, 
+        targetValue = 360f, 
+        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)), 
+        label = "rotation"
+    )
+    
+    // Secondary rotation (opposite direction)
+    val rotation2 by infiniteTransition.animateFloat(
+        initialValue = 360f, 
+        targetValue = 0f, 
+        animationSpec = infiniteRepeatable(tween(1800, easing = LinearEasing)), 
+        label = "rotation2"
+    )
+    
+    // Pulse animation for glow effect
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    
+    // Scale breathing effect
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    
+    Box(
+        modifier = Modifier.size(64.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // Outer glow ring
+        Canvas(
+            modifier = Modifier
+                .size(64.dp)
+                .scale(scale)
+        ) {
+            drawArc(
+                brush = Brush.sweepGradient(
+                    listOf(
+                        Color.Transparent,
+                        primaryColor.copy(alpha = 0.2f * pulse),
+                        primaryColor.copy(alpha = 0.4f * pulse),
+                        Color.Transparent
+                    )
+                ),
+                startAngle = rotation2,
+                sweepAngle = 270f,
+                useCenter = false,
+                style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+            )
+        }
+        
+        // Middle ring
+        Canvas(modifier = Modifier.size(52.dp)) {
+            drawArc(
+                brush = Brush.sweepGradient(
+                    listOf(
+                        Color.Transparent,
+                        secondaryColor.copy(alpha = 0.3f),
+                        secondaryColor.copy(alpha = 0.7f),
+                        Color.Transparent
+                    )
+                ),
+                startAngle = rotation2 + 45f,
+                sweepAngle = 180f,
+                useCenter = false,
+                style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
+            )
+        }
+        
+        // Inner spinning ring (main)
+        Canvas(modifier = Modifier.size(40.dp)) {
+            drawArc(
+                brush = Brush.sweepGradient(
+                    listOf(
+                        Color.Transparent,
+                        Color.Transparent,
+                        primaryColor.copy(alpha = 0.8f),
+                        primaryColor
+                    )
+                ),
+                startAngle = rotation,
+                sweepAngle = 240f,
+                useCenter = false,
+                style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
+            )
+        }
+        
+        // Center dot with pulse
+        Canvas(modifier = Modifier.size(12.dp)) {
+            drawCircle(
+                color = tertiaryColor.copy(alpha = pulse),
+                radius = size.minDimension / 2
+            )
+        }
     }
 }
 
 @Composable
 fun BackgroundCircles() {
-    val color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    val infiniteTransition = rememberInfiniteTransition(label = "bg_circles")
+    
+    // Floating animation for top-right circle
+    val offsetY1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 30f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetY1"
+    )
+    
+    val offsetX1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -20f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetX1"
+    )
+    
+    // Floating animation for bottom-left circle
+    val offsetY2 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -25f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetY2"
+    )
+    
+    val offsetX2 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 20f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetX2"
+    )
+    
+    // Scale breathing for circles
+    val scale1 by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale1"
+    )
+    
+    val scale2 by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3200, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale2"
+    )
+    
+    // Alpha pulsing
+    val alpha1 by infiniteTransition.animateFloat(
+        initialValue = 0.25f,
+        targetValue = 0.4f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha1"
+    )
+    
+    val alpha2 by infiniteTransition.animateFloat(
+        initialValue = 0.08f,
+        targetValue = 0.18f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha2"
+    )
+    
+    // Third floating circle
+    val offsetY3 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 40f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(5000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offsetY3"
+    )
+    
+    val primaryColor = MaterialTheme.colorScheme.primaryContainer
+    val secondaryColor = MaterialTheme.colorScheme.secondaryContainer
+    val tertiaryColor = MaterialTheme.colorScheme.tertiaryContainer
+    
     Canvas(modifier = Modifier.fillMaxSize()) {
-        drawCircle(color = color, radius = size.width * 0.6f, center = androidx.compose.ui.geometry.Offset(size.width, 0f))
-        drawCircle(color = color.copy(alpha = 0.1f), radius = size.width * 0.4f, center = androidx.compose.ui.geometry.Offset(0f, size.height))
+        // Top-right large circle with gradient
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    primaryColor.copy(alpha = alpha1),
+                    primaryColor.copy(alpha = alpha1 * 0.5f),
+                    Color.Transparent
+                ),
+                center = androidx.compose.ui.geometry.Offset(
+                    size.width + offsetX1,
+                    offsetY1
+                ),
+                radius = size.width * 0.6f * scale1
+            ),
+            center = androidx.compose.ui.geometry.Offset(
+                size.width + offsetX1,
+                offsetY1
+            ),
+            radius = size.width * 0.6f * scale1
+        )
+        
+        // Bottom-left circle
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    secondaryColor.copy(alpha = alpha2),
+                    secondaryColor.copy(alpha = alpha2 * 0.3f),
+                    Color.Transparent
+                ),
+                center = androidx.compose.ui.geometry.Offset(
+                    offsetX2,
+                    size.height + offsetY2
+                ),
+                radius = size.width * 0.45f * scale2
+            ),
+            center = androidx.compose.ui.geometry.Offset(
+                offsetX2,
+                size.height + offsetY2
+            ),
+            radius = size.width * 0.45f * scale2
+        )
+        
+        // Center-right floating orb
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    tertiaryColor.copy(alpha = 0.15f),
+                    tertiaryColor.copy(alpha = 0.05f),
+                    Color.Transparent
+                ),
+                center = androidx.compose.ui.geometry.Offset(
+                    size.width * 0.8f,
+                    size.height * 0.4f + offsetY3
+                ),
+                radius = size.width * 0.25f
+            ),
+            center = androidx.compose.ui.geometry.Offset(
+                size.width * 0.8f,
+                size.height * 0.4f + offsetY3
+            ),
+            radius = size.width * 0.25f
+        )
     }
 }
+

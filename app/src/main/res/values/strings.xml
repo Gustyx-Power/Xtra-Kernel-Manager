@@ -410,6 +410,24 @@
     <!-- Splash -->
     <string name="initializing_kernel_modules">Initializing kernel modules…</string>
     <string name="advanced_kernel_control">Advanced Kernel Control</string>
-
+    <string name="splash_checking_root">Checking root access…</string>
+    <string name="splash_checking_updates">Checking for updates…</string>
+    <string name="splash_initializing">Initializing…</string>
+    
+    <!-- Root Required Dialog -->
+    <string name="root_required_title">Root Access Required</string>
+    <string name="root_required_message">Xtra Kernel Manager requires root access to function properly. Please grant root permission through your root manager (Magisk, KernelSU, etc) and try again.</string>
+    <string name="root_required_instructions">• Magisk: Enable superuser for this app\n• KernelSU: Add this app to allow list\n• APatch: Grant root permission</string>
+    
+    <!-- Update Dialog -->
+    <string name="update_required">Update Required</string>
+    <string name="update_new_version">New Version: %1$s</string>
+    <string name="update_changelog">Changelog</string>
+    <string name="update_now">Update Now</string>
+    
+    <!-- Offline Lock Dialog -->
+    <string name="connection_required">Connection Required</string>
+    <string name="connection_required_message">A pending update was detected previously. You must enable internet connection to update the app before proceeding.</string>
+    <string name="retry_connection">Retry Connection</string>
 
 </resources>

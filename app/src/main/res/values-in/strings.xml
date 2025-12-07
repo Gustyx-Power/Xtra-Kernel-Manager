@@ -410,5 +410,24 @@
     <!-- Splash -->
     <string name="initializing_kernel_modules">Menginisialisasi modul kernel…</string>
     <string name="advanced_kernel_control">Kontrol Kernel Tingkat Lanjut</string>
+    <string name="splash_checking_root">Memeriksa akses root…</string>
+    <string name="splash_checking_updates">Memeriksa pembaruan…</string>
+    <string name="splash_initializing">Menginisialisasi…</string>
+    
+    <!-- Root Required Dialog -->
+    <string name="root_required_title">Akses Root Diperlukan</string>
+    <string name="root_required_message">Xtra Kernel Manager memerlukan akses root untuk berfungsi dengan baik. Silakan berikan izin root melalui pengelola root Anda (Magisk, KernelSU, dll) dan coba lagi.</string>
+    <string name="root_required_instructions">• Magisk: Aktifkan superuser untuk aplikasi ini\n• KernelSU: Tambahkan aplikasi ini ke daftar izin\n• APatch: Berikan izin root</string>
+    
+    <!-- Update Dialog -->
+    <string name="update_required">Pembaruan Diperlukan</string>
+    <string name="update_new_version">Versi Baru: %1$s</string>
+    <string name="update_changelog">Catatan Perubahan</string>
+    <string name="update_now">Perbarui Sekarang</string>
+    
+    <!-- Offline Lock Dialog -->
+    <string name="connection_required">Koneksi Diperlukan</string>
+    <string name="connection_required_message">Pembaruan tertunda terdeteksi sebelumnya. Anda harus mengaktifkan koneksi internet untuk memperbarui aplikasi sebelum melanjutkan.</string>
+    <string name="retry_connection">Coba Lagi Koneksi</string>
 
 </resources>
