@@ -18,6 +18,5 @@ gradle.properties
 /app/release/
 
 # Build scripts with hardcoded credentials (security)
-build-release.bat
 build-release-with-changelog.bat
 test-telegram.bat

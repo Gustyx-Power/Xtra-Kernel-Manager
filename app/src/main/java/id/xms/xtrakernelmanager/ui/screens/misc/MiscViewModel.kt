@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.ui.screens.misc
 
 import android.content.Context
 import android.content.Intent
+import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -75,8 +76,27 @@ class MiscViewModel(
         }
     }
 
+    // State for overlay permission request
+    private val _needsOverlayPermission = MutableStateFlow(false)
+    val needsOverlayPermission: StateFlow<Boolean> = _needsOverlayPermission.asStateFlow()
+
+    fun clearOverlayPermissionRequest() {
+        _needsOverlayPermission.value = false
+    }
+
+    fun hasOverlayPermission(): Boolean {
+        return Settings.canDrawOverlays(context)
+    }
+
     fun setEnableGameOverlay(enabled: Boolean) {
         viewModelScope.launch {
+            if (enabled && !Settings.canDrawOverlays(context)) {
+                // Need permission first
+                _needsOverlayPermission.value = true
+                Log.d("MiscViewModel", "Game overlay needs permission")
+                return@launch
+            }
+            
             preferencesManager.setEnableGameOverlay(enabled)
             Log.d("MiscViewModel", "Game overlay: $enabled")
 
@@ -91,6 +111,11 @@ class MiscViewModel(
 
     private fun startGameOverlayService() {
         try {
+            // Double check permission before starting
+            if (!Settings.canDrawOverlays(context)) {
+                Log.e("MiscViewModel", "Cannot start GameOverlayService: No overlay permission")
+                return
+            }
             val intent = Intent(context, GameOverlayService::class.java)
             context.startService(intent)
             Log.d("MiscViewModel", "GameOverlayService started")

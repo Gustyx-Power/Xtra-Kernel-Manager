@@ -24,7 +24,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.0-Beta1"
+        versionName = "2.0-Release"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -403,6 +403,30 @@ val notifyBuildStatusToTelegram by tasks.registering(SendTelegramMessageTask::cl
     appVersionName.convention(project.provider { android.defaultConfig.versionName ?: "N/A" })
     appPackageName.convention(project.provider { android.defaultConfig.applicationId ?: "N/A" })
     appProjectName.convention(project.provider { android.namespace?.substringAfterLast('.') ?: project.name })
+}
+
+// Debug APK Tasks
+val renameDebugApk by tasks.registering(Copy::class) {
+    group = "custom"
+    description = "Renames app-debug.apk"
+    val versionName = android.defaultConfig.versionName ?: "unknown"
+    from(layout.buildDirectory.dir("outputs/apk/debug")) {
+        include("app-debug.apk")
+    }
+    into(layout.projectDirectory.dir("dist"))
+    rename { "XKM-$versionName-debug.apk" }
+}
+
+val uploadDebugApkToTelegram by tasks.registering(UploadApkToTelegramTask::class) {
+    group = "custom"
+    description = "Uploads debug APK to Telegram"
+    val versionName = android.defaultConfig.versionName ?: "unknown"
+    apkFile.set(layout.projectDirectory.file("dist/XKM-$versionName-debug.apk"))
+    telegramBotToken.convention(project.findProperty("telegramBotToken")?.toString() ?: "")
+    telegramChatId.convention(project.findProperty("telegramChatId")?.toString() ?: "")
+    appVersionName.convention(project.provider { android.defaultConfig.versionName ?: "N/A" })
+    appName.convention("${project.name} (Debug)")
+    mustRunAfter(renameDebugApk)
 }
 
 tasks.register("buildAndPublish") {

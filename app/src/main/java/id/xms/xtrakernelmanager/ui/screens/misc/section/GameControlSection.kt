@@ -26,6 +26,7 @@ fun GameControlSection(
 ) {
     val context = LocalContext.current
     val enableGameOverlay by viewModel.enableGameOverlay.collectAsState()
+    val needsOverlayPermission by viewModel.needsOverlayPermission.collectAsState()
 
     // Check overlay permission
     var hasOverlayPermission by remember {
@@ -38,6 +39,23 @@ fun GameControlSection(
     ) {
         // Check permission again after returning from settings
         hasOverlayPermission = Settings.canDrawOverlays(context)
+        viewModel.clearOverlayPermissionRequest()
+        
+        // If permission was granted, try to enable overlay again
+        if (hasOverlayPermission && !enableGameOverlay) {
+            viewModel.setEnableGameOverlay(true)
+        }
+    }
+
+    // Launch permission settings when needed
+    LaunchedEffect(needsOverlayPermission) {
+        if (needsOverlayPermission) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                "package:${context.packageName}".toUri()
+            )
+            overlayPermissionLauncher.launch(intent)
+        }
     }
 
     GlassmorphicCard(

@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.*
+import android.provider.Settings
 import android.view.*
 import android.widget.Toast
 import androidx.compose.animation.*
@@ -87,6 +88,14 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        
+        // Check overlay permission before creating overlay
+        if (!Settings.canDrawOverlays(this)) {
+            showToast("Please grant overlay permission for Game Overlay")
+            stopSelf()
+            return
+        }
+        
         loadPreferences()
         createOverlay()
         startPolling()
