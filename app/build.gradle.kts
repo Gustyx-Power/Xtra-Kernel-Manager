@@ -6,6 +6,7 @@ import org.apache.http.entity.mime.content.FileBody
 import org.apache.http.impl.client.HttpClients
 import org.apache.http.util.EntityUtils
 import java.util.Date
+import java.text.SimpleDateFormat
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
@@ -25,6 +26,10 @@ android {
         targetSdk = 36
         versionCode = 2
         versionName = "2.0-Release"
+
+        // Build date in format YYYY.MM.dd
+        val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
+        buildConfigField("String", "BUILD_DATE", "\"$buildDate\"")
 
         vectorDrawables {
             useSupportLibrary = true
