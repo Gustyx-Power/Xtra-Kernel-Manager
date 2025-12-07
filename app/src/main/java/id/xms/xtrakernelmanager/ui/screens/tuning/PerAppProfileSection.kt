@@ -466,13 +466,23 @@ private fun AddProfileDialog(
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             val pm = context.packageManager
-            val apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
-                .filter { app -> 
-                    app.flags and ApplicationInfo.FLAG_SYSTEM == 0 &&
-                    app.packageName !in existingPackages
-                }
-                .map { app ->
-                    Pair(app.packageName, pm.getApplicationLabel(app).toString())
+            // Get all apps with launcher intent (apps that can be launched from app drawer)
+            val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
+            }
+            val resolveInfos = pm.queryIntentActivities(mainIntent, 0)
+            val apps = resolveInfos
+                .map { it.activityInfo.packageName }
+                .distinct()
+                .filter { it !in existingPackages }
+                .mapNotNull { packageName ->
+                    try {
+                        val appInfo = pm.getApplicationInfo(packageName, 0)
+                        val appName = pm.getApplicationLabel(appInfo).toString()
+                        Pair(packageName, appName)
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
                 .sortedBy { it.second.lowercase() }
             installedApps = apps
