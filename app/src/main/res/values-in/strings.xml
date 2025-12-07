@@ -4,6 +4,7 @@
     <string name="app_name_short">XKM</string>
     <string name="app_name">Xtra Kernel Manager</string>
     <string name="app_version">v%s</string>
+    <string name="app_updated_reset">Aplikasi diperbarui! Pengaturan direset untuk kompatibilitas.</string>
 
     <!-- Navigation -->
     <string name="nav_home">Beranda</string>
