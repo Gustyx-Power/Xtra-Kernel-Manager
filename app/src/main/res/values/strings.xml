@@ -302,6 +302,7 @@
     <string name="per_app_profile_applied">Profile: %1$s\n%2$s • %3$s</string>
     <string name="per_app_profile_notif_title">Per-App Profile Active</string>
     <string name="per_app_profile_notif_text">Monitoring foreground apps</string>
+    <string name="per_app_profile_deleted">Profile deleted, reset to default</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>

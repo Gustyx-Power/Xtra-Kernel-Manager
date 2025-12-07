@@ -302,6 +302,7 @@
     <string name="per_app_profile_applied">Profil: %1$s\n%2$s • %3$s</string>
     <string name="per_app_profile_notif_title">Profil Per-Aplikasi Aktif</string>
     <string name="per_app_profile_notif_text">Memantau aplikasi aktif</string>
+    <string name="per_app_profile_deleted">Profil dihapus, dikembalikan ke default</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>
