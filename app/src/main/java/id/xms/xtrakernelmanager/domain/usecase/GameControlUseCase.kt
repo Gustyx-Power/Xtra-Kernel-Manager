@@ -164,8 +164,26 @@ class GameControlUseCase(private val context: Context) {
             else -> "schedutil"
         }
 
-        return RootManager.executeCommand("echo $governor > $governorPath")
-            .map { true }
+        // Set thermal preset based on mode
+        val thermalPreset = when (mode) {
+            "performance" -> "Dynamic"
+            "balanced" -> "Thermal 20"
+            "battery" -> "Incalls"
+            else -> "Dynamic"
+        }
+
+        // Apply governor
+        val governorResult = RootManager.executeCommand("echo $governor > $governorPath")
+        
+        // Apply thermal preset
+        val thermalUseCase = ThermalControlUseCase()
+        try {
+            thermalUseCase.setThermalMode(thermalPreset, false)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to set thermal preset: ${e.message}")
+        }
+
+        return governorResult.map { true }
     }
 
     suspend fun getCurrentPerformanceMode(): String {
