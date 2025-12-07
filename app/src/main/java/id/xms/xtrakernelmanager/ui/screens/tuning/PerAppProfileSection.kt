@@ -358,10 +358,18 @@ fun PerAppProfileSection(
                                         },
                                         onDelete = {
                                             scope.launch {
+                                                // Remove profile from list
                                                 val newProfiles = profiles.filter { 
                                                     it.packageName != profile.packageName 
                                                 }
                                                 saveProfiles(preferencesManager, newProfiles)
+                                                
+                                                // Show toast
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.per_app_profile_deleted),
+                                                    android.widget.Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         },
                                         onToggle = { enabled ->
