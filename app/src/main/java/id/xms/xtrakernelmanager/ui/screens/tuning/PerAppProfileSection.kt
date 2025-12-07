@@ -30,8 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.AppProfile
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.service.AppProfileService
@@ -82,6 +84,24 @@ fun PerAppProfileSection(
         availableGovernors
     }
 
+    // Auto-start service if enabled and has permission
+    LaunchedEffect(isEnabled, hasUsagePermission) {
+        android.util.Log.d("PerAppProfile", "LaunchedEffect: isEnabled=$isEnabled, hasPermission=$hasUsagePermission")
+        if (isEnabled && hasUsagePermission) {
+            val serviceIntent = Intent(context, AppProfileService::class.java)
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+                android.util.Log.d("PerAppProfile", "Service start requested")
+            } catch (e: Exception) {
+                android.util.Log.e("PerAppProfile", "Failed to start service: ${e.message}")
+            }
+        }
+    }
+
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,12 +147,12 @@ fun PerAppProfileSection(
 
                     Column {
                         Text(
-                            text = "Per-App Profiles",
+                            text = stringResource(R.string.per_app_profile),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Custom settings per application",
+                            text = stringResource(R.string.per_app_profile_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -149,7 +169,7 @@ fun PerAppProfileSection(
                 ) {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        contentDescription = if (expanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.tertiary
                     )
@@ -188,13 +208,13 @@ fun PerAppProfileSection(
                                         tint = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                     Text(
-                                        "Usage Access Required",
+                                        stringResource(R.string.per_app_profile_usage_required),
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onErrorContainer
                                     )
                                 }
                                 Text(
-                                    "Grant usage access permission to detect foreground apps",
+                                    stringResource(R.string.per_app_profile_usage_desc),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onErrorContainer
                                 )
@@ -207,7 +227,7 @@ fun PerAppProfileSection(
                                         containerColor = MaterialTheme.colorScheme.error
                                     )
                                 ) {
-                                    Text("Grant Permission")
+                                    Text(stringResource(R.string.per_app_profile_grant_permission))
                                 }
                             }
                         }
@@ -239,11 +259,11 @@ fun PerAppProfileSection(
                                 )
                                 Column {
                                     Text(
-                                        "Enable Per-App Profiles",
+                                        stringResource(R.string.per_app_profile_enable),
                                         fontWeight = FontWeight.Medium
                                     )
                                     Text(
-                                        if (isEnabled) "Monitoring active" else "Monitoring disabled",
+                                        if (isEnabled) stringResource(R.string.per_app_profile_monitoring_active) else stringResource(R.string.per_app_profile_monitoring_disabled),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -254,10 +274,34 @@ fun PerAppProfileSection(
                                 onCheckedChange = { enabled ->
                                     scope.launch {
                                         preferencesManager.setPerAppProfileEnabled(enabled)
+                                        val serviceIntent = Intent(context, AppProfileService::class.java)
                                         if (enabled && hasUsagePermission) {
-                                            context.startService(Intent(context, AppProfileService::class.java))
+                                            // Use startForegroundService for Android O+
+                                            try {
+                                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                                    context.startForegroundService(serviceIntent)
+                                                } else {
+                                                    context.startService(serviceIntent)
+                                                }
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.per_app_profile_service_starting),
+                                                    android.widget.Toast.LENGTH_SHORT
+                                                ).show()
+                                            } catch (e: Exception) {
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    context.getString(R.string.per_app_profile_service_failed, e.message ?: ""),
+                                                    android.widget.Toast.LENGTH_LONG
+                                                ).show()
+                                            }
                                         } else {
-                                            context.stopService(Intent(context, AppProfileService::class.java))
+                                            context.stopService(serviceIntent)
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                context.getString(R.string.per_app_profile_service_stopped),
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     }
                                 },
@@ -283,7 +327,7 @@ fun PerAppProfileSection(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "App Profiles (${profiles.size})",
+                                    stringResource(R.string.per_app_profile_count, profiles.size),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -292,7 +336,7 @@ fun PerAppProfileSection(
                                 ) {
                                     Icon(
                                         Icons.Default.Add,
-                                        contentDescription = "Add Profile",
+                                        contentDescription = stringResource(R.string.per_app_profile_add),
                                         tint = MaterialTheme.colorScheme.tertiary
                                     )
                                 }
@@ -300,7 +344,7 @@ fun PerAppProfileSection(
                             
                             if (profiles.isEmpty()) {
                                 Text(
-                                    "No profiles configured. Tap + to add one.",
+                                    stringResource(R.string.per_app_profile_empty),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -501,7 +545,7 @@ private fun AddProfileDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Add App Profile", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.per_app_profile_add), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(
@@ -513,7 +557,7 @@ private fun AddProfileDialog(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        label = { Text("Search apps") },
+                        label = { Text(stringResource(R.string.per_app_profile_search)) },
                         leadingIcon = { Icon(Icons.Default.Search, null) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
@@ -587,7 +631,7 @@ private fun AddProfileDialog(
                             value = selectedGovernor,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Governor") },
+                            label = { Text(stringResource(R.string.per_app_profile_governor)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(governorExpanded) },
                             modifier = Modifier
                                 .menuAnchor()
@@ -619,7 +663,7 @@ private fun AddProfileDialog(
                             value = selectedThermal,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Thermal Preset") },
+                            label = { Text(stringResource(R.string.per_app_profile_thermal)) },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(thermalExpanded) },
                             modifier = Modifier
                                 .menuAnchor()
@@ -660,12 +704,12 @@ private fun AddProfileDialog(
                 },
                 enabled = selectedApp != null
             ) {
-                Text("Add")
+                Text(stringResource(R.string.per_app_profile_add_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.per_app_profile_cancel))
             }
         }
     )
@@ -686,7 +730,7 @@ private fun EditProfileDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text("Edit Profile", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.per_app_profile_edit), fontWeight = FontWeight.Bold)
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -715,7 +759,7 @@ private fun EditProfileDialog(
                         value = selectedGovernor,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Governor") },
+                        label = { Text(stringResource(R.string.per_app_profile_governor)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(governorExpanded) },
                         modifier = Modifier
                             .menuAnchor()
@@ -747,7 +791,7 @@ private fun EditProfileDialog(
                         value = selectedThermal,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Thermal Preset") },
+                        label = { Text(stringResource(R.string.per_app_profile_thermal)) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(thermalExpanded) },
                         modifier = Modifier
                             .menuAnchor()
@@ -781,12 +825,12 @@ private fun EditProfileDialog(
                     )
                 }
             ) {
-                Text("Save")
+                Text(stringResource(R.string.per_app_profile_save_button))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.per_app_profile_cancel))
             }
         }
     )

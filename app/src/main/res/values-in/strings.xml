@@ -276,6 +276,33 @@
     <string name="tap_to_change">Ketuk untuk mengubah</string>
     <string name="not_set">Belum diatur</string>
 
+    <!-- Per-App Profile -->
+    <string name="per_app_profile">Profil Per-Aplikasi</string>
+    <string name="per_app_profile_desc">Pengaturan khusus per aplikasi</string>
+    <string name="per_app_profile_enable">Aktifkan Profil Per-Aplikasi</string>
+    <string name="per_app_profile_monitoring_active">Pemantauan aktif</string>
+    <string name="per_app_profile_monitoring_disabled">Pemantauan nonaktif</string>
+    <string name="per_app_profile_count">Profil Aplikasi (%1$d)</string>
+    <string name="per_app_profile_empty">Belum ada profil. Ketuk + untuk menambahkan.</string>
+    <string name="per_app_profile_add">Tambah Profil Aplikasi</string>
+    <string name="per_app_profile_edit">Edit Profil</string>
+    <string name="per_app_profile_search">Cari aplikasi</string>
+    <string name="per_app_profile_governor">Governor</string>
+    <string name="per_app_profile_thermal">Preset Termal</string>
+    <string name="per_app_profile_add_button">Tambah</string>
+    <string name="per_app_profile_save_button">Simpan</string>
+    <string name="per_app_profile_cancel">Batal</string>
+    <string name="per_app_profile_usage_required">Akses Penggunaan Diperlukan</string>
+    <string name="per_app_profile_usage_desc">Berikan izin akses penggunaan untuk mendeteksi aplikasi aktif</string>
+    <string name="per_app_profile_grant_permission">Berikan Izin</string>
+    <string name="per_app_profile_service_starting">Memulai Layanan Profil Per-Aplikasi…</string>
+    <string name="per_app_profile_service_started">Profil Per-Aplikasi: Layanan Dimulai</string>
+    <string name="per_app_profile_service_stopped">Profil Per-Aplikasi: Layanan Dihentikan</string>
+    <string name="per_app_profile_service_failed">Gagal memulai layanan: %1$s</string>
+    <string name="per_app_profile_applied">Profil: %1$s\n%2$s • %3$s</string>
+    <string name="per_app_profile_notif_title">Profil Per-Aplikasi Aktif</string>
+    <string name="per_app_profile_notif_text">Memantau aplikasi aktif</string>
+
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>
     <string name="battery_guru">Notifikasi Baterai</string>

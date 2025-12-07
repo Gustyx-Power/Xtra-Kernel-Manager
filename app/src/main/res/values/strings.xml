@@ -276,6 +276,33 @@
     <string name="tap_to_change">Tap to change</string>
     <string name="not_set">Not Set</string>
 
+    <!-- Per-App Profile -->
+    <string name="per_app_profile">Per-App Profiles</string>
+    <string name="per_app_profile_desc">Custom settings per application</string>
+    <string name="per_app_profile_enable">Enable Per-App Profiles</string>
+    <string name="per_app_profile_monitoring_active">Monitoring active</string>
+    <string name="per_app_profile_monitoring_disabled">Monitoring disabled</string>
+    <string name="per_app_profile_count">App Profiles (%1$d)</string>
+    <string name="per_app_profile_empty">No profiles configured. Tap + to add one.</string>
+    <string name="per_app_profile_add">Add App Profile</string>
+    <string name="per_app_profile_edit">Edit Profile</string>
+    <string name="per_app_profile_search">Search apps</string>
+    <string name="per_app_profile_governor">Governor</string>
+    <string name="per_app_profile_thermal">Thermal Preset</string>
+    <string name="per_app_profile_add_button">Add</string>
+    <string name="per_app_profile_save_button">Save</string>
+    <string name="per_app_profile_cancel">Cancel</string>
+    <string name="per_app_profile_usage_required">Usage Access Required</string>
+    <string name="per_app_profile_usage_desc">Grant usage access permission to detect foreground apps</string>
+    <string name="per_app_profile_grant_permission">Grant Permission</string>
+    <string name="per_app_profile_service_starting">Starting Per-App Profile Service…</string>
+    <string name="per_app_profile_service_started">Per-App Profile: Service Started</string>
+    <string name="per_app_profile_service_stopped">Per-App Profile: Service Stopped</string>
+    <string name="per_app_profile_service_failed">Failed to start service: %1$s</string>
+    <string name="per_app_profile_applied">Profile: %1$s\n%2$s • %3$s</string>
+    <string name="per_app_profile_notif_title">Per-App Profile Active</string>
+    <string name="per_app_profile_notif_text">Monitoring foreground apps</string>
+
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>
     <string name="battery_guru">Battery Notification</string>
