@@ -1,11 +1,99 @@
+Changelogs For Xtra Kernel Manager Version 2.0-Release
+
+Release Date: December 2025
+
+
+MAJOR NEW FEATURES
+
+Per-App Profile System
+- Create custom profiles for specific apps
+- Set CPU governor per app (performance, balanced, powersave, etc.)
+- Set thermal preset per app
+- Auto-apply profiles when app is launched
+- Background service monitors foreground apps
+- Usage stats permission integration
+- Full localization support (EN/ID)
+
+Enhanced Game Control
+- Performance modes now include thermal presets:
+  * Performance: CPU Performance + Dynamic Thermal
+  * Balanced: CPU Schedutil + Thermal 20
+  * Battery: CPU Powersave + Incalls Thermal
+- Improved overlay permission handling
+- Auto-request overlay permission when enabling
+
+Root Permission Check
+- App now checks for root access at startup
+- Displays informative dialog if root not granted
+- Shows instructions for Magisk, KernelSU, APatch
+- App exits gracefully if root not available
+
+Auto Data Reset on Update
+- Automatically clears preferences on app update
+- Prevents crashes from incompatible old data
+- Toast notification when settings are reset
+- Version tracking for update detection
+
+
+UI/UX ENHANCEMENTS
+
+Enhanced Splash Screen
+- Expressive multi-ring loading animation with pulsing effects
+- Animated floating background orbs with breathing effect
+- New app name and version chip design
+- Dynamic status messages during initialization
+
+HomeScreen Improvements
+- Redesigned header with version on separate line
+- Build date displayed (format: YYYY.MM.dd)
+- Consistent chip style across app
+
+
+TECHNICAL IMPROVEMENTS
+
+- Build date auto-generated at compile time
+- Debug APK Telegram upload feature
+- Improved overlay permission flow in Game Control
+- Better error handling for root shell commands
+- AppProfileService runs as foreground service
+- QUERY_ALL_PACKAGES permission for app detection
+- PACKAGE_USAGE_STATS for foreground app monitoring
+
+
+LOCALIZATION
+
+- Full Indonesian (Bahasa Indonesia) translation
+- All new features fully localized
+- Per-App Profile UI strings
+- Root Required dialog
+- Update dialogs
+- Splash screen status messages
+- All toast messages
+
+
+BUG FIXES
+
+- Fixed overlay permission not being checked before starting service
+- Fixed potential crashes when updating from older versions
+- Improved app detection using launcher intent filter
+- Fixed foreground service compatibility for Android O+
+
+
+PERMISSIONS ADDED
+
+- PACKAGE_USAGE_STATS: Monitor foreground apps
+- QUERY_ALL_PACKAGES: Detect installed apps (Android 11+)
+
+
+---
+
+
 Changelogs For Xtra Kernel Manager Version 1.6
 - Enhance FPS Meter
 - Add TCP Congestion
 
 
 Changelogs For Xtra Kernel Manager Version 1.5
-
-Major Changes:
 - Add FPS Meter
 - Add OTA Update
 - Add Idle Count in Notification 
@@ -18,60 +106,30 @@ Major Changes:
 - Now GlassMorphism combine with Material 3 in Android 12+
 
 
-
 Changelogs For Xtra Kernel Manager Version 1.4
 
 Major Changes:
-- Enhanced UI/UX with improved visual design and user experience: Complete redesign of the interface with modern Material Design principles, improved navigation flow, redesigned control panels, better accessibility features, and enhanced visual feedback for user interactions
+- Enhanced UI/UX with improved visual design and user experience
 - Add Profiler in Quick Settings Tile & Widget
 - Added comprehensive CPU frequency monitoring and control system
 - Implemented real-time CPU temperature monitoring
-- Added intelligent battery optimization features with custom power profiles
+- Added intelligent battery optimization features
 - Implemented system-wide performance monitoring dashboard
-- Enhanced memory management with automatic cleanup and optimization
+- Enhanced memory management with automatic cleanup
 - Added support for custom kernel parameter tuning
 
 Minor Changes:
-- Improved stability and error handling across all modules
-- Enhanced root permission management and verification system
-- Optimized app startup time and reduced memory footprint
+- Improved stability and error handling
+- Enhanced root permission management
+- Optimized app startup time
 - Enhanced security with improved permission handling
 
 
-
 Changelogs For Xtra Kernel Manager Version 1.3
-- Resolved an issue where Tuning functionalities were not operational in Version 1.2.
-- Implemented CPU Core Control, allowing users to manage individual CPU core states.
-- Introduced Ram Control, providing options to optimize RAM usage.
-- Removed the Terminal feature.
-- Added a Miscellaneous section (currently under development) for future enhancements.
-- Incorporated an "Adjust Swap Size" feature (to be released soon), enabling users to modify the ZRAM swap size.
-- Update and Tidy up the UI: Refined the user interface for a more intuitive and visually appealing experience. This includes improved layout, clearer navigation, and updated icons to enhance usability.
-
-
- SOC Model Registration :
-- Qualcomm® Snapdragon™ 7+ Gen 2
-- Qualcomm® Snapdragon™ 8 Gen 3
-- Qualcomm® Snapdragon™ 8s Gen 3
-- Qualcomm® Snapdragon™ 845
-- Qualcomm® Snapdragon™ 7s Gen 2 (recognized by part numbers SM7435-AB, SM7435)
-- Qualcomm® Snapdragon™ 8s Gen 4 (recognized by part numbers SM8735, sm8735)
-- MediaTek Helio G95 (recognized by part numbers MT6785/CD, MT6785)
-- MediaTek Dimensity 1080 (recognized by part numbers MT6877V/TTZA, MT6877V)
-- Qualcomm® Snapdragon™ 870 (recognized by part number SM8250)
-- Qualcomm® Snapdragon™ 860 (recognized by part number SM8150)
-- Qualcomm® Snapdragon™ 665 (recognized by part number SDM665)
-- Qualcomm® Snapdragon™ 660 (recognized by part number SDM660)
-- Qualcomm® Snapdragon™ 8 Elite (recognized by part number SM8750)
-- MediaTek Dimensity 6080 (recognized by part number MT6833GP)
-- MediaTek Helio G85 (recognized by part number MT6769Z)
-- MediaTek Dimensity 9300+ (recognized by part number MT6989W)
-
-
-ZRAM Maximum Adjustable Size (based on device RAM):
-- For devices with 3GB RAM: Maximum ZRAM size is 1GB.
-- For devices with 4GB RAM: Maximum ZRAM size is 2GB.
-- For devices with 6GB RAM: Maximum ZRAM size is 4GB.
-- For devices with 8GB RAM: Maximum ZRAM size is 9GB.
-- For devices with 12GB RAM: Maximum ZRAM size is 14GB.
-- For devices with 16GB RAM: Maximum ZRAM size is 18GB.
+- Resolved Tuning functionalities issue from Version 1.2
+- Implemented CPU Core Control
+- Introduced Ram Control
+- Removed Terminal feature
+- Added Miscellaneous section
+- Incorporated Adjust Swap Size feature
+- Update and Tidy up the UI
