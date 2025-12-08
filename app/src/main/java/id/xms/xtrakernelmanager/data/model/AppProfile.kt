@@ -11,6 +11,7 @@ data class AppProfile(
     val appName: String,
     val governor: String = "schedutil",
     val thermalPreset: String = "Not Set",
+    val refreshRate: Int = 0, // 0 = Not Set, 60 = 60Hz, 90 = 90Hz, 120 = 120Hz
     val enabled: Boolean = true
 )
 

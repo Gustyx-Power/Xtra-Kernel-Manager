@@ -139,6 +139,7 @@ class AppProfileService : Service() {
                         appName = obj.getString("appName"),
                         governor = obj.optString("governor", "schedutil"),
                         thermalPreset = obj.optString("thermalPreset", "Not Set"),
+                        refreshRate = obj.optInt("refreshRate", 0),
                         enabled = obj.optBoolean("enabled", true)
                     )
                 )
@@ -182,13 +183,21 @@ class AppProfileService : Service() {
     private fun applyProfile(profile: AppProfile) {
         serviceScope.launch {
             try {
-                Log.d(TAG, "Applying profile for ${profile.appName}: Governor=${profile.governor}, Thermal=${profile.thermalPreset}")
+                val refreshRateInfo = if (profile.refreshRate > 0) ", RefreshRate=${profile.refreshRate}Hz" else ""
+                Log.d(TAG, "Applying profile for ${profile.appName}: Governor=${profile.governor}, Thermal=${profile.thermalPreset}$refreshRateInfo")
+                
+                // Build toast message with refresh rate info
+                val toastMessage = if (profile.refreshRate > 0) {
+                    "${profile.appName}\n${profile.governor} • ${profile.thermalPreset} • ${profile.refreshRate}Hz"
+                } else {
+                    getString(R.string.per_app_profile_applied, profile.appName, profile.governor, profile.thermalPreset)
+                }
                 
                 // Show toast first (before applying settings)
                 mainHandler.post {
                     Toast.makeText(
                         applicationContext,
-                        getString(R.string.per_app_profile_applied, profile.appName, profile.governor, profile.thermalPreset),
+                        toastMessage,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -206,6 +215,22 @@ class AppProfileService : Service() {
                     thermalUseCase.setThermalMode(profile.thermalPreset, false)
                 }
                 
+                // Apply refresh rate if specified
+                if (profile.refreshRate > 0) {
+                    Log.d(TAG, "Applying refresh rate: ${profile.refreshRate}Hz")
+                    val success = applyRefreshRate(profile.refreshRate)
+                    
+                    // Show additional toast for refresh rate result
+                    mainHandler.post {
+                        val msg = if (success) {
+                            getString(R.string.per_app_profile_refresh_rate_applied, profile.refreshRate)
+                        } else {
+                            "Failed to set refresh rate to ${profile.refreshRate}Hz"
+                        }
+                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
                 Log.d(TAG, "Profile applied successfully for ${profile.appName}")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to apply profile: ${e.message}", e)
@@ -216,6 +241,190 @@ class AppProfileService : Service() {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+            }
+        }
+    }
+    
+    private suspend fun applyRefreshRate(rate: Int): Boolean {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                var success = false
+                
+                // STEP 1: Set refresh_rate_mode FIRST (force the mode before setting values)
+                // This is critical for MIUI/HyperOS/OriginOS to properly apply refresh rate
+                try {
+                    // refresh_rate_mode: 0=dynamic, 1=force high, 2=force low
+                    // For specific rates, we need to disable dynamic mode first
+                    val modeValue = when (rate) {
+                        60 -> 2   // force low refresh rate
+                        90 -> 0   // dynamic mode for 90Hz (some devices)
+                        120 -> 1  // force high refresh rate
+                        else -> 0 // dynamic
+                    }
+                    // Set in both system and secure
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system refresh_rate_mode $modeValue")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure refresh_rate_mode $modeValue")).waitFor()
+                    Log.d(TAG, "Step 1 (refresh_rate_mode): Set mode to $modeValue for ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 1 failed: ${e.message}")
+                }
+                
+                // STEP 2: Vivo/Origin OS specific - vivo_screen_refresh_rate_mode (IMPORTANT!)
+                try {
+                    val vivoCmd = "settings put global vivo_screen_refresh_rate_mode ${rate}"
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", vivoCmd)).waitFor()
+                    Log.d(TAG, "Step 2 (vivo_screen_refresh_rate_mode): Applied ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 2 failed: ${e.message}")
+                }
+                
+                // STEP 3: Set peak_refresh_rate and min_refresh_rate in ALL namespaces
+                try {
+                    // System namespace
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system peak_refresh_rate ${rate}.0")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system min_refresh_rate ${rate}.0")).waitFor()
+                    // Global namespace
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global peak_refresh_rate ${rate}.0")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global min_refresh_rate ${rate}.0")).waitFor()
+                    // Secure namespace
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure peak_refresh_rate ${rate}.0")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure min_refresh_rate ${rate}.0")).waitFor()
+                    Log.d(TAG, "Step 3 (peak/min_refresh_rate): Set all namespaces to ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 3 failed: ${e.message}")
+                }
+                
+                // STEP 4: MIUI/HyperOS specific settings (system namespace)
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system user_refresh_rate ${rate}")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system MIUI_REFRESH_RATE ${rate}")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system screen_refresh_rate ${rate}")).waitFor()
+                    Log.d(TAG, "Step 4 (MIUI system): Set user/MIUI/screen refresh rate to ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 4 failed: ${e.message}")
+                }
+                
+                // STEP 5: MIUI/HyperOS specific settings (secure namespace)
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure miui_refresh_rate ${rate}")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure user_refresh_rate ${rate}")).waitFor()
+                    Log.d(TAG, "Step 5 (MIUI secure): Set miui/user refresh rate to ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 5 failed: ${e.message}")
+                }
+                
+                // STEP 6: System properties for SurfaceFlinger
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop debug.sf.frame_rate_multiple_threshold ${rate}")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop persist.sys.miui.refresh_rate ${rate}")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "setprop persist.vendor.display.mode ${rate}")).waitFor()
+                    Log.d(TAG, "Step 6 (setprop): Set SurfaceFlinger properties to ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 6 failed: ${e.message}")
+                }
+                
+                // STEP 7: Direct SurfaceFlinger service call
+                try {
+                    val modeIndex = when (rate) {
+                        60 -> 0
+                        90 -> 1
+                        120 -> 2
+                        else -> 0
+                    }
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1035 i32 $modeIndex")).waitFor()
+                    Log.d(TAG, "Step 7 (SurfaceFlinger): Applied mode index $modeIndex")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 7 failed: ${e.message}")
+                }
+                
+                // STEP 8: Developer option - Force peak refresh rate
+                try {
+                    // This is the developer option toggle for forcing peak refresh rate
+                    val forceValue = if (rate >= 120) 1 else 0
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system user_preferred_refresh_rate $rate")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global user_preferred_refresh_rate $rate")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put secure user_preferred_refresh_rate $rate")).waitFor()
+                    // Force peak refresh rate toggle (1 = force, 0 = default)
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system force_peak_refresh_rate $forceValue")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global force_peak_refresh_rate $forceValue")).waitFor()
+                    Log.d(TAG, "Step 8 (force_peak_refresh_rate): Set to $forceValue for ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 8 failed: ${e.message}")
+                }
+                
+                // STEP 9: Vivo/Origin OS - high refresh rate enable
+                try {
+                    // Enable high refresh rate mode for all apps
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global vivo_high_refresh_rate_enable 1")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system high_refresh_rate_enable 1")).waitFor()
+                    // Set the actual rate value in Vivo namespace
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put system vivo_refresh_rate ${rate}")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global vivo_refresh_rate ${rate}")).waitFor()
+                    Log.d(TAG, "Step 9 (vivo_high_refresh_rate): Enabled high refresh rate for ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 9 failed: ${e.message}")
+                }
+                
+                // STEP 10: Android 13+ display command
+                try {
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "cmd display set-user-preferred-display-mode 0 0 ${rate}.0")).waitFor()
+                    Log.d(TAG, "Step 10 (cmd display): Set preferred display mode to ${rate}Hz")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 10 failed: ${e.message}")
+                }
+                
+                // STEP 11: Force display configuration refresh
+                try {
+                    // Method A: Broadcast display config change
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "am broadcast -a android.intent.action.CONFIGURATION_CHANGED")).waitFor()
+                    // Method B: Reset window manager
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "wm size reset")).waitFor()
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "wm density reset")).waitFor()
+                    Log.d(TAG, "Step 11 (display config broadcast): Triggered config change")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 11 failed: ${e.message}")
+                }
+                
+                // STEP 12: Kill and restart SurfaceFlinger (AGGRESSIVE - will cause screen flicker!)
+                // This forces SurfaceFlinger to re-read all display settings
+                try {
+                    // Option 1: Signal SurfaceFlinger to reload (safer)
+                    Runtime.getRuntime().exec(arrayOf("su", "-c", "service call SurfaceFlinger 1034 i32 1")).waitFor()
+                    // Option 2: Force close and let system restart it (causes flicker but effective)
+                    // Runtime.getRuntime().exec(arrayOf("su", "-c", "pkill -f surfaceflinger")).waitFor()
+                    Log.d(TAG, "Step 12 (SurfaceFlinger signal): Sent reload signal")
+                    success = true
+                } catch (e: Exception) {
+                    Log.e(TAG, "Step 12 failed: ${e.message}")
+                }
+                
+                // STEP 13: Restart SystemUI to force display configuration reload
+                // NOTE: This is disabled by default as it's disruptive (causes brief black screen)
+                // Some ROMs like Origin OS may not respect settings changes without SystemUI restart
+                // Uncomment if refresh rate changes don't take effect on your ROM
+                // try {
+                //     Runtime.getRuntime().exec(arrayOf("su", "-c", "pkill -f com.android.systemui")).waitFor()
+                //     Log.d(TAG, "Step 13 (SystemUI restart): Triggered SystemUI restart for display refresh")
+                //     success = true
+                // } catch (e: Exception) {
+                //     Log.e(TAG, "Step 13 failed: ${e.message}")
+                // }
+                
+                success
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to apply refresh rate: ${e.message}", e)
+                false
             }
         }
     }
