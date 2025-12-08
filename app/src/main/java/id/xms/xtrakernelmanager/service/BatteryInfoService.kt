@@ -106,13 +106,8 @@ class BatteryInfoService : Service() {
                 val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
                 val isCharging = (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL)
 
-                // Read current_now and invert sign
-                val currentNowRaw = try {
-                    File("/sys/class/power_supply/battery/current_now").readText().trim().toIntOrNull()?.div(1000) ?: 0
-                } catch (e: Exception) {
-                    0
-                }
-                val currentNow = -currentNowRaw // Invert: positive when charging, negative when discharging
+                // Read current_now from multiple sources with fallback
+                val currentNow = getBatteryCurrent(isCharging)
 
                 // Track battery drain
                 if (lastBatteryLevel != -1 && level < lastBatteryLevel && !isCharging) {
@@ -250,6 +245,98 @@ class BatteryInfoService : Service() {
         val minutes = seconds / 60
         val hours = minutes / 60
         return "%dh %02dm %02ds".format(hours, minutes % 60, seconds % 60)
+    }
+    
+    /**
+     * Get battery current from multiple sources with fallback.
+     * Returns positive value when charging, negative when discharging.
+     */
+    private fun getBatteryCurrent(isCharging: Boolean): Int {
+        // List of possible paths for battery current (in microamps)
+        val currentPaths = listOf(
+            "/sys/class/power_supply/battery/current_now",
+            "/sys/class/power_supply/bms/current_now",
+            "/sys/class/power_supply/Battery/current_now",
+            "/sys/class/power_supply/main/current_now",
+            "/sys/class/power_supply/usb/current_now",
+            "/sys/class/power_supply/ac/current_now"
+        )
+        
+        // Try reading from sysfs paths first
+        for (path in currentPaths) {
+            try {
+                val file = File(path)
+                if (file.exists() && file.canRead()) {
+                    val rawValue = file.readText().trim().toLongOrNull() ?: continue
+                    if (rawValue != 0L) {
+                        // Convert from microamps to milliamps
+                        var currentMa = (rawValue / 1000).toInt()
+                        
+                        // Determine sign based on charging state and raw value
+                        // Some devices report positive when charging, some report negative
+                        // We normalize: positive = charging, negative = discharging
+                        currentMa = if (isCharging) {
+                            kotlin.math.abs(currentMa) // Always positive when charging
+                        } else {
+                            -kotlin.math.abs(currentMa) // Always negative when discharging
+                        }
+                        
+                        Log.d("BatteryInfoService", "Current from $path: ${currentMa}mA")
+                        return currentMa
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("BatteryInfoService", "Failed to read $path: ${e.message}")
+            }
+        }
+        
+        // Fallback: Use BatteryManager API (Android 5.0+)
+        try {
+            val batteryManager = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+            if (batteryManager != null) {
+                // BATTERY_PROPERTY_CURRENT_NOW returns microamps
+                val currentMicroAmps = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+                if (currentMicroAmps != Int.MIN_VALUE && currentMicroAmps != 0) {
+                    var currentMa = currentMicroAmps / 1000
+                    
+                    // Normalize sign based on charging state
+                    currentMa = if (isCharging) {
+                        kotlin.math.abs(currentMa)
+                    } else {
+                        -kotlin.math.abs(currentMa)
+                    }
+                    
+                    Log.d("BatteryInfoService", "Current from BatteryManager API: ${currentMa}mA")
+                    return currentMa
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("BatteryInfoService", "BatteryManager API failed: ${e.message}")
+        }
+        
+        // Fallback: Try reading with root access
+        try {
+            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat /sys/class/power_supply/battery/current_now"))
+            val result = process.inputStream.bufferedReader().readText().trim()
+            process.waitFor()
+            
+            val rawValue = result.toLongOrNull()
+            if (rawValue != null && rawValue != 0L) {
+                var currentMa = (rawValue / 1000).toInt()
+                currentMa = if (isCharging) {
+                    kotlin.math.abs(currentMa)
+                } else {
+                    -kotlin.math.abs(currentMa)
+                }
+                Log.d("BatteryInfoService", "Current from root: ${currentMa}mA")
+                return currentMa
+            }
+        } catch (e: Exception) {
+            Log.d("BatteryInfoService", "Root read failed: ${e.message}")
+        }
+        
+        Log.w("BatteryInfoService", "Could not read battery current from any source")
+        return 0
     }
 
     /**

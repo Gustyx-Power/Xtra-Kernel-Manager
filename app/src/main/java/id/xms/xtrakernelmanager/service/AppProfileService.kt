@@ -42,11 +42,21 @@ class AppProfileService : Service() {
     private var pollingJob: Job? = null
     private var appProfiles: List<AppProfile> = emptyList()
     private val mainHandler = Handler(Looper.getMainLooper())
+    
+    // Track if a custom refresh rate is currently applied
+    private var isCustomRefreshRateActive = false
+    private var lastAppliedRefreshRate = 0
+    // Default refresh rate to restore when leaving profiled app (typically device max)
+    private var defaultRefreshRate = 120 // Will be overwritten with actual device max
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "onCreate called")
         preferencesManager = PreferencesManager(applicationContext)
+        
+        // Detect device max refresh rate for proper reset
+        detectDefaultRefreshRate()
+        
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
         startPolling()
@@ -55,7 +65,23 @@ class AppProfileService : Service() {
         mainHandler.post {
             Toast.makeText(applicationContext, getString(R.string.per_app_profile_service_started), Toast.LENGTH_SHORT).show()
         }
-        Log.d(TAG, "AppProfileService started successfully")
+        Log.d(TAG, "AppProfileService started successfully with default refresh rate: ${defaultRefreshRate}Hz")
+    }
+    
+    private fun detectDefaultRefreshRate() {
+        try {
+            val windowManager = getSystemService(Context.WINDOW_SERVICE) as? android.view.WindowManager
+            val display = windowManager?.defaultDisplay
+            if (display != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                val supportedModes = display.supportedModes
+                val maxRate = supportedModes.maxOfOrNull { it.refreshRate.toInt() } ?: 120
+                defaultRefreshRate = maxRate
+                Log.d(TAG, "Detected device max refresh rate: ${maxRate}Hz")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to detect max refresh rate: ${e.message}")
+            defaultRefreshRate = 120 // Fallback to 120Hz
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -114,8 +140,22 @@ class AppProfileService : Service() {
                         if (profile != null) {
                             Log.d(TAG, "Found profile for ${profile.appName}, applying...")
                             applyProfile(profile)
+                            
+                            // Track if custom refresh rate is being applied
+                            if (profile.refreshRate > 0) {
+                                isCustomRefreshRateActive = true
+                                lastAppliedRefreshRate = profile.refreshRate
+                            }
                         } else {
                             Log.d(TAG, "No profile found for $foregroundPackage")
+                            
+                            // Reset refresh rate to default if custom was previously active
+                            if (isCustomRefreshRateActive) {
+                                Log.d(TAG, "Resetting refresh rate to default (${defaultRefreshRate}Hz)")
+                                resetRefreshRateToDefault()
+                                isCustomRefreshRateActive = false
+                                lastAppliedRefreshRate = 0
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -425,6 +465,31 @@ class AppProfileService : Service() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to apply refresh rate: ${e.message}", e)
                 false
+            }
+        }
+    }
+    
+    private fun resetRefreshRateToDefault() {
+        serviceScope.launch {
+            try {
+                Log.d(TAG, "Resetting refresh rate to default: ${defaultRefreshRate}Hz")
+                
+                // Apply default refresh rate using the same method
+                val success = applyRefreshRate(defaultRefreshRate)
+                
+                if (success) {
+                    mainHandler.post {
+                        Toast.makeText(
+                            applicationContext,
+                            getString(R.string.per_app_profile_refresh_rate_applied, defaultRefreshRate),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                
+                Log.d(TAG, "Refresh rate reset to default: $success")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to reset refresh rate: ${e.message}", e)
             }
         }
     }
