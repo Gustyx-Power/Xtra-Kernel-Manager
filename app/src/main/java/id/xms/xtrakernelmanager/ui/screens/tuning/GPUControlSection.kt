@@ -863,8 +863,8 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                 onValueChangeFinished = {
                                     viewModel.setGPUPowerLevel(powerLevel.toInt())
                                 },
-                                valueRange = 0f..7f,
-                                steps = 6,
+                                valueRange = 0f..(gpuInfo.numPwrLevels - 1).coerceAtLeast(1).toFloat(),
+                                steps = (gpuInfo.numPwrLevels - 2).coerceAtLeast(0),
                                 colors = SliderDefaults.colors(
                                     thumbColor = MaterialTheme.colorScheme.tertiary,
                                     activeTrackColor = MaterialTheme.colorScheme.tertiary

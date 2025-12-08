@@ -9,5 +9,6 @@ data class GPUInfo(
     val maxFreq: Int = 0,
     val availableFreqs: List<Int> = emptyList(),
     val powerLevel: Int = 0,
+    val numPwrLevels: Int = 8,
     val rendererType: String = "OpenGL"
 )
