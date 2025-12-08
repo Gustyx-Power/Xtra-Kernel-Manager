@@ -1,8 +1,6 @@
 Changelogs For Xtra Kernel Manager Version 2.0-Release
 
 Release Date: December 2025
-
-
 MAJOR NEW FEATURES
 
 Per-App Profile System
@@ -48,10 +46,8 @@ HomeScreen Improvements
 - Build date displayed (format: YYYY.MM.dd)
 - Consistent chip style across app
 
-
 TECHNICAL IMPROVEMENTS
-
-- Build date auto-generated at compile time
+- Build Date auto-generated at compile time
 - Debug APK Telegram upload feature
 - Improved overlay permission flow in Game Control
 - Better error handling for root shell commands
