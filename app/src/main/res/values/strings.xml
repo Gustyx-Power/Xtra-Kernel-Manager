@@ -304,6 +304,14 @@
     <string name="per_app_profile_notif_title">Per-App Profile Active</string>
     <string name="per_app_profile_notif_text">Monitoring foreground apps</string>
     <string name="per_app_profile_deleted">Profile deleted, reset to default</string>
+    <string name="per_app_profile_refresh_rate">Refresh Rate</string>
+    <string name="per_app_profile_refresh_rate_not_set">Not Set</string>
+    <string name="per_app_profile_refresh_rate_60">60 Hz</string>
+    <string name="per_app_profile_refresh_rate_90">90 Hz</string>
+    <string name="per_app_profile_refresh_rate_120">120 Hz</string>
+    <string name="per_app_profile_refresh_rate_applied">Refresh rate set to %1$d Hz</string>
+    <string name="per_app_profile_display_info">Display: %1$d Hz max</string>
+    <string name="per_app_profile_refresh_rate_warning">⚠️ Refresh rate changes depend on ROM compatibility. If it doesn\'t work, try restarting your device.</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>

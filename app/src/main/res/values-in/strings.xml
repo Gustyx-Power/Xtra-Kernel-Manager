@@ -304,6 +304,14 @@
     <string name="per_app_profile_notif_title">Profil Per-Aplikasi Aktif</string>
     <string name="per_app_profile_notif_text">Memantau aplikasi aktif</string>
     <string name="per_app_profile_deleted">Profil dihapus, dikembalikan ke default</string>
+    <string name="per_app_profile_refresh_rate">Refresh Rate</string>
+    <string name="per_app_profile_refresh_rate_not_set">Belum Diatur</string>
+    <string name="per_app_profile_refresh_rate_60">60 Hz</string>
+    <string name="per_app_profile_refresh_rate_90">90 Hz</string>
+    <string name="per_app_profile_refresh_rate_120">120 Hz</string>
+    <string name="per_app_profile_refresh_rate_applied">Refresh rate diatur ke %1$d Hz</string>
+    <string name="per_app_profile_display_info">Layar: maks %1$d Hz</string>
+    <string name="per_app_profile_refresh_rate_warning">⚠️ Perubahan refresh rate tergantung kompatibilitas ROM. Jika tidak berhasil, coba mulai ulang perangkat.</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>
