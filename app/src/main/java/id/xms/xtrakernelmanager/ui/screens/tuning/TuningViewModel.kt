@@ -87,6 +87,16 @@ class TuningViewModel(
     private val _clusterStates = MutableStateFlow<Map<Int, ClusterUIState>>(emptyMap())
     val clusterStates: StateFlow<Map<Int, ClusterUIState>> get() = _clusterStates.asStateFlow()
 
+    // GPU Lock State - persists across UI changes
+    private val _isGpuFrequencyLocked = MutableStateFlow(false)
+    val isGpuFrequencyLocked: StateFlow<Boolean> get() = _isGpuFrequencyLocked.asStateFlow()
+
+    private val _lockedGpuMinFreq = MutableStateFlow(0)
+    val lockedGpuMinFreq: StateFlow<Int> get() = _lockedGpuMinFreq.asStateFlow()
+
+    private val _lockedGpuMaxFreq = MutableStateFlow(0)
+    val lockedGpuMaxFreq: StateFlow<Int> get() = _lockedGpuMaxFreq.asStateFlow()
+
     private var deviceInfoCache: Triple<String, String, String>? = null
 
     init {
@@ -322,6 +332,24 @@ class TuningViewModel(
     fun setGPUPowerLevel(level: Int) {
         viewModelScope.launch {
             gpuUseCase.setGPUPowerLevel(level)
+        }
+    }
+
+    fun lockGPUFrequency(minFreq: Int, maxFreq: Int) {
+        viewModelScope.launch {
+            gpuUseCase.lockGPUFrequency(minFreq, maxFreq)
+            _lockedGpuMinFreq.value = minFreq
+            _lockedGpuMaxFreq.value = maxFreq
+            _isGpuFrequencyLocked.value = true
+        }
+    }
+
+    fun unlockGPUFrequency() {
+        viewModelScope.launch {
+            gpuUseCase.unlockGPUFrequency()
+            _isGpuFrequencyLocked.value = false
+            _lockedGpuMinFreq.value = 0
+            _lockedGpuMaxFreq.value = 0
         }
     }
 
