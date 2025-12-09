@@ -114,15 +114,10 @@ class GPUControlUseCase {
         val maxFreqHz = maxFreq * 1000000L
         
         try {
-            // Step 1: Get available power levels to map frequency to power level
-            val numPwrLevels = RootManager.executeCommand("cat $basePath/num_pwrlevels 2>/dev/null")
-                .getOrNull()?.trim()?.toIntOrNull() ?: 8
-            
-            // Step 2: Disable thermal throttling temporarily to prevent interference
+            // Step 1: Disable thermal throttling temporarily to prevent interference
             RootManager.executeCommand("echo 0 > $basePath/throttling 2>/dev/null")
             
-            // Step 3: Set frequency constraints via multiple paths for compatibility
-            // Try devfreq path first (more reliable on newer kernels)
+            // Step 2: Set frequency constraints via multiple paths for compatibility
             val devfreqExists = RootManager.executeCommand("[ -d $devfreqPath ] && echo exists")
                 .getOrNull()?.trim() == "exists"
             
@@ -137,28 +132,24 @@ class GPUControlUseCase {
             RootManager.executeCommand("echo $maxFreqHz > $basePath/max_gpuclk 2>/dev/null")
             RootManager.executeCommand("echo $minFreqHz > $basePath/min_gpuclk 2>/dev/null")
             
-            // Step 4: Calculate and set power level constraints based on frequency
-            // Power level 0 = highest freq, higher power level = lower freq
+            // Step 3: Calculate and set power level constraints based on frequency
             val freqTableRaw = RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
                 .getOrNull()?.trim() ?: ""
             val availableFreqs = freqTableRaw.split(" ")
                 .mapNotNull { it.trim().toLongOrNull() }
-                .sortedDescending() // Sort from highest to lowest
+                .sortedDescending()
             
             if (availableFreqs.isNotEmpty()) {
-                // Find power level for min freq (will be higher power level number = lower performance)
                 val minPwrLevel = availableFreqs.indexOfFirst { it <= minFreqHz }.takeIf { it >= 0 }
                     ?: (availableFreqs.size - 1)
-                // Find power level for max freq (will be lower power level number = higher performance)
                 val maxPwrLevel = availableFreqs.indexOfFirst { it <= maxFreqHz }.takeIf { it >= 0 } ?: 0
                 
-                // Set power level constraints to lock frequency range
                 RootManager.executeCommand("echo $minPwrLevel > $basePath/min_pwrlevel 2>/dev/null")
                 RootManager.executeCommand("echo $maxPwrLevel > $basePath/max_pwrlevel 2>/dev/null")
                 Log.d(TAG, "Set power level constraints: min_pwrlevel=$minPwrLevel, max_pwrlevel=$maxPwrLevel")
             }
             
-            // Step 5: Force GPU to update with new constraints
+            // Step 4: Force GPU to update
             RootManager.executeCommand("echo 1 > $basePath/force_clk_on 2>/dev/null")
             kotlinx.coroutines.delay(50)
             RootManager.executeCommand("echo 0 > $basePath/force_clk_on 2>/dev/null")
@@ -170,6 +161,170 @@ class GPUControlUseCase {
             Log.e(TAG, "Failed to set GPU frequency", e)
             return Result.failure(e)
         }
+    }
+
+    /**
+     * Lock GPU frequency to specific min/max values by changing governor and forcing constraints
+     */
+    suspend fun lockGPUFrequency(minFreq: Int, maxFreq: Int): Result<Unit> {
+        val basePath = "/sys/class/kgsl/kgsl-3d0"
+        val devfreqPath = "$basePath/devfreq"
+        
+        Log.d(TAG, "Locking GPU frequency: min=$minFreq MHz, max=$maxFreq MHz")
+        
+        val minFreqHz = minFreq * 1000000L
+        val maxFreqHz = maxFreq * 1000000L
+        
+        try {
+            // Step 1: Disable thermal throttling
+            RootManager.executeCommand("echo 0 > $basePath/throttling 2>/dev/null")
+            
+            // Step 2: Disable bus split to prevent frequency drops
+            RootManager.executeCommand("echo 0 > $basePath/bus_split 2>/dev/null")
+            
+            // Step 3: Force power on
+            RootManager.executeCommand("echo 1 > $basePath/force_bus_on 2>/dev/null")
+            RootManager.executeCommand("echo 1 > $basePath/force_rail_on 2>/dev/null")
+            RootManager.executeCommand("echo 1 > $basePath/force_clk_on 2>/dev/null")
+            
+            // Step 4: Set governor to performance (locks at max freq) or simple_ondemand
+            val devfreqExists = RootManager.executeCommand("[ -d $devfreqPath ] && echo exists")
+                .getOrNull()?.trim() == "exists"
+            
+            if (devfreqExists) {
+                // If min == max, use performance governor to lock at that frequency
+                if (minFreq == maxFreq) {
+                    RootManager.executeCommand("echo performance > $devfreqPath/governor 2>/dev/null")
+                    Log.d(TAG, "Set governor to performance for frequency lock")
+                }
+                
+                // Set frequency limits
+                RootManager.executeCommand("echo $maxFreqHz > $devfreqPath/max_freq 2>/dev/null")
+                RootManager.executeCommand("echo $minFreqHz > $devfreqPath/min_freq 2>/dev/null")
+            }
+            
+            // Step 5: Set direct frequency if possible
+            RootManager.executeCommand("echo $maxFreqHz > $basePath/max_gpuclk 2>/dev/null")
+            RootManager.executeCommand("echo $minFreqHz > $basePath/min_gpuclk 2>/dev/null")
+            
+            // Step 6: Calculate and lock power levels
+            val freqTableRaw = RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
+                .getOrNull()?.trim() ?: ""
+            val availableFreqs = freqTableRaw.split(" ")
+                .mapNotNull { it.trim().toLongOrNull() }
+                .sortedDescending()
+            
+            if (availableFreqs.isNotEmpty()) {
+                val minPwrLevel = availableFreqs.indexOfFirst { it <= minFreqHz }.takeIf { it >= 0 }
+                    ?: (availableFreqs.size - 1)
+                val maxPwrLevel = availableFreqs.indexOfFirst { it <= maxFreqHz }.takeIf { it >= 0 } ?: 0
+                
+                // Lock power levels
+                RootManager.executeCommand("echo $maxPwrLevel > $basePath/min_pwrlevel 2>/dev/null")
+                RootManager.executeCommand("echo $maxPwrLevel > $basePath/max_pwrlevel 2>/dev/null")
+                RootManager.executeCommand("echo $maxPwrLevel > $basePath/default_pwrlevel 2>/dev/null")
+                
+                Log.d(TAG, "Locked power level to: $maxPwrLevel")
+            }
+            
+            // Step 7: Disable idle timer to prevent GPU from sleeping
+            RootManager.executeCommand("echo 0 > $basePath/idle_timer 2>/dev/null")
+            
+            // Step 8: Force NAP and SLUMBER off
+            RootManager.executeCommand("echo 0 > $basePath/force_no_nap 2>/dev/null")
+            
+            Log.d(TAG, "GPU frequency locked successfully")
+            return Result.success(Unit)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to lock GPU frequency", e)
+            return Result.failure(e)
+        }
+    }
+
+    /**
+     * Unlock GPU frequency - restore dynamic scaling
+     */
+    suspend fun unlockGPUFrequency(): Result<Unit> {
+        val basePath = "/sys/class/kgsl/kgsl-3d0"
+        val devfreqPath = "$basePath/devfreq"
+        
+        Log.d(TAG, "Unlocking GPU frequency - restoring dynamic scaling")
+        
+        try {
+            // Step 1: Restore governor to msm-adreno-tz (default) or simple_ondemand
+            val devfreqExists = RootManager.executeCommand("[ -d $devfreqPath ] && echo exists")
+                .getOrNull()?.trim() == "exists"
+            
+            if (devfreqExists) {
+                // Try msm-adreno-tz first (Qualcomm default), then simple_ondemand
+                val result = RootManager.executeCommand("echo msm-adreno-tz > $devfreqPath/governor 2>/dev/null")
+                if (result.isFailure) {
+                    RootManager.executeCommand("echo simple_ondemand > $devfreqPath/governor 2>/dev/null")
+                }
+            }
+            
+            // Step 2: Restore default power level constraints
+            val numPwrLevels = RootManager.executeCommand("cat $basePath/num_pwrlevels 2>/dev/null")
+                .getOrNull()?.trim()?.toIntOrNull() ?: 8
+            
+            RootManager.executeCommand("echo 0 > $basePath/max_pwrlevel 2>/dev/null")
+            RootManager.executeCommand("echo ${numPwrLevels - 1} > $basePath/min_pwrlevel 2>/dev/null")
+            RootManager.executeCommand("echo 0 > $basePath/default_pwrlevel 2>/dev/null")
+            
+            // Step 3: Restore frequency limits to full range
+            val freqTableRaw = RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
+                .getOrNull()?.trim() ?: ""
+            val availableFreqs = freqTableRaw.split(" ")
+                .mapNotNull { it.trim().toLongOrNull() }
+            
+            if (availableFreqs.isNotEmpty()) {
+                val maxFreqHz = availableFreqs.maxOrNull() ?: 0L
+                val minFreqHz = availableFreqs.minOrNull() ?: 0L
+                
+                if (devfreqExists) {
+                    RootManager.executeCommand("echo $maxFreqHz > $devfreqPath/max_freq 2>/dev/null")
+                    RootManager.executeCommand("echo $minFreqHz > $devfreqPath/min_freq 2>/dev/null")
+                }
+                
+                RootManager.executeCommand("echo $maxFreqHz > $basePath/max_gpuclk 2>/dev/null")
+                RootManager.executeCommand("echo $minFreqHz > $basePath/min_gpuclk 2>/dev/null")
+            }
+            
+            // Step 4: Restore power controls
+            RootManager.executeCommand("echo 0 > $basePath/force_bus_on 2>/dev/null")
+            RootManager.executeCommand("echo 0 > $basePath/force_rail_on 2>/dev/null")
+            RootManager.executeCommand("echo 0 > $basePath/force_clk_on 2>/dev/null")
+            RootManager.executeCommand("echo 1 > $basePath/bus_split 2>/dev/null")
+            
+            // Step 5: Restore idle timer
+            RootManager.executeCommand("echo 80 > $basePath/idle_timer 2>/dev/null")
+            
+            Log.d(TAG, "GPU frequency unlocked successfully")
+            return Result.success(Unit)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to unlock GPU frequency", e)
+            return Result.failure(e)
+        }
+    }
+
+    /**
+     * Get current GPU governor
+     */
+    suspend fun getGPUGovernor(): String {
+        val devfreqPath = "/sys/class/kgsl/kgsl-3d0/devfreq"
+        return RootManager.executeCommand("cat $devfreqPath/governor 2>/dev/null")
+            .getOrNull()?.trim() ?: "unknown"
+    }
+
+    /**
+     * Get available GPU governors
+     */
+    suspend fun getAvailableGPUGovernors(): List<String> {
+        val devfreqPath = "/sys/class/kgsl/kgsl-3d0/devfreq"
+        return RootManager.executeCommand("cat $devfreqPath/available_governors 2>/dev/null")
+            .getOrNull()?.trim()?.split(" ")?.filter { it.isNotBlank() } ?: emptyList()
     }
 
     suspend fun setGPUPowerLevel(level: Int): Result<Unit> {

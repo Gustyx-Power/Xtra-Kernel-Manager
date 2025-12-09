@@ -661,11 +661,23 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                     modifier = Modifier.padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    var minFreqSlider by remember(gpuInfo.minFreq) {
-                        mutableFloatStateOf(gpuInfo.minFreq.toFloat())
+                    // Use ViewModel state for lock status (persists across UI changes)
+                    val isFrequencyLocked by viewModel.isGpuFrequencyLocked.collectAsState()
+                    val lockedMinFreq by viewModel.lockedGpuMinFreq.collectAsState()
+                    val lockedMaxFreq by viewModel.lockedGpuMaxFreq.collectAsState()
+                    
+                    // Use locked values if locked, otherwise use system values
+                    var minFreqSlider by remember(gpuInfo.minFreq, isFrequencyLocked, lockedMinFreq) {
+                        mutableFloatStateOf(
+                            if (isFrequencyLocked && lockedMinFreq > 0) lockedMinFreq.toFloat() 
+                            else gpuInfo.minFreq.toFloat()
+                        )
                     }
-                    var maxFreqSlider by remember(gpuInfo.maxFreq) {
-                        mutableFloatStateOf(gpuInfo.maxFreq.toFloat())
+                    var maxFreqSlider by remember(gpuInfo.maxFreq, isFrequencyLocked, lockedMaxFreq) {
+                        mutableFloatStateOf(
+                            if (isFrequencyLocked && lockedMaxFreq > 0) lockedMaxFreq.toFloat() 
+                            else gpuInfo.maxFreq.toFloat()
+                        )
                     }
 
                     if (gpuInfo.availableFreqs.isNotEmpty()) {
@@ -683,21 +695,54 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                 verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
                                 Row(
+                                    modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Speed,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.tertiary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.gpu_frequency),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.tertiary
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Speed,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.tertiary,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.gpu_frequency),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    }
+                                    
+                                    // Lock indicator badge
+                                    if (isFrequencyLocked) {
+                                        Surface(
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = MaterialTheme.colorScheme.primaryContainer
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Lock,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(12.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                                Text(
+                                                    text = stringResource(R.string.gpu_locked),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
 
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -739,9 +784,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                     Slider(
                                         value = minFreqSlider,
                                         onValueChange = { minFreqSlider = it },
-                                        onValueChangeFinished = {
-                                            viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
-                                        },
+                                        onValueChangeFinished = { },
                                         valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
                                         colors = SliderDefaults.colors(
                                             thumbColor = MaterialTheme.colorScheme.tertiary,
@@ -787,9 +830,7 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                     Slider(
                                         value = maxFreqSlider,
                                         onValueChange = { maxFreqSlider = it },
-                                        onValueChangeFinished = {
-                                            viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
-                                        },
+                                        onValueChangeFinished = { },
                                         valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
                                         colors = SliderDefaults.colors(
                                             thumbColor = MaterialTheme.colorScheme.secondary,
@@ -797,6 +838,73 @@ fun GPUControlSection(viewModel: TuningViewModel) {
                                         )
                                     )
                                 }
+
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                                // Apply & Lock Buttons
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    // Apply Button
+                                    OutlinedButton(
+                                        onClick = {
+                                            viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
+                                            // Unlock when applying new frequency
+                                            if (isFrequencyLocked) {
+                                                viewModel.unlockGPUFrequency()
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.outlinedButtonColors(
+                                            contentColor = MaterialTheme.colorScheme.tertiary
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(stringResource(R.string.apply))
+                                    }
+                                    
+                                    // Lock Button
+                                    Button(
+                                        onClick = {
+                                            if (isFrequencyLocked) {
+                                                viewModel.unlockGPUFrequency()
+                                            } else {
+                                                viewModel.lockGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1f),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (isFrequencyLocked) 
+                                                MaterialTheme.colorScheme.error 
+                                            else 
+                                                MaterialTheme.colorScheme.primary
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isFrequencyLocked) Icons.Default.LockOpen else Icons.Default.Lock,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(if (isFrequencyLocked) stringResource(R.string.gpu_unlock) else stringResource(R.string.gpu_lock))
+                                    }
+                                }
+                                
+                                // Info text
+                                Text(
+                                    text = if (isFrequencyLocked) 
+                                        stringResource(R.string.gpu_locked_warning)
+                                    else 
+                                        stringResource(R.string.gpu_lock_info),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
