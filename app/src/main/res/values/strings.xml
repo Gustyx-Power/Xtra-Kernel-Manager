@@ -153,6 +153,11 @@
     <string name="gpu_power_level_title">Power Level</string>
     <string name="gpu_renderer_select">Renderer</string>
     <string name="gpu_renderer_rom_info">ROM-dependent feature. May require reboot.</string>
+    <string name="gpu_locked">Locked</string>
+    <string name="gpu_lock">Lock</string>
+    <string name="gpu_unlock">Unlock</string>
+    <string name="gpu_lock_info">Lock to force GPU to stay at selected frequency</string>
+    <string name="gpu_locked_warning">GPU frequency is locked. This may cause higher power consumption.</string>
 
     <!-- GPU Renderer Options -->
     <string name="gpu_renderer_select_title">Select GPU Renderer</string>

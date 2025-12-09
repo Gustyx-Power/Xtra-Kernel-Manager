@@ -153,6 +153,11 @@
     <string name="gpu_power_level_title">Level Daya</string>
     <string name="gpu_renderer_select">Renderer</string>
     <string name="gpu_renderer_rom_info">Fitur tergantung ROM. Mungkin perlu reboot.</string>
+    <string name="gpu_locked">Terkunci</string>
+    <string name="gpu_lock">Kunci</string>
+    <string name="gpu_unlock">Buka Kunci</string>
+    <string name="gpu_lock_info">Kunci untuk memaksa GPU tetap pada frekuensi yang dipilih</string>
+    <string name="gpu_locked_warning">Frekuensi GPU terkunci. Ini dapat menyebabkan konsumsi daya lebih tinggi.</string>
 
     <!-- GPU Renderer Options -->
     <string name="gpu_renderer_select_title">Pilih Renderer GPU</string>
