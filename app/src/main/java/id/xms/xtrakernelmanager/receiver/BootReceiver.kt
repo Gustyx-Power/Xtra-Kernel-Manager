@@ -43,12 +43,18 @@ class BootReceiver : BroadcastReceiver() {
                 Log.d("BootReceiver", "Battery notification enabled, starting service...")
                 val serviceIntent = Intent(context, BatteryInfoService::class.java)
                 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent)
-                } else {
-                    context.startService(serviceIntent)
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
+                    Log.d("BootReceiver", "BatteryInfoService started on boot")
+                } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+                    // Android 16+ has stricter restrictions on foreground service start from boot
+                    Log.w("BootReceiver", "ForegroundService not allowed from boot on Android 16+: ${e.message}")
+                    // Service will be started when user opens the app
                 }
-                Log.d("BootReceiver", "BatteryInfoService started on boot")
             } else {
                 Log.d("BootReceiver", "Battery notification disabled, skipping service start")
             }
