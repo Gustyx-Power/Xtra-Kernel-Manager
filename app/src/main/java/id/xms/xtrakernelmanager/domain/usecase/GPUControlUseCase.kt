@@ -165,6 +165,7 @@ class GPUControlUseCase {
 
     /**
      * Lock GPU frequency to specific min/max values by changing governor and forcing constraints
+     * NOTE: This does NOT modify power level - user controls that separately
      */
     suspend fun lockGPUFrequency(minFreq: Int, maxFreq: Int): Result<Unit> {
         val basePath = "/sys/class/kgsl/kgsl-3d0"
@@ -187,7 +188,7 @@ class GPUControlUseCase {
             RootManager.executeCommand("echo 1 > $basePath/force_rail_on 2>/dev/null")
             RootManager.executeCommand("echo 1 > $basePath/force_clk_on 2>/dev/null")
             
-            // Step 4: Set governor to performance (locks at max freq) or simple_ondemand
+            // Step 4: Set governor to performance (locks at max freq) or keep current
             val devfreqExists = RootManager.executeCommand("[ -d $devfreqPath ] && echo exists")
                 .getOrNull()?.trim() == "exists"
             
@@ -207,33 +208,17 @@ class GPUControlUseCase {
             RootManager.executeCommand("echo $maxFreqHz > $basePath/max_gpuclk 2>/dev/null")
             RootManager.executeCommand("echo $minFreqHz > $basePath/min_gpuclk 2>/dev/null")
             
-            // Step 6: Calculate and lock power levels
-            val freqTableRaw = RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
-                .getOrNull()?.trim() ?: ""
-            val availableFreqs = freqTableRaw.split(" ")
-                .mapNotNull { it.trim().toLongOrNull() }
-                .sortedDescending()
+            // NOTE: We intentionally do NOT modify power levels here
+            // Power level is controlled separately by the user via setGPUPowerLevel()
+            // Modifying power level here would reset user's power level settings
             
-            if (availableFreqs.isNotEmpty()) {
-                val minPwrLevel = availableFreqs.indexOfFirst { it <= minFreqHz }.takeIf { it >= 0 }
-                    ?: (availableFreqs.size - 1)
-                val maxPwrLevel = availableFreqs.indexOfFirst { it <= maxFreqHz }.takeIf { it >= 0 } ?: 0
-                
-                // Lock power levels
-                RootManager.executeCommand("echo $maxPwrLevel > $basePath/min_pwrlevel 2>/dev/null")
-                RootManager.executeCommand("echo $maxPwrLevel > $basePath/max_pwrlevel 2>/dev/null")
-                RootManager.executeCommand("echo $maxPwrLevel > $basePath/default_pwrlevel 2>/dev/null")
-                
-                Log.d(TAG, "Locked power level to: $maxPwrLevel")
-            }
-            
-            // Step 7: Disable idle timer to prevent GPU from sleeping
+            // Step 6: Disable idle timer to prevent GPU from sleeping
             RootManager.executeCommand("echo 0 > $basePath/idle_timer 2>/dev/null")
             
-            // Step 8: Force NAP and SLUMBER off
+            // Step 7: Force NAP and SLUMBER off
             RootManager.executeCommand("echo 0 > $basePath/force_no_nap 2>/dev/null")
             
-            Log.d(TAG, "GPU frequency locked successfully")
+            Log.d(TAG, "GPU frequency locked successfully (power level unchanged)")
             return Result.success(Unit)
             
         } catch (e: Exception) {
@@ -244,6 +229,7 @@ class GPUControlUseCase {
 
     /**
      * Unlock GPU frequency - restore dynamic scaling
+     * NOTE: This restores power level CONSTRAINTS but does not change current power level
      */
     suspend fun unlockGPUFrequency(): Result<Unit> {
         val basePath = "/sys/class/kgsl/kgsl-3d0"
@@ -264,13 +250,15 @@ class GPUControlUseCase {
                 }
             }
             
-            // Step 2: Restore default power level constraints
+            // Step 2: Restore power level CONSTRAINTS to full range (but don't change current level)
             val numPwrLevels = RootManager.executeCommand("cat $basePath/num_pwrlevels 2>/dev/null")
                 .getOrNull()?.trim()?.toIntOrNull() ?: 8
             
+            // Only restore min/max constraints, NOT default_pwrlevel
+            // This allows the full range of power levels to be used again
             RootManager.executeCommand("echo 0 > $basePath/max_pwrlevel 2>/dev/null")
             RootManager.executeCommand("echo ${numPwrLevels - 1} > $basePath/min_pwrlevel 2>/dev/null")
-            RootManager.executeCommand("echo 0 > $basePath/default_pwrlevel 2>/dev/null")
+            // NOTE: We intentionally do NOT change default_pwrlevel here
             
             // Step 3: Restore frequency limits to full range
             val freqTableRaw = RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
@@ -300,7 +288,7 @@ class GPUControlUseCase {
             // Step 5: Restore idle timer
             RootManager.executeCommand("echo 80 > $basePath/idle_timer 2>/dev/null")
             
-            Log.d(TAG, "GPU frequency unlocked successfully")
+            Log.d(TAG, "GPU frequency unlocked successfully (power level unchanged)")
             return Result.success(Unit)
             
         } catch (e: Exception) {

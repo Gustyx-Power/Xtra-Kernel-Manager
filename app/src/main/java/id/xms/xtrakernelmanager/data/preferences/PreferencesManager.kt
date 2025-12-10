@@ -55,6 +55,11 @@ class PreferencesManager(private val context: Context) {
     private val APP_PROFILES = stringPreferencesKey("app_profiles")
     private val PER_APP_PROFILE_ENABLED = booleanPreferencesKey("per_app_profile_enabled")
 
+    // GPU Lock State preferences
+    private val GPU_FREQUENCY_LOCKED = booleanPreferencesKey("gpu_frequency_locked")
+    private val GPU_LOCKED_MIN_FREQ = intPreferencesKey("gpu_locked_min_freq")
+    private val GPU_LOCKED_MAX_FREQ = intPreferencesKey("gpu_locked_max_freq")
+
     val themeMode: Flow<Int> = context.dataStore.data.map { prefs ->
         prefs[THEME_MODE] ?: 0
     }
@@ -224,5 +229,37 @@ class PreferencesManager(private val context: Context) {
     fun getAppProfiles(): Flow<String> =
         context.dataStore.data.map { prefs ->
             prefs[APP_PROFILES] ?: "[]"
+        }
+
+    // GPU Lock State Functions
+    suspend fun setGpuLockState(locked: Boolean, minFreq: Int, maxFreq: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[GPU_FREQUENCY_LOCKED] = locked
+            prefs[GPU_LOCKED_MIN_FREQ] = minFreq
+            prefs[GPU_LOCKED_MAX_FREQ] = maxFreq
+        }
+    }
+
+    suspend fun clearGpuLockState() {
+        context.dataStore.edit { prefs ->
+            prefs[GPU_FREQUENCY_LOCKED] = false
+            prefs[GPU_LOCKED_MIN_FREQ] = 0
+            prefs[GPU_LOCKED_MAX_FREQ] = 0
+        }
+    }
+
+    fun isGpuFrequencyLocked(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[GPU_FREQUENCY_LOCKED] ?: false
+        }
+
+    fun getGpuLockedMinFreq(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[GPU_LOCKED_MIN_FREQ] ?: 0
+        }
+
+    fun getGpuLockedMaxFreq(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[GPU_LOCKED_MAX_FREQ] ?: 0
         }
 }

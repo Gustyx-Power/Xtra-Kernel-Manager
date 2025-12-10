@@ -105,9 +105,28 @@ class TuningViewModel(
             _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
             _currentPerfMode.value = preferencesManager.getPerfMode().first()
 
+            // Load saved GPU lock state
+            loadGpuLockState()
+
             checkRootAndLoadData()
             applySavedCoreStates()
             startAutoRefresh()
+        }
+    }
+
+    private suspend fun loadGpuLockState() {
+        val isLocked = preferencesManager.isGpuFrequencyLocked().first()
+        val minFreq = preferencesManager.getGpuLockedMinFreq().first()
+        val maxFreq = preferencesManager.getGpuLockedMaxFreq().first()
+
+        if (isLocked && minFreq > 0 && maxFreq > 0) {
+            // Restore state to ViewModel
+            _isGpuFrequencyLocked.value = true
+            _lockedGpuMinFreq.value = minFreq
+            _lockedGpuMaxFreq.value = maxFreq
+            
+            // Re-apply the lock to the system
+            gpuUseCase.lockGPUFrequency(minFreq, maxFreq)
         }
     }
 
@@ -341,6 +360,8 @@ class TuningViewModel(
             _lockedGpuMinFreq.value = minFreq
             _lockedGpuMaxFreq.value = maxFreq
             _isGpuFrequencyLocked.value = true
+            // Save to DataStore for persistence
+            preferencesManager.setGpuLockState(true, minFreq, maxFreq)
         }
     }
 
@@ -350,6 +371,8 @@ class TuningViewModel(
             _isGpuFrequencyLocked.value = false
             _lockedGpuMinFreq.value = 0
             _lockedGpuMaxFreq.value = 0
+            // Clear from DataStore
+            preferencesManager.clearGpuLockState()
         }
     }
 
