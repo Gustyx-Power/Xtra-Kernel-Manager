@@ -42,8 +42,23 @@ class XtraKernelApp : Application() {
         // Force app to use 410 DPI
         setAppDensity()
 
-        // Initialize root shell in background
-        Shell.getShell { }
+        // Initialize root shell in background with callback
+        // This is important for Magisk 28+ compatibility
+        initializeRootShell()
+    }
+
+    /**
+     * Initialize root shell with proper error handling for Magisk 28+
+     * Uses callback to ensure the superuser permission dialog appears correctly
+     */
+    private fun initializeRootShell() {
+        Shell.getShell { shell ->
+            if (shell.isRoot) {
+                Log.d(TAG, "Root shell initialized successfully")
+            } else {
+                Log.w(TAG, "Root access not available or denied")
+            }
+        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

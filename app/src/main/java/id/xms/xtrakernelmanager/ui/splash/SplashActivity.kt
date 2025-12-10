@@ -332,13 +332,16 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
 }
 
 /**
- * Check if the device has root access
+ * Check if the device has root access using libsu
+ * This is more compatible with Magisk 28+ than Runtime.exec
  */
 private suspend fun checkRootAccess(): Boolean = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
     try {
-        val process = Runtime.getRuntime().exec("su -c id")
-        val result = process.waitFor()
-        result == 0
+        // Use libsu Shell which properly handles Magisk 28+ root requests
+        val shell = com.topjohnwu.superuser.Shell.getShell()
+        val isRoot = shell.isRoot
+        Log.d("RootCheck", "Root check via libsu: $isRoot")
+        isRoot
     } catch (e: Exception) {
         Log.e("RootCheck", "Root check failed: ${e.message}")
         false
