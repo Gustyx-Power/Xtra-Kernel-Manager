@@ -5,10 +5,13 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,8 +32,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -566,23 +571,106 @@ fun CountdownRebootDialog(
 @Composable
 fun CPUInfoCardNoDropdown(cpuInfo: CPUInfo) {
     var isExpanded by remember { mutableStateOf(true) }
-    GlassmorphicCard(modifier = Modifier.fillMaxWidth(), onClick = { isExpanded = !isExpanded }) {
+    
+    // Arrow rotation animation
+    val arrowRotation by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "arrowRotation"
+    )
+    
+    // Icon scale animation on toggle
+    var iconPressed by remember { mutableStateOf(false) }
+    val iconScale by animateFloatAsState(
+        targetValue = if (iconPressed) 0.85f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "iconScale"
+    )
+    
+    // Header icon glow animation
+    val headerIconScale by animateFloatAsState(
+        targetValue = if (isExpanded) 1.1f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "headerIconScale"
+    )
+    
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(), 
+        onClick = { 
+            iconPressed = true
+            isExpanded = !isExpanded 
+        }
+    ) {
+        // Reset icon press state after animation
+        LaunchedEffect(iconPressed) {
+            if (iconPressed) {
+                delay(150)
+                iconPressed = false
+            }
+        }
+        
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.primaryContainer, tonalElevation = 2.dp) {
+                    Surface(
+                        shape = MaterialTheme.shapes.medium, 
+                        color = MaterialTheme.colorScheme.primaryContainer, 
+                        tonalElevation = 2.dp,
+                        modifier = Modifier.scale(headerIconScale)
+                    ) {
                         Icon(Icons.Default.Memory, null, modifier = Modifier
                             .padding(8.dp)
                             .size(24.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
                     Text(stringResource(R.string.cpu_information), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
-                IconButton(onClick = { isExpanded = !isExpanded }) { Icon(if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, null) }
+                IconButton(
+                    onClick = { 
+                        iconPressed = true
+                        isExpanded = !isExpanded 
+                    },
+                    modifier = Modifier.scale(iconScale)
+                ) { 
+                    Icon(
+                        Icons.Default.KeyboardArrowDown, 
+                        null,
+                        modifier = Modifier.graphicsLayer { 
+                            rotationZ = arrowRotation 
+                        }
+                    ) 
+                }
             }
             AnimatedVisibility(
                 visible = isExpanded,
-                enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow), expandFrom = Alignment.Top) + fadeIn(),
-                exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow), shrinkTowards = Alignment.Top) + fadeOut(),
+                enter = expandVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ), 
+                    expandFrom = Alignment.Top
+                ) + fadeIn(
+                    animationSpec = tween(200)
+                ) + slideInVertically(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow
+                    ),
+                    initialOffsetY = { -it / 4 }
+                ),
+                exit = shrinkVertically(
+                    animationSpec = tween(150)
+                ) + fadeOut(
+                    animationSpec = tween(100)
+                ),
                 label = "CPU"
             ) {
                 Column(modifier = Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -672,22 +760,115 @@ fun LinearUsageItemDetailed(title: String, used: String, total: String, progress
 @Composable
 private fun InfoCard(title: String, icon: ImageVector, defaultExpanded: Boolean = true, content: @Composable ColumnScope.() -> Unit) {
     var isExpanded by remember { mutableStateOf(defaultExpanded) }
-    GlassmorphicCard(modifier = Modifier.fillMaxWidth(), onClick = { isExpanded = !isExpanded }) {
+    
+    // Arrow rotation animation
+    val arrowRotation by animateFloatAsState(
+        targetValue = if (isExpanded) 180f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "arrowRotation"
+    )
+    
+    // Icon scale animation on toggle
+    var iconPressed by remember { mutableStateOf(false) }
+    val iconScale by animateFloatAsState(
+        targetValue = if (iconPressed) 0.85f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "iconScale"
+    )
+    
+    // Header icon glow animation
+    val headerIconScale by animateFloatAsState(
+        targetValue = if (isExpanded) 1.1f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "headerIconScale"
+    )
+    
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(), 
+        onClick = { 
+            iconPressed = true
+            isExpanded = !isExpanded 
+        }
+    ) {
+        // Reset icon press state after animation
+        LaunchedEffect(iconPressed) {
+            if (iconPressed) {
+                delay(150)
+                iconPressed = false
+            }
+        }
+        
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.secondaryContainer, tonalElevation = 2.dp) {
-                    Icon(icon, null, modifier = Modifier
-                        .padding(8.dp)
-                        .size(24.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                Surface(
+                    shape = MaterialTheme.shapes.medium, 
+                    color = if (isExpanded) 
+                        MaterialTheme.colorScheme.primaryContainer 
+                    else 
+                        MaterialTheme.colorScheme.secondaryContainer, 
+                    tonalElevation = 2.dp,
+                    modifier = Modifier.scale(headerIconScale)
+                ) {
+                    Icon(
+                        icon, null, 
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .size(24.dp), 
+                        tint = if (isExpanded) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                    )
                 }
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
-            IconButton(onClick = { isExpanded = !isExpanded }) { Icon(if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, null) }
+            IconButton(
+                onClick = { 
+                    iconPressed = true
+                    isExpanded = !isExpanded 
+                },
+                modifier = Modifier.scale(iconScale)
+            ) { 
+                Icon(
+                    Icons.Default.KeyboardArrowDown, 
+                    null,
+                    modifier = Modifier.graphicsLayer { 
+                        rotationZ = arrowRotation 
+                    }
+                ) 
+            }
         }
         AnimatedVisibility(
             visible = isExpanded,
-            enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow), expandFrom = Alignment.Top) + fadeIn(),
-            exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow), shrinkTowards = Alignment.Top) + fadeOut()
+            enter = expandVertically(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                ), 
+                expandFrom = Alignment.Top
+            ) + fadeIn(
+                animationSpec = tween(200)
+            ) + slideInVertically(
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessMediumLow
+                ),
+                initialOffsetY = { -it / 4 }
+            ),
+            exit = shrinkVertically(
+                animationSpec = tween(150)
+            ) + fadeOut(
+                animationSpec = tween(100)
+            )
         ) {
             Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) { content() }
         }
