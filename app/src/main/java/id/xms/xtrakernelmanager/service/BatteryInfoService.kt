@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.service
 
 import android.app.*
 import android.content.*
+import android.content.pm.ServiceInfo
 import android.os.*
 import android.graphics.Color
 import android.os.BatteryManager
@@ -77,7 +78,12 @@ class BatteryInfoService : Service() {
             Log.d("BatteryInfoService", "No cached values, using defaults")
             buildNotification(0, false, 0, 0, "Unknown", 0)
         }
-        startForeground(NOTIF_ID, notif)
+        // SDK 36+ requires foreground service type - use DATA_SYNC for monitoring services
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            startForeground(NOTIF_ID, notif)
+        }
         return START_STICKY
     }
     
@@ -111,6 +117,19 @@ class BatteryInfoService : Service() {
         }
         
         super.onTaskRemoved(rootIntent)
+    }
+    
+    /**
+     * Safely update the foreground notification with SDK 36 compatibility.
+     * Uses NotificationManager.notify() for updates since startForeground() is only needed once.
+     */
+    private fun updateNotificationSafe(notification: Notification) {
+        try {
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.notify(NOTIF_ID, notification)
+        } catch (e: Exception) {
+            Log.e("BatteryInfoService", "Failed to update notification: ${e.message}")
+        }
     }
 
     private fun registerReceiver() {
@@ -156,7 +175,7 @@ class BatteryInfoService : Service() {
                 cachedCurrent = currentNow
                 
                 val notif = buildNotification(level, isCharging, temp, voltage, healthTxt, currentNow)
-                startForeground(NOTIF_ID, notif)
+                updateNotificationSafe(notif)
             }
         }
         registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
