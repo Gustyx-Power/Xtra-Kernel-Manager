@@ -69,11 +69,7 @@
             android:name=".service.GameOverlayService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="game_performance_monitoring" />
-        </service>
+            android:foregroundServiceType="dataSync" />
 
         <!-- Battery Info Notification Service -->
         <service
@@ -88,11 +84,7 @@
             android:name=".service.AppProfileService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="per_app_profile_monitoring" />
-        </service>
+            android:foregroundServiceType="dataSync" />
 
         <!-- File Provider -->
         <provider
