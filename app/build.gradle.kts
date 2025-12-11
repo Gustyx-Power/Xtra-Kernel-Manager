@@ -25,7 +25,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.0-Release"
+        versionName = "2.2-ReleaseTest-ci-3"
 
         // Build date in format YYYY.MM.dd
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -129,6 +129,9 @@ dependencies {
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
+
+    // Lottie for animations
+    implementation("com.airbnb.android:lottie-compose:6.4.0")
 
     // Charts
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
