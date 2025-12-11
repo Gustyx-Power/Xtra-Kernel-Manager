@@ -1,0 +1,19 @@
+[package]
+name = "xkm_native"
+version = "1.0.0"
+edition = "2021"
+description = "Native library for Xtra Kernel Manager"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+jni = "0.21"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[profile.release]
+lto = true
+opt-level = "z"
+strip = true
+panic = "abort"
