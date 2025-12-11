@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 
 @Composable
@@ -74,7 +75,8 @@ fun GameControlSection(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.SportsEsports,
@@ -100,12 +102,17 @@ fun GameControlSection(
                         )
                     }
                 }
+                
+                Spacer(modifier = Modifier.width(8.dp))
 
-                Switch(
+                LottieSwitchControlled(
                     checked = enableGameOverlay,
                     onCheckedChange = { enabled ->
                         viewModel.setEnableGameOverlay(enabled)
-                    }
+                    },
+                    width = 80.dp,
+                    height = 40.dp,
+                    scale = 2.2f
                 )
             }
 

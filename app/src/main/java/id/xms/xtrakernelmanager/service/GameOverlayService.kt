@@ -43,6 +43,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
+import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 import kotlinx.coroutines.*
 
 class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
@@ -518,16 +519,12 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                     color = Color.White
                 )
             }
-            Switch(
+            LottieSwitchControlled(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
-                modifier = Modifier.height(24.dp),
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,
-                    checkedTrackColor = Color(0xFF4CAF50),
-                    uncheckedThumbColor = Color.Gray,
-                    uncheckedTrackColor = Color(0xFF3A3A3A)
-                )
+                width = 50.dp,
+                height = 24.dp,
+                scale = 1.8f
             )
         }
     }
