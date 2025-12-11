@@ -1,11 +1,15 @@
 package id.xms.xtrakernelmanager.data.repository
 
+import android.util.Log
 import id.xms.xtrakernelmanager.data.model.*
+import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class KernelRepository {
+
+    private val TAG = "KernelRepository"
 
     suspend fun getCPUInfo(): CPUInfo = withContext(Dispatchers.IO) {
         val clusters = detectClustersAdvanced()
@@ -14,8 +18,16 @@ class KernelRepository {
                 getCoreInfo(coreNum, cluster.clusterNumber)
             }
         }
-        val temp = getCPUTemperature()
+        
+        // Use native for temperature (single read is fine)
+        val temp = NativeLib.readCpuTemperature() ?: getCPUTemperature()
+        
+        // DON'T use native for CPU load - it requires two time-separated samples
+        // to calculate delta, which native single-call doesn't support
         val load = getCPULoad()
+        
+        Log.d(TAG, "CPU info retrieved - temp: $temp, load: $load, clusters: ${clusters.size}")
+        
         CPUInfo(
             cores = cores,
             clusters = clusters,
@@ -23,6 +35,7 @@ class KernelRepository {
             totalLoad = load
         )
     }
+
 
     private suspend fun detectClustersAdvanced(): List<ClusterInfo> {
         val clusters = mutableListOf<ClusterInfo>()

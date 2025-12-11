@@ -1,11 +1,35 @@
 package id.xms.xtrakernelmanager.domain.usecase
 
+import android.util.Log
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
+import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 
 class CPUControlUseCase {
 
+    private val TAG = "CPUControlUseCase"
+
+    /**
+     * Detect CPU clusters - tries native implementation first, falls back to shell-based
+     */
     suspend fun detectClusters(): List<ClusterInfo> {
+        // Try native implementation first (faster, no shell overhead)
+        val nativeClusters = NativeLib.detectCpuClusters()
+        if (nativeClusters != null && nativeClusters.isNotEmpty()) {
+            Log.d(TAG, "Using native cluster detection: ${nativeClusters.size} clusters")
+            return nativeClusters
+        }
+        
+        // Fallback to shell-based detection
+        Log.d(TAG, "Falling back to shell-based cluster detection")
+        return detectClustersShell()
+    }
+
+    /**
+     * Original shell-based cluster detection (fallback)
+     */
+    private suspend fun detectClustersShell(): List<ClusterInfo> {
+
         val clusters = mutableListOf<ClusterInfo>()
         val availableCores = mutableListOf<Int>()
         for (i in 0..15) {
