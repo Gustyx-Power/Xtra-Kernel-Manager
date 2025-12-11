@@ -222,6 +222,12 @@ class AppProfileService : Service() {
 
     private fun applyProfile(profile: AppProfile) {
         serviceScope.launch {
+            var governorSuccess = false
+            var thermalSuccess = false
+            var refreshRateSuccess = false
+            var hasAnyError = false
+            val errorMessages = mutableListOf<String>()
+            
             try {
                 val refreshRateInfo = if (profile.refreshRate > 0) ", RefreshRate=${profile.refreshRate}Hz" else ""
                 Log.d(TAG, "Applying profile for ${profile.appName}: Governor=${profile.governor}, Thermal=${profile.thermalPreset}$refreshRateInfo")
@@ -242,36 +248,87 @@ class AppProfileService : Service() {
                     ).show()
                 }
                 
-                // Apply governor to all clusters
-                val clusters = cpuUseCase.detectClusters()
-                Log.d(TAG, "Applying governor ${profile.governor} to ${clusters.size} clusters")
-                clusters.forEach { cluster ->
-                    cpuUseCase.setClusterGovernor(cluster.clusterNumber, profile.governor)
-                }
-                
-                // Apply thermal preset
-                if (profile.thermalPreset != "Not Set") {
-                    Log.d(TAG, "Applying thermal preset: ${profile.thermalPreset}")
-                    thermalUseCase.setThermalMode(profile.thermalPreset, false)
-                }
-                
-                // Apply refresh rate if specified
-                if (profile.refreshRate > 0) {
-                    Log.d(TAG, "Applying refresh rate: ${profile.refreshRate}Hz")
-                    val success = applyRefreshRate(profile.refreshRate)
-                    
-                    // Show additional toast for refresh rate result
-                    mainHandler.post {
-                        val msg = if (success) {
-                            getString(R.string.per_app_profile_refresh_rate_applied, profile.refreshRate)
-                        } else {
-                            "Failed to set refresh rate to ${profile.refreshRate}Hz"
+                // Apply governor to all clusters (with individual error handling)
+                try {
+                    val clusters = cpuUseCase.detectClusters()
+                    Log.d(TAG, "Applying governor ${profile.governor} to ${clusters.size} clusters")
+                    if (clusters.isNotEmpty()) {
+                        clusters.forEach { cluster ->
+                            try {
+                                cpuUseCase.setClusterGovernor(cluster.clusterNumber, profile.governor)
+                            } catch (clusterEx: Exception) {
+                                Log.e(TAG, "Failed to set governor for cluster ${cluster.clusterNumber}: ${clusterEx.message}")
+                            }
                         }
-                        Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                        governorSuccess = true
+                    } else {
+                        Log.w(TAG, "No CPU clusters detected")
+                        errorMessages.add("No CPU clusters")
+                    }
+                } catch (govEx: Exception) {
+                    Log.e(TAG, "Failed to apply governor: ${govEx.message}", govEx)
+                    errorMessages.add("Governor: ${govEx.message}")
+                    hasAnyError = true
+                }
+                
+                // Apply thermal preset (with individual error handling)
+                if (profile.thermalPreset != "Not Set") {
+                    try {
+                        Log.d(TAG, "Applying thermal preset: ${profile.thermalPreset}")
+                        thermalUseCase.setThermalMode(profile.thermalPreset, false)
+                        thermalSuccess = true
+                    } catch (thermalEx: Exception) {
+                        Log.e(TAG, "Failed to apply thermal preset: ${thermalEx.message}", thermalEx)
+                        errorMessages.add("Thermal: ${thermalEx.message}")
+                        hasAnyError = true
+                    }
+                } else {
+                    thermalSuccess = true // Not Set is considered success
+                }
+                
+                // Apply refresh rate if specified (with individual error handling)
+                if (profile.refreshRate > 0) {
+                    try {
+                        Log.d(TAG, "Applying refresh rate: ${profile.refreshRate}Hz")
+                        refreshRateSuccess = applyRefreshRate(profile.refreshRate)
+                        
+                        // Show additional toast for refresh rate result
+                        mainHandler.post {
+                            val msg = if (refreshRateSuccess) {
+                                getString(R.string.per_app_profile_refresh_rate_applied, profile.refreshRate)
+                            } else {
+                                "Failed to set refresh rate to ${profile.refreshRate}Hz"
+                            }
+                            Toast.makeText(applicationContext, msg, Toast.LENGTH_SHORT).show()
+                        }
+                        
+                        if (!refreshRateSuccess) {
+                            errorMessages.add("Refresh rate failed")
+                            hasAnyError = true
+                        }
+                    } catch (rrEx: Exception) {
+                        Log.e(TAG, "Failed to apply refresh rate: ${rrEx.message}", rrEx)
+                        errorMessages.add("RefreshRate: ${rrEx.message}")
+                        hasAnyError = true
+                    }
+                } else {
+                    refreshRateSuccess = true // Not specified is considered success
+                }
+                
+                // Log final status
+                Log.d(TAG, "Profile applied for ${profile.appName}: governor=$governorSuccess, thermal=$thermalSuccess, refreshRate=$refreshRateSuccess")
+                
+                // Show error summary if any operation failed
+                if (hasAnyError && errorMessages.isNotEmpty()) {
+                    mainHandler.post {
+                        Toast.makeText(
+                            applicationContext,
+                            "Partial apply: ${errorMessages.joinToString(", ")}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
                 
-                Log.d(TAG, "Profile applied successfully for ${profile.appName}")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to apply profile: ${e.message}", e)
                 mainHandler.post {

@@ -34,6 +34,14 @@ class BatteryInfoService : Service() {
     private var batteryDrainWhileScreenOff: Int = 0
     private var isScreenOn: Boolean = true
     
+    // Cached values for notification (to prevent showing 0 on service restart)
+    private var cachedLevel: Int = -1
+    private var cachedIsCharging: Boolean = false
+    private var cachedTemp: Int = 0
+    private var cachedVoltage: Int = 0
+    private var cachedHealth: String = "Unknown"
+    private var cachedCurrent: Int = 0
+    
     // Deep sleep tracking
     private var initialDeepSleep: Long = 0L
     private var initialElapsedRealtime: Long = 0L
@@ -59,7 +67,17 @@ class BatteryInfoService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("BatteryInfoService", "Service started with flags: $flags, startId: $startId")
-        startForeground(NOTIF_ID, buildNotification(0, false, 0, 0, "Unknown", 0))
+        
+        // Use cached values if available, otherwise use defaults
+        // This prevents showing 0 values when service is restarted
+        val notif = if (cachedLevel >= 0) {
+            Log.d("BatteryInfoService", "Using cached battery values: level=$cachedLevel")
+            buildNotification(cachedLevel, cachedIsCharging, cachedTemp, cachedVoltage, cachedHealth, cachedCurrent)
+        } else {
+            Log.d("BatteryInfoService", "No cached values, using defaults")
+            buildNotification(0, false, 0, 0, "Unknown", 0)
+        }
+        startForeground(NOTIF_ID, notif)
         return START_STICKY
     }
     
@@ -128,6 +146,15 @@ class BatteryInfoService : Service() {
                     BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> "Failure"
                     else -> "Unknown"
                 }
+                
+                // Cache values for potential service restart
+                cachedLevel = level
+                cachedIsCharging = isCharging
+                cachedTemp = temp
+                cachedVoltage = voltage
+                cachedHealth = healthTxt
+                cachedCurrent = currentNow
+                
                 val notif = buildNotification(level, isCharging, temp, voltage, healthTxt, currentNow)
                 startForeground(NOTIF_ID, notif)
             }
