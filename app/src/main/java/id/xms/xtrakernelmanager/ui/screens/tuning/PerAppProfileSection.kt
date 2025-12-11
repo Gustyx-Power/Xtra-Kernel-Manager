@@ -52,6 +52,7 @@ import id.xms.xtrakernelmanager.data.model.AppProfile
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.service.AppProfileService
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -263,7 +264,8 @@ fun PerAppProfileSection(
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
                                     Icons.Default.PowerSettingsNew,
@@ -283,7 +285,9 @@ fun PerAppProfileSection(
                                     )
                                 }
                             }
-                            Switch(
+                            
+                            Spacer(modifier = Modifier.width(8.dp))
+                            LottieSwitchControlled(
                                 checked = isEnabled,
                                 onCheckedChange = { enabled ->
                                     scope.launch {
@@ -319,7 +323,10 @@ fun PerAppProfileSection(
                                         }
                                     }
                                 },
-                                enabled = hasUsagePermission
+                                enabled = hasUsagePermission,
+                                width = 80.dp,
+                                height = 40.dp,
+                                scale = 2.2f
                             )
                         }
                     }
@@ -503,10 +510,12 @@ private fun ProfileItem(
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
-                Switch(
+                LottieSwitchControlled(
                     checked = profile.enabled,
                     onCheckedChange = onToggle,
-                    modifier = Modifier.height(24.dp)
+                    width = 60.dp,
+                    height = 30.dp,
+                    scale = 2.0f
                 )
             }
         }

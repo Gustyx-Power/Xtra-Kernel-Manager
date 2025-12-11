@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -293,11 +294,14 @@ fun ThermalControlSection(viewModel: TuningViewModel) {
                                             )
                                         }
                                     }
-                                    Switch(
+                                    LottieSwitchControlled(
                                         checked = prefsOnBoot,
                                         onCheckedChange = {
                                             viewModel.setThermalPreset(prefsThermal, it)
-                                        }
+                                        },
+                                        width = 80.dp,
+                                        height = 40.dp,
+                                        scale = 2.2f
                                     )
                                 }
                             }

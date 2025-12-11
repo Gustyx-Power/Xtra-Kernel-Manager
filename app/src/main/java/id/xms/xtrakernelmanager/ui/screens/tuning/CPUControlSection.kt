@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -529,11 +530,14 @@ private fun ClusterCard(
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         fontWeight = FontWeight.Medium
                                                     )
-                                                    Switch(
+                                                    LottieSwitchControlled(
                                                         checked = coreEnabled,
                                                         onCheckedChange = {
                                                             viewModel.disableCPUCore(coreNum, !it)
-                                                        }
+                                                        },
+                                                        width = 60.dp,
+                                                        height = 30.dp,
+                                                        scale = 2.0f
                                                     )
                                                 }
                                             }
