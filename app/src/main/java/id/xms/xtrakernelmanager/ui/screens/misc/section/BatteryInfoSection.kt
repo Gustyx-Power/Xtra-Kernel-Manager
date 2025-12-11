@@ -21,6 +21,7 @@ import androidx.core.content.PermissionChecker
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.service.BatteryInfoService
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import kotlinx.coroutines.launch
 
@@ -90,7 +91,7 @@ fun BatteryInfoSection(
                     }
                 }
 
-                Switch(
+                LottieSwitchControlled(
                     checked = showBatteryNotif,
                     onCheckedChange = { checked ->
                         viewModel.setShowBatteryNotification(checked)
@@ -107,7 +108,10 @@ fun BatteryInfoSection(
                                 context.stopService(serviceIntent)
                             }
                         }
-                    }
+                    },
+                    width = 80.dp,
+                    height = 40.dp,
+                    scale = 2.2f
                 )
             }
 
