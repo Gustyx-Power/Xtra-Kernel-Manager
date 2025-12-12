@@ -13,6 +13,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
 }
 
@@ -25,7 +26,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.2-ReleaseTest-ci-3"
+        versionName = "2.2-Release"
 
         // Build date in format YYYY.MM.dd
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -54,6 +55,21 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+            
+            // Enable more aggressive resource shrinking
+            ndk {
+                debugSymbolLevel = "NONE"
+            }
+        }
+    }
+    
+    // Only include arm64-v8a to reduce size (most modern devices)
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a")
+            isUniversalApk = false
         }
     }
 
@@ -75,6 +91,16 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/*.kotlin_module"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE*"
+            excludes += "/META-INF/NOTICE*"
+            excludes += "/kotlin/**"
+            excludes += "/*.txt"
+            excludes += "/*.properties"
+        }
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
 }
@@ -120,8 +146,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
 
     // TOML Parser
-    implementation("com.akuleshov7:ktoml-core:0.5.1")
-    implementation("com.akuleshov7:ktoml-file:0.5.1")
     implementation("org.tomlj:tomlj:1.1.0")
 
     // Accompanist (for system UI controller)
@@ -138,6 +162,9 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
@@ -384,10 +411,12 @@ abstract class UploadApkToTelegramTask : DefaultTask() {
 
 val renameReleaseApk by tasks.registering(Copy::class) {
     group = "custom"
-    description = "Renames app-release.apk"
+    description = "Renames release APK (supports ABI splits)"
     val versionName = android.defaultConfig.versionName ?: "unknown"
     from(layout.buildDirectory.dir("outputs/apk/release")) {
+        // Support both universal and arm64-v8a APK names
         include("app-release.apk")
+        include("app-arm64-v8a-release.apk")
     }
     into(layout.projectDirectory.dir("dist"))
     rename { "XKM-$versionName.apk" }

@@ -36,6 +36,7 @@
     public static *** d(...);
     public static *** v(...);
     public static *** i(...);
+    public static *** w(...);
 }
 
 # ===== LibSu (if used) =====
@@ -46,3 +47,30 @@
 -dontwarn org.bouncycastle.**
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
+
+# ===== AGGRESSIVE: Remove unused resources metadata =====
+-dontwarn com.google.android.material.**
+-dontwarn com.google.firebase.**
+
+# ===== Strip debug info =====
+-renamesourcefileattribute SourceFile
+-keepattributes SourceFile,LineNumberTable
+
+# ===== Firebase optimizations =====
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+
+# ===== JNI Native =====
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# ===== Serialization =====
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
