@@ -41,47 +41,43 @@ jobs:
           BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
           SHORT_SHA=${GITHUB_SHA::7}
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[░░░░░░░░░░░░░░░░░░░░] 0%\`
-
-📋 *Current Step:*
-→ Initializing..."
+          MESSAGE="🚀 XKM Release Build Started
+          
+          ========================
+          📦 Version: $VERSION
+          🔀 Commit: $SHORT_SHA
+          📌 Branch: $GITHUB_REF_NAME
+          👤 Author: $GITHUB_ACTOR
+          🕐 Started: $BUILD_TIME
+          ========================
+          
+          ⏳ Progress: 0%
+          [░░░░░░░░░░░░░░░░░░░░]
+          
+          📋 Current Step:
+          → Initializing..."
           
           RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" \
                -d "chat_id=$TG_CHAT_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown" \
+               --data-urlencode "text=$MESSAGE" \
                -d "disable_web_page_preview=true")
           
           MSG_ID=$(echo $RESPONSE | grep -oP '"message_id":\K\d+')
-          echo "msg_id=$MSG_ID" >> $GITHUB_OUTPUT
           echo "MSG_ID=$MSG_ID" >> $GITHUB_ENV
           
-          # Pin the message
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/pinChatMessage" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
                -d "disable_notification=true"
 
-      - name: "[1/8] Setup JDK"
-        id: step1
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: gradle
 
-      - name: Update Progress - JDK
+      - name: Update Progress 10%
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -91,30 +87,27 @@ jobs:
           BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
           SHORT_SHA=${GITHUB_SHA::7}
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[██░░░░░░░░░░░░░░░░░░] 10%\`
-
-📋 *Current Step:*
-✅ [1/8] JDK Setup Complete
-→ [2/8] Setting up Android SDK..."
+          MESSAGE="🚀 XKM Release Build
+          
+          ========================
+          📦 Version: $VERSION
+          🔀 Commit: $SHORT_SHA
+          📌 Branch: $GITHUB_REF_NAME
+          👤 Author: $GITHUB_ACTOR
+          ========================
+          
+          ⏳ Progress: 10%
+          [██░░░░░░░░░░░░░░░░░░]
+          
+          ✅ [1/8] JDK Setup Complete
+          → [2/8] Setting up Android SDK..."
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
-      - name: "[2/8] Setup Android SDK"
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
       - name: Install Android NDK
@@ -122,41 +115,34 @@ jobs:
           sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
 
-      - name: Update Progress - Android SDK
+      - name: Update Progress 20%
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
+          MESSAGE="🚀 XKM Release Build
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[████░░░░░░░░░░░░░░░░] 20%\`
-
-📋 *Current Step:*
-✅ [1/8] JDK Setup Complete
-✅ [2/8] Android SDK + NDK Complete
-→ [3/8] Setting up Rust..."
+          ========================
+           Version: $VERSION
+          🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          ========================
+          
+          ⏳ Progress: 20%
+          [████░░░░░░░░░░░░░░░░]
+          
+          ✅ [1/8] JDK Setup Complete
+          ✅ [2/8] Android SDK + NDK Complete
+          → [3/8] Setting up Rust..."
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
-      - name: "[3/8] Setup Rust"
+      - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
       - name: Add Rust Android targets
@@ -175,42 +161,35 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Update Progress - Rust Setup
+      - name: Update Progress 30%
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
+          MESSAGE="🚀 XKM Release Build
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[██████░░░░░░░░░░░░░░] 30%\`
-
-📋 *Current Step:*
-✅ [1/8] JDK Setup Complete
-✅ [2/8] Android SDK + NDK Complete
-✅ [3/8] Rust + cargo-ndk Complete
-→ [4/8] Building Rust Native Library..."
+          ========================
+          📦 Version: $VERSION
+          🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          ========================
+          
+          ⏳ Progress: 30%
+          [██████░░░░░░░░░░░░░░]
+          
+          ✅ [1/8] JDK Setup
+          ✅ [2/8] Android SDK + NDK
+          ✅ [3/8] Rust + cargo-ndk
+          → [4/8] Building Rust Native Library..."
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
-      - name: "[4/8] Build Rust Native Library"
+      - name: Build Rust Native Library
         run: |
           cd app/src/main/rust/xkm_native
           cargo ndk -t arm64-v8a -o ../../jniLibs build --release
@@ -225,41 +204,34 @@ jobs:
             exit 1
           fi
 
-      - name: Update Progress - Rust Build
+      - name: Update Progress 45%
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
+          MESSAGE="🚀 XKM Release Build
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[████████░░░░░░░░░░░░] 40%\`
-
-📋 *Current Step:*
-✅ [1/8] JDK Setup Complete
-✅ [2/8] Android SDK + NDK Complete
-✅ [3/8] Rust + cargo-ndk Complete
-✅ [4/8] Rust Native Library Built
-→ [5/8] Building Android APK..."
+          ========================
+          📦 Version: $VERSION
+          🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          ========================
+          
+          ⏳ Progress: 45%
+          [█████████░░░░░░░░░░░]
+          
+          ✅ [1/8] JDK Setup
+          ✅ [2/8] Android SDK + NDK
+          ✅ [3/8] Rust + cargo-ndk
+          ✅ [4/8] Rust Native Library Built
+          → [5/8] Building Release APK..."
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
       - name: Create gradle.properties
         run: |
@@ -282,7 +254,7 @@ jobs:
         if: github.event_name != 'pull_request'
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/release.keystore
 
-      - name: "[5/8] Build Release APK"
+      - name: Build Release APK
         if: github.event_name != 'pull_request'
         run: |
           ./gradlew assembleRelease \
@@ -295,44 +267,37 @@ jobs:
         if: github.event_name == 'pull_request'
         run: ./gradlew assembleDebug
 
-      - name: Update Progress - APK Built
+      - name: Update Progress 75%
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
+          MESSAGE="🚀 XKM Release Build
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[██████████████░░░░░░] 70%\`
-
-📋 *Current Step:*
-✅ [1/8] JDK Setup Complete
-✅ [2/8] Android SDK + NDK Complete
-✅ [3/8] Rust + cargo-ndk Complete
-✅ [4/8] Rust Native Library Built
-✅ [5/8] Release APK Built & Signed
-→ [6/8] Renaming APK..."
+          ========================
+           Version: $VERSION
+          🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          ========================
+          
+          ⏳ Progress: 75%
+          [███████████████░░░░░]
+          
+          ✅ [1/8] JDK Setup
+          ✅ [2/8] Android SDK + NDK
+          ✅ [3/8] Rust + cargo-ndk
+          ✅ [4/8] Rust Native Library
+          ✅ [5/8] Release APK Built
+          → [6/8] Renaming APK..."
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
-      - name: "[6/8] Rename APK"
+      - name: Rename APK
         if: github.event_name != 'pull_request'
         id: rename
         run: |
@@ -345,10 +310,9 @@ jobs:
             cp "$APK_PATH" "app/dist/XKM-$VERSION.apk"
             APK_SIZE=$(du -h "app/dist/XKM-$VERSION.apk" | cut -f1)
             echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
-            echo "Renamed APK to XKM-$VERSION.apk ($APK_SIZE)"
           fi
 
-      - name: Update Progress - Renamed
+      - name: Update Progress 85%
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -356,38 +320,32 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           APK_SIZE: ${{ steps.rename.outputs.apk_size }}
         run: |
-          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
+          MESSAGE="🚀 XKM Release Build
           
-          MESSAGE="🚀 *XKM Release Build Started*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Started: $BUILD_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[████████████████░░░░] 80%\`
-
-📋 *Current Step:*
-✅ [1/8] JDK Setup Complete
-✅ [2/8] Android SDK + NDK Complete
-✅ [3/8] Rust + cargo-ndk Complete
-✅ [4/8] Rust Native Library Built
-✅ [5/8] Release APK Built & Signed
-✅ [6/8] APK Renamed (XKM-$VERSION.apk - $APK_SIZE)
-→ [7/8] Uploading to Telegram..."
+          ========================
+           Version: $VERSION
+          � Size: $APK_SIZE
+          �🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          ========================
+          
+          ⏳ Progress: 85%
+          [█████████████████░░░]
+          
+          ✅ [1/8] JDK Setup
+          ✅ [2/8] Android SDK + NDK
+          ✅ [3/8] Rust + cargo-ndk
+          ✅ [4/8] Rust Native Library
+          ✅ [5/8] Release APK Built
+          ✅ [6/8] APK Renamed
+          → [7/8] Uploading to Telegram..."
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
-      - name: "[7/8] Upload APK to Telegram"
+      - name: Upload APK to Telegram
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -405,25 +363,24 @@ jobs:
           BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
           SHORT_SHA=${GITHUB_SHA::7}
           
-          CAPTION="📦 *New Release Build*
+          CAPTION="📦 New Release Build
 
-🏷️ Version: \`$VERSION\`
+🏷️ Version: $VERSION
 📁 Size: $APK_SIZE
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
+🔀 Commit: $SHORT_SHA
+📌 Branch: $GITHUB_REF_NAME
 👤 Author: $GITHUB_ACTOR
 🦀 Built with: Rust Native + Kotlin
 🕐 Time: $BUILD_TIME
 
-[View Commit](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)"
+🔗 https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA"
           
           curl -s -F "chat_id=$TG_CHAT_ID" \
                -F "caption=$CAPTION" \
-               -F "parse_mode=Markdown" \
                -F "document=@$APK_FILE" \
                "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument"
 
-      - name: "[8/8] Send Build Complete"
+      - name: Send Build Complete
         if: github.event_name != 'pull_request'
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -432,39 +389,36 @@ jobs:
           APK_SIZE: ${{ steps.rename.outputs.apk_size }}
         run: |
           END_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
           
-          MESSAGE="✅ *XKM Release Build Complete!*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-📁 Size: $APK_SIZE
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Completed: $END_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-⏳ *Progress:*
-\`[████████████████████] 100%\`
-
-📋 *All Steps Completed:*
-✅ [1/8] JDK Setup
-✅ [2/8] Android SDK + NDK
-✅ [3/8] Rust + cargo-ndk
-✅ [4/8] Rust Native Library
-✅ [5/8] Release APK Built
-✅ [6/8] APK Renamed
-✅ [7/8] Uploaded to Telegram
-✅ [8/8] Build Notification Sent
-
-🎉 *BUILD SUCCESS!*"
+          MESSAGE="✅ XKM Release Build Complete!
+          
+          ========================
+          📦 Version: $VERSION
+          📁 Size: $APK_SIZE
+          🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          👤 Author: $GITHUB_ACTOR
+          🕐 Completed: $END_TIME
+          ========================
+          
+          ⏳ Progress: 100%
+          [████████████████████]
+          
+          ✅ [1/8] JDK Setup
+          ✅ [2/8] Android SDK + NDK
+          ✅ [3/8] Rust + cargo-ndk
+          ✅ [4/8] Rust Native Library
+          ✅ [5/8] Release APK Built
+          ✅ [6/8] APK Renamed
+          ✅ [7/8] Uploaded to Telegram
+          ✅ [8/8] Build Complete
+          
+          🎉 BUILD SUCCESS!"
           
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                -d "chat_id=$TG_CHAT_ID" \
                -d "message_id=$MSG_ID" \
-               -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown"
+               --data-urlencode "text=$MESSAGE"
 
       - name: Send Build Failed
         if: failure() && github.event_name != 'pull_request'
@@ -474,32 +428,29 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           END_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
-          SHORT_SHA=${GITHUB_SHA::7}
           
-          MESSAGE="❌ *XKM Release Build FAILED!*
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Version: \`$VERSION\`
-🔀 Commit: \`$SHORT_SHA\`
-📌 Branch: \`$GITHUB_REF_NAME\`
-👤 Author: $GITHUB_ACTOR
-🕐 Failed at: $END_TIME
-━━━━━━━━━━━━━━━━━━━━━━━━
-
-😞 *Build failed! Check logs:*
-🔗 https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          MESSAGE="❌ XKM Release Build FAILED!
+          
+          ========================
+          📦 Version: $VERSION
+          🔀 Commit: ${GITHUB_SHA::7}
+          📌 Branch: $GITHUB_REF_NAME
+          👤 Author: $GITHUB_ACTOR
+          🕐 Failed at: $END_TIME
+          ========================
+          
+          😞 Build failed! Check logs:
+          🔗 https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           
           if [ -n "$MSG_ID" ]; then
             curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/editMessageText" \
                  -d "chat_id=$TG_CHAT_ID" \
                  -d "message_id=$MSG_ID" \
-                 -d "text=$MESSAGE" \
-                 -d "parse_mode=Markdown"
+                 --data-urlencode "text=$MESSAGE"
           else
             curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" \
                  -d "chat_id=$TG_CHAT_ID" \
-                 -d "text=$MESSAGE" \
-                 -d "parse_mode=Markdown"
+                 --data-urlencode "text=$MESSAGE"
           fi
 
       - name: Cleanup Keystore
