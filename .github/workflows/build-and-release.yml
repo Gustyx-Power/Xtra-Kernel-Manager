@@ -76,6 +76,21 @@ jobs:
             exit 1
           fi
 
+      - name: Create gradle.properties
+        run: |
+          cat > gradle.properties << 'EOF'
+          org.gradle.jvmargs=-Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          org.gradle.parallel=true
+          org.gradle.caching=true
+          org.gradle.configuration-cache=true
+          android.useAndroidX=true
+          android.enableJetifier=false
+          kotlin.code.style=official
+          android.nonTransitiveRClass=true
+          android.nonFinalResIds=true
+          EOF
+          echo "gradle.properties created!"
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
