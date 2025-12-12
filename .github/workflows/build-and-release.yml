@@ -1,0 +1,156 @@
+name: Build & Release to Telegram
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:  # Allows manual trigger
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  build:
+    name: Build Release APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Decode Keystore
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/release.keystore
+
+      - name: Build Release APK
+        if: github.event_name != 'pull_request'
+        run: |
+          ./gradlew assembleRelease \
+            -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
+            -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
+            -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
+            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Debug APK (for PRs)
+        if: github.event_name == 'pull_request'
+        run: ./gradlew assembleDebug
+
+      - name: Get APK Info
+        id: apk_info
+        run: |
+          # Find APK file (supports both universal and arm64-v8a)
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
+          fi
+          
+          if [ -n "$APK_PATH" ]; then
+            APK_SIZE=$(du -h "$APK_PATH" | cut -f1)
+            APK_NAME=$(basename "$APK_PATH")
+            echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+            echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+            echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+          fi
+          
+          # Get version from build.gradle.kts
+          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts | head -n 1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename APK
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p app/dist
+          VERSION="${{ steps.apk_info.outputs.version }}"
+          APK_SOURCE="${{ steps.apk_info.outputs.apk_path }}"
+          cp "$APK_SOURCE" "app/dist/XKM-$VERSION.apk"
+          echo "Renamed APK to XKM-$VERSION.apk"
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: XKM-${{ steps.apk_info.outputs.version }}
+          path: app/dist/*.apk
+          if-no-files-found: warn
+
+      - name: Send to Telegram
+        if: github.event_name != 'pull_request'
+        run: |
+          VERSION="${{ steps.apk_info.outputs.version }}"
+          APK_FILE="app/dist/XKM-$VERSION.apk"
+          
+          # Check if APK exists
+          if [ ! -f "$APK_FILE" ]; then
+            echo "APK file not found at $APK_FILE"
+            exit 1
+          fi
+          
+          # Get APK size
+          APK_SIZE=$(du -h "$APK_FILE" | cut -f1)
+          
+          # Prepare caption
+          CAPTION="📦 *New Release Build*
+          
+          🏷️ Version: \`$VERSION\`
+          📁 Size: $APK_SIZE
+          🔀 Commit: \`${GITHUB_SHA::7}\`
+          📌 Branch: \`$GITHUB_REF_NAME\`
+          👤 Author: $GITHUB_ACTOR
+          🕐 Time: $(date -u +'%Y-%m-%d %H:%M UTC')
+          
+          [🔗 View Commit](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)"
+          
+          # Send document to Telegram
+          curl -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -F "caption=$CAPTION" \
+               -F "parse_mode=Markdown" \
+               -F "document=@$APK_FILE" \
+               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument"
+
+      - name: Notify Build Status
+        if: always() && github.event_name != 'pull_request'
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            STATUS="✅ Build Successful"
+            EMOJI="🎉"
+          else
+            STATUS="❌ Build Failed"
+            EMOJI="😞"
+          fi
+          
+          MESSAGE="$EMOJI *Build Status: $STATUS*
+          
+          📦 Project: Xtra Kernel Manager
+          🏷️ Version: \`${{ steps.apk_info.outputs.version }}\`
+          🔀 Commit: \`${GITHUB_SHA::7}\`
+          📌 Branch: \`$GITHUB_REF_NAME\`
+          👤 Triggered by: $GITHUB_ACTOR
+          🕐 Time: $(date -u +'%Y-%m-%d %H:%M UTC')
+          
+          [🔗 View Workflow](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+               -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+               -d "text=$MESSAGE" \
+               -d "parse_mode=Markdown" \
+               -d "disable_web_page_preview=true"
+
+      - name: Cleanup Keystore
+        if: always()
+        run: rm -f $GITHUB_WORKSPACE/release.keystore
