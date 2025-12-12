@@ -20,3 +20,56 @@ gradle.properties
 # Build scripts with hardcoded credentials (security)
 build-release-with-changelog.bat
 test-telegram.bat
+build-release.bat
+
+# ============================================
+# SECURITY - Sensitive Files (NEVER COMMIT!)
+# ============================================
+
+# Keystore files
+*.jks
+*.keystore
+release.keystore
+debug.keystore
+upload-keystore.jks
+signing-config.json
+
+# API Keys & Credentials
+*.credentials
+*secrets*.json
+*secrets*.properties
+*api-key*
+telegram_config.*
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Build outputs (APK/AAB)
+*.apk
+*.aab
+app/build/
+/app/build/
+**/build/outputs/
+
+# Logs
+*.log
+build_log.txt
+builderror-log.txt
+buildsuccess-log.txt
+rust_build.log
+gradle_build.log
+
+# Firebase (if contains sensitive data)
+google-services.json
+
+# IDE specific
+.idea/
+*.ipr
+*.iws
+
+# Backup files
+*.bak
+*.backup
+*~
