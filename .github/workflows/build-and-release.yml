@@ -42,9 +42,7 @@ jobs:
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
 
       - name: Setup Rust
-        uses: dtolnay/rust-action@stable
-        with:
-          toolchain: ${{ env.RUST_VERSION }}
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Add Rust Android targets
         run: rustup target add aarch64-linux-android
