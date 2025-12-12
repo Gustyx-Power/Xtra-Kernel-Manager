@@ -7,15 +7,17 @@ on:
       - 'v*'
   pull_request:
     branches: [main, master]
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
 
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'temurin'
+  RUST_VERSION: 'stable'
+  NDK_VERSION: '26.1.10909125'
 
 jobs:
   build:
-    name: Build Release APK
+    name: Build Release APK (with Rust)
     runs-on: ubuntu-latest
     
     steps:
@@ -31,13 +33,57 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: gradle
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Add Rust Android targets
+        run: rustup target add aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            app/src/main/rust/xkm_native/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build Rust Native Library
+        run: |
+          cd app/src/main/rust/xkm_native
+          cargo ndk -t arm64-v8a -o ../../jniLibs build --release
+          echo "Rust native library built successfully!"
+
+      - name: Verify Native Library
+        run: |
+          if [ -f "app/src/main/jniLibs/arm64-v8a/libxkm_native.so" ]; then
+            echo "Native library found: libxkm_native.so"
+            ls -la app/src/main/jniLibs/arm64-v8a/
+          else
+            echo "Native library NOT found!"
+            exit 1
+          fi
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Decode Keystore
         if: github.event_name != 'pull_request'
-        run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/release.keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/release.keystore
 
       - name: Build Release APK
         if: github.event_name != 'pull_request'
@@ -46,7 +92,9 @@ jobs:
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
             -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
-            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
+            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }} \
+            -PtelegramBotToken=${{ secrets.TELEGRAM_BOT_TOKEN }} \
+            -PtelegramChatId=${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Build Debug APK (for PRs)
         if: github.event_name == 'pull_request'
@@ -55,10 +103,9 @@ jobs:
       - name: Get APK Info
         id: apk_info
         run: |
-          # Find APK file (supports both universal and arm64-v8a)
-          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f | head -n 1)
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
           if [ -z "$APK_PATH" ]; then
-            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f | head -n 1)
+            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f 2>/dev/null | head -n 1)
           fi
           
           if [ -n "$APK_PATH" ]; then
@@ -69,7 +116,6 @@ jobs:
             echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
           fi
           
-          # Get version from build.gradle.kts
           VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts | head -n 1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -79,8 +125,10 @@ jobs:
           mkdir -p app/dist
           VERSION="${{ steps.apk_info.outputs.version }}"
           APK_SOURCE="${{ steps.apk_info.outputs.apk_path }}"
-          cp "$APK_SOURCE" "app/dist/XKM-$VERSION.apk"
-          echo "Renamed APK to XKM-$VERSION.apk"
+          if [ -n "$APK_SOURCE" ] && [ -f "$APK_SOURCE" ]; then
+            cp "$APK_SOURCE" "app/dist/XKM-$VERSION.apk"
+            echo "Renamed APK to XKM-$VERSION.apk"
+          fi
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -89,66 +137,76 @@ jobs:
           path: app/dist/*.apk
           if-no-files-found: warn
 
-      - name: Send to Telegram
+      - name: Send APK to Telegram
         if: github.event_name != 'pull_request'
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION: ${{ steps.apk_info.outputs.version }}
         run: |
-          VERSION="${{ steps.apk_info.outputs.version }}"
           APK_FILE="app/dist/XKM-$VERSION.apk"
           
-          # Check if APK exists
           if [ ! -f "$APK_FILE" ]; then
             echo "APK file not found at $APK_FILE"
             exit 1
           fi
           
-          # Get APK size
           APK_SIZE=$(du -h "$APK_FILE" | cut -f1)
+          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
+          SHORT_SHA=${GITHUB_SHA::7}
           
-          # Prepare caption
-          CAPTION="📦 *New Release Build*
+          CAPTION=$(cat <<EOF
+          📦 New Release Build
           
-          🏷️ Version: \`$VERSION\`
+          🏷️ Version: $VERSION
           📁 Size: $APK_SIZE
-          🔀 Commit: \`${GITHUB_SHA::7}\`
-          📌 Branch: \`$GITHUB_REF_NAME\`
+          🔀 Commit: $SHORT_SHA
+          📌 Branch: $GITHUB_REF_NAME
           👤 Author: $GITHUB_ACTOR
-          🕐 Time: $(date -u +'%Y-%m-%d %H:%M UTC')
+          🦀 Built with: Rust Native + Kotlin
+          🕐 Time: $BUILD_TIME
+          EOF
+          )
           
-          [🔗 View Commit](https://github.com/$GITHUB_REPOSITORY/commit/$GITHUB_SHA)"
-          
-          # Send document to Telegram
-          curl -F "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+          curl -s -F "chat_id=$TG_CHAT_ID" \
                -F "caption=$CAPTION" \
-               -F "parse_mode=Markdown" \
                -F "document=@$APK_FILE" \
-               "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument"
+               "https://api.telegram.org/bot$TG_BOT_TOKEN/sendDocument"
 
       - name: Notify Build Status
         if: always() && github.event_name != 'pull_request'
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION: ${{ steps.apk_info.outputs.version }}
+          JOB_STATUS: ${{ job.status }}
         run: |
-          if [ "${{ job.status }}" == "success" ]; then
+          BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M UTC')
+          SHORT_SHA=${GITHUB_SHA::7}
+          
+          if [ "$JOB_STATUS" == "success" ]; then
             STATUS="✅ Build Successful"
-            EMOJI="🎉"
           else
             STATUS="❌ Build Failed"
-            EMOJI="😞"
           fi
           
-          MESSAGE="$EMOJI *Build Status: $STATUS*
+          MESSAGE=$(cat <<EOF
+          $STATUS
           
           📦 Project: Xtra Kernel Manager
-          🏷️ Version: \`${{ steps.apk_info.outputs.version }}\`
-          🔀 Commit: \`${GITHUB_SHA::7}\`
-          📌 Branch: \`$GITHUB_REF_NAME\`
+          🏷️ Version: $VERSION
+          🔀 Commit: $SHORT_SHA
+          📌 Branch: $GITHUB_REF_NAME
           👤 Triggered by: $GITHUB_ACTOR
-          🕐 Time: $(date -u +'%Y-%m-%d %H:%M UTC')
+          🕐 Time: $BUILD_TIME
           
-          [🔗 View Workflow](https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)"
+          🔗 https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+          EOF
+          )
           
-          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-               -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+          curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" \
+               -d "chat_id=$TG_CHAT_ID" \
                -d "text=$MESSAGE" \
-               -d "parse_mode=Markdown" \
                -d "disable_web_page_preview=true"
 
       - name: Cleanup Keystore
