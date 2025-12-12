@@ -1,9 +1,13 @@
 package id.xms.xtrakernelmanager.receiver
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.root.RootManager
@@ -14,15 +18,21 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class BootReceiver : BroadcastReceiver() {
+    
+    companion object {
+        private const val TAG = "BootReceiver"
+        private const val BATTERY_SERVICE_DELAY_MS = 15000L // 15 seconds delay for Android 15+
+    }
+    
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.d("BootReceiver", "Boot completed received")
+            Log.d(TAG, "Boot completed received")
 
             val pendingResult = goAsync()
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    // Start BatteryInfoService if enabled
+                    // Start BatteryInfoService if enabled (with delay for Android 15+)
                     startBatteryServiceIfEnabled(context)
                     
                     // Activate swap file
@@ -40,26 +50,63 @@ class BootReceiver : BroadcastReceiver() {
             val showBatteryNotif = preferencesManager.isShowBatteryNotif().first()
             
             if (showBatteryNotif) {
-                Log.d("BootReceiver", "Battery notification enabled, starting service...")
-                val serviceIntent = Intent(context, BatteryInfoService::class.java)
+                Log.d(TAG, "Battery notification enabled, scheduling service start...")
                 
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context.startForegroundService(serviceIntent)
-                    } else {
-                        context.startService(serviceIntent)
-                    }
-                    Log.d("BootReceiver", "BatteryInfoService started on boot")
-                } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
-                    // Android 16+ has stricter restrictions on foreground service start from boot
-                    Log.w("BootReceiver", "ForegroundService not allowed from boot on Android 16+: ${e.message}")
-                    // Service will be started when user opens the app
+                // For Android 15+ (API 35+), dataSync FGS cannot start directly from BOOT_COMPLETED
+                // We need to delay the start to avoid ForegroundServiceStartNotAllowedException
+                if (Build.VERSION.SDK_INT >= 35) {
+                    Log.d(TAG, "Android 15+ detected, using delayed start (${BATTERY_SERVICE_DELAY_MS}ms)")
+                    scheduleDelayedServiceStart(context)
+                } else {
+                    // For older versions, start immediately
+                    startBatteryServiceDirect(context)
                 }
             } else {
-                Log.d("BootReceiver", "Battery notification disabled, skipping service start")
+                Log.d(TAG, "Battery notification disabled, skipping service start")
             }
         } catch (e: Exception) {
-            Log.e("BootReceiver", "Failed to start BatteryInfoService: ${e.message}")
+            Log.e(TAG, "Failed to start BatteryInfoService: ${e.message}")
+        }
+    }
+    
+    private fun scheduleDelayedServiceStart(context: Context) {
+        // Use Handler with delay for more reliable start on Android 15+
+        Handler(Looper.getMainLooper()).postDelayed({
+            try {
+                CoroutineScope(Dispatchers.Main).launch {
+                    try {
+                        val preferencesManager = PreferencesManager(context)
+                        val showBatteryNotif = preferencesManager.isShowBatteryNotif().first()
+                        
+                        if (showBatteryNotif) {
+                            startBatteryServiceDirect(context)
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Delayed service start failed: ${e.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Handler post failed: ${e.message}")
+            }
+        }, BATTERY_SERVICE_DELAY_MS)
+    }
+    
+    private fun startBatteryServiceDirect(context: Context) {
+        try {
+            val serviceIntent = Intent(context, BatteryInfoService::class.java)
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+            Log.d(TAG, "BatteryInfoService started successfully")
+        } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            // Android 15+ has stricter restrictions - this should be caught now
+            Log.w(TAG, "ForegroundService not allowed: ${e.message}")
+            Log.w(TAG, "Service will be started when user opens the app")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start BatteryInfoService: ${e.message}")
         }
     }
 
