@@ -443,4 +443,14 @@
     <string name="connection_required_message">A pending update was detected previously. You must enable internet connection to update the app before proceeding.</string>
     <string name="retry_connection">Retry Connection</string>
 
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_perf_label">Performance Mode</string>
+    <string name="tile_perf_performance">Performance</string>
+    <string name="tile_perf_performance_sub">⚡ Max speed</string>
+    <string name="tile_perf_battery">Battery Saver</string>
+    <string name="tile_perf_battery_sub">🔋 Power saving</string>
+    <string name="tile_perf_balanced">Balanced</string>
+    <string name="tile_perf_balanced_sub">⚖️ Optimal</string>
+
 </resources>
