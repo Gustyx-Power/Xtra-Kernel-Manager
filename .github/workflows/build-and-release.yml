@@ -32,13 +32,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check commit count since last workflow
+      - name: Restore last build commit
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: .last-build-commit
+          key: last-build-commit-${{ github.ref_name }}
+          restore-keys: last-build-commit-
+
+      - name: Check commit count since last build
         id: check
         env:
           TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          # If manual trigger with force_build, always build
+          # If manual trigger, always build
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "should_build=true" >> $GITHUB_OUTPUT
             echo "commit_count=manual" >> $GITHUB_OUTPUT
@@ -54,17 +62,22 @@ jobs:
             exit 0
           fi
           
-          # Count commits since last successful workflow run
-          # We use the last tag or last 50 commits as reference
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
-          if [ -n "$LAST_TAG" ]; then
-            COMMIT_COUNT=$(git rev-list --count $LAST_TAG..HEAD)
-            echo "Commits since last tag ($LAST_TAG): $COMMIT_COUNT"
+          # Read last build commit from cache
+          if [ -f ".last-build-commit" ]; then
+            LAST_BUILD_COMMIT=$(cat .last-build-commit)
+            echo "Last build commit: $LAST_BUILD_COMMIT"
+            
+            # Verify commit exists
+            if git rev-parse --verify "$LAST_BUILD_COMMIT^{commit}" >/dev/null 2>&1; then
+              COMMIT_COUNT=$(git rev-list --count $LAST_BUILD_COMMIT..HEAD)
+              echo "Commits since last build: $COMMIT_COUNT"
+            else
+              echo "Last build commit not found in history, counting from start"
+              COMMIT_COUNT=0
+            fi
           else
-            # No tags, count last 50 commits
-            COMMIT_COUNT=$(git rev-list --count HEAD~50..HEAD 2>/dev/null || git rev-list --count HEAD)
-            echo "Total recent commits: $COMMIT_COUNT"
+            echo "No previous build found, this is first run"
+            COMMIT_COUNT=0
           fi
           
           echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
@@ -78,11 +91,11 @@ jobs:
             curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" -d "chat_id=$TG_CHAT_ID" -d "text=$MESSAGE" -d "disable_notification=true"
           else
             echo "should_build=false" >> $GITHUB_OUTPUT
+            REMAINING=$((${{ env.MIN_COMMITS }} - COMMIT_COUNT))
             echo "⏳ Commit count ($COMMIT_COUNT) < ${{ env.MIN_COMMITS }} - skipping build"
-            
-            REMAINING=$((5 - COMMIT_COUNT))
             echo "Need $REMAINING more commits to trigger build"
           fi
+
 
   build:
     name: Build Release APK (with Rust)
@@ -316,6 +329,20 @@ jobs:
             curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" -d "chat_id=$TG_CHAT_ID" -d "text=$MESSAGE"
           fi
 
+      - name: Save last build commit
+        if: success()
+        run: |
+          echo "$GITHUB_SHA" > .last-build-commit
+          echo "Saved last build commit: $GITHUB_SHA"
+
+      - name: Update cache with new commit
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: .last-build-commit
+          key: last-build-commit-${{ github.ref_name }}-${{ github.sha }}
+
       - name: Cleanup Keystore
         if: always()
         run: rm -f $GITHUB_WORKSPACE/release.keystore
+
