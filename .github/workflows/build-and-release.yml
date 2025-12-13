@@ -5,19 +5,90 @@ on:
     branches: [main, master]
     tags:
       - 'v*'
-  pull_request:
-    branches: [main, master]
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build regardless of commit count'
+        required: false
+        default: true
+        type: boolean
 
 env:
   JAVA_VERSION: '17'
   JAVA_DISTRIBUTION: 'temurin'
   NDK_VERSION: '26.1.10909125'
+  MIN_COMMITS: 5
 
 jobs:
+  check-commits:
+    name: Check Commit Count
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.check.outputs.should_build }}
+      commit_count: ${{ steps.check.outputs.commit_count }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit count since last workflow
+        id: check
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          # If manual trigger with force_build, always build
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "commit_count=manual" >> $GITHUB_OUTPUT
+            echo "Manual trigger - will build"
+            exit 0
+          fi
+          
+          # If tag push, always build
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "commit_count=tag" >> $GITHUB_OUTPUT
+            echo "Tag push - will build"
+            exit 0
+          fi
+          
+          # Count commits since last successful workflow run
+          # We use the last tag or last 50 commits as reference
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -n "$LAST_TAG" ]; then
+            COMMIT_COUNT=$(git rev-list --count $LAST_TAG..HEAD)
+            echo "Commits since last tag ($LAST_TAG): $COMMIT_COUNT"
+          else
+            # No tags, count last 50 commits
+            COMMIT_COUNT=$(git rev-list --count HEAD~50..HEAD 2>/dev/null || git rev-list --count HEAD)
+            echo "Total recent commits: $COMMIT_COUNT"
+          fi
+          
+          echo "commit_count=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$COMMIT_COUNT" -ge ${{ env.MIN_COMMITS }} ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "✅ Commit count ($COMMIT_COUNT) >= ${{ env.MIN_COMMITS }} - will build"
+            
+            # Send notification to Telegram
+            MESSAGE="📊 Commit threshold reached!%0A%0A🔢 Commits: $COMMIT_COUNT / ${{ env.MIN_COMMITS }}%0A📌 Branch: $GITHUB_REF_NAME%0A%0A🚀 Starting build..."
+            curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/sendMessage" -d "chat_id=$TG_CHAT_ID" -d "text=$MESSAGE" -d "disable_notification=true"
+          else
+            echo "should_build=false" >> $GITHUB_OUTPUT
+            echo "⏳ Commit count ($COMMIT_COUNT) < ${{ env.MIN_COMMITS }} - skipping build"
+            
+            REMAINING=$((5 - COMMIT_COUNT))
+            echo "Need $REMAINING more commits to trigger build"
+          fi
+
   build:
     name: Build Release APK (with Rust)
     runs-on: ubuntu-latest
+    needs: check-commits
+    if: needs.check-commits.outputs.should_build == 'true'
     
     steps:
       - name: Checkout Repository
