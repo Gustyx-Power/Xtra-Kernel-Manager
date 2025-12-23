@@ -46,6 +46,9 @@ class BatteryInfoService : Service() {
     // Deep sleep tracking
     private var initialDeepSleep: Long = 0L
     private var initialElapsedRealtime: Long = 0L
+    
+    // Track if we've reset stats at 100% (to prevent repeated resets)
+    private var hasResetAtFullCharge: Boolean = false
 
     override fun onCreate() {
         super.onCreate()
@@ -78,9 +81,10 @@ class BatteryInfoService : Service() {
             Log.d("BatteryInfoService", "No cached values, using defaults")
             buildNotification(0, false, 0, 0, "Unknown", 0)
         }
-        // SDK 36+ requires foreground service type - use DATA_SYNC for monitoring services
+        // SDK 34+ requires foreground service type - use SPECIAL_USE for long-running monitoring services
+        // DATA_SYNC has a 6-hour timeout on Android 14+, SPECIAL_USE has no timeout
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForeground(NOTIF_ID, notif, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {
             startForeground(NOTIF_ID, notif)
         }
@@ -145,6 +149,27 @@ class BatteryInfoService : Service() {
 
                 // Read current_now from multiple sources with fallback
                 val currentNow = getBatteryCurrent(isCharging)
+                
+                // Reset battery stats when battery reaches 100%
+                if (level >= 100 && isCharging && !hasResetAtFullCharge) {
+                    resetBatteryStats()
+                    hasResetAtFullCharge = true
+                    Log.d("BatteryInfoService", "Battery stats reset at 100%")
+                    
+                    // Show toast notification
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        android.widget.Toast.makeText(
+                            applicationContext,
+                            "Battery stats reset at 100%",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                
+                // Reset flag when battery level drops below 100 (new discharge cycle)
+                if (level < 100 && hasResetAtFullCharge) {
+                    hasResetAtFullCharge = false
+                }
 
                 // Track battery drain
                 if (lastBatteryLevel != -1 && level < lastBatteryLevel && !isCharging) {
@@ -429,6 +454,34 @@ class BatteryInfoService : Service() {
             Log.e("BatteryInfoService", "Error getting system deep sleep", e)
             0L
         }
+    }
+    
+    /**
+     * Reset all battery statistics to start fresh.
+     * Called when battery reaches 100% to start a new usage cycle.
+     */
+    private fun resetBatteryStats() {
+        val now = SystemClock.elapsedRealtime()
+        
+        // Reset screen time tracking
+        screenOnTime = 0
+        screenOffTime = 0
+        lastScreenOnTimestamp = now
+        lastScreenOffTimestamp = now
+        
+        // Reset drain tracking
+        batteryDrainWhileScreenOn = 0
+        batteryDrainWhileScreenOff = 0
+        
+        // Reset deep sleep baseline
+        initialElapsedRealtime = now
+        initialDeepSleep = getSystemDeepSleepTime()
+        
+        // Reset last battery level (will be set on next update)
+        lastBatteryLevel = -1
+        lastUpdateTime = System.currentTimeMillis()
+        
+        Log.d("BatteryInfoService", "Battery stats reset: screen times, drain stats, and deep sleep baseline cleared")
     }
 
     override fun onDestroy() {
