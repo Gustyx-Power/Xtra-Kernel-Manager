@@ -49,6 +49,9 @@ class AppProfileService : Service() {
     private var lastAppliedRefreshRate = 0
     // Default refresh rate to restore when leaving profiled app (typically device max)
     private var defaultRefreshRate = 120 // Will be overwritten with actual device max
+    
+    // Track if game overlay is currently active
+    private var isGameOverlayActive = false
 
     override fun onCreate() {
         super.onCreate()
@@ -59,9 +62,10 @@ class AppProfileService : Service() {
         detectDefaultRefreshRate()
         
         createNotificationChannel()
-        // SDK 34+ requires foreground service type
+        // SDK 34+ requires foreground service type - use SPECIAL_USE for long-running monitoring services
+        // DATA_SYNC has a 6-hour timeout on Android 14+, SPECIAL_USE has no timeout
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForeground(NOTIFICATION_ID, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {
             startForeground(NOTIFICATION_ID, createNotification())
         }
@@ -422,11 +426,44 @@ class AppProfileService : Service() {
             }
         }
     }
+    
+    private fun startGameOverlay() {
+        if (!android.provider.Settings.canDrawOverlays(applicationContext)) {
+            Log.w(TAG, "Cannot start game overlay: no overlay permission")
+            return
+        }
+        
+        try {
+            val intent = Intent(applicationContext, GameOverlayService::class.java)
+            applicationContext.startService(intent)
+            isGameOverlayActive = true
+            Log.d(TAG, "Game overlay started")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start game overlay: ${e.message}")
+        }
+    }
+    
+    private fun stopGameOverlay() {
+        try {
+            val intent = Intent(applicationContext, GameOverlayService::class.java)
+            applicationContext.stopService(intent)
+            isGameOverlayActive = false
+            Log.d(TAG, "Game overlay stopped")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop game overlay: ${e.message}")
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
         pollingJob?.cancel()
         serviceScope.cancel()
+        
+        // Stop game overlay if it was active
+        if (isGameOverlayActive) {
+            stopGameOverlay()
+        }
+        
         mainHandler.post {
             Toast.makeText(applicationContext, getString(R.string.per_app_profile_service_stopped), Toast.LENGTH_SHORT).show()
         }

@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.AppProfile
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
@@ -705,19 +706,42 @@ private fun AddProfileDialog(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                                             ) {
+                                                // App icon
+                                                val appIcon = remember(app.first) {
+                                                    try {
+                                                        context.packageManager.getApplicationIcon(app.first)
+                                                    } catch (e: Exception) {
+                                                        null
+                                                    }
+                                                }
+                                                
                                                 Box(
                                                     modifier = Modifier
                                                         .size(40.dp)
-                                                        .clip(CircleShape)
-                                                        .background(MaterialTheme.colorScheme.tertiaryContainer),
+                                                        .clip(CircleShape),
                                                     contentAlignment = Alignment.Center
                                                 ) {
-                                                    Text(
-                                                        text = app.second.take(1).uppercase(),
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                                                    )
+                                                    if (appIcon != null) {
+                                                        AsyncImage(
+                                                            model = appIcon,
+                                                            contentDescription = app.second,
+                                                            modifier = Modifier.size(40.dp)
+                                                        )
+                                                    } else {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(40.dp)
+                                                                .background(MaterialTheme.colorScheme.tertiaryContainer),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Text(
+                                                                text = app.second.take(1).uppercase(),
+                                                                style = MaterialTheme.typography.titleMedium,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                                 Column(modifier = Modifier.weight(1f)) {
                                                     Text(app.second, fontWeight = FontWeight.Medium)
@@ -763,19 +787,44 @@ private fun AddProfileDialog(
                                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
+                                            // Selected app icon
+                                            val selectedAppIcon = remember(selectedApp?.first) {
+                                                try {
+                                                    selectedApp?.first?.let { 
+                                                        context.packageManager.getApplicationIcon(it) 
+                                                    }
+                                                } catch (e: Exception) {
+                                                    null
+                                                }
+                                            }
+                                            
                                             Box(
                                                 modifier = Modifier
                                                     .size(44.dp)
-                                                    .clip(CircleShape)
-                                                    .background(MaterialTheme.colorScheme.tertiary),
+                                                    .clip(CircleShape),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Text(
-                                                    text = selectedApp!!.second.take(1).uppercase(),
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onTertiary
-                                                )
+                                                if (selectedAppIcon != null) {
+                                                    AsyncImage(
+                                                        model = selectedAppIcon,
+                                                        contentDescription = selectedApp?.second,
+                                                        modifier = Modifier.size(44.dp)
+                                                    )
+                                                } else {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(44.dp)
+                                                            .background(MaterialTheme.colorScheme.tertiary),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = selectedApp!!.second.take(1).uppercase(),
+                                                            style = MaterialTheme.typography.titleMedium,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = MaterialTheme.colorScheme.onTertiary
+                                                        )
+                                                    }
+                                                }
                                             }
                                             Column {
                                                 Text(selectedApp!!.second, fontWeight = FontWeight.Bold)
@@ -1053,19 +1102,42 @@ private fun EditProfileDialog(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Profile app icon
+                        val profileAppIcon = remember(profile.packageName) {
+                            try {
+                                context.packageManager.getApplicationIcon(profile.packageName)
+                            } catch (e: Exception) {
+                                null
+                            }
+                        }
+                        
                         Box(
                             modifier = Modifier
                                 .size(48.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.tertiary),
+                                .clip(CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = profile.appName.take(1).uppercase(),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onTertiary
-                            )
+                            if (profileAppIcon != null) {
+                                AsyncImage(
+                                    model = profileAppIcon,
+                                    contentDescription = profile.appName,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .background(MaterialTheme.colorScheme.tertiary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = profile.appName.take(1).uppercase(),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                }
+                            }
                         }
                         Column {
                             Text(
