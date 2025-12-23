@@ -11,11 +11,14 @@ import android.os.Looper
 import android.util.Log
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.service.AppProfileService
 import id.xms.xtrakernelmanager.service.BatteryInfoService
+import id.xms.xtrakernelmanager.service.GameMonitorService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 
 class BootReceiver : BroadcastReceiver() {
     
@@ -34,6 +37,12 @@ class BootReceiver : BroadcastReceiver() {
                 try {
                     // Start BatteryInfoService if enabled (with delay for Android 15+)
                     startBatteryServiceIfEnabled(context)
+                    
+                    // Start AppProfileService if per-app profiles are enabled
+                    startAppProfileServiceIfEnabled(context)
+                    
+                    // Start GameMonitorService if there are enabled games
+                    startGameMonitorServiceIfEnabled(context)
                     
                     // Activate swap file
                     activateSwapFile()
@@ -107,6 +116,104 @@ class BootReceiver : BroadcastReceiver() {
             Log.w(TAG, "Service will be started when user opens the app")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start BatteryInfoService: ${e.message}")
+        }
+    }
+    
+    private suspend fun startAppProfileServiceIfEnabled(context: Context) {
+        try {
+            val preferencesManager = PreferencesManager(context)
+            val isPerAppProfileEnabled = preferencesManager.isPerAppProfileEnabled().first()
+            
+            if (isPerAppProfileEnabled) {
+                Log.d(TAG, "Per-app profiles enabled, starting AppProfileService...")
+                
+                // For Android 15+ (API 35+), use delayed start
+                if (Build.VERSION.SDK_INT >= 35) {
+                    Log.d(TAG, "Android 15+ detected, using delayed start for AppProfileService")
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        startAppProfileServiceDirect(context)
+                    }, BATTERY_SERVICE_DELAY_MS)
+                } else {
+                    startAppProfileServiceDirect(context)
+                }
+            } else {
+                Log.d(TAG, "Per-app profiles disabled, skipping AppProfileService start")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start AppProfileService: ${e.message}")
+        }
+    }
+    
+    private fun startAppProfileServiceDirect(context: Context) {
+        try {
+            val serviceIntent = Intent(context, AppProfileService::class.java)
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+            Log.d(TAG, "AppProfileService started successfully")
+        } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            Log.w(TAG, "ForegroundService not allowed for AppProfileService: ${e.message}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start AppProfileService: ${e.message}")
+        }
+    }
+    
+    private suspend fun startGameMonitorServiceIfEnabled(context: Context) {
+        try {
+            val preferencesManager = PreferencesManager(context)
+            val gameAppsJson = preferencesManager.getGameApps().first()
+            
+            // Check if there are any enabled games
+            val hasEnabledGames = try {
+                val jsonArray = JSONArray(gameAppsJson)
+                var hasEnabled = false
+                for (i in 0 until jsonArray.length()) {
+                    val obj = jsonArray.getJSONObject(i)
+                    if (obj.optBoolean("enabled", true)) {
+                        hasEnabled = true
+                        break
+                    }
+                }
+                hasEnabled
+            } catch (e: Exception) {
+                false
+            }
+            
+            if (hasEnabledGames) {
+                Log.d(TAG, "Enabled games found, starting GameMonitorService...")
+                
+                if (Build.VERSION.SDK_INT >= 35) {
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        startGameMonitorServiceDirect(context)
+                    }, BATTERY_SERVICE_DELAY_MS)
+                } else {
+                    startGameMonitorServiceDirect(context)
+                }
+            } else {
+                Log.d(TAG, "No enabled games, skipping GameMonitorService start")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start GameMonitorService: ${e.message}")
+        }
+    }
+    
+    private fun startGameMonitorServiceDirect(context: Context) {
+        try {
+            val serviceIntent = Intent(context, GameMonitorService::class.java)
+            
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+            Log.d(TAG, "GameMonitorService started successfully")
+        } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
+            Log.w(TAG, "ForegroundService not allowed for GameMonitorService: ${e.message}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to start GameMonitorService: ${e.message}")
         }
     }
 
