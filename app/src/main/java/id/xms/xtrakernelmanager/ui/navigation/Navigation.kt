@@ -5,9 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
@@ -17,18 +15,79 @@ import androidx.navigation.compose.rememberNavController
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.BottomNavItem
+import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
 import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
+import id.xms.xtrakernelmanager.utils.Holiday
+import id.xms.xtrakernelmanager.utils.HolidayChecker
+import kotlinx.coroutines.launch
 
 @Composable
 fun Navigation(preferencesManager: PreferencesManager) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val scope = rememberCoroutineScope()
+
+    // Holiday celebration state
+    var showHolidayDialog by remember { mutableStateOf(false) }
+    var currentHoliday by remember { mutableStateOf<Holiday?>(null) }
+    var hasCheckedHoliday by remember { mutableStateOf(false) }
+    val currentYear = HolidayChecker.getCurrentYear()
+    val currentHijriYear = HolidayChecker.getCurrentHijriYear()
+
+    // Collect holiday shown years from preferences
+    val christmasShownYear by preferencesManager.getChristmasShownYear().collectAsState(initial = 0)
+    val newYearShownYear by preferencesManager.getNewYearShownYear().collectAsState(initial = 0)
+    val ramadanShownYear by preferencesManager.getRamadanShownYear().collectAsState(initial = 0)
+    val eidFitrShownYear by preferencesManager.getEidFitrShownYear().collectAsState(initial = 0)
+
+    // Check for holidays on launch - only once
+    LaunchedEffect(Unit) {
+        if (!hasCheckedHoliday) {
+            hasCheckedHoliday = true
+            val holiday = HolidayChecker.getCurrentHoliday()
+            if (holiday != null) {
+                val lastShownYear = when (holiday) {
+                    Holiday.CHRISTMAS -> christmasShownYear
+                    Holiday.NEW_YEAR -> newYearShownYear
+                    Holiday.RAMADAN -> ramadanShownYear
+                    Holiday.EID_FITR -> eidFitrShownYear
+                }
+                if (HolidayChecker.shouldShowHolidayDialog(holiday, lastShownYear)) {
+                    currentHoliday = holiday
+                    showHolidayDialog = true
+                }
+            }
+        }
+    }
+
+    // Show holiday celebration dialog
+    if (showHolidayDialog && currentHoliday != null) {
+        HolidayCelebrationDialog(
+            holiday = currentHoliday!!,
+            year = if (currentHoliday == Holiday.RAMADAN || currentHoliday == Holiday.EID_FITR) currentHijriYear else currentYear,
+            onDismiss = {
+                showHolidayDialog = false
+                // Mark this holiday as shown for current year (after dialog closed)
+                scope.launch {
+                    val yearToSave = if (currentHoliday == Holiday.RAMADAN || currentHoliday == Holiday.EID_FITR) currentHijriYear else currentYear
+                    when (currentHoliday) {
+                        Holiday.CHRISTMAS -> preferencesManager.setChristmasShownYear(yearToSave)
+                        Holiday.NEW_YEAR -> preferencesManager.setNewYearShownYear(yearToSave)
+                        Holiday.RAMADAN -> preferencesManager.setRamadanShownYear(yearToSave)
+                        Holiday.EID_FITR -> preferencesManager.setEidFitrShownYear(yearToSave)
+                        null -> {}
+                    }
+                    currentHoliday = null
+                }
+            }
+        )
+    }
 
     val bottomNavItems = listOf(
         BottomNavItem(

@@ -63,6 +63,12 @@ class PreferencesManager(private val context: Context) {
     private val GPU_LOCKED_MIN_FREQ = intPreferencesKey("gpu_locked_min_freq")
     private val GPU_LOCKED_MAX_FREQ = intPreferencesKey("gpu_locked_max_freq")
 
+    // Holiday celebration preferences
+    private val CHRISTMAS_SHOWN_YEAR = intPreferencesKey("christmas_shown_year")
+    private val NEW_YEAR_SHOWN_YEAR = intPreferencesKey("new_year_shown_year")
+    private val RAMADAN_SHOWN_YEAR = intPreferencesKey("ramadan_shown_year")
+    private val EID_FITR_SHOWN_YEAR = intPreferencesKey("eid_fitr_shown_year")
+
     val themeMode: Flow<Int> = context.dataStore.data.map { prefs ->
         prefs[THEME_MODE] ?: 0
     }
@@ -276,5 +282,50 @@ class PreferencesManager(private val context: Context) {
     fun getGameApps(): Flow<String> =
         context.dataStore.data.map { prefs ->
             prefs[GAME_APPS] ?: "[]"
+        }
+
+    // Holiday Celebration Functions
+    suspend fun setChristmasShownYear(year: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[CHRISTMAS_SHOWN_YEAR] = year
+        }
+    }
+
+    fun getChristmasShownYear(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[CHRISTMAS_SHOWN_YEAR] ?: 0
+        }
+
+    suspend fun setNewYearShownYear(year: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[NEW_YEAR_SHOWN_YEAR] = year
+        }
+    }
+
+    fun getNewYearShownYear(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[NEW_YEAR_SHOWN_YEAR] ?: 0
+        }
+
+    suspend fun setRamadanShownYear(year: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[RAMADAN_SHOWN_YEAR] = year
+        }
+    }
+
+    fun getRamadanShownYear(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[RAMADAN_SHOWN_YEAR] ?: 0
+        }
+
+    suspend fun setEidFitrShownYear(year: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[EID_FITR_SHOWN_YEAR] = year
+        }
+    }
+
+    fun getEidFitrShownYear(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[EID_FITR_SHOWN_YEAR] ?: 0
         }
 }

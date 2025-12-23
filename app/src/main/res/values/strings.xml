@@ -453,4 +453,55 @@
     <string name="tile_perf_balanced">Balanced</string>
     <string name="tile_perf_balanced_sub">⚖️ Optimal</string>
 
+    <!-- Holiday Celebration -->
+    <string name="holiday_christmas_title">🎄 Merry Christmas! 🎅</string>
+    <string name="holiday_christmas_subtitle">Merry Christmas!</string>
+    <string name="holiday_christmas_button">🎁 Thank You!</string>
+    <string name="holiday_newyear_title">🎆 Happy New Year %1$d! 🎉</string>
+    <string name="holiday_newyear_subtitle">Happy New Year!</string>
+    <string name="holiday_newyear_button">🚀 Let\'s Go!</string>
+    <string name="holiday_from_xkm">– Xtra Kernel Manager –</string>
+    
+    <!-- Holiday Motivational Messages -->
+    <string name="holiday_christmas_motivation_1">May the love and warmth of Christmas always be with you. Stay strong and spread happiness! ❤️</string>
+    <string name="holiday_christmas_motivation_2">On this blessed day, remember that every challenge is an opportunity to grow. Happy celebrating! 🌟</string>
+    <string name="holiday_christmas_motivation_3">Christmas teaches us about unconditional love. Keep spreading kindness around you! 💫</string>
+    <string name="holiday_christmas_motivation_4">Be grateful for all the blessings this year. Every day is a precious gift! 🎁</string>
+    <string name="holiday_newyear_motivation_1">Year %1$d is a new chapter! Make your dreams come true, face challenges bravely, and never stop growing! 💪</string>
+    <string name="holiday_newyear_motivation_2">Welcome to year %1$d! May this year be full of achievements, health, and happiness. You got this! 🌈</string>
+    <string name="holiday_newyear_motivation_3">New year, new spirit! Make %1$d your best year ever. Small steps lead to big changes! 🚀</string>
+    <string name="holiday_newyear_motivation_4">%1$d is here! Believe in yourself, keep fighting, and celebrate every small progress. You are amazing! ⭐</string>
+
+    <!-- Ramadan Celebration -->
+    <string name="holiday_ramadan_title">🌙 Ramadan Mubarak! ☪️</string>
+    <string name="holiday_ramadan_subtitle">Blessed Ramadan!</string>
+    <string name="holiday_ramadan_button">🤲 Alhamdulillah!</string>
+    <string name="holiday_ramadan_motivation_1">May this holy month bring you closer to Allah and fill your heart with peace, patience, and blessings. Ramadan Kareem! 🌙</string>
+    <string name="holiday_ramadan_motivation_2">Welcome to the blessed month of Ramadan! May your fasting be accepted and your prayers answered. Stay strong! 🤲</string>
+    <string name="holiday_ramadan_motivation_3">This Ramadan, let us purify our hearts, strengthen our faith, and spread kindness everywhere. Masha Allah! ✨</string>
+    <string name="holiday_ramadan_motivation_4">Ramadan is a time for reflection, gratitude, and spiritual growth. May Allah bless you throughout this month and beyond! 🕌</string>
+
+    <!-- Eid al-Fitr Celebration (Idul Fitri) -->
+    <string name="holiday_eid_fitr_title">🎉 Eid Mubarak! 🌙</string>
+    <string name="holiday_eid_fitr_subtitle">Happy Eid al-Fitr!</string>
+    <string name="holiday_eid_fitr_button">🤲 Taqabbalallahu Minna Wa Minkum!</string>
+    <string name="holiday_eid_fitr_motivation_1">Congratulations on completing Ramadan! May Allah accept all your fasting, prayers, and good deeds. Wishing you joy and blessings on this special day! 🎊</string>
+    <string name="holiday_eid_fitr_motivation_2">Eid Mubarak! After a blessed month of fasting, it\'s time to celebrate! May this Eid bring happiness, peace, and prosperity to you and your family! 🌟</string>
+    <string name="holiday_eid_fitr_motivation_3">The day of victory has arrived! May your heart be filled with joy, your home with love, and your life with blessings. Selamat Hari Raya! 🕌</string>
+    <string name="holiday_eid_fitr_motivation_4">Eid al-Fitr is a celebration of faith, family, and gratitude. May the lessons of Ramadan guide you throughout the year. Minal Aidin Wal Faizin! ✨</string>
+
+    <!-- Game Control Additional Strings -->
+    <string name="game_control_no_games">No games added</string>
+    <string name="game_control_all_disabled">%1$d games (all disabled)</string>
+    <string name="game_control_active_games">%1$d active game</string>
+    <string name="game_control_active_games_plural">%1$d active games</string>
+    <string name="game_control_overlay_auto">Overlay will show automatically</string>
+    <string name="game_control_game_apps">Game Apps</string>
+    <string name="game_control_toggle_info">Toggle ON to show FPS overlay when app is opened</string>
+    <string name="game_control_no_games_yet">No games added yet</string>
+    <string name="game_control_add_game">Add Game</string>
+    <string name="game_control_search_apps">Search apps</string>
+    <string name="game_control_remove">Remove</string>
+    <string name="game_control_grant_overlay">Grant Overlay Permission (Required)</string>
+
 </resources>

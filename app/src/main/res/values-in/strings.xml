@@ -443,4 +443,55 @@
     <string name="connection_required_message">Pembaruan tertunda terdeteksi sebelumnya. Anda harus mengaktifkan koneksi internet untuk memperbarui aplikasi sebelum melanjutkan.</string>
     <string name="retry_connection">Coba Lagi Koneksi</string>
 
+    <!-- Holiday Celebration -->
+    <string name="holiday_christmas_title">🎄 Merry Christmas! 🎅</string>
+    <string name="holiday_christmas_subtitle">Selamat Hari Natal!</string>
+    <string name="holiday_christmas_button">🎁 Terima Kasih!</string>
+    <string name="holiday_newyear_title">🎆 Happy New Year %1$d! 🎉</string>
+    <string name="holiday_newyear_subtitle">Selamat Tahun Baru!</string>
+    <string name="holiday_newyear_button">🚀 Semangat!</string>
+    <string name="holiday_from_xkm">– Xtra Kernel Manager –</string>
+    
+    <!-- Holiday Motivational Messages -->
+    <string name="holiday_christmas_motivation_1">Semoga kasih dan kehangatan Natal selalu menyertai harimu. Tetap semangat dan berbagi kebahagiaan! ❤️</string>
+    <string name="holiday_christmas_motivation_2">Di hari yang penuh berkah ini, ingatlah bahwa setiap tantangan adalah kesempatan untuk bertumbuh. Selamat merayakan! 🌟</string>
+    <string name="holiday_christmas_motivation_3">Natal mengajarkan kita tentang cinta tanpa syarat. Teruslah menyebarkan kebaikan ke sekitarmu! 💫</string>
+    <string name="holiday_christmas_motivation_4">Bersyukurlah atas semua berkat tahun ini. Setiap hari adalah hadiah yang berharga! 🎁</string>
+    <string name="holiday_newyear_motivation_1">Tahun %1$d adalah lembaran baru! Wujudkan mimpimu, hadapi tantangan dengan berani, dan jangan pernah berhenti berkembang! 💪</string>
+    <string name="holiday_newyear_motivation_2">Selamat datang tahun %1$d! Semoga tahun ini penuh pencapaian, kesehatan, dan kebahagiaan. Kamu pasti bisa! 🌈</string>
+    <string name="holiday_newyear_motivation_3">Tahun baru, semangat baru! Jadikan %1$d sebagai tahun terbaik dalam hidupmu. Langkah kecil membawa perubahan besar! 🚀</string>
+    <string name="holiday_newyear_motivation_4">%1$d sudah di depan mata! Percaya pada dirimu, terus berjuang, dan rayakan setiap kemajuan kecil. Kamu luar biasa! ⭐</string>
+
+    <!-- Ramadan Celebration -->
+    <string name="holiday_ramadan_title">🌙 Ramadan Mubarak! ☪️</string>
+    <string name="holiday_ramadan_subtitle">Selamat Menunaikan Ibadah Puasa!</string>
+    <string name="holiday_ramadan_button">🤲 Alhamdulillah!</string>
+    <string name="holiday_ramadan_motivation_1">Semoga bulan suci ini membawamu lebih dekat kepada Allah dan mengisi hatimu dengan kedamaian, kesabaran, dan berkah. Ramadan Kareem! 🌙</string>
+    <string name="holiday_ramadan_motivation_2">Selamat datang bulan Ramadan yang penuh berkah! Semoga puasamu diterima dan doamu dikabulkan. Tetap semangat! 🤲</string>
+    <string name="holiday_ramadan_motivation_3">Di Ramadan ini, mari kita sucikan hati, kuatkan iman, dan sebarkan kebaikan ke mana-mana. Masyaallah! ✨</string>
+    <string name="holiday_ramadan_motivation_4">Ramadan adalah waktu untuk refleksi, rasa syukur, dan pertumbuhan spiritual. Semoga Allah memberkatimu sepanjang bulan ini dan seterusnya! 🕌</string>
+
+    <!-- Eid al-Fitr Celebration (Idul Fitri) -->
+    <string name="holiday_eid_fitr_title">🎉 Selamat Hari Raya! 🌙</string>
+    <string name="holiday_eid_fitr_subtitle">Selamat Idul Fitri 1446H!</string>
+    <string name="holiday_eid_fitr_button">🤲 Taqabbalallahu Minna Wa Minkum!</string>
+    <string name="holiday_eid_fitr_motivation_1">Selamat atas selesainya ibadah puasa Ramadan! Semoga Allah menerima semua amal ibadahmu. Mohon maaf lahir dan batin! 🎊</string>
+    <string name="holiday_eid_fitr_motivation_2">Selamat Hari Raya Idul Fitri! Setelah sebulan penuh berkah, inilah saatnya merayakan! Semoga hari ini membawa kebahagiaan dan keberkahan untuk keluargamu! 🌟</string>
+    <string name="holiday_eid_fitr_motivation_3">Hari kemenangan telah tiba! Semoga hatimu dipenuhi kebahagiaan, rumahmu dengan cinta, dan hidupmu dengan berkah. Minal Aidin Wal Faizin! 🕌</string>
+    <string name="holiday_eid_fitr_motivation_4">Idul Fitri adalah perayaan iman, keluarga, dan rasa syukur. Semoga pelajaran Ramadan terus membimbingmu sepanjang tahun. Taqabbalallahu Minna Wa Minkum! ✨</string>
+
+    <!-- Game Control Additional Strings -->
+    <string name="game_control_no_games">Belum ada gim ditambahkan</string>
+    <string name="game_control_all_disabled">%1$d gim (semua nonaktif)</string>
+    <string name="game_control_active_games">%1$d gim aktif</string>
+    <string name="game_control_active_games_plural">%1$d gim aktif</string>
+    <string name="game_control_overlay_auto">Overlay akan tampil otomatis</string>
+    <string name="game_control_game_apps">Daftar Gim</string>
+    <string name="game_control_toggle_info">Aktifkan untuk menampilkan overlay FPS saat aplikasi dibuka</string>
+    <string name="game_control_no_games_yet">Belum ada gim ditambahkan</string>
+    <string name="game_control_add_game">Tambah Gim</string>
+    <string name="game_control_search_apps">Cari aplikasi</string>
+    <string name="game_control_remove">Hapus</string>
+    <string name="game_control_grant_overlay">Berikan Izin Overlay (Diperlukan)</string>
+
 </resources>

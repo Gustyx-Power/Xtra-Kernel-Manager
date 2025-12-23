@@ -2,10 +2,7 @@ package id.xms.xtrakernelmanager.ui.screens.home
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -43,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -58,6 +56,8 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.DataOutputStream
+import id.xms.xtrakernelmanager.utils.Holiday
+import id.xms.xtrakernelmanager.utils.HolidayChecker
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -114,6 +114,9 @@ fun HomeScreen(
     }
 
     // --- MAIN CONTENT ---
+    
+    // Holiday Decoration (cached outside grid)
+    val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(minSize = 340.dp),
@@ -124,6 +127,13 @@ fun HomeScreen(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalItemSpacing = 16.dp
     ) {
+        // Holiday Decoration (emoji row above header)
+        if (currentHolidayDecor != null) {
+            item(span = StaggeredGridItemSpan.FullLine) {
+                HolidayDecorationRow(holiday = currentHolidayDecor)
+            }
+        }
+        
         // Header
         item(span = StaggeredGridItemSpan.FullLine) {
             Row(
@@ -920,4 +930,65 @@ private fun BatteryLevelIndicator(level: Int, status: String, modifier: Modifier
 @Composable
 private fun MemoryTagChip(icon: ImageVector, label: String, value: String) {
     InfoChipCompact(icon = icon, text = "$label: $value")
+}
+
+/**
+ * Holiday decoration row with animated emojis
+ */
+@Composable
+private fun HolidayDecorationRow(holiday: Holiday) {
+    val infiniteTransition = rememberInfiniteTransition(label = "holiday_decor")
+    
+    val bounce by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "bounce"
+    )
+    
+    val (emojis, colors) = when (holiday) {
+        Holiday.CHRISTMAS -> Pair(
+            listOf("🎅", "❄️", "🎄", "🎁", "⛄", "❄️", "🎄", "🎅"),
+            listOf(Color(0xFFE53935), Color(0xFFFFFFFF), Color(0xFF43A047))
+        )
+        Holiday.NEW_YEAR -> Pair(
+            listOf("🎆", "✨", "🎇", "🥳", "🎉", "✨", "🎆", "🎊"),
+            listOf(Color(0xFFFFD700), Color(0xFFFF6B6B), Color(0xFF4ECDC4))
+        )
+        Holiday.RAMADAN -> Pair(
+            listOf("🌙", "⭐", "🕌", "✨", "🤲", "⭐", "🌙", "🕋"),
+            listOf(Color(0xFFFFD700), Color(0xFF4CAF50), Color(0xFF2196F3))
+        )
+        Holiday.EID_FITR -> Pair(
+            listOf("🎉", "🕌", "✨", "🤲", "🎊", "✨", "🕌", "🎉"),
+            listOf(Color(0xFF4CAF50), Color(0xFFFFD700), Color(0xFF8BC34A))
+        )
+    }
+    
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = colors[0].copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, colors[0].copy(alpha = 0.3f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            emojis.forEachIndexed { index, emoji ->
+                val offset = if (index % 2 == 0) bounce else -bounce
+                Text(
+                    text = emoji,
+                    fontSize = 24.sp,
+                    modifier = Modifier.offset(y = offset.dp)
+                )
+            }
+        }
+    }
 }
