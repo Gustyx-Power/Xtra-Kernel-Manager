@@ -7,9 +7,15 @@ Per-App Profile System
 - Create custom profiles for specific apps
 - Set CPU governor per app (performance, balanced, powersave, etc.)
 - Set thermal preset per app
+- Dynamic refresh rate control per app:
+  * 60Hz device: No refresh rate option
+  * 90Hz device: 60Hz and 90Hz options
+  * 120Hz device: 60Hz, 90Hz, and 120Hz options
 - Auto-apply profiles when app is launched
 - Background service monitors foreground apps
 - Usage stats permission integration
+- Enhanced modern dialog UI with gradient headers
+- Animated chip selection for refresh rates
 - Full localization support (EN/ID)
 
 Enhanced Game Control

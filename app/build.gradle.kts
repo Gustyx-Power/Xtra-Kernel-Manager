@@ -26,7 +26,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.2-Release"
+        versionName = "2.3-ReleaseTest-ci-3-W1"
 
         // Build date in format YYYY.MM.dd
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -445,10 +445,12 @@ val notifyBuildStatusToTelegram by tasks.registering(SendTelegramMessageTask::cl
 // Debug APK Tasks
 val renameDebugApk by tasks.registering(Copy::class) {
     group = "custom"
-    description = "Renames app-debug.apk"
+    description = "Renames debug APK (supports ABI splits)"
     val versionName = android.defaultConfig.versionName ?: "unknown"
     from(layout.buildDirectory.dir("outputs/apk/debug")) {
+        // Support both universal and arm64-v8a APK names
         include("app-debug.apk")
+        include("app-arm64-v8a-debug.apk")
     }
     into(layout.projectDirectory.dir("dist"))
     rename { "XKM-$versionName-debug.apk" }
