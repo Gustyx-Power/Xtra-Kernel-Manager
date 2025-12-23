@@ -130,9 +130,10 @@ fun GameControlSection(
                         )
                         Text(
                             text = when {
-                                gameApps.isEmpty() -> "No games added"
-                                enabledCount == 0 -> "${gameApps.size} games (all disabled)"
-                                else -> "$enabledCount active game${if(enabledCount > 1) "s" else ""}"
+                                gameApps.isEmpty() -> stringResource(R.string.game_control_no_games)
+                                enabledCount == 0 -> stringResource(R.string.game_control_all_disabled, gameApps.size)
+                                enabledCount > 1 -> stringResource(R.string.game_control_active_games_plural, enabledCount)
+                                else -> stringResource(R.string.game_control_active_games, enabledCount)
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = if (enabledCount > 0) 
@@ -142,7 +143,7 @@ fun GameControlSection(
                         )
                         if (enabledCount > 0) {
                             Text(
-                                text = "Overlay will show automatically",
+                                text = stringResource(R.string.game_control_overlay_auto),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.tertiary
                             )
@@ -152,7 +153,7 @@ fun GameControlSection(
                 
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -178,7 +179,7 @@ fun GameControlSection(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Grant Overlay Permission (Required)")
+                    Text(stringResource(R.string.game_control_grant_overlay))
                 }
             }
             
@@ -192,14 +193,14 @@ fun GameControlSection(
                     HorizontalDivider()
                     
                     Text(
-                        text = "Game Apps",
+                        text = stringResource(R.string.game_control_game_apps),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     
                     Text(
-                        text = "Toggle ON to show FPS overlay when app is opened",
+                        text = stringResource(R.string.game_control_toggle_info),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -219,7 +220,7 @@ fun GameControlSection(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No games added yet",
+                                    text = stringResource(R.string.game_control_no_games_yet),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -322,7 +323,7 @@ fun GameControlSection(
                                         ) {
                                             Icon(
                                                 Icons.Default.Delete,
-                                                contentDescription = "Remove",
+                                                contentDescription = stringResource(R.string.game_control_remove),
                                                 tint = MaterialTheme.colorScheme.error,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -368,7 +369,7 @@ fun GameControlSection(
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add Game")
+                        Text(stringResource(R.string.game_control_add_game))
                     }
                 }
             }
@@ -483,7 +484,7 @@ private fun AddGameDialog(
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
-                        text = "Add Game",
+                        text = stringResource(R.string.game_control_add_game),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -493,7 +494,7 @@ private fun AddGameDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search apps") },
+                    label = { Text(stringResource(R.string.game_control_search_apps)) },
                     leadingIcon = { Icon(Icons.Default.Search, null) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -579,7 +580,7 @@ private fun AddGameDialog(
                                         }
                                         Icon(
                                             Icons.Default.Add,
-                                            contentDescription = "Add",
+                                            contentDescription = stringResource(R.string.game_control_add_game),
                                             tint = MaterialTheme.colorScheme.primary
                                         )
                                     }
@@ -595,7 +596,7 @@ private fun AddGameDialog(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         }
