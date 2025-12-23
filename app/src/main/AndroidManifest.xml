@@ -77,14 +77,33 @@
             android:enabled="true"
             android:exported="false"
             android:stopWithTask="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Battery monitoring and statistics tracking" />
+        </service>
 
         <!-- Per-App Profile Monitoring Service -->
         <service
             android:name=".service.AppProfileService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Per-app profile monitoring and automatic settings adjustment" />
+        </service>
+        
+        <!-- Game Monitor Service - monitors foreground apps for game overlay -->
+        <service
+            android:name=".service.GameMonitorService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Game detection and overlay management" />
+        </service>
 
         <!-- Performance Mode Quick Settings Tile -->
         <service
