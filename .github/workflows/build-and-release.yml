@@ -1,10 +1,6 @@
 name: Build & Release to Telegram
 
 on:
-  push:
-    branches: [main, master]
-    tags:
-      - 'v*'
   workflow_dispatch:
     inputs:
       force_build:
