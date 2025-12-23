@@ -54,6 +54,9 @@ class PreferencesManager(private val context: Context) {
     // Per-App Profile preferences
     private val APP_PROFILES = stringPreferencesKey("app_profiles")
     private val PER_APP_PROFILE_ENABLED = booleanPreferencesKey("per_app_profile_enabled")
+    
+    // Game apps list - apps that trigger game overlay (stored as JSON array)
+    private val GAME_APPS = stringPreferencesKey("game_apps")
 
     // GPU Lock State preferences
     private val GPU_FREQUENCY_LOCKED = booleanPreferencesKey("gpu_frequency_locked")
@@ -261,5 +264,17 @@ class PreferencesManager(private val context: Context) {
     fun getGpuLockedMaxFreq(): Flow<Int> =
         context.dataStore.data.map { prefs ->
             prefs[GPU_LOCKED_MAX_FREQ] ?: 0
+        }
+    
+    // Game Apps (apps that trigger game overlay)
+    suspend fun saveGameApps(jsonString: String) {
+        context.dataStore.edit { prefs ->
+            prefs[GAME_APPS] = jsonString
+        }
+    }
+    
+    fun getGameApps(): Flow<String> =
+        context.dataStore.data.map { prefs ->
+            prefs[GAME_APPS] ?: "[]"
         }
 }

@@ -50,6 +50,10 @@ class MiscViewModel(
 
     val gameControlHideNotif = preferencesManager.isGameControlHideNotifEnabled()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    
+    // Game apps list (apps that trigger game overlay)
+    val gameApps = preferencesManager.getGameApps()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "[]")
 
     init {
         checkRoot()
@@ -202,6 +206,12 @@ class MiscViewModel(
                 _clearRAMStatus.value = ""
             }
         }
+    }
+    
+    // Game Apps Functions
+    suspend fun saveGameApps(jsonString: String) {
+        preferencesManager.saveGameApps(jsonString)
+        Log.d("MiscViewModel", "Game apps saved: $jsonString")
     }
 
     override fun onCleared() {
