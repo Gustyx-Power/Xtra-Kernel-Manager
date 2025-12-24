@@ -1,16 +1,64 @@
-Changelogs For Xtra Kernel Manager Version 2.0-Release
+# Xtra Kernel Manager - Changelog
 
-Release Date: December 2025
-MAJOR NEW FEATURES
+All notable changes to this project will be documented in this file.
 
-Per-App Profile System
+---
+
+## [2.3-Release] - December 25, 2024
+
+### ✨ New Features
+- **Screen Saturation Control** - Adjust display color saturation with slider (0.5 - 2.0)
+  - Real-time saturation adjustment using SurfaceFlinger
+  - Quick presets: sRGB (1.0), P3 (1.1), Vivid (1.3)
+  - Persistent settings across reboots
+- **Holiday Celebrations** - Festive popup for Christmas, New Year, Ramadan, and Eid al-Fitr
+- **Per-Game Control** - Auto-start FPS overlay when game is launched
+  - GameMonitorService for automatic game detection
+  - Add/remove games from monitored list
+
+### 🛠️ Improvements
+- Battery Reset notification at 100% charge
+- Localized GameControlSection strings (EN/ID)
+- Auto-start GameMonitorService on boot
+
+### 🐛 Bug Fixes
+- Removed Game Overlay from Per-App Profile (moved to Misc)
+- Improved overlay service logic
+
+---
+
+## [2.2-Release] - December 10, 2024
+
+### 🎯 Major Update
+- **GPU Lock Frequency** - Lock GPU to specific frequency
+- **Performance Profile Quick Settings** - Switch modes from notification panel
+- Fix Powerlevel GPU Reset
+- Fix Crash Battery Notification & Per-App-Profile on Android 14+
+- New animated Toggle Switch Button
+
+---
+
+## [2.1-Release] - December 10, 2024
+
+### 🎯 Major Update
+- **Refresh Rate Control** on Per-App Profile
+- **Lock GPU Frequency** feature
+- Fix Animation Dropdown on Home Screen
+
+---
+
+## [2.0-Release] - December 8, 2024
+
+### 🚀 Major New Features
+
+#### Per-App Profile System
 - Create custom profiles for specific apps
 - Set CPU governor per app (performance, balanced, powersave, etc.)
 - Set thermal preset per app
 - Dynamic refresh rate control per app:
-  * 60Hz device: No refresh rate option
-  * 90Hz device: 60Hz and 90Hz options
-  * 120Hz device: 60Hz, 90Hz, and 120Hz options
+  - 60Hz device: No refresh rate option
+  - 90Hz device: 60Hz and 90Hz options
+  - 120Hz device: 60Hz, 90Hz, and 120Hz options
 - Auto-apply profiles when app is launched
 - Background service monitors foreground apps
 - Usage stats permission integration
@@ -18,41 +66,40 @@ Per-App Profile System
 - Animated chip selection for refresh rates
 - Full localization support (EN/ID)
 
-Enhanced Game Control
+#### Enhanced Game Control
 - Performance modes now include thermal presets:
-  * Performance: CPU Performance + Dynamic Thermal
-  * Balanced: CPU Schedutil + Thermal 20
-  * Battery: CPU Powersave + Incalls Thermal
+  - **Performance**: CPU Performance + Dynamic Thermal
+  - **Balanced**: CPU Schedutil + Thermal 20
+  - **Battery**: CPU Powersave + Incalls Thermal
 - Improved overlay permission handling
 - Auto-request overlay permission when enabling
 
-Root Permission Check
+#### Root Permission Check
 - App now checks for root access at startup
 - Displays informative dialog if root not granted
 - Shows instructions for Magisk, KernelSU, APatch
 - App exits gracefully if root not available
 
-Auto Data Reset on Update
+#### Auto Data Reset on Update
 - Automatically clears preferences on app update
 - Prevents crashes from incompatible old data
 - Toast notification when settings are reset
 - Version tracking for update detection
 
+### 🎨 UI/UX Enhancements
 
-UI/UX ENHANCEMENTS
-
-Enhanced Splash Screen
+#### Enhanced Splash Screen
 - Expressive multi-ring loading animation with pulsing effects
 - Animated floating background orbs with breathing effect
 - New app name and version chip design
 - Dynamic status messages during initialization
 
-HomeScreen Improvements
+#### HomeScreen Improvements
 - Redesigned header with version on separate line
 - Build date displayed (format: YYYY.MM.dd)
 - Consistent chip style across app
 
-TECHNICAL IMPROVEMENTS
+### ⚙️ Technical Improvements
 - Build Date auto-generated at compile time
 - Debug APK Telegram upload feature
 - Improved overlay permission flow in Game Control
@@ -61,9 +108,7 @@ TECHNICAL IMPROVEMENTS
 - QUERY_ALL_PACKAGES permission for app detection
 - PACKAGE_USAGE_STATS for foreground app monitoring
 
-
-LOCALIZATION
-
+### 🌐 Localization
 - Full Indonesian (Bahasa Indonesia) translation
 - All new features fully localized
 - Per-App Profile UI strings
@@ -72,65 +117,65 @@ LOCALIZATION
 - Splash screen status messages
 - All toast messages
 
-
-BUG FIXES
-
+### 🐛 Bug Fixes
 - Fixed overlay permission not being checked before starting service
 - Fixed potential crashes when updating from older versions
 - Improved app detection using launcher intent filter
 - Fixed foreground service compatibility for Android O+
 
-
-PERMISSIONS ADDED
-
-- PACKAGE_USAGE_STATS: Monitor foreground apps
-- QUERY_ALL_PACKAGES: Detect installed apps (Android 11+)
-
+### 🔐 Permissions Added
+- `PACKAGE_USAGE_STATS`: Monitor foreground apps
+- `QUERY_ALL_PACKAGES`: Detect installed apps (Android 11+)
 
 ---
 
+## [1.6] 
 
-Changelogs For Xtra Kernel Manager Version 1.6
-- Enhance FPS Meter
-- Add TCP Congestion
+- Enhanced FPS Meter
+- Added TCP Congestion control
 
+---
 
-Changelogs For Xtra Kernel Manager Version 1.5
+## [1.5]
+
 - Add FPS Meter
 - Add OTA Update
-- Add Idle Count in Notification 
+- Add Idle Count in Notification
 - Add Battery Percentage & Temperature in Statusbar
 - Add Cache Cleaner For Non Root or Root
 - Add Hide Developer Feature
 - Add GPU Power Level
 - Add Battery detail on Info feature
 - Fix Odd card on RAM Control Popup
-- Now GlassMorphism combine with Material 3 in Android 12+
+- GlassMorphism combined with Material 3 in Android 12+
 
+---
 
-Changelogs For Xtra Kernel Manager Version 1.4
+## [1.4]
 
-Major Changes:
-- Enhanced UI/UX with improved visual design and user experience
+### Major Changes
+- Enhanced UI/UX with improved visual design
 - Add Profiler in Quick Settings Tile & Widget
-- Added comprehensive CPU frequency monitoring and control system
+- Added comprehensive CPU frequency monitoring and control
 - Implemented real-time CPU temperature monitoring
 - Added intelligent battery optimization features
 - Implemented system-wide performance monitoring dashboard
 - Enhanced memory management with automatic cleanup
 - Added support for custom kernel parameter tuning
 
-Minor Changes:
+### Minor Changes
 - Improved stability and error handling
 - Enhanced root permission management
 - Optimized app startup time
 - Enhanced security with improved permission handling
 
+---
 
-Changelogs For Xtra Kernel Manager Version 1.3
+## [1.3]
+
 - Resolved Tuning functionalities issue from Version 1.2
 - Implemented CPU Core Control
-- Introduced Ram Control
+- Introduced RAM Control
 - Removed Terminal feature
 - Added Miscellaneous section
 - Incorporated Adjust Swap Size feature
