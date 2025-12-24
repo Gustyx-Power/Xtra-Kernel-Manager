@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.PillCard
 import id.xms.xtrakernelmanager.ui.screens.misc.section.BatteryInfoSection
+import id.xms.xtrakernelmanager.ui.screens.misc.section.DisplaySection
 import id.xms.xtrakernelmanager.ui.screens.misc.section.GameControlSection
 
 @Composable
@@ -32,6 +33,10 @@ fun MiscScreen(
 
         item {
             GameControlSection(viewModel)
+        }
+
+        item {
+            DisplaySection(viewModel)
         }
     }
 }
