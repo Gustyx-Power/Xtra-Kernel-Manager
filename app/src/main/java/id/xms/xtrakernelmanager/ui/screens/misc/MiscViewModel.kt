@@ -55,6 +55,13 @@ class MiscViewModel(
     val gameApps = preferencesManager.getGameApps()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "[]")
 
+    // Display saturation value (0.5 - 2.0)
+    val displaySaturation = preferencesManager.getDisplaySaturation()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1.0f)
+
+    private val _saturationApplyStatus = MutableStateFlow("")
+    val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()
+
     init {
         checkRoot()
         loadCurrentPerformanceMode()
@@ -212,6 +219,47 @@ class MiscViewModel(
     suspend fun saveGameApps(jsonString: String) {
         preferencesManager.saveGameApps(jsonString)
         Log.d("MiscViewModel", "Game apps saved: $jsonString")
+    }
+
+    // Display Saturation Functions
+    fun setDisplaySaturation(value: Float) {
+        viewModelScope.launch {
+            if (!_isRootAvailable.value) {
+                Log.e("MiscViewModel", "Cannot set saturation: Root not available")
+                _saturationApplyStatus.value = "Root required"
+                kotlinx.coroutines.delay(2000)
+                _saturationApplyStatus.value = ""
+                return@launch
+            }
+
+            val saturationValue = String.format(java.util.Locale.US, "%.2f", value)
+
+            try {
+                // Use service call SurfaceFlinger 1022 for immediate effect
+                // 0.0 = grayscale, 1.0 = default, >1.0 = more saturated
+                val surfaceFlingerResult = RootManager.executeCommand(
+                    "service call SurfaceFlinger 1022 f $saturationValue"
+                )
+                
+                if (surfaceFlingerResult.isSuccess) {
+                    // Also set the system property for persistence across reboots
+                    RootManager.executeCommand("setprop persist.sys.sf.color_saturation $saturationValue")
+                    
+                    preferencesManager.setDisplaySaturation(value)
+                    _saturationApplyStatus.value = "Applied: $saturationValue"
+                    Log.d("MiscViewModel", "Display saturation set to: $saturationValue (SurfaceFlinger)")
+                } else {
+                    _saturationApplyStatus.value = "Failed"
+                    Log.e("MiscViewModel", "Failed to set saturation: ${surfaceFlingerResult.exceptionOrNull()?.message}")
+                }
+            } catch (e: Exception) {
+                _saturationApplyStatus.value = "Failed"
+                Log.e("MiscViewModel", "Exception setting saturation: ${e.message}")
+            }
+
+            kotlinx.coroutines.delay(2000)
+            _saturationApplyStatus.value = ""
+        }
     }
 
     override fun onCleared() {
