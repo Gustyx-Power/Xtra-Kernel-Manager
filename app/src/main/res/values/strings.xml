@@ -504,4 +504,15 @@
     <string name="game_control_remove">Remove</string>
     <string name="game_control_grant_overlay">Grant Overlay Permission (Required)</string>
 
+    <!-- Display Settings -->
+    <string name="display_settings">Display Settings</string>
+    <string name="display_saturation">Screen Saturation</string>
+    <string name="display_saturation_desc">Adjust color saturation level</string>
+    <string name="display_saturation_level">Saturation Level</string>
+    <string name="display_quick_presets">Quick Presets</string>
+    <string name="display_mode_srgb_desc">Standard (1.0)</string>
+    <string name="display_mode_p3_desc">Wide gamut (1.1)</string>
+    <string name="display_mode_vivid_desc">Extra vivid (1.3)</string>
+    <string name="display_requires_root">Requires root access</string>
+
 </resources>
