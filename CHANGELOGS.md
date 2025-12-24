@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [2.3-Release] - December 25, 2024
+## [2.3-Release] - December 25, 2025
 
 ### ✨ New Features
 - **Screen Saturation Control** - Adjust display color saturation with slider (0.5 - 2.0)
@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [2.2-Release] - December 10, 2024
+## [2.2-Release] - December 10, 2025
 
 ### 🎯 Major Update
 - **GPU Lock Frequency** - Lock GPU to specific frequency
@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [2.1-Release] - December 10, 2024
+## [2.1-Release] - December 10, 2025
 
 ### 🎯 Major Update
 - **Refresh Rate Control** on Per-App Profile
@@ -47,7 +47,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [2.0-Release] - December 8, 2024
+## [2.0-Release] - December 8, 2025
 
 ### 🚀 Major New Features
 
