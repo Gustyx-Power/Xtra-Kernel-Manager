@@ -58,6 +58,9 @@ class PreferencesManager(private val context: Context) {
     // Game apps list - apps that trigger game overlay (stored as JSON array)
     private val GAME_APPS = stringPreferencesKey("game_apps")
 
+    // Display saturation value (0.5 - 2.0)
+    private val DISPLAY_SATURATION = androidx.datastore.preferences.core.floatPreferencesKey("display_saturation")
+
     // GPU Lock State preferences
     private val GPU_FREQUENCY_LOCKED = booleanPreferencesKey("gpu_frequency_locked")
     private val GPU_LOCKED_MIN_FREQ = intPreferencesKey("gpu_locked_min_freq")
@@ -282,6 +285,18 @@ class PreferencesManager(private val context: Context) {
     fun getGameApps(): Flow<String> =
         context.dataStore.data.map { prefs ->
             prefs[GAME_APPS] ?: "[]"
+        }
+
+    // Display Saturation
+    suspend fun setDisplaySaturation(value: Float) {
+        context.dataStore.edit { prefs ->
+            prefs[DISPLAY_SATURATION] = value
+        }
+    }
+
+    fun getDisplaySaturation(): Flow<Float> =
+        context.dataStore.data.map { prefs ->
+            prefs[DISPLAY_SATURATION] ?: 1.0f
         }
 
     // Holiday Celebration Functions
