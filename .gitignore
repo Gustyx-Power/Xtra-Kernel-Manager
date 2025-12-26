@@ -65,7 +65,8 @@ gradle_build.log
 google-services.json
 
 # IDE specific
-.idea/
+.idea
+.vscode
 *.ipr
 *.iws
 
