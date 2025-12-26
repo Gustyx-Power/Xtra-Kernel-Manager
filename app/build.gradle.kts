@@ -143,9 +143,9 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:service:6.0.0")
     implementation("com.github.topjohnwu.libsu:nio:6.0.0")
     
-    // Firebase Realtime Database (BOM must be declared first)
+    // Firebase 
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
-    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-database") 
 
     // TOML Parser
     implementation("org.tomlj:tomlj:1.1.1")
