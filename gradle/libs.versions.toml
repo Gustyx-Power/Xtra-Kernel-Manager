@@ -24,7 +24,7 @@ hilt = "2.52"
 hilt-navigation-compose = "1.2.0"
 
 # DataStore
-datastore = "1.1.1"
+datastore = "1.2.0"
 
 # Coroutines
 coroutines = "1.9.0"
