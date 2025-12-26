@@ -221,7 +221,7 @@ jobs:
 
       - name: Checkout Keystore Repository
         if: inputs.build_type == 'release' && inputs.sign_apk == true
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: Xtra-Manager-Software/XMS-Keystore-Apps
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}

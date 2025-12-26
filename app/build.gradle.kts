@@ -112,7 +112,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.9.3")
-    implementation("androidx.core:core-splashscreen:1.2.0-alpha02")
+    implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
 
@@ -145,7 +145,7 @@ dependencies {
     
     // Firebase Realtime Database
     implementation("com.google.firebase:firebase-database-ktx")
-    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
 
     // TOML Parser
     implementation("org.tomlj:tomlj:1.1.0")
@@ -163,7 +163,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
