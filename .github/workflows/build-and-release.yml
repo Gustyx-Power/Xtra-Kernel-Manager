@@ -24,13 +24,13 @@ jobs:
       commit_count: ${{ steps.check.outputs.commit_count }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Restore last build commit
         id: cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: .last-build-commit
           key: last-build-commit-${{ github.ref_name }}
@@ -101,7 +101,7 @@ jobs:
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -127,7 +127,7 @@ jobs:
           curl -s -X POST "https://api.telegram.org/bot$TG_BOT_TOKEN/pinChatMessage" -d "chat_id=$TG_CHAT_ID" -d "message_id=$MSG_ID" -d "disable_notification=true"
 
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
@@ -171,7 +171,7 @@ jobs:
         run: cargo install cargo-ndk
 
       - name: Cache Rust dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -333,7 +333,7 @@ jobs:
 
       - name: Update cache with new commit
         if: success()
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: .last-build-commit
           key: last-build-commit-${{ github.ref_name }}-${{ github.sha }}
