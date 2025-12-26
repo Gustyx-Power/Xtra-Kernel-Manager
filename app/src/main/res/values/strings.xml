@@ -515,4 +515,12 @@
     <string name="display_mode_vivid_desc">Extra vivid (1.3)</string>
     <string name="display_requires_root">Requires root access</string>
 
+    <!-- Layout Style -->
+    <string name="layout_style">Layout Style</string>
+    <string name="layout_style_desc">Choose between classic glassmorphic or pure Material 3 design</string>
+    <string name="layout_legacy">Legacy</string>
+    <string name="layout_legacy_desc">Glassmorphic design with visual effects</string>
+    <string name="layout_material">Material</string>
+    <string name="layout_material_desc">Pure Material 3 design, clean and simple</string>
+
 </resources>

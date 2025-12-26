@@ -68,6 +68,8 @@ fun HomeScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
+    val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
+    
     // Data State
     val cpuInfo by viewModel.cpuInfo.collectAsState()
     val gpuInfo by viewModel.gpuInfo.collectAsState()
@@ -113,8 +115,42 @@ fun HomeScreen(
         )
     }
 
-    // --- MAIN CONTENT ---
-    
+    // --- LAYOUT STYLE ROUTING ---
+    when (layoutStyle) {
+        "material" -> {
+            // Material 3 Home Screen
+            MaterialHomeScreen(
+                preferencesManager = preferencesManager,
+                viewModel = viewModel,
+                onPowerMenuClick = { showPowerMenu = true }
+            )
+        }
+        else -> {
+            // Legacy Home Screen (current glassmorphic UI)
+            LegacyHomeContent(
+                cpuInfo = cpuInfo,
+                gpuInfo = gpuInfo,
+                batteryInfo = batteryInfo,
+                systemInfo = systemInfo,
+                onPowerMenuClick = { showPowerMenu = true }
+            )
+        }
+    }
+}
+
+/**
+ * Legacy Home Content - Original glassmorphic UI
+ * Extracted from the original HomeScreen for layout style switching
+ */
+@SuppressLint("DefaultLocale")
+@Composable
+private fun LegacyHomeContent(
+    cpuInfo: CPUInfo,
+    gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo,
+    batteryInfo: id.xms.xtrakernelmanager.data.model.BatteryInfo,
+    systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo,
+    onPowerMenuClick: () -> Unit
+) {
     // Holiday Decoration (cached outside grid)
     val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
@@ -165,7 +201,7 @@ fun HomeScreen(
                     }
                 }
                 FilledTonalIconButton(
-                    onClick = { showPowerMenu = true },
+                    onClick = onPowerMenuClick,
                     modifier = Modifier.size(40.dp),
                     colors = IconButtonDefaults.filledTonalIconButtonColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,

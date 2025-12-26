@@ -61,6 +61,9 @@ class PreferencesManager(private val context: Context) {
     // Display saturation value (0.5 - 2.0)
     private val DISPLAY_SATURATION = androidx.datastore.preferences.core.floatPreferencesKey("display_saturation")
 
+    // Layout style (legacy = glassmorphic, material = pure M3)
+    private val LAYOUT_STYLE = stringPreferencesKey("layout_style")
+
     // GPU Lock State preferences
     private val GPU_FREQUENCY_LOCKED = booleanPreferencesKey("gpu_frequency_locked")
     private val GPU_LOCKED_MIN_FREQ = intPreferencesKey("gpu_locked_min_freq")
@@ -297,6 +300,18 @@ class PreferencesManager(private val context: Context) {
     fun getDisplaySaturation(): Flow<Float> =
         context.dataStore.data.map { prefs ->
             prefs[DISPLAY_SATURATION] ?: 1.0f
+        }
+
+    // Layout Style Functions
+    suspend fun setLayoutStyle(style: String) {
+        context.dataStore.edit { prefs ->
+            prefs[LAYOUT_STYLE] = style
+        }
+    }
+
+    fun getLayoutStyle(): Flow<String> =
+        context.dataStore.data.map { prefs ->
+            prefs[LAYOUT_STYLE] ?: "legacy"
         }
 
     // Holiday Celebration Functions

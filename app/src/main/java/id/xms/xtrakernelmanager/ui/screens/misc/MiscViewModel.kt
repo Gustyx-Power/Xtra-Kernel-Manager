@@ -59,6 +59,10 @@ class MiscViewModel(
     val displaySaturation = preferencesManager.getDisplaySaturation()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1.0f)
 
+    // Layout style (legacy = glassmorphic, material = pure M3)
+    val layoutStyle = preferencesManager.getLayoutStyle()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "legacy")
+
     private val _saturationApplyStatus = MutableStateFlow("")
     val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()
 
@@ -259,6 +263,14 @@ class MiscViewModel(
 
             kotlinx.coroutines.delay(2000)
             _saturationApplyStatus.value = ""
+        }
+    }
+
+    // Layout Style Function
+    fun setLayoutStyle(style: String) {
+        viewModelScope.launch {
+            preferencesManager.setLayoutStyle(style)
+            Log.d("MiscViewModel", "Layout style set to: $style")
         }
     }
 

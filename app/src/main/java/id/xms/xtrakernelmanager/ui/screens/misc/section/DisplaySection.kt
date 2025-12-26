@@ -66,7 +66,7 @@ fun DisplaySection(
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(R.string.display_saturation),
+                        text = stringResource(R.string.display_settings),
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
@@ -76,6 +76,11 @@ fun DisplaySection(
                     )
                 }
             }
+
+            // --- Layout Style Selector ---
+            LayoutStyleSelector(viewModel = viewModel)
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
             // Status indicator
             if (applyStatus.isNotEmpty()) {
@@ -229,6 +234,107 @@ fun DisplaySection(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+        }
+    }
+}
+
+/**
+ * Layout Style Selector - Toggle between Legacy (glassmorphic) and Material (pure M3) UI
+ */
+@Composable
+private fun LayoutStyleSelector(
+    viewModel: MiscViewModel
+) {
+    val layoutStyle by viewModel.layoutStyle.collectAsState()
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.layout_style),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+
+        Text(
+            text = stringResource(R.string.layout_style_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Legacy Button
+            LayoutStyleButton(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.layout_legacy),
+                description = stringResource(R.string.layout_legacy_desc),
+                isSelected = layoutStyle == "legacy",
+                onClick = { viewModel.setLayoutStyle("legacy") }
+            )
+
+            // Material Button
+            LayoutStyleButton(
+                modifier = Modifier.weight(1f),
+                label = stringResource(R.string.layout_material),
+                description = stringResource(R.string.layout_material_desc),
+                isSelected = layoutStyle == "material",
+                onClick = { viewModel.setLayoutStyle("material") }
+            )
+        }
+    }
+}
+
+@Composable
+private fun LayoutStyleButton(
+    modifier: Modifier = Modifier,
+    label: String,
+    description: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val backgroundColor by animateColorAsState(
+        targetValue = if (isSelected)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "layout_bg"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isSelected)
+            MaterialTheme.colorScheme.onPrimary
+        else
+            MaterialTheme.colorScheme.onSurface,
+        label = "layout_content"
+    )
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor.copy(alpha = 0.7f),
+                maxLines = 2
+            )
         }
     }
 }
