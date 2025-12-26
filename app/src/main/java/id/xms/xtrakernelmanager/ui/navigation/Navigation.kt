@@ -22,6 +22,7 @@ import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -151,7 +152,20 @@ fun Navigation(preferencesManager: PreferencesManager) {
                         context = context.applicationContext
                     )
                 }
-                MiscScreen(viewModel = miscViewModel)
+                MiscScreen(
+                    viewModel = miscViewModel,
+                    onNavigateToFunctionalRom = {
+                        navController.navigate("functionalrom")
+                    }
+                )
+            }
+
+            composable("functionalrom") {
+                FunctionalRomScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
             composable("info") {

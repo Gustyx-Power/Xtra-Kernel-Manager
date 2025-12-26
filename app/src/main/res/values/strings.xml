@@ -528,4 +528,48 @@
     <string name="display_mode_vivid_desc">Extra vivid (1.3)</string>
     <string name="display_requires_root">Requires root access</string>
 
+    <!-- Functional ROM / Addons Screen -->
+    <string name="functional_rom_title">Addons</string>
+    <string name="functional_rom_card_title">Functional ROM</string>
+    <string name="functional_rom_card_desc">Configure additional ROM features</string>
+
+    <!-- PlayIntegrity Category -->
+    <string name="category_play_integrity">PlayIntegrity</string>
+    <string name="play_integrity_spoofs">Play Integrity Spoofs</string>
+    <string name="play_integrity_spoofs_desc">Configure Play Integrity spoofing</string>
+
+    <!-- Touch &amp; Kernel Category -->
+    <string name="category_touch_kernel">Touch &amp; Kernel</string>
+    <string name="xiaomi_touch_settings">Xiaomi-touch settings</string>
+    <string name="xiaomi_touch_settings_desc">Touch boost for xiaomi touch impl</string>
+
+    <!-- Display Category -->
+    <string name="category_display">Display</string>
+    <string name="unlock_additional_nits">Unlock additional nits on the display</string>
+    <string name="unlock_additional_nits_desc_enabled">High brightness mode enabled</string>
+    <string name="unlock_additional_nits_desc_disabled">High brightness mode disabled</string>
+    <string name="dynamic_refresh_rate">Dynamic Refresh Rate</string>
+    <string name="dynamic_refresh_rate_desc_enabled">Dynamic refresh rate enabled</string>
+    <string name="dynamic_refresh_rate_desc_disabled">Dynamic refresh rate disabled</string>
+    <string name="force_refresh_rate">Force refresh rate</string>
+    <string name="force_refresh_rate_desc_enabled">Force refresh rate enabled</string>
+    <string name="force_refresh_rate_desc_disabled">Force refresh rate disabled</string>
+    <string name="force_refresh_rate_value">Force refresh rate value</string>
+    <string name="force_refresh_rate_value_desc">Select refresh rate to force</string>
+    <string name="dc_dimming">DC Dimming</string>
+    <string name="dc_dimming_desc_enabled">DC dimming enabled</string>
+    <string name="dc_dimming_desc_disabled">DC dimming disabled</string>
+
+    <!-- System Category -->
+    <string name="category_system">System</string>
+    <string name="performance_mode">Performance mode</string>
+    <string name="performance_mode_desc_enabled">Performance mode enabled</string>
+    <string name="performance_mode_desc_disabled">Performance mode disabled</string>
+
+    <!-- Charging Category -->
+    <string name="category_charging">Charging</string>
+    <string name="bypass_charging">Bypass charging</string>
+    <string name="bypass_charging_desc_enabled">Bypass charging enabled</string>
+    <string name="bypass_charging_desc_disabled">Bypass charging disabled</string>
+
 </resources>
