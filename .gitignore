@@ -8,6 +8,12 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
+
+# Build artifacts
+/build
+/app/dist
+build_log.txt
+rust_build.log
 /build
 /captures
 .externalNativeBuild
@@ -65,7 +71,8 @@ gradle_build.log
 google-services.json
 
 # IDE specific
-.idea/
+.idea
+.vscode
 *.ipr
 *.iws
 
@@ -73,3 +80,14 @@ google-services.json
 *.bak
 *.backup
 *~
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+*~
+
+# Workflow artifacts
+.last-build-commit
+keystore-repo/
+build.sh
