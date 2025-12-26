@@ -3,6 +3,24 @@ name: Build & Release to Telegram
 on:
   workflow_dispatch:
     inputs:
+      build_type:
+        description: 'Build Type'
+        required: true
+        type: choice
+        options:
+          - release
+          - debug
+        default: release
+      upload_telegram:
+        description: 'Upload to Telegram?'
+        required: false
+        default: true
+        type: boolean
+      sign_apk:
+        description: 'Sign APK? (release only)'
+        required: false
+        default: true
+        type: boolean
       force_build:
         description: 'Force build regardless of commit count'
         required: false
@@ -113,7 +131,7 @@ jobs:
 
       - name: Notify Build Start
         id: notify_start
-        if: github.event_name != 'pull_request'
+        if: inputs.upload_telegram == true
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -201,12 +219,22 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Decode Keystore
-        if: github.event_name != 'pull_request'
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/release.keystore
+      - name: Checkout Keystore Repository
+        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        uses: actions/checkout@v4
+        with:
+          repository: Xtra-Manager-Software/XMS-Keystore-Apps
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          path: keystore-repo
 
-      - name: Build Release APK
-        if: github.event_name != 'pull_request'
+      - name: Copy Keystore
+        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        run: |
+          cp keystore-repo/Keystore-XKM/xkm-release-key.jks $GITHUB_WORKSPACE/release.keystore
+          ls -lh $GITHUB_WORKSPACE/release.keystore
+
+      - name: Build Signed Release APK
+        if: inputs.build_type == 'release' && inputs.sign_apk == true
         run: |
           ./gradlew assembleRelease \
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
@@ -214,35 +242,50 @@ jobs:
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
             -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
 
+      - name: Build Unsigned Release APK
+        if: inputs.build_type == 'release' && inputs.sign_apk == false
+        run: ./gradlew assembleRelease
+
       - name: Build Debug APK
-        if: github.event_name == 'pull_request'
+        if: inputs.build_type == 'debug'
         run: ./gradlew assembleDebug
 
       - name: Rename APK
-        if: github.event_name != 'pull_request'
         id: rename
         run: |
           mkdir -p app/dist
           VERSION="${{ steps.version.outputs.version }}"
-          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+          BUILD_TYPE="${{ inputs.build_type }}"
+          
+          if [ "$BUILD_TYPE" = "release" ]; then
+            APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+            APK_NAME="XKM-$VERSION.apk"
+          else
+            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f 2>/dev/null | head -n 1)
+            APK_NAME="XKM-$VERSION-debug.apk"
+          fi
+          
           if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
-            cp "$APK_PATH" "app/dist/XKM-$VERSION.apk"
-            APK_SIZE=$(du -h "app/dist/XKM-$VERSION.apk" | cut -f1)
+            cp "$APK_PATH" "app/dist/$APK_NAME"
+            APK_SIZE=$(du -h "app/dist/$APK_NAME" | cut -f1)
             echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+            echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
           fi
 
       - name: Notify Build Complete
-        if: github.event_name != 'pull_request'
+        if: inputs.upload_telegram == true
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.version.outputs.version }}
           APK_SIZE: ${{ steps.rename.outputs.apk_size }}
+          APK_NAME: ${{ steps.rename.outputs.apk_name }}
+          BUILD_TYPE: ${{ inputs.build_type }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
         run: |
-          APK_FILE="app/dist/XKM-$VERSION.apk"
+          APK_FILE="app/dist/$APK_NAME"
           
           if [ ! -f "$APK_FILE" ]; then
             echo "APK file not found"
@@ -250,7 +293,15 @@ jobs:
           fi
           
           COMMIT_MSG=$(git log -1 --pretty=%s)
-          CAPTION=$(printf "<b>XKM Release Build</b>\nVersion: %s\nSize: %s\n\n<blockquote><code>%s</code></blockquote>\n\n<a href=\"%s\">Commit</a> | <a href=\"%s\">Workflow</a>" \
+          
+          if [ "$BUILD_TYPE" = "release" ]; then
+            BUILD_LABEL="Release Build"
+          else
+            BUILD_LABEL="Debug Build"
+          fi
+          
+          CAPTION=$(printf "<b>XKM %s</b>\nVersion: %s\nSize: %s\n\n<blockquote><code>%s</code></blockquote>\n\n<a href=\"%s\">Commit</a> | <a href=\"%s\">Workflow</a>" \
+            "$BUILD_LABEL" \
             "$VERSION" \
             "$APK_SIZE" \
             "$COMMIT_MSG" \
@@ -271,7 +322,7 @@ jobs:
           fi
 
       - name: Notify Build Failed
-        if: failure() && github.event_name != 'pull_request'
+        if: failure() && inputs.upload_telegram == true
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -312,4 +363,6 @@ jobs:
 
       - name: Cleanup Keystore
         if: always()
-        run: rm -f $GITHUB_WORKSPACE/release.keystore
+        run: |
+          rm -f $GITHUB_WORKSPACE/release.keystore
+          rm -rf keystore-repo
