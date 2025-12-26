@@ -205,7 +205,7 @@ jobs:
 
       - name: Upload APK Artifact
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: XKM-Debug-APK
           path: app/dist/*.apk
