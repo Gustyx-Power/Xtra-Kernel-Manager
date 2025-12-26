@@ -148,7 +148,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
 
     // TOML Parser
-    implementation("org.tomlj:tomlj:1.1.0")
+    implementation("org.tomlj:tomlj:1.1.1")
 
     // Accompanist (for system UI controller)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
