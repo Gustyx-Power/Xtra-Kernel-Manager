@@ -145,7 +145,7 @@ dependencies {
     
     // Firebase Realtime Database
     implementation("com.google.firebase:firebase-database-ktx")
-    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
 
     // TOML Parser
     implementation("org.tomlj:tomlj:1.1.0")
