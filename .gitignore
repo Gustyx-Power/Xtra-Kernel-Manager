@@ -27,6 +27,10 @@ gradle.properties
 build-release-with-changelog.bat
 test-telegram.bat
 build-release.bat
+build-debug-rust.bat
+build-release-rust.bat
+build-debug-rust.sh
+telegram_helper.ps1
 
 # ============================================
 # SECURITY - Sensitive Files (NEVER COMMIT!)
