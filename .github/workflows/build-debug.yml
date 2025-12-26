@@ -10,7 +10,7 @@ on:
         type: boolean
 
 env:
-  JAVA_VERSION: '17'
+  JAVA_VERSION: '21'
   JAVA_DISTRIBUTION: 'temurin'
   NDK_VERSION: '26.1.10909125'
 
@@ -176,31 +176,17 @@ jobs:
               -d message_id="$START_MESSAGE_ID"
           fi
 
-      - name: Notify Build Failed
+      - name: Cleanup on Failure
         if: failure() && inputs.upload_telegram == true
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          VERSION: ${{ steps.version.outputs.version }}
-          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
         run: |
-          MESSAGE=$(printf "<b>XKM Debug Build Failed</b>\nVersion: %s-debug\n\nCheck the <a href=\"%s\">workflow logs</a>" \
-            "$VERSION" \
-            "$WORKFLOW_URL")
-          
-          # Update start message with failure
           if [ -n "$START_MESSAGE_ID" ]; then
-            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/editMessageText" \
+            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/deleteMessage" \
               -d chat_id="$CHAT_ID" \
-              -d message_id="$START_MESSAGE_ID" \
-              --data-urlencode "text=$MESSAGE" \
-              -d parse_mode="HTML"
-          else
-            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
-              -d chat_id="$CHAT_ID" \
-              --data-urlencode "text=$MESSAGE" \
-              -d parse_mode="HTML"
+              -d message_id="$START_MESSAGE_ID"
           fi
 
       - name: Upload APK Artifact
