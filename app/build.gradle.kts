@@ -26,7 +26,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.3-Release"
+        versionName = "2.4-Debug-Ci1-W1"
 
         // Build date in format YYYY.MM.dd
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -55,15 +55,11 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
-            
-            // Enable more aggressive resource shrinking
             ndk {
                 debugSymbolLevel = "NONE"
             }
         }
     }
-    
-    // Only include arm64-v8a to reduce size (most modern devices)
     splits {
         abi {
             isEnable = true
@@ -125,8 +121,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.3.1")
     
-    // Material 3 Expressive (when available, fallback to standard)
-    implementation("androidx.compose.material:material-icons-extended")
+    // Material 3 Expressive    implementation("androidx.compose.material:material-icons-extended")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.8.4")
