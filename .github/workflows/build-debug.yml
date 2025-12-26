@@ -59,7 +59,7 @@ jobs:
           echo "message_id=$MESSAGE_ID" >> $GITHUB_OUTPUT
 
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
