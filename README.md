@@ -1,90 +1,50 @@
-<h1 align="center" style="font-size: 48px;">Xtra Kernel Manager</h1>
+<p align="center">
+<img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android">
+<img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin">
+<img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust">
+<a href="https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/releases"><img src="https://img.shields.io/github/v/release/Xtra-Manager-Software/Xtra-Kernel-Manager?label=Release&style=for-the-badge&logo=github&logoColor=white&labelColor=222" alt="Latest Release"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/GPL--3.0-white?style=for-the-badge&logo=andela&logoColor=white&label=License&labelColor=222" alt="License"></a>
+</p>
 
-![Platform](https://img.shields.io/badge/platform-Android-green?style=for-the-badge&logo=android)
-![Language](https://img.shields.io/badge/language-Kotlin-purple?style=for-the-badge&logo=kotlin)
-![UI](https://img.shields.io/badge/Jetpack-Compose-blue?style=for-the-badge&logo=jetpackcompose)
-![License](https://img.shields.io/github/license/Gustyx-Power/Xtra-Kernel-Manager?style=for-the-badge)
-![Root Required](https://img.shields.io/badge/Root-Required-critical?style=for-the-badge&logo=android)
-![GitHub commits](https://img.shields.io/github/commit-activity/t/Gustyx-Power/Xtra-Kernel-Manager?style=for-the-badge)
-[![Repo Size](https://img.shields.io/github/repo-size/Gustyx-Power/Xtra-Kernel-Manager?style=for-the-badge&logo=github)](https://github.com/Gustyx-Power/Xtra-Kernel-Manager)
+## About XKM
 
-**Xtra Kernel Manager** is a Modern apps, Rooted Android application built with Kotlin and Jetpack Compose, designed for real-time monitoring and tuning of CPU performance, thermal behavior, and power-saving configurations on devices running custom kernels.
+**Xtra Kernel Manager** is an Android kernel management application built with Kotlin and Jetpack Compose, featuring native Rust components for performance-critical operations. Modern UI for controlling kernel parameters, CPU governors, and system tweaks.
 
-## Created
-*Xtra Kernel Manager Created on February 21, 2025*
+## Features
 
+- **Kernel Profile Management** - Save and apply custom kernel configurations
+- **CPU Governor Control** - Switch between performance, balanced, and powersave modes
+- **Thermal Management** - Monitor and control device temperature
+- **System Tweaks** - I/O scheduler, VM tuning, and more
+- **Material You Design** - Modern, adaptive UI with dynamic colors
+- **Rust Native Library** - Fast, efficient native operations
 
-## ✨ Features
+## Supported Root Managers
 
-- 📊 **Real-time CPU Temperature Monitoring**  
-  View individual core temperatures in a clean, responsive UI.
+- [Magisk](https://github.com/topjohnwu/Magisk)
+- [KernelSU](https://github.com/tiann/KernelSU)
+- [APatch](https://github.com/bmax121/APatch)
 
-- 🌡️ **Thermal Zone Status**  
-  Retrieve and display system thermal zone data for advanced thermal debugging.
+## Resources
 
-- ⚙️ **CPU Tuning** *(Root Required)*  
-  Apply governor changes (e.g. `performance`, `powersave`) on-the-fly with native shell execution via [libsu](https://github.com/topjohnwu/libsu).
+- [Releases](https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/releases) - Download latest version
+- [Issues](https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/issues) - Report bugs
+- [Telegram](https://t.me/xkmanager) - Community support
 
-- 💡 **Material 3 UI**  
-  Elegant light-themed interface using the latest Jetpack Compose and Material Design 3 components.
+## Tech Stack
 
-- 🚀 **Fast & Minimal**  
-  Lightweight architecture using MVVM pattern, ensuring smooth performance on rooted devices.
-
----
-
-## 📱 Requirements
-
-- ✅ Root access (Magisk / KernelSU supported)  
-- ✅ Android 10 (API 29) or above  
-- ✅ Custom kernel with tunable CPU governors  
-
----
-
-## 🔐 Permissions
-
-- `root` access via libsu (automatic permission request)
-- No internet access or telemetry. 100% offline and private.
-
----
-
-## 🛠 Built With
-
-- [Kotlin](https://kotlinlang.org/)
-- [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [libsu by Topjohnwu](https://github.com/topjohnwu/libsu)
-- MVVM Architecture (ViewModel + LiveData)
-- Material Design 3
-
----
-
-## 📂 Repository
-
-This is the official repository for **Xtra Kernel Manager**, maintained by the **Xtra Manager Software** team.  
-Feel free to fork, open issues, or contribute via pull requests.
-
----
-> [!TIP]
->
-> - **Performance Mode**: For demanding tasks like gaming, switch to `performance` governor for maximum CPU speed.
-> - **Battery Saving**: Use `powersave` governor when battery life is a priority.
-> - **Balanced Profile**: Most custom kernels offer a `schedutil` or `schedhorizon` governor for a balance between performance and power saving.
-> - **Thermal Monitoring**: Use `Dynamic` for Performance & Use `Thermal 20` For Balance & Use `Incalls` For Battery life. 
+- **UI**: Jetpack Compose + Material 3
+- **Language**: Kotlin 2.3.0
+- **Build**: Gradle 9.2.1, AGP 8.13.2
+- **Native**: Rust 1.91+
+- **Architecture**: MVVM with StateFlow
 
 
----
+## Star History
 
-### Developer
-- **[Gustyx-Power](https://github.com/Gustyx-Power)** Founder XKM 
-- **[Pavellc](https://github.com/pavelc4)** Ui XKM Supports 
-- **[Ziyu4](https://github.com/Ziyu4)**  Implementation Tuning Help
----
+[![Star History Chart](https://api.star-history.com/svg?repos=Gustyx-Power/Xtra-Kernel-Manager&type=date&legend=top-left)](https://www.star-history.com/#Gustyx-Power/Xtra-Kernel-Manager&type=date&legend=top-left)
 
-## 📣 Disclaimer
 
-> ⚠️ This app performs privileged operations that may affect system stability.  
-> Use at your own risk. The developer is not responsible for any damage caused by improper configuration.
+## License
 
----
-
-© 2025 Xtra Manager Software. All rights reserved.
+Xtra Kernel Manager is open-sourced software licensed under the [GPL-3.0 license](LICENSE).
