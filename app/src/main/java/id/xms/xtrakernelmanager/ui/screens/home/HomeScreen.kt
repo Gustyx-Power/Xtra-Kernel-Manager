@@ -63,7 +63,8 @@ import id.xms.xtrakernelmanager.utils.HolidayChecker
 @Composable
 fun HomeScreen(
     preferencesManager: PreferencesManager,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel = viewModel(),
+    onNavigateToSettings: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -122,7 +123,14 @@ fun HomeScreen(
             MaterialHomeScreen(
                 preferencesManager = preferencesManager,
                 viewModel = viewModel,
-                onPowerMenuClick = { showPowerMenu = true }
+                onPowerAction = { action ->
+                    if (action == PowerAction.LockScreen) {
+                        scope.launch { RootShell.execute(action.command) }
+                    } else {
+                        activePowerAction = action
+                    }
+                },
+                onSettingsClick = onNavigateToSettings
             )
         }
         else -> {

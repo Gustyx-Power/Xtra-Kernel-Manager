@@ -138,7 +138,10 @@ fun Navigation(preferencesManager: PreferencesManager) {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("home") {
-                HomeScreen(preferencesManager = preferencesManager)
+                HomeScreen(
+                    preferencesManager = preferencesManager,
+                    onNavigateToSettings = { navController.navigate("profiles") }
+                )
             }
             composable("tuning") {
                 TuningScreen(preferencesManager = preferencesManager)

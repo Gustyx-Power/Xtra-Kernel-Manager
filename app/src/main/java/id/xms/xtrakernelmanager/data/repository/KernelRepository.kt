@@ -231,9 +231,10 @@ class KernelRepository {
         )
     }
 
-    private fun getSwapTotalSize(): Long {
+    private suspend fun getSwapTotalSize(): Long {
         return try {
-            val lines = java.io.File("/proc/swaps").readLines()
+            val output = RootManager.executeCommand("cat /proc/swaps").getOrNull() ?: ""
+            val lines = output.lines()
             val totalKb = lines.drop(1).mapNotNull { line ->
                 val parts = line.trim().split("\\s+".toRegex())
                 if (parts.size >= 3) parts[2].toLongOrNull() else null
@@ -244,9 +245,10 @@ class KernelRepository {
         }
     }
 
-    private fun getSwapUsedSize(): Long {
+    private suspend fun getSwapUsedSize(): Long {
         return try {
-            val lines = java.io.File("/proc/swaps").readLines()
+            val output = RootManager.executeCommand("cat /proc/swaps").getOrNull() ?: ""
+            val lines = output.lines()
             val usedKb = lines.drop(1).mapNotNull { line ->
                 val parts = line.trim().split("\\s+".toRegex())
                 if (parts.size >= 4) parts[3].toLongOrNull() else null

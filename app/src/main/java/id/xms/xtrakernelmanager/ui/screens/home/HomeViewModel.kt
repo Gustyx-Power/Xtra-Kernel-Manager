@@ -48,8 +48,6 @@ class HomeViewModel : ViewModel() {
                 _cpuInfo.value = kernelRepository.getCPUInfo()
                 _gpuInfo.value = kernelRepository.getGPUInfo()
                 _systemInfo.value = kernelRepository.getSystemInfo()
-
-                // Load battery info dengan context jika tersedia
                 context?.let {
                     _batteryInfo.value = batteryRepository.getBatteryInfo(it)
                 }
