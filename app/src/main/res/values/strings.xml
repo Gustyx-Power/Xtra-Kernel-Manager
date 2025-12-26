@@ -366,6 +366,19 @@
     <string name="info_pling_url">https://www.pling.com/p/your-project-id</string>
     <string name="info_copyright">© %1$s XMS Project</string>
 
+    <!-- Team Section -->
+    <string name="info_community_name">Xtra Manager Software Community</string>
+    <string name="info_community_tagline">Building powerful tools for Android enthusiasts</string>
+    <string name="info_core_team">Core Team</string>
+    <string name="info_founders_desc">Founders of XMS Community</string>
+    <string name="info_contributors">Contributors</string>
+    <string name="info_contributors_desc">Community contributors</string>
+    <string name="info_quality_assurance">Quality Assurance</string>
+    <string name="info_testers_desc">Ensuring app quality and stability</string>
+    <string name="info_role_founder">Founder</string>
+    <string name="info_role_contributor">Contributor</string>
+    <string name="info_role_tester">Software Tester</string>
+
     <!-- Theme Settings -->
     <string name="theme_settings">Theme Settings</string>
     <string name="theme_glassmorphism">Glassmorphism</string>

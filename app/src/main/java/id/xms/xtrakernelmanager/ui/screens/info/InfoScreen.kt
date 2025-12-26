@@ -5,6 +5,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -19,14 +22,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
@@ -37,13 +45,12 @@ fun InfoScreen() {
     val sourceUrl = stringResource(R.string.info_source_code_url)
     val plingUrl = stringResource(R.string.info_pling_url)
 
-    // Menggunakan Staggered Grid agar konsisten dengan Home
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Adaptive(minSize = 340.dp),
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp), // Bottom padding untuk nav bar
+        contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalItemSpacing = 16.dp
     ) {
@@ -78,7 +85,6 @@ fun InfoScreen() {
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     
-                    // Versi & Build Type Badge
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -109,47 +115,262 @@ fun InfoScreen() {
             }
         }
 
-        // --- DEVELOPER CARD ---
-        item {
+        // --- COMMUNITY SECTION ---
+        item(span = StaggeredGridItemSpan.FullLine) {
             GlassmorphicCard {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Icon(Icons.Rounded.Person, null, modifier = Modifier.padding(10.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = stringResource(R.string.info_developer_section_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Community Logo
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .border(
+                                width = 3.dp,
+                                brush = Brush.linearGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.tertiary
+                                    )
+                                ),
+                                shape = CircleShape
                             )
-                            Text(
-                                text = stringResource(R.string.info_developer_name),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.xms),
+                            contentDescription = "XMS Community",
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                     
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.info_community_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        
+                        Text(
+                            text = stringResource(R.string.info_community_tagline),
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                     
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        InfoItemCompact(Icons.Rounded.Code, "License", stringResource(R.string.info_license_type))
-                        InfoItemCompact(Icons.Rounded.Build, "Build", BuildConfig.BUILD_TYPE)
+                        InfoStatItem(value = "2", label = "Founders")
+                        InfoStatItem(value = "2", label = "Contributors")
+                        InfoStatItem(value = "1", label = "Tester")
                     }
                 }
             }
         }
 
-        // --- FEATURES GRID (Modern) ---
+        // --- CORE TEAM (DEVELOPERS/FOUNDERS) ---
+        item(span = StaggeredGridItemSpan.FullLine) {
+            GlassmorphicCard {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.StarOutline,
+                                null,
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.info_core_team),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.info_founders_desc),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    
+                    // Team Members Grid
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_dev_dimsvel,
+                            name = "Pavelc4",
+                            role = stringResource(R.string.info_role_founder),
+                            country = "🇮🇩",
+                            isFounder = true
+                        )
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_dev_gustyx,
+                            name = "Gustyx-Power",
+                            role = stringResource(R.string.info_role_founder),
+                            country = "🇮🇩",
+                            isFounder = true
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- CONTRIBUTORS ---
+        item(span = StaggeredGridItemSpan.FullLine) {
+            GlassmorphicCard {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.Code,
+                                null,
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.info_contributors),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.info_contributors_desc),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    
+                    // Contributors Grid
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_contributor_pandu,
+                            name = "Ziyu",
+                            role = stringResource(R.string.info_role_contributor),
+                            country = "🇮🇩",
+                            isFounder = false
+                        )
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_contributor_shimoku,
+                            name = "Shimoku",
+                            role = stringResource(R.string.info_role_contributor),
+                            country = "🇷🇺",
+                            isFounder = false
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- SOFTWARE TESTER ---
+        item(span = StaggeredGridItemSpan.FullLine) {
+            GlassmorphicCard {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Header
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.BugReport,
+                                null,
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.info_quality_assurance),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.info_testers_desc),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    
+                    // Tester - Single centered
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        TeamMemberCard(
+                            modifier = Modifier.widthIn(max = 180.dp),
+                            imageResId = R.drawable.team_tester_wil,
+                            name = "WiL",
+                            role = stringResource(R.string.info_role_tester),
+                            country = "🇮🇩",
+                            isFounder = false
+                        )
+                    }
+                }
+            }
+        }
+
+        // --- FEATURES GRID ---
         item {
             GlassmorphicCard {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -163,7 +384,6 @@ fun InfoScreen() {
                         )
                     }
                     
-                    // Grid fitur (2 kolom manual dalam column)
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         val features = listOf(
                             stringResource(R.string.info_feature_1),
@@ -189,6 +409,46 @@ fun InfoScreen() {
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        // --- PROJECT INFO ---
+        item {
+            GlassmorphicCard {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Icon(Icons.Rounded.Info, null, modifier = Modifier.padding(10.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = stringResource(R.string.info_developer_section_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(R.string.info_developer_name),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        InfoItemCompact(Icons.Rounded.Code, "License", stringResource(R.string.info_license_type))
+                        InfoItemCompact(Icons.Rounded.Build, "Build", BuildConfig.BUILD_TYPE)
                     }
                 }
             }
@@ -251,7 +511,128 @@ fun InfoScreen() {
     }
 }
 
-// --- KOMPONEN PEMBANTU ---
+// --- HELPER COMPONENTS ---
+
+@Composable
+private fun TeamMemberCard(
+    modifier: Modifier = Modifier,
+    imageResId: Int,
+    name: String,
+    role: String,
+    country: String,
+    isFounder: Boolean
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Avatar with gradient border
+            Box(
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .border(
+                        width = 2.dp,
+                        brush = if (isFounder) {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.tertiary
+                                )
+                            )
+                        } else {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.secondary,
+                                    MaterialTheme.colorScheme.secondary
+                                )
+                            )
+                        },
+                        shape = CircleShape
+                    )
+            ) {
+                Image(
+                    painter = painterResource(id = imageResId),
+                    contentDescription = name,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            
+            // Name with country flag
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = country,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            
+            // Role Badge
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = if (isFounder) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.secondaryContainer
+                }
+            ) {
+                Text(
+                    text = role,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                    color = if (isFounder) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoStatItem(value: String, label: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
 
 @Composable
 private fun InfoItemCompact(icon: ImageVector, label: String, value: String) {
