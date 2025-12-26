@@ -244,6 +244,19 @@ class KernelRepository {
         }
     }
 
+    private fun getSwapUsedSize(): Long {
+        return try {
+            val lines = java.io.File("/proc/swaps").readLines()
+            val usedKb = lines.drop(1).mapNotNull { line ->
+                val parts = line.trim().split("\\s+".toRegex())
+                if (parts.size >= 4) parts[3].toLongOrNull() else null
+            }.sum()
+            usedKb * 1024L
+        } catch (e: Exception) {
+            0L
+        }
+    }
+
     suspend fun getSystemInfo(): SystemInfo = withContext(Dispatchers.IO) {
         val androidVersion = android.os.Build.VERSION.RELEASE
         val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"
@@ -275,6 +288,8 @@ class KernelRepository {
         val availableStorage = statFs.availableBytes
 
         val swapTotalBytes = getSwapTotalSize()
+        val swapUsedBytes = getSwapUsedSize()
+        val swapFreeBytes = swapTotalBytes - swapUsedBytes
 
         SystemInfo(
             androidVersion = androidVersion,
@@ -288,7 +303,8 @@ class KernelRepository {
             zramSize = zramSize,
             totalStorage = totalStorage,
             availableStorage = availableStorage,
-            swapTotal = swapTotalBytes
+            swapTotal = swapTotalBytes,
+            swapFree = swapFreeBytes
         )
     }
 }

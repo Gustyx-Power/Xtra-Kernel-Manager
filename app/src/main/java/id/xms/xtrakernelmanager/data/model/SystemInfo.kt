@@ -10,6 +10,7 @@ data class SystemInfo(
     val thermalMode: String = "Not Set",
     val totalRam: Long = 0,
     val swapTotal: Long = 0,
+    val swapFree: Long = 0,
     val availableRam: Long = 0,
     val zramSize: Long = 0,
     val totalStorage: Long = 0,
