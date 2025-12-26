@@ -160,7 +160,7 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:6.4.0")
 
     // Charts
-    implementation("com.patrykandpatrick.vico:compose-m3:2.0.0-alpha.28")
+    implementation("com.patrykandpatrick.vico:compose-m3:2.4.0-beta.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
