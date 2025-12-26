@@ -39,7 +39,7 @@ leakcanary = "2.14"
 
 # KSP
 ksp = "2.3.4"
-lifecycle-service = "2.9.4"
+lifecycle-service = "2.10.0"
 foundation = "1.9.5"
 
 [libraries]
