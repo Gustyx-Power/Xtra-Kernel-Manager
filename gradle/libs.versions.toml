@@ -21,7 +21,7 @@ haze = "1.1.0"
 
 # Hilt
 hilt = "2.52"
-hilt-navigation-compose = "1.2.0"
+hilt-navigation-compose = "1.3.0"
 
 # DataStore
 datastore = "1.1.1"
