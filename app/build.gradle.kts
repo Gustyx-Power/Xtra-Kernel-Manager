@@ -157,7 +157,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Lottie for animations
-    implementation("com.airbnb.android:lottie-compose:6.4.0")
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
 
     // Charts
     implementation("com.patrykandpatrick.vico:compose-m3:2.4.0-beta.1")
