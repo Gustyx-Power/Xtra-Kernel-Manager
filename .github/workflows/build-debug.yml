@@ -1,0 +1,198 @@
+name: Build Debug APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_telegram:
+        description: 'Upload APK to Telegram?'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRIBUTION: 'temurin'
+  NDK_VERSION: '26.1.10909125'
+
+jobs:
+  build-debug:
+    name: Build Debug APK (with Rust)
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Get Version Info
+        id: version
+        run: |
+          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts | head -n 1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Notify Build Start
+        id: notify_start
+        if: inputs.upload_telegram == true
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          MESSAGE=$(printf "<b>XKM Debug Build</b>\nVersion: %s-debug\nBranch: %s\n\n<blockquote><code>%s</code></blockquote>\n\n<a href=\"%s\">Commit</a> | <a href=\"%s\">Workflow</a>" \
+            "$VERSION" \
+            "$GITHUB_REF_NAME" \
+            "$COMMIT_MSG" \
+            "$COMMIT_URL" \
+            "$WORKFLOW_URL")
+          
+          RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+            -d chat_id="$CHAT_ID" \
+            --data-urlencode "text=$MESSAGE" \
+            -d parse_mode="HTML" \
+            -d disable_web_page_preview="true")
+          
+          MESSAGE_ID=$(echo "$RESPONSE" | grep -o '"message_id":[0-9]*' | cut -d: -f2)
+          echo "message_id=$MESSAGE_ID" >> $GITHUB_OUTPUT
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK
+        run: |
+          sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add Rust Android targets
+        run: rustup target add aarch64-linux-android
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            app/src/main/rust/xkm_native/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Build Rust Native Library (Debug)
+        run: |
+          cd app/src/main/rust/xkm_native
+          cargo ndk -t arm64-v8a -o ../../jniLibs build
+
+      - name: Verify Native Library
+        run: |
+          if [ -f "app/src/main/jniLibs/arm64-v8a/libxkm_native.so" ]; then
+            echo "Native library found"
+          else
+            echo "Native library NOT found"
+            exit 1
+          fi
+
+      - name: Create gradle.properties
+        run: |
+          echo "org.gradle.jvmargs=-Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+          echo "org.gradle.caching=true" >> gradle.properties
+          echo "org.gradle.configuration-cache=true" >> gradle.properties
+          echo "android.useAndroidX=true" >> gradle.properties
+          echo "android.enableJetifier=false" >> gradle.properties
+          echo "kotlin.code.style=official" >> gradle.properties
+          echo "android.nonTransitiveRClass=true" >> gradle.properties
+          echo "android.nonFinalResIds=true" >> gradle.properties
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Rename APK
+        id: rename
+        run: |
+          mkdir -p app/dist
+          VERSION="${{ steps.version.outputs.version }}"
+          APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f 2>/dev/null | head -n 1)
+          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
+            cp "$APK_PATH" "app/dist/XKM-$VERSION-debug.apk"
+            APK_SIZE=$(du -h "app/dist/XKM-$VERSION-debug.apk" | cut -f1)
+            echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
+            echo "apk_path=app/dist/XKM-$VERSION-debug.apk" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify Build Complete
+        if: inputs.upload_telegram == true
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
+          APK_SIZE: ${{ steps.rename.outputs.apk_size }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+        run: |
+          APK_FILE="app/dist/XKM-$VERSION-debug.apk"
+          
+          if [ ! -f "$APK_FILE" ]; then
+            echo "APK file not found"
+            exit 1
+          fi
+          
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          CAPTION=$(printf "<b>XKM Debug Build</b>\nVersion: %s-debug\nSize: %s\n\n<blockquote><code>%s</code></blockquote>\n\n<a href=\"%s\">Commit</a> | <a href=\"%s\">Workflow</a>" \
+            "$VERSION" \
+            "$APK_SIZE" \
+            "$COMMIT_MSG" \
+            "$COMMIT_URL" \
+            "$WORKFLOW_URL")
+          
+          curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
+            -F chat_id="$CHAT_ID" \
+            -F document=@"$APK_FILE" \
+            -F parse_mode="HTML" \
+            --form-string "caption=$CAPTION"
+          
+          # Delete start message
+          if [ -n "$START_MESSAGE_ID" ]; then
+            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/deleteMessage" \
+              -d chat_id="$CHAT_ID" \
+              -d message_id="$START_MESSAGE_ID"
+          fi
+
+      - name: Cleanup on Failure
+        if: failure() && inputs.upload_telegram == true
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+        run: |
+          if [ -n "$START_MESSAGE_ID" ]; then
+            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/deleteMessage" \
+              -d chat_id="$CHAT_ID" \
+              -d message_id="$START_MESSAGE_ID"
+          fi
+
+      - name: Upload APK Artifact
+        if: success()
+        uses: actions/upload-artifact@v6
+        with:
+          name: XKM-Debug-APK
+          path: app/dist/*.apk
+          retention-days: 7

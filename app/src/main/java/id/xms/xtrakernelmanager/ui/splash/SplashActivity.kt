@@ -47,8 +47,7 @@ import androidx.core.view.WindowCompat
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.database.FirebaseDatabase
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.MainActivity
 import id.xms.xtrakernelmanager.R
@@ -363,7 +362,7 @@ fun isInternetAvailable(context: Context): Boolean {
 }
 
 suspend fun fetchUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { continuation ->
-    val database = Firebase.database("https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app")
+    val database = FirebaseDatabase.getInstance("https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app")
     val myRef = database.getReference("update")
     val listener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {

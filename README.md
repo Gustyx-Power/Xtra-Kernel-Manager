@@ -1,90 +1,50 @@
-<h1 align="center" style="font-size: 48px;">Xtra Kernel Manager</h1>
+<p align="center">
+<img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin">
+<a href="https://github.com/Gustyx-Power/Xtra-Kernel-Manager/releases"><img src="https://img.shields.io/github/v/release/Gustyx-Power/Xtra-Kernel-Manager?label=Release&style=for-the-badge&logo=github&logoColor=white&labelColor=222" alt="Latest Release"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/GPL--3.0-white?style=for-the-badge&logo=andela&logoColor=white&label=License&labelColor=222" alt="License"></a>
+</p>
 
-![Platform](https://img.shields.io/badge/platform-Android-green?style=for-the-badge&logo=android)
-![Language](https://img.shields.io/badge/language-Kotlin-purple?style=for-the-badge&logo=kotlin)
-![UI](https://img.shields.io/badge/Jetpack-Compose-blue?style=for-the-badge&logo=jetpackcompose)
-![License](https://img.shields.io/github/license/Gustyx-Power/Xtra-Kernel-Manager?style=for-the-badge)
-![Root Required](https://img.shields.io/badge/Root-Required-critical?style=for-the-badge&logo=android)
-![GitHub commits](https://img.shields.io/github/commit-activity/t/Gustyx-Power/Xtra-Kernel-Manager?style=for-the-badge)
-[![Repo Size](https://img.shields.io/github/repo-size/Gustyx-Power/Xtra-Kernel-Manager?style=for-the-badge&logo=github)](https://github.com/Gustyx-Power/Xtra-Kernel-Manager)
+## About Xtra Kernel Manager
 
-**Xtra Kernel Manager** is a Modern apps, Rooted Android application built with Kotlin and Jetpack Compose, designed for real-time monitoring and tuning of CPU performance, thermal behavior, and power-saving configurations on devices running custom kernels.
-
-## Created
-*Xtra Kernel Manager Created on February 21, 2025*
+**Xtra Kernel Manager** is a modern, rooted Android application built with Kotlin and Jetpack Compose. It is designed for enthusiasts who need real-time monitoring and granular tuning of CPU performance, thermal behavior, and power-saving configurations on custom kernels.
 
 
-## ✨ Features
+## Features
 
-- 📊 **Real-time CPU Temperature Monitoring**  
-  View individual core temperatures in a clean, responsive UI.
+- **Real-time CPU Monitoring** - View individual core temperatures and frequencies in a clean, responsive UI.
+- **Thermal Zone Status** - Retrieve and display system thermal zone data for advanced thermal debugging.
+- **CPU Tuning** - Apply governor changes (e.g., `performance`, `powersave`) on-the-fly with native shell execution via [libsu](https://github.com/topjohnwu/libsu).
+- **Material 3 UI** - Elegant light-themed interface using the latest Jetpack Compose components.
+- ** Fast & Minimal** - Lightweight architecture ensuring smooth performance on rooted devices.
 
-- 🌡️ **Thermal Zone Status**  
-  Retrieve and display system thermal zone data for advanced thermal debugging.
+## Supported Root Managers
 
-- ⚙️ **CPU Tuning** *(Root Required)*  
-  Apply governor changes (e.g. `performance`, `powersave`) on-the-fly with native shell execution via [libsu](https://github.com/topjohnwu/libsu).
+- [Magisk](https://github.com/topjohnwu/Magisk)
+- [KernelSU](https://github.com/tiann/KernelSU)
+- [APatch](https://github.com/bmax121/APatch)
 
-- 💡 **Material 3 UI**  
-  Elegant light-themed interface using the latest Jetpack Compose and Material Design 3 components.
+## Requirements
 
-- 🚀 **Fast & Minimal**  
-  Lightweight architecture using MVVM pattern, ensuring smooth performance on rooted devices.
+- **Root Access**: Required for all core features.
+- **Android Version**: Android 10 (API 29) or above.
 
----
+## Resources
 
-## 📱 Requirements
+- [Releases](https://github.com/Gustyx-Power/Xtra-Kernel-Manager/releases) - Download latest version
+- [Issues](https://github.com/Gustyx-Power/Xtra-Kernel-Manager/issues) - Report bugs
 
-- ✅ Root access (Magisk / KernelSU supported)  
-- ✅ Android 10 (API 29) or above  
-- ✅ Custom kernel with tunable CPU governors  
+## Developers
 
----
-
-## 🔐 Permissions
-
-- `root` access via libsu (automatic permission request)
-- No internet access or telemetry. 100% offline and private.
-
----
-
-## 🛠 Built With
-
-- [Kotlin](https://kotlinlang.org/)
-- [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- [libsu by Topjohnwu](https://github.com/topjohnwu/libsu)
-- MVVM Architecture (ViewModel + LiveData)
-- Material Design 3
-
----
-
-## 📂 Repository
-
-This is the official repository for **Xtra Kernel Manager**, maintained by the **Xtra Manager Software** team.  
-Feel free to fork, open issues, or contribute via pull requests.
-
----
-> [!TIP]
->
-> - **Performance Mode**: For demanding tasks like gaming, switch to `performance` governor for maximum CPU speed.
-> - **Battery Saving**: Use `powersave` governor when battery life is a priority.
-> - **Balanced Profile**: Most custom kernels offer a `schedutil` or `schedhorizon` governor for a balance between performance and power saving.
-> - **Thermal Monitoring**: Use `Dynamic` for Performance & Use `Thermal 20` For Balance & Use `Incalls` For Battery life. 
+- **[Gustyx-Power](https://github.com/Gustyx-Power)** - Founder & Lead Developer
+- **[Pavellc](https://github.com/pavelc4)** - Founder & UI/UX 
+- **[Ziyu4](https://github.com/Ziyu4)** - Tuning Implementation
 
 
----
+## Stargazers over time
 
-### Developer
-- **[Gustyx-Power](https://github.com/Gustyx-Power)** Founder XKM 
-- **[Pavellc](https://github.com/pavelc4)** Ui XKM Supports 
-- **[Ziyu4](https://github.com/Ziyu4)**  Implementation Tuning Help
----
+[![Stargazers over time](https://starchart.cc/Gustyx-Power/Xtra-Kernel-Manager.svg?variant=adaptive)](https://starchart.cc/Gustyx-Power/Xtra-Kernel-Manager)
 
-## 📣 Disclaimer
 
-> ⚠️ This app performs privileged operations that may affect system stability.  
-> Use at your own risk. The developer is not responsible for any damage caused by improper configuration.
+## License
 
----
-
-© 2025 Xtra Manager Software. All rights reserved.
+Xtra Kernel Manager is open-sourced software licensed under the [GPL-3.0 license](LICENSE).
