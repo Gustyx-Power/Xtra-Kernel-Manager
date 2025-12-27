@@ -1,12 +1,20 @@
 package id.xms.xtrakernelmanager.ui.screens.home
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +22,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -83,26 +92,27 @@ fun MaterialHomeScreen(
             }
         },
         content = { paddingValues ->
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(vertical = 24.dp),
+                    .padding(paddingValues)
+                    .padding(vertical = 24.dp), // Added vertical padding here since contentPadding is gone
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Header
-                item {
+                StaggeredEntry(delayMillis = 0) {
                     MaterialHeader(onSettingsClick = onSettingsClick)
                 }
 
                 // Device Info Card
-                item {
+                StaggeredEntry(delayMillis = 100) {
                     MaterialDeviceCard(systemInfo = systemInfo)
                 }
 
                 // CPU & GPU Tiles Row
-                item {
+                StaggeredEntry(delayMillis = 200) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -115,7 +125,8 @@ fun MaterialHomeScreen(
                             label = "Load",
                             value = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
                             subValue = "${cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0} MHz",
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            badgeText = "CPU"
                         )
                         
                         MaterialStatTile(
@@ -124,30 +135,35 @@ fun MaterialHomeScreen(
                             label = "GPU Freq",
                             value = "${gpuInfo.currentFreq}",
                             subValue = "MHz",
-                            color = MaterialTheme.colorScheme.tertiary
+                            color = MaterialTheme.colorScheme.tertiary,
+                            badgeText = "GPU"
                         )
                     }
                 }
 
                 // GPU Information Card
-                item {
+                StaggeredEntry(delayMillis = 300) {
                     MaterialGPUCard(gpuInfo = gpuInfo)
                 }
                 
                 // Memory & Storage Card
-                item {
+                StaggeredEntry(delayMillis = 400) {
                     MaterialMemoryCard(systemInfo = systemInfo)
                 }
 
+
                 // Battery Information Card
-                item {
+                StaggeredEntry(delayMillis = 500) {
                     MaterialBatteryCard(batteryInfo = batteryInfo)
                 }
                 
-                // Bottom Spacing
-                item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                // Power Insight Card (New)
+                StaggeredEntry(delayMillis = 600) {
+                     MaterialPowerInsightCard()
                 }
+                
+                // Bottom Spacing
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     )
@@ -172,19 +188,53 @@ fun MaterialHomeScreen(
 
 @Composable
 fun MaterialHeader(onSettingsClick: () -> Unit) {
+    val view = androidx.compose.ui.platform.LocalView.current
+    var isShortTitle by remember { mutableStateOf(false) }
+    var clickCount by remember { mutableIntStateOf(0) }
+    
+    LaunchedEffect(clickCount) {
+        if (clickCount > 0) {
+            delay(500)
+            clickCount = 0
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 12.dp)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null 
+            ) {
+                clickCount++
+                if (clickCount >= 3) {
+                    isShortTitle = !isShortTitle
+                    clickCount = 0
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                        view.performHapticFeedback(android.view.HapticFeedbackConstants.CONFIRM)
+                    } else {
+                        view.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+                    }
+                }
+            },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "XKM",
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        AnimatedContent(
+            targetState = isShortTitle,
+            transitionSpec = {
+                (slideInVertically { height -> height } + fadeIn()).togetherWith(slideOutVertically { height -> -height } + fadeOut())
+            },
+            label = "HeaderTitle"
+        ) { short ->
+            Text(
+                text = if (short) "XKM" else "Xtra Kernel Manager",
+                style = if (short) MaterialTheme.typography.displayMedium else MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
         
         IconButton(
             onClick = onSettingsClick,
@@ -205,7 +255,7 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
+            .animateContentSize(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -216,42 +266,70 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                 modifier = Modifier.padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = android.os.Build.MANUFACTURER.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = 2.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                   Text(
+                        text = android.os.Build.MANUFACTURER.uppercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        letterSpacing = 2.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    // Smart Badge: Board/SoC
+                    Surface(
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f), // Tonal on primary
+                        shape = RoundedCornerShape(50), // Fully rounded pill
+                    ) {
+                        Text(
+                            text = android.os.Build.BOARD.uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
                 
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
                     text = systemInfo.deviceModel.replace(android.os.Build.MANUFACTURER, "", ignoreCase = true).trim().ifBlank { "Unknown Model" },
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 
                 Text(
                     text = android.os.Build.DEVICE.ifBlank { "Unknown" },
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Medium
                 )
                 
-                Text(
-                    text = "Unknown", // Codename placeholder replaced by Build.DEVICE above, this can be Board or similar
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
-                )
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = systemInfo.kernelVersion.ifBlank { "5.10.247" },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
-                    fontFamily = FontFamily.Monospace
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 100.dp) // Increased padding to shift left away from silhouette
+                ) {
+                     Text(
+                        text = systemInfo.kernelVersion.ifBlank { "Unknown" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                        fontFamily = FontFamily.Monospace,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
+                }
             }
             
             // Device Silhouette
@@ -259,10 +337,10 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 24.dp)
-                    .offset(y = 20.dp) // Push down to cut off bottom
+                    .offset(y = 40.dp) // Push down slightly more for large cards
             ) {
                DeviceSilhouette(
-                   color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
+                   color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f)
                )
             }
         }
@@ -276,11 +354,12 @@ fun MaterialStatTile(
     label: String,
     value: String,
     subValue: String,
-    color: Color
+    color: Color,
+    badgeText: String? = null // Optional badge (e.g., "CPU", "GPU")
 ) {
     Card(
-        modifier = modifier, // Height controlled by caller (e.g. fillMaxHeight or fixed)
-        shape = RoundedCornerShape(32.dp),
+        modifier = modifier.animateContentSize(),
+        shape = RoundedCornerShape(24.dp), // "Kotak tapi membulat" (Squarish but rounded)
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
         )
@@ -288,40 +367,76 @@ fun MaterialStatTile(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp, top = 12.dp), // Lift header slightly
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Surface(
-                shape = CircleShape,
-                color = color.copy(alpha = 0.1f),
-                modifier = Modifier.size(40.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = color,
-                        modifier = Modifier.size(20.dp)
-                    )
+                Surface(
+                    shape = RoundedCornerShape(12.dp), 
+                    color = color.copy(alpha = 0.1f),
+                    modifier = Modifier.size(36.dp) 
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = color,
+                            modifier = Modifier.size(18.dp) // Slightly smaller icon
+                        )
+                    }
+                }
+
+                // Optional Smart Badge
+                if (badgeText != null) {
+                    Surface(
+                        color = color.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(50),
+                    ) {
+                        Text(
+                            text = badgeText,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = color,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
             
-            Column {
+            Column(
+                verticalArrangement = Arrangement.spacedBy((-2).dp) 
+            ) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    ),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                    fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                         platformStyle = PlatformTextStyle(includeFontPadding = false),
+                         lineHeightStyle = LineHeightStyle(
+                            alignment = LineHeightStyle.Alignment.Center,
+                            trim = LineHeightStyle.Trim.Both
+                        )
+                    ),
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    lineHeight = 32.sp // Tight line height for headlineMedium (usually 36)
                 )
                 Text(
                     text = subValue,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f)
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    ),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
                 )
             }
         }
@@ -331,7 +446,7 @@ fun MaterialStatTile(
 @Composable
 fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -347,24 +462,32 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "GPU Information",
+                    text = "GPU",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
-                Text(
-                    text = "QUALCOMM",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                
+                // Smart Badge: Vendor
+                Surface(
+                   color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                   shape = RoundedCornerShape(50)
+                ) {
+                    Text(
+                        text = "ADRENO", // Hardcoded placeholder or derive from renderer
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
             }
             
             Column {
                 Text(
                     text = "${gpuInfo.currentFreq} MHz",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.displaySmall, // Expressive Typography
+                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
                 )
                 Text(
@@ -432,7 +555,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
 @Composable
 fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -445,27 +568,56 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
             // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape),
-                    contentAlignment = Alignment.Center
+                Row(
+                   verticalAlignment = Alignment.CenterVertically,
+                   horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Rounded.BatteryChargingFull,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.BatteryChargingFull,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Text(
+                        text = "Battery",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
-                Text(
-                    text = "Battery Information",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                
+                // Smart Badge: Status
+                val isCharging = batteryInfo.status.contains("Charging", ignoreCase = true)
+                Surface(
+                    color = if(isCharging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    shape = RoundedCornerShape(50),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                         if(isCharging) {
+                            Icon(Icons.Rounded.Bolt, null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onPrimary)
+                         }
+                         Text(
+                            text = batteryInfo.status,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
             }
 
             Row(
@@ -536,19 +688,32 @@ fun BatterySilhouette(
     isCharging: Boolean,
     color: Color
 ) {
-    Box(
-        modifier = Modifier
-            .size(50.dp, 80.dp)
-            .border(4.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-            .padding(4.dp),
-        contentAlignment = Alignment.BottomCenter
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp) // Gap between cap and body
     ) {
+        // Battery Cap (Nub)
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(level)
-                .background(color, RoundedCornerShape(6.dp))
+                .size(20.dp, 4.dp)
+                .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(2.dp))
         )
+        
+        // Main Body
+        Box(
+            modifier = Modifier
+                .size(50.dp, 80.dp)
+                .border(4.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                .padding(4.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(level)
+                    .background(color, RoundedCornerShape(6.dp))
+            )
+        }
     }
 }
 
@@ -607,7 +772,7 @@ fun BatteryStatBox(
 @Composable
 fun MaterialMemoryCard(systemInfo: SystemInfo) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer
@@ -621,15 +786,22 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Storage,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Storage,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Memory Status",
+                    text = "Memory",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -819,3 +991,243 @@ fun PowerMenuItem(action: PowerAction, onClick: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun StaggeredEntry(
+    delayMillis: Int,
+    content: @Composable () -> Unit
+) {
+    var visible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        delay(delayMillis.toLong())
+        visible = true
+    }
+    
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(500)) + slideInVertically(
+            animationSpec = tween(500, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            initialOffsetY = { 100 }
+        ),
+        exit = fadeOut()
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun MaterialPowerInsightCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween, // Push end items to right
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Icon + Title Group
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                                RoundedCornerShape(12.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.AccessTime,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    Text(
+                        text = "Power Insight",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+
+                // Badge (Pushed to Right)
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(50),
+                ) {
+                    Text(
+                         text = "Screen On",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            // Content: Circle + Stats
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // SOT Circular Indicator
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(150.dp) // Bigger Size
+                ) {
+                    // Background Track
+                    WavyCircularProgressIndicator(
+                        progress = 1f,
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                        strokeWidth = 16.dp, // Thicker
+                        amplitude = 3.dp,    // Subtle wave
+                        frequency = 10       // Calmer frequency
+                    )
+                    
+                    // Progress (Dummy: 65% for ~6h SOT goal)
+                    WavyCircularProgressIndicator(
+                        progress = 0.65f,
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 16.dp, // Thicker
+                        amplitude = 3.dp,    // Subtle wave
+                        frequency = 10       // Calmer frequency
+                    )
+                    
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "5h 24m", // Dummy Data
+                            style = MaterialTheme.typography.headlineMedium, // Bigger Font
+                            fontWeight = FontWeight.Black,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                
+                // Stats Column
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    PowerInsightItem(label = "Deep Sleep", value = "85%", icon = Icons.Rounded.Bedtime)
+                    PowerInsightItem(label = "Active Drain", value = "-10%/h", icon = Icons.Rounded.TrendingDown)
+                    PowerInsightItem(label = "Idle Drain", value = "-0.8%/h", icon = Icons.Rounded.PhoneAndroid)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun WavyCircularProgressIndicator(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Color,
+    strokeWidth: androidx.compose.ui.unit.Dp,
+    amplitude: androidx.compose.ui.unit.Dp = 4.dp,
+    frequency: Int = 12
+) {
+    val strokeWidthPx = with(androidx.compose.ui.platform.LocalDensity.current) { strokeWidth.toPx() }
+    val amplitudePx = with(androidx.compose.ui.platform.LocalDensity.current) { amplitude.toPx() }
+    
+    // Animate progress using animateFloatAsState
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 1000, easing = androidx.compose.animation.core.FastOutSlowInEasing), 
+        label = "progress"
+    )
+
+    androidx.compose.foundation.Canvas(modifier = modifier) {
+        val radius = (size.minDimension - strokeWidthPx - amplitudePx * 2) / 2
+        val center = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
+        val path = androidx.compose.ui.graphics.Path()
+
+        val startAngle = -90f
+        val sweepAngle = 360f * animatedProgress
+        
+        // Resolution of the path (step size in degrees). Smaller = smoother.
+        val step = 1f 
+        
+        for (angle in 0..sweepAngle.toInt()) {
+            val currentAngle = startAngle + angle
+            val rad = Math.toRadians(currentAngle.toDouble())
+            
+            // Wavy function: radius + amplitude * sin(frequency * angle in rads)
+            // Use angle relative to start to maintain wave phase
+            val wavePhase = Math.toRadians((angle * frequency).toDouble())
+            val r = radius + amplitudePx * kotlin.math.sin(wavePhase)
+            
+            val x = center.x + r * kotlin.math.cos(rad)
+            val y = center.y + r * kotlin.math.sin(rad)
+            
+            if (angle == 0) {
+                path.moveTo(x.toFloat(), y.toFloat())
+            } else {
+                path.lineTo(x.toFloat(), y.toFloat())
+            }
+        }
+
+        drawPath(
+            path = path,
+            color = color,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(
+                width = strokeWidthPx,
+                cap = StrokeCap.Round
+            )
+        )
+    }
+}
+
+@Composable
+fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon, 
+                contentDescription = null, 
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+        Column {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
