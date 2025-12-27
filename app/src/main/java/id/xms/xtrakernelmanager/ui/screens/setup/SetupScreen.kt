@@ -7,16 +7,18 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Process
 import android.provider.Settings
-import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,100 +35,72 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.topjohnwu.superuser.Shell
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.repository.PowerRepository
-import id.xms.xtrakernelmanager.domain.root.RootManager
-
+import id.xms.xtrakernelmanager.data.repository.RootManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SetupScreen(
-    onSetupComplete: () -> Unit
-) {
+fun SetupScreen(onSetupComplete: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
+    val pagerState = rememberPagerState(pageCount = { 2 })
 
+    // Permission States
     var isRootGranted by remember { mutableStateOf(false) }
-    var isUsageStatsGranted by remember { mutableStateOf(false) }
+    var isUsageGranted by remember { mutableStateOf(false) }
     var isNotificationGranted by remember { mutableStateOf(false) }
-    var isStorageGranted by remember { mutableStateOf(false) } // Optional/Basic
-    
-    var isChecking by remember { mutableStateOf(true) }
+    var isStorageGranted by remember { mutableStateOf(false) }
 
-    // Check permissions function
+    // Check Permissions Function
     fun checkPermissions() {
         scope.launch(Dispatchers.IO) {
-            // Root Check
             val root = RootManager.isRootAvailable()
             
-            // Usage Stats Check
+            // Usage Access
             val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                appOps.unsafeCheckOpNoThrow(
-                    AppOpsManager.OPSTR_GET_USAGE_STATS,
-                    android.os.Process.myUid(),
-                    context.packageName
-                )
+                appOps.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
             } else {
-                appOps.checkOpNoThrow(
-                    AppOpsManager.OPSTR_GET_USAGE_STATS,
-                    android.os.Process.myUid(),
-                    context.packageName
-                )
+                appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), context.packageName)
             }
             val usage = mode == AppOpsManager.MODE_ALLOWED
 
-            // Notification Check (A13+)
-            val notif = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
+            // Notification (Android 13+)
+            val notification = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
             } else {
-                true // Granted by default < 13
+                true 
             }
-            
-            // Storage (Basic Check) - Actually XKM mostly uses Root for sys edits. 
-            // External storage is mostly for backups.
-            // Let's check READ_EXTERNAL_STORAGE just in case, or assume granted if < 11?
-            // Modern Android uses Scoped Storage. checking READ_MEDIA_IMAGES etc?
-            // Let's stick to Notification & Usage & Root as primary "system" ones.
-            // But let's check standard READ_EXTERNAL for legacy.
+
+            // Storage
             val storage = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                true // Too complex to handle granular media. Skip for setup.
+                true // No longer needed for scoped storage generally, or use READ_MEDIA_*
             } else {
-                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
             }
 
             withContext(Dispatchers.Main) {
                 isRootGranted = root
-                isUsageStatsGranted = usage
-                isNotificationGranted = notif
+                isUsageGranted = usage
+                isNotificationGranted = notification
                 isStorageGranted = storage
-                isChecking = false
             }
         }
     }
 
-    // Loop Check
-    LaunchedEffect(Unit) {
-        while (true) {
-            checkPermissions()
-            delay(2000) // Poll every 2s
-        }
-    }
-    
-    // Resume Check
+    // Lifecycle Observer to re-check on resume
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -138,140 +112,45 @@ fun SetupScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    // Launchers
-    val notifLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { checkPermissions() }
-    
-    val storageLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { checkPermissions() }
-
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            // Footer Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .navigationBarsPadding(),
-                contentAlignment = Alignment.Center
-            ) {
-                Button(
-                    onClick = onSetupComplete,
-                    enabled = isRootGranted, // Root is mandatory
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                    )
-                ) {
-                    if (isRootGranted) {
-                        Text("Start XKM", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.width(8.dp))
-                        Icon(Icons.Rounded.ArrowForward, null)
-                    } else {
-                        Text("Root Required", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
+    // Initial and Periodic Check
+    LaunchedEffect(Unit) {
+        checkPermissions()
+        while(true) {
+            delay(2000)
+            checkPermissions()
         }
-    ) { padding ->
-        Column(
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .windowInsetsPadding(WindowInsets.systemBars)
+    ) {
+        // Top Bar / Indicator
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(scrollState)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Spacer(Modifier.height(24.dp))
-            
-            // Header Logo/Icon
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        ),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    Icons.Rounded.SettingsSuggest, 
-                    null, 
-                    tint = Color.White,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
-            
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    "Welcome to XKM",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    "Setup necessary permissions to continue",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            // Permission Cards
-            PermissionItem(
-                title = "Root Access",
-                description = "Required for kernel tuning and system modifications.",
-                icon = Icons.Rounded.Security,
-                isGranted = isRootGranted,
-                isChecking = isChecking,
-                onClick = { 
-                    // Trigger root request
-                     scope.launch(Dispatchers.IO) { RootManager.isRootAvailable() }
-                }
-            )
-
-            PermissionItem(
-                title = "Usage Access",
-                description = "Required for Power Insight (SOT & Drain Stats).",
-                icon = Icons.Rounded.DataUsage,
-                isGranted = isUsageStatsGranted,
-                isChecking = isChecking,
-                onClick = {
-                     val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-                     context.startActivity(intent)
-                }
-            )
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                PermissionItem(
-                    title = "Notifications",
-                    description = "Required for profile alerts and applied services.",
-                    icon = Icons.Rounded.Notifications,
-                    isGranted = isNotificationGranted,
-                    isChecking = isChecking,
-                    onClick = {
-                        notifLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    }
-                )
-            }
-            
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-                 PermissionItem(
+                repeat(pagerState.pageCount) { iteration ->
+                    val color = if (pagerState.currentPage == iteration) 
+                        MaterialTheme.colorScheme.primary 
+                    else 
+                        MaterialTheme.colorScheme.surfaceVariant
+                    
+                    Box(
+                        modifier = Modifier
+                            .size(if (pagerState.currentPage == iteration) 24.dp else 12.dp, 8.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                            .animateContentSize()
+                    )
                     title = "Storage",
                     description = "Required for config backups and flashing.",
                     icon = Icons.Rounded.Storage,
