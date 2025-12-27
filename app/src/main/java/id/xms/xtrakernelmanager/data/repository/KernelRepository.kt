@@ -237,10 +237,18 @@ class KernelRepository {
 
         val availableFreqs = RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
             .getOrNull()?.split(" ")?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
-        val currentFreq = RootManager.executeCommand("cat $basePath/gpuclk 2>/dev/null")
-            .getOrNull()?.trim()?.toIntOrNull()?.div(1000000) ?: 0
+        
+        // Use native for GPU frequency (faster, real-time)
+        val currentFreq = NativeLib.readGpuFreq() 
+            ?: RootManager.executeCommand("cat $basePath/gpuclk 2>/dev/null")
+                .getOrNull()?.trim()?.toLongOrNull()?.div(1000000)?.toInt() 
+            ?: 0
+            
         val maxFreq = availableFreqs.maxOrNull() ?: 0
         val minFreq = availableFreqs.minOrNull() ?: 0
+        
+        // Use native for GPU load (busy percentage)
+        val gpuLoad = NativeLib.readGpuBusy() ?: 0
 
         GPUInfo(
             vendor = vendor,
@@ -249,7 +257,8 @@ class KernelRepository {
             currentFreq = currentFreq,
             minFreq = minFreq,
             maxFreq = maxFreq,
-            availableFreqs = availableFreqs
+            availableFreqs = availableFreqs,
+            gpuLoad = gpuLoad
         )
     }
 

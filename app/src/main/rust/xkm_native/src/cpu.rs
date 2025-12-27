@@ -63,14 +63,13 @@ pub fn detect_cpu_clusters() -> Vec<ClusterInfo> {
             core
         );
 
-        if let Some(max_freq) = read_sysfs_int(&max_freq_path) {
-            if max_freq > 0 {
+        if let Some(max_freq) = read_sysfs_int(&max_freq_path)
+            && max_freq > 0 {
                 core_groups
                     .entry(max_freq)
-                    .or_insert_with(Vec::new)
+                    .or_default()
                     .push(*core);
             }
-        }
     }
 
     // Sort groups by max frequency and create cluster info
@@ -134,12 +133,11 @@ pub fn read_battery_current() -> i32 {
     ];
 
     for path in &paths {
-        if let Some(value) = read_sysfs_long(path) {
-            if value != 0 {
+        if let Some(value) = read_sysfs_long(path)
+            && value != 0 {
                 // Convert microamps to milliamps
                 return (value / 1000) as i32;
             }
-        }
     }
 
     0
@@ -202,12 +200,11 @@ pub fn read_cpu_temperature() -> f32 {
     ];
 
     for path in &thermal_paths {
-        if let Some(temp) = read_sysfs_float(path) {
-            if temp > 0.0 {
+        if let Some(temp) = read_sysfs_float(path)
+            && temp > 0.0 {
                 // Some devices report in millidegrees, some in degrees
                 return if temp > 1000.0 { temp / 1000.0 } else { temp };
             }
-        }
     }
 
     0.0

@@ -91,11 +91,42 @@ object NativeLib {
         }
     }
     
+    /**
+     * Read GPU frequency in MHz using native code
+     * Returns null if native lib not available
+     */
+    fun readGpuFreq(): Int? {
+        if (!isLoaded) return null
+        
+        return try {
+            val freq = readGpuFreqNative()
+            if (freq > 0) freq else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readGpuFreq failed: ${e.message}")
+            null
+        }
+    }
+    
+
+    fun readGpuBusy(): Int? {
+        if (!isLoaded) return null
+        
+        return try {
+            val busy = readGpuBusyNative()
+            if (busy >= 0) busy else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readGpuBusy failed: ${e.message}")
+            null
+        }
+    }
+    
     // Native method declarations
     private external fun detectCpuClustersNative(): String
     private external fun readBatteryCurrentNative(): Int
     private external fun readCpuLoadNative(): Float
     private external fun readCpuTemperatureNative(): Float
+    private external fun readGpuFreqNative(): Int
+    private external fun readGpuBusyNative(): Int
     
     /**
      * Parse JSON string from Rust into ClusterInfo list
