@@ -366,6 +366,26 @@
     <string name="info_pling_url">https://www.pling.com/p/your-project-id</string>
     <string name="info_copyright">© %1$s Proyek XMS</string>
 
+    <!-- Team Section -->
+    <string name="info_community_name">Komunitas Xtra Manager Software</string>
+    <string name="info_community_tagline">Membangun alat canggih untuk penggemar Android</string>
+    <string name="info_core_team">Tim Inti</string>
+    <string name="info_founders_desc">Pendiri Komunitas XMS</string>
+    <string name="info_contributors">Kontributor</string>
+    <string name="info_contributors_desc">Kontributor komunitas</string>
+    <string name="info_quality_assurance">Jaminan Kualitas</string>
+    <string name="info_testers_desc">Memastikan kualitas dan stabilitas aplikasi</string>
+    <string name="info_role_founder">Pendiri</string>
+    <string name="info_role_contributor">Kontributor</string>
+    <string name="info_role_tester">Penguji Perangkat Lunak</string>
+    
+    <!-- Team Member Names -->
+    <string name="team_tester_achmad">Achmad</string>
+    <string name="team_tester_hasan">Hasan</string>
+    <string name="team_tester_reffan">Reffan Lintang M</string>
+    <string name="team_tester_wil">WiL</string>
+    <string name="team_tester_shadow_monarch">Shadow Monarch</string>
+
     <!-- Theme Settings -->
     <string name="theme_settings">Pengaturan Tema</string>
     <string name="theme_glassmorphism">Glassmorphism</string>

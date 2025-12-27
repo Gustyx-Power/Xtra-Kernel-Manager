@@ -378,6 +378,13 @@
     <string name="info_role_founder">Founder</string>
     <string name="info_role_contributor">Contributor</string>
     <string name="info_role_tester">Software Tester</string>
+    
+    <!-- Team Member Names -->
+    <string name="team_tester_achmad">Achmad</string>
+    <string name="team_tester_hasan">Hasan</string>
+    <string name="team_tester_reffan">Reffan Lintang M</string>
+    <string name="team_tester_wil">WiL</string>
+    <string name="team_tester_shadow_monarch">Shadow Monarch</string>
 
     <!-- Theme Settings -->
     <string name="theme_settings">Theme Settings</string>

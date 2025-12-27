@@ -180,7 +180,7 @@ fun InfoScreen() {
                     ) {
                         InfoStatItem(value = "2", label = "Founders")
                         InfoStatItem(value = "2", label = "Contributors")
-                        InfoStatItem(value = "1", label = "Tester")
+                        InfoStatItem(value = "5", label = "Tester")
                     }
                 }
             }
@@ -352,17 +352,56 @@ fun InfoScreen() {
                     
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                     
-                    // Tester - Single centered
-                    Box(
+                    // Testers Grid - First Row (3 testers)
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_tester_achmad,
+                            name = stringResource(R.string.team_tester_achmad),
+                            role = stringResource(R.string.info_role_tester),
+                            country = "🇮🇩",
+                            isFounder = false
+                        )
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_tester_hasan,
+                            name = stringResource(R.string.team_tester_hasan),
+                            role = stringResource(R.string.info_role_tester),
+                            country = "🇮🇩",
+                            isFounder = false
+                        )
+                        TeamMemberCard(
+                            modifier = Modifier.weight(1f),
+                            imageResId = R.drawable.team_tester_reffan,
+                            name = stringResource(R.string.team_tester_reffan),
+                            role = stringResource(R.string.info_role_tester),
+                            country = "🇮🇩",
+                            isFounder = false
+                        )
+                    }
+                    
+                    // Testers Grid - Second Row (2 testers centered)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally)
                     ) {
                         TeamMemberCard(
                             modifier = Modifier.widthIn(max = 180.dp),
                             imageResId = R.drawable.team_tester_wil,
-                            name = "WiL",
+                            name = stringResource(R.string.team_tester_wil),
                             role = stringResource(R.string.info_role_tester),
                             country = "🇮🇩",
+                            isFounder = false
+                        )
+                        TeamMemberCard(
+                            modifier = Modifier.widthIn(max = 180.dp),
+                            imageResId = R.drawable.team_sm_tester,
+                            name = stringResource(R.string.team_tester_shadow_monarch),
+                            role = stringResource(R.string.info_role_tester),
+                            country = "🇵🇰",
                             isFounder = false
                         )
                     }
