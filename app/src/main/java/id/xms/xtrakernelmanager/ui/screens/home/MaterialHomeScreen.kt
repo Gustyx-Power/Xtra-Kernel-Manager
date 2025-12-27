@@ -1515,7 +1515,7 @@ fun MaterialAppInfoSection() {
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
                             text = "ABOUT XKM",
                             style = MaterialTheme.typography.labelSmall,
@@ -1524,7 +1524,7 @@ fun MaterialAppInfoSection() {
                             letterSpacing = 1.sp
                         )
                         Text(
-                            text = "Xtra Kernel Manager is a free and open-source Kernel Managers designed to give you full control over your device's kernel. Built with Kotlin Jetpack Compose for a smooth and responsive user experience.",
+                            text = "Xtra Kernel Manager is a free and open-source Kernel Manager designed to give you full control over your device's kernel. Built with Kotlin Jetpack Compose for a smooth and responsive user experience.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Start,
@@ -1538,38 +1538,39 @@ fun MaterialAppInfoSection() {
                     ) {
                         // GitHub Button
                         val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
-                        Button(
+                        OutlinedButton(
                             onClick = { uriHandler.openUri("https://github.com/Xtra-Manager-Software") },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
                             // Custom GitHub Icon
                             Icon(
                                 imageVector = GithubIcon, 
                                 contentDescription = null, 
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("GitHub")
+                            Text(
+                                "GitHub", 
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
                         
                         // Credits Button
-                        Button(
+                        FilledTonalButton(
                             onClick = { uriHandler.openUri("https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager") },
                             modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), 
-                                contentColor = MaterialTheme.colorScheme.primary
-                            ),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Icon(Icons.Rounded.Info, null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Credit")
+                            Text(
+                                "Credit",
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
                     }
                 }
