@@ -131,7 +131,7 @@ jobs:
 
       - name: Notify Build Start
         id: notify_start
-        if: inputs.upload_telegram == true
+        if: ${{ inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -273,7 +273,7 @@ jobs:
           fi
 
       - name: Notify Build Complete
-        if: inputs.upload_telegram == true
+        if: ${{ inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -322,7 +322,7 @@ jobs:
           fi
 
       - name: Cleanup on Failure
-        if: failure() && inputs.upload_telegram == true
+        if: ${{ failure() && inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
