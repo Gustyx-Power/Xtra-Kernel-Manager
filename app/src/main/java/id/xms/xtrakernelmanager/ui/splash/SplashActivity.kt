@@ -51,6 +51,7 @@ import com.google.firebase.database.FirebaseDatabase
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.MainActivity
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -104,13 +105,31 @@ class SplashActivity : ComponentActivity() {
 
         setContent {
             XtraKernelManagerTheme {
-                SplashScreenContent(
-                    onNavigateToMain = {
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                    }
-                )
+                val context = LocalContext.current
+                val prefsManager = remember { PreferencesManager(context) }
+                val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
+
+                if (layoutStyle == "material") {
+                     ExpressiveSplashScreen(
+                        onNavigateToMain = {
+                            startActivity(Intent(this, MainActivity::class.java))
+                            finish()
+                            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                        },
+                        isInternetAvailable = { isInternetAvailable(it) },
+                        checkRootAccess = { checkRootAccess() },
+                        fetchUpdateConfig = { fetchUpdateConfig() },
+                        isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) }
+                    )
+                } else {
+                    SplashScreenContent(
+                        onNavigateToMain = {
+                            startActivity(Intent(this, MainActivity::class.java))
+                            finish()
+                            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                        }
+                    )
+                }
             }
         }
     }
