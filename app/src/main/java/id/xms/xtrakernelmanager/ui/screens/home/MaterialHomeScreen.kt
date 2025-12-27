@@ -338,7 +338,7 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 24.dp)
-                    .offset(y = 40.dp) // Push down slightly more for large cards
+                    .offset(y = 12.dp) // Raised up to show more phone
             ) {
                DeviceSilhouette(
                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f)
