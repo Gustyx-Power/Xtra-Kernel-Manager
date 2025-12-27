@@ -22,8 +22,7 @@ class KernelRepository {
         // Use native for temperature (single read is fine)
         val temp = NativeLib.readCpuTemperature() ?: getCPUTemperature()
         
-        // DON'T use native for CPU load - it requires two time-separated samples
-        // to calculate delta, which native single-call doesn't support
+        // Use Kotlin for CPU load (requires root for /proc/stat on Android)
         val load = getCPULoad()
         
         Log.d(TAG, "CPU info retrieved - temp: $temp, load: $load, clusters: ${clusters.size}")
@@ -160,16 +159,39 @@ class KernelRepository {
 
     private suspend fun getCPULoad(): Float {
         return try {
-            val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return 0f
-            val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
-            val values = cpuLine.split("\\s+".toRegex()).drop(1).mapNotNull { it.toLongOrNull() }
-            if (values.size < 4) return 0f
-            val idle = values[3]
-            val total = values.sum()
-            if (total > 0) ((total - idle).toFloat() / total.toFloat()) * 100f else 0f
+            // First reading
+            val (total1, idle1) = readProcStatValues() ?: return 0f
+            
+            // Wait 100ms for measurable delta
+            kotlinx.coroutines.delay(100)
+            
+            // Second reading
+            val (total2, idle2) = readProcStatValues() ?: return 0f
+            
+            // Calculate delta
+            val totalDiff = total2 - total1
+            val idleDiff = idle2 - idle1
+            
+            if (totalDiff > 0) {
+                ((totalDiff - idleDiff).toFloat() / totalDiff.toFloat()) * 100f
+            } else {
+                0f
+            }
         } catch (e: Exception) {
+            Log.e(TAG, "getCPULoad failed: ${e.message}")
             0f
         }
+    }
+    
+    private suspend fun readProcStatValues(): Pair<Long, Long>? {
+        val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return null
+        val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return null
+        val values = cpuLine.split("\\s+".toRegex()).drop(1).mapNotNull { it.toLongOrNull() }
+        if (values.size < 5) return null
+        
+        val idle = values[3] + values[4] // idle + iowait
+        val total = values.sum()
+        return Pair(total, idle)
     }
 
     suspend fun getGPUInfo(): GPUInfo = withContext(Dispatchers.IO) {

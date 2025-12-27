@@ -132,7 +132,7 @@ fun MaterialHomeScreen(
                         MaterialStatTile(
                             modifier = Modifier.weight(1f).fillMaxHeight(),
                             icon = Icons.Rounded.Videocam,
-                            label = "GPU Freq",
+                            label = "Freq",
                             value = "${gpuInfo.currentFreq}",
                             subValue = "MHz",
                             color = MaterialTheme.colorScheme.tertiary,
@@ -406,6 +406,8 @@ fun MaterialStatTile(
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(8.dp))
             
             Column(
                 verticalArrangement = Arrangement.spacedBy((-2).dp) 
