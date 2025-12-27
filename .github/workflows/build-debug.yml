@@ -49,7 +49,7 @@ jobs:
             "$COMMIT_URL" \
             "$WORKFLOW_URL")
           
-          RESPONSE=$(curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+          RESPONSE=$(curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendMessage" \
             -d chat_id="$CHAT_ID" \
             --data-urlencode "text=$MESSAGE" \
             -d parse_mode="HTML" \
@@ -163,15 +163,27 @@ jobs:
             "$COMMIT_URL" \
             "$WORKFLOW_URL")
           
-          curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendDocument" \
-            -F chat_id="$CHAT_ID" \
+          echo "Uploading APK: $APK_FILE"
+          echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
+          
+          RESPONSE=$(curl -sS -F chat_id="$CHAT_ID" \
             -F document=@"$APK_FILE" \
             -F parse_mode="HTML" \
-            --form-string "caption=$CAPTION"
+            --form-string "caption=$CAPTION" \
+            "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument")
+          
+          echo "Telegram Response: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "APK uploaded successfully!"
+          else
+            echo "Failed to upload APK!"
+            echo "$RESPONSE"
+          fi
           
           # Delete start message
           if [ -n "$START_MESSAGE_ID" ]; then
-            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/deleteMessage" \
+            curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
               -d chat_id="$CHAT_ID" \
               -d message_id="$START_MESSAGE_ID"
           fi
@@ -184,7 +196,7 @@ jobs:
           START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
         run: |
           if [ -n "$START_MESSAGE_ID" ]; then
-            curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/deleteMessage" \
+            curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
               -d chat_id="$CHAT_ID" \
               -d message_id="$START_MESSAGE_ID"
           fi
