@@ -48,6 +48,19 @@ class PreferencesManager(private val context: Context) {
     private val ENABLE_GAME_OVERLAY = booleanPreferencesKey("enable_game_overlay")
 
     // Game Control preferences
+    private val IS_SETUP_COMPLETE = booleanPreferencesKey("is_setup_complete")
+
+    val isSetupComplete: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[IS_SETUP_COMPLETE] ?: false
+        }
+
+    suspend fun setSetupComplete(complete: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_SETUP_COMPLETE] = complete
+        }
+    }
+
     private val GAME_CONTROL_DND_ENABLED = booleanPreferencesKey("game_control_dnd_enabled")
     private val GAME_CONTROL_HIDE_NOTIF = booleanPreferencesKey("game_control_hide_notif")
 

@@ -107,29 +107,17 @@ class SplashActivity : ComponentActivity() {
             XtraKernelManagerTheme {
                 val context = LocalContext.current
                 val prefsManager = remember { PreferencesManager(context) }
-                val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
-
-                if (layoutStyle == "material") {
-                     ExpressiveSplashScreen(
-                        onNavigateToMain = {
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
-                            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                        },
-                        isInternetAvailable = { isInternetAvailable(it) },
-                        checkRootAccess = { checkRootAccess() },
-                        fetchUpdateConfig = { fetchUpdateConfig() },
-                        isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) }
-                    )
-                } else {
-                    SplashScreenContent(
-                        onNavigateToMain = {
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
-                            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                        }
-                    )
-                }
+                ExpressiveSplashScreen(
+                    onNavigateToMain = {
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                    },
+                    isInternetAvailable = { isInternetAvailable(it) },
+                    checkRootAccess = { checkRootAccess() },
+                    fetchUpdateConfig = { fetchUpdateConfig() },
+                    isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) }
+                )
             }
         }
     }
@@ -142,30 +130,16 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
     var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
     var showUpdateDialog by remember { mutableStateOf(false) }
     var showOfflineLockDialog by remember { mutableStateOf(false) }
-    var showRootRequiredDialog by remember { mutableStateOf(false) }
     var isChecking by remember { mutableStateOf(true) }
     var checkingStatus by remember { mutableStateOf(context.getString(R.string.splash_initializing)) }
     var startExitAnimation by remember { mutableStateOf(false) }
     var hasRootAccess by remember { mutableStateOf<Boolean?>(null) }
 
-    // --- ROOT CHECK & MAIN LOGIC ---
     LaunchedEffect(Unit) {
         val minSplashTime = launch { delay(2000) }
 
-        // Check root access first
-        checkingStatus = context.getString(R.string.splash_checking_root)
-        hasRootAccess = checkRootAccess()
-        
-        if (hasRootAccess != true) {
-            minSplashTime.join()
-            isChecking = false
-            showRootRequiredDialog = true
-            return@LaunchedEffect
-        }
-
         checkingStatus = context.getString(R.string.splash_checking_updates)
 
-        // 1. CEK DATA LOKAL DULU: Apakah ada hutang update?
         val pendingUpdate = UpdatePrefs.getPendingUpdate(context)
         
         if (pendingUpdate != null && isUpdateAvailable(BuildConfig.VERSION_NAME, pendingUpdate.version)) {
@@ -192,14 +166,12 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
                 UpdatePrefs.clear(context)
             }
 
-            // 2. PROSES NORMAL: Cek Firebase baru
             if (isInternetAvailable(context)) {
                 try {
                     val config = withTimeoutOrNull(5000L) { fetchUpdateConfig() }
                     minSplashTime.join()
 
                     if (config != null && isUpdateAvailable(BuildConfig.VERSION_NAME, config.version)) {
-                        // Update Ditemukan!
                         UpdatePrefs.savePendingUpdate(context, config.version, config.url, config.changelog)
                         
                         updateConfig = config
@@ -338,14 +310,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
             )
         }
 
-        if (showRootRequiredDialog) {
-            RootRequiredDialog(
-                onDismiss = {
-                    // Exit the app
-                    (context as ComponentActivity).finishAffinity()
-                }
-            )
-        }
+
     }
 }
 
@@ -549,98 +514,7 @@ fun OfflineLockDialog(onRetry: () -> Unit) {
     }
 }
 
-@Composable
-fun RootRequiredDialog(onDismiss: () -> Unit) {
-    Dialog(
-        onDismissRequest = {},
-        properties = DialogProperties(
-            dismissOnBackPress = false,
-            dismissOnClickOutside = false
-        )
-    ) {
-        Card(
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            ),
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Warning Icon
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .background(
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Warning,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Text(
-                    text = stringResource(R.string.root_required_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Text(
-                    text = stringResource(R.string.root_required_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Surface(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.root_required_instructions),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = stringResource(android.R.string.ok),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-}
+
 
 @Composable
 fun ModernLoader() {

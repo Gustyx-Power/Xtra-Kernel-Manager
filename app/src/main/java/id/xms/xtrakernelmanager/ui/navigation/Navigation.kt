@@ -26,6 +26,8 @@ import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
 
+import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
+
 @Composable
 fun Navigation(preferencesManager: PreferencesManager) {
     val navController = rememberNavController()
@@ -112,31 +114,56 @@ fun Navigation(preferencesManager: PreferencesManager) {
         )
     )
 
+    // Collect Setup State
+    val isSetupComplete by preferencesManager.isSetupComplete.collectAsState(initial = false)
+
+    // Redirect to Home if setup is complete (and we are on setup screen)
+    LaunchedEffect(isSetupComplete, currentRoute) {
+        if (isSetupComplete && currentRoute == "setup") {
+            navController.navigate("home") {
+                popUpTo("setup") { inclusive = true }
+            }
+        }
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            ModernBottomBar(
-                currentRoute = currentRoute,
-                onNavigate = { route ->
-                    if (currentRoute != route) {
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+            // Hide BottomBar on Setup screen
+            if (currentRoute != "setup") {
+                ModernBottomBar(
+                    currentRoute = currentRoute,
+                    onNavigate = { route ->
+                        if (currentRoute != route) {
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
-                    }
-                },
-                items = bottomNavItems
-            )
+                    },
+                    items = bottomNavItems
+                )
+            }
         }
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = if (isSetupComplete) "home" else "setup", // Basic logic, mostly relies on LaunchedEffect if state updates later
             modifier = Modifier.padding(paddingValues)
         ) {
+            composable("setup") {
+                SetupScreen(
+                    onSetupComplete = {
+                        scope.launch {
+                            preferencesManager.setSetupComplete(true)
+                            // Navigation handled by LaunchedEffect above
+                        }
+                    }
+                )
+            }
             composable("home") {
                 HomeScreen(
                     preferencesManager = preferencesManager,
