@@ -22,7 +22,9 @@ import id.xms.xtrakernelmanager.ui.components.PillCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FunctionalRomScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToPlayIntegrity: () -> Unit = {},
+    onNavigateToXiaomiTouch: () -> Unit = {}
 ) {
     // UI State for toggles (UI only, no backend logic)
     var unlockNitsEnabled by remember { mutableStateOf(false) }
@@ -31,10 +33,17 @@ fun FunctionalRomScreen(
     var dcDimmingEnabled by remember { mutableStateOf(false) }
     var performanceModeEnabled by remember { mutableStateOf(false) }
     var bypassChargingEnabled by remember { mutableStateOf(false) }
+    var smartChargingEnabled by remember { mutableStateOf(false) }
+    var chargingLimitEnabled by remember { mutableStateOf(false) }
+    var doubleTapWakeEnabled by remember { mutableStateOf(false) }
 
     // Force refresh rate value selector state
     var showRefreshRateDialog by remember { mutableStateOf(false) }
     var selectedRefreshRate by remember { mutableStateOf("60 Hz") }
+    
+    // Charging limit value selector state
+    var showChargingLimitDialog by remember { mutableStateOf(false) }
+    var selectedChargingLimit by remember { mutableStateOf("80%") }
 
     LazyColumn(
         modifier = Modifier
@@ -81,7 +90,7 @@ fun FunctionalRomScreen(
                 title = stringResource(R.string.play_integrity_spoofs),
                 description = stringResource(R.string.play_integrity_spoofs_desc),
                 icon = Icons.Default.Security,
-                onClick = { /* TODO: Navigate to Play Integrity settings */ }
+                onClick = onNavigateToPlayIntegrity
             )
         }
 
@@ -95,7 +104,7 @@ fun FunctionalRomScreen(
                 title = stringResource(R.string.xiaomi_touch_settings),
                 description = stringResource(R.string.xiaomi_touch_settings_desc),
                 icon = Icons.Default.TouchApp,
-                onClick = { /* TODO: Navigate to Xiaomi touch settings */ }
+                onClick = onNavigateToXiaomiTouch
             )
         }
 
@@ -198,6 +207,58 @@ fun FunctionalRomScreen(
                 onCheckedChange = { bypassChargingEnabled = it }
             )
         }
+        item {
+            ToggleFeatureCard(
+                title = stringResource(R.string.smart_charging),
+                description = if (smartChargingEnabled) 
+                    stringResource(R.string.smart_charging_desc_enabled) 
+                else 
+                    stringResource(R.string.smart_charging_desc_disabled),
+                icon = Icons.Default.BatteryStd,
+                checked = smartChargingEnabled,
+                onCheckedChange = { smartChargingEnabled = it }
+            )
+        }
+        item {
+            ToggleFeatureCard(
+                title = stringResource(R.string.charging_limit),
+                description = if (chargingLimitEnabled) 
+                    stringResource(R.string.charging_limit_desc_enabled) 
+                else 
+                    stringResource(R.string.charging_limit_desc_disabled),
+                icon = Icons.Default.BatteryAlert,
+                checked = chargingLimitEnabled,
+                onCheckedChange = { chargingLimitEnabled = it }
+            )
+        }
+        item {
+            SelectorFeatureCard(
+                title = stringResource(R.string.charging_limit_value),
+                description = stringResource(R.string.charging_limit_value_desc),
+                currentValue = selectedChargingLimit,
+                icon = Icons.Default.Tune,
+                enabled = chargingLimitEnabled,
+                onClick = { showChargingLimitDialog = true }
+            )
+        }
+
+        // Lock Screen Category
+        item {
+            Spacer(modifier = Modifier.height(8.dp))
+            CategoryHeader(title = stringResource(R.string.category_lock_screen))
+        }
+        item {
+            ToggleFeatureCard(
+                title = stringResource(R.string.double_tap_wake),
+                description = if (doubleTapWakeEnabled) 
+                    stringResource(R.string.double_tap_wake_desc_enabled) 
+                else 
+                    stringResource(R.string.double_tap_wake_desc_disabled),
+                icon = Icons.Default.Visibility,
+                checked = doubleTapWakeEnabled,
+                onCheckedChange = { doubleTapWakeEnabled = it }
+            )
+        }
 
         // Bottom spacing
         item {
@@ -243,6 +304,50 @@ fun FunctionalRomScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showRefreshRateDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Charging Limit Selection Dialog
+    if (showChargingLimitDialog) {
+        val chargingLimits = listOf("60%", "70%", "80%", "85%", "90%", "95%")
+        AlertDialog(
+            onDismissRequest = { showChargingLimitDialog = false },
+            title = {
+                Text(
+                    text = stringResource(R.string.charging_limit_value),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column {
+                    chargingLimits.forEach { limit ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedChargingLimit == limit,
+                                onClick = {
+                                    selectedChargingLimit = limit
+                                    showChargingLimitDialog = false
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = limit,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showChargingLimitDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }

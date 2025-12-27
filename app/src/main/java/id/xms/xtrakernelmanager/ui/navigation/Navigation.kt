@@ -23,6 +23,8 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -162,6 +164,28 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
             composable("functionalrom") {
                 FunctionalRomScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToPlayIntegrity = {
+                        navController.navigate("playintegritysettings")
+                    },
+                    onNavigateToXiaomiTouch = {
+                        navController.navigate("xiaomitouchsettings")
+                    }
+                )
+            }
+
+            composable("playintegritysettings") {
+                PlayIntegritySettingsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("xiaomitouchsettings") {
+                XiaomiTouchSettingsScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     }
