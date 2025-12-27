@@ -69,7 +69,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
+    val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = null)
     
     // Data State
     val cpuInfo by viewModel.cpuInfo.collectAsState()
@@ -116,32 +116,35 @@ fun HomeScreen(
         )
     }
 
-    // --- LAYOUT STYLE ROUTING ---
-    when (layoutStyle) {
-        "material" -> {
-            // Material 3 Home Screen
-            MaterialHomeScreen(
-                preferencesManager = preferencesManager,
-                viewModel = viewModel,
-                onPowerAction = { action ->
-                    if (action == PowerAction.LockScreen) {
-                        scope.launch { RootShell.execute(action.command) }
-                    } else {
-                        activePowerAction = action
-                    }
-                },
-                onSettingsClick = onNavigateToSettings
-            )
-        }
-        else -> {
-            // Legacy Home Screen (current glassmorphic UI)
-            LegacyHomeContent(
-                cpuInfo = cpuInfo,
-                gpuInfo = gpuInfo,
-                batteryInfo = batteryInfo,
-                systemInfo = systemInfo,
-                onPowerMenuClick = { showPowerMenu = true }
-            )
+    if (layoutStyle == null) {
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+    } else {
+        when (layoutStyle) {
+            "material" -> {
+                // Material 3 Home Screen
+                MaterialHomeScreen(
+                    preferencesManager = preferencesManager,
+                    viewModel = viewModel,
+                    onPowerAction = { action ->
+                        if (action == PowerAction.LockScreen) {
+                            scope.launch { RootShell.execute(action.command) }
+                        } else {
+                            activePowerAction = action
+                        }
+                    },
+                    onSettingsClick = onNavigateToSettings
+                )
+            }
+            else -> {
+                // Legacy Home Screen (current glassmorphic UI)
+                LegacyHomeContent(
+                    cpuInfo = cpuInfo,
+                    gpuInfo = gpuInfo,
+                    batteryInfo = batteryInfo,
+                    systemInfo = systemInfo,
+                    onPowerMenuClick = { showPowerMenu = true }
+                )
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -115,11 +116,11 @@ fun Navigation(preferencesManager: PreferencesManager) {
     )
 
     // Collect Setup State
-    val isSetupComplete by preferencesManager.isSetupComplete.collectAsState(initial = false)
+    val isSetupCompleteState by preferencesManager.isSetupComplete.collectAsState(initial = null)
 
     // Redirect to Home if setup is complete (and we are on setup screen)
-    LaunchedEffect(isSetupComplete, currentRoute) {
-        if (isSetupComplete && currentRoute == "setup") {
+    LaunchedEffect(isSetupCompleteState, currentRoute) {
+        if (isSetupCompleteState == true && currentRoute == "setup") {
             navController.navigate("home") {
                 popUpTo("setup") { inclusive = true }
             }
@@ -129,8 +130,8 @@ fun Navigation(preferencesManager: PreferencesManager) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            // Hide BottomBar on Setup screen
-            if (currentRoute != "setup") {
+            // Hide BottomBar on Setup screen, and while loading
+            if (currentRoute != "setup" && isSetupCompleteState != null) {
                 ModernBottomBar(
                     currentRoute = currentRoute,
                     onNavigate = { route ->
@@ -149,21 +150,29 @@ fun Navigation(preferencesManager: PreferencesManager) {
             }
         }
     ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = if (isSetupComplete) "home" else "setup", // Basic logic, mostly relies on LaunchedEffect if state updates later
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("setup") {
-                SetupScreen(
-                    onSetupComplete = {
-                        scope.launch {
-                            preferencesManager.setSetupComplete(true)
-                            // Navigation handled by LaunchedEffect above
+        if (isSetupCompleteState == null) {
+            // Loading / Splash State (prevents flash)
+             androidx.compose.foundation.layout.Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues)
+            )
+        } else {
+            val startDest = if (isSetupCompleteState == true) "home" else "setup"
+            NavHost(
+                navController = navController,
+                startDestination = startDest,
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable("setup") {
+                    SetupScreen(
+                        onSetupComplete = { selectedLayout ->
+                            scope.launch {
+                                preferencesManager.setLayoutStyle(selectedLayout)
+                                preferencesManager.setSetupComplete(true)
+                                // Navigation handled by LaunchedEffect above
+                            }
                         }
-                    }
-                )
-            }
+                    )
+                }
             composable("home") {
                 HomeScreen(
                     preferencesManager = preferencesManager,
@@ -188,5 +197,6 @@ fun Navigation(preferencesManager: PreferencesManager) {
                 InfoScreen()
             }
         }
+    }
     }
 }
