@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -39,12 +40,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.topjohnwu.superuser.Shell
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.repository.PowerRepository
-import id.xms.xtrakernelmanager.data.repository.RootManager
+import id.xms.xtrakernelmanager.domain.root.RootManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -151,95 +154,300 @@ fun SetupScreen(onSetupComplete: () -> Unit) {
                             .background(color)
                             .animateContentSize()
                     )
-                    title = "Storage",
-                    description = "Required for config backups and flashing.",
-                    icon = Icons.Rounded.Storage,
-                    isGranted = isStorageGranted,
-                    isChecking = isChecking,
-                    onClick = {
-                        storageLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+            }
+        }
+
+        // Pager Content
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            userScrollEnabled = false // Force use of buttons? Or allow scroll? Let's disable to enforce flow.
+        ) { page ->
+            when(page) {
+                0 -> WelcomePage(
+                    onNext = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(1)
+                        }
                     }
                 )
+                1 -> PermissionsPage(
+                    isRootGranted = isRootGranted,
+                    isUsageGranted = isUsageGranted,
+                    isNotificationGranted = isNotificationGranted,
+                    isStorageGranted = isStorageGranted,
+                    onCheckPermissions = { checkPermissions() },
+                    onFinish = onSetupComplete
+                )
             }
-            
-            Spacer(Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+fun WelcomePage(onNext: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp), // Reduced horizontal padding
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        // Animated Icon or Illustrationy
+        Box(
+            modifier = Modifier
+                .size(160.dp) // Increased size for "fuller" look
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer,
+                            MaterialTheme.colorScheme.tertiaryContainer
+                        )
+                    ),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.RocketLaunch,
+                contentDescription = null,
+                modifier = Modifier.size(80.dp), // Increased icon size
+                tint = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Welcome to XKM",
+            style = MaterialTheme.typography.headlineLarge, // Larger headline
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "The ultimate kernel manager for focused performance and deep system control.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        Button(
+            onClick = onNext,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp), // Slightly more compact height
+            shape = RoundedCornerShape(12.dp) // Slightly tighter corners
+        ) {
+            Text(
+                text = "Get Started",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(Icons.Rounded.ArrowForward, null)
+        }
+    }
+}
+
+@Composable
+fun PermissionsPage(
+    isRootGranted: Boolean,
+    isUsageGranted: Boolean,
+    isNotificationGranted: Boolean,
+    isStorageGranted: Boolean,
+    onCheckPermissions: () -> Unit,
+    onFinish: () -> Unit
+) {
+    val context = LocalContext.current
+    val scrollState = rememberScrollState()
+
+    // Launchers
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { onCheckPermissions() }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(horizontal = 20.dp), // Tighter padding
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Permissions",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp) // Reduced bottom padding
+        )
+        
+        Text(
+            text = "We need a few permissions to unleash the full power of your kernel.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp) // Reduced spacing
+        )
+
+        // Root Access (Mandatory)
+        PermissionItem(
+            icon = Icons.Rounded.Security,
+            title = "Root Access",
+            description = "Required to modify kernel settings.",
+            isGranted = isRootGranted,
+            onGrant = {
+                 com.topjohnwu.superuser.Shell.getShell {  } 
+            },
+            isMandatory = true
+        )
+
+        // Usage Access
+        PermissionItem(
+            icon = Icons.Rounded.DataUsage,
+            title = "Usage Access",
+            description = "Required to track screen-on time and per-app profiles.",
+            isGranted = isUsageGranted,
+            onGrant = {
+                val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                context.startActivity(intent)
+            }
+        )
+
+        // Notifications
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PermissionItem(
+                icon = Icons.Rounded.Notifications,
+                title = "Notifications",
+                description = "To notify you about applied profiles.",
+                isGranted = isNotificationGranted,
+                onGrant = {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            )
+        }
+
+        // Storage
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+             PermissionItem(
+                icon = Icons.Rounded.Storage,
+                title = "Storage Access",
+                description = "To backup and restore configurations.",
+                isGranted = isStorageGranted,
+                onGrant = {
+                    requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp)) // Reduced spacer
+
+        // Finish Button
+        val canProceed = isRootGranted 
+        
+        Button(
+            onClick = onFinish,
+            enabled = canProceed,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp) // Compact height
+                .padding(bottom = 24.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (canProceed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                contentColor = if (canProceed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            if (canProceed) {
+                Text("Start XKM", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(Icons.Rounded.Check, null)
+            } else {
+                Text("Root Access Required", style = MaterialTheme.typography.titleMedium)
+            }
         }
     }
 }
 
 @Composable
 fun PermissionItem(
+    icon: ImageVector,
     title: String,
     description: String,
-    icon: ImageVector,
     isGranted: Boolean,
-    isChecking: Boolean,
-    onClick: () -> Unit
+    onGrant: () -> Unit,
+    isMandatory: Boolean = false
 ) {
-    val containerColor = if (isGranted) 
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) 
-    else 
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        
-    val borderColor = if (isGranted) MaterialTheme.colorScheme.primary else Color.Transparent
-
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        onClick = { if (!isGranted) onClick() }
+        onClick = { if (!isGranted) onGrant() },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp), // Reduced vertical margin
+        colors = CardDefaults.cardColors(
+            containerColor = if (isGranted) 
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            else 
+                MaterialTheme.colorScheme.surfaceContainerHighest // Use clearer surface variant
+        ),
+        border = if (!isGranted && isMandatory) 
+            ButtonDefaults.outlinedButtonBorder.copy(brush = SolidColor(MaterialTheme.colorScheme.error)) 
+        else null,
+        enabled = !isGranted,
+        shape = RoundedCornerShape(16.dp) // Consistent shape
     ) {
         Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(12.dp), // Reduced inner padding (was 16.dp)
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .background(MaterialTheme.colorScheme.background, CircleShape),
+                    .size(44.dp) // Slightly smaller icon box
+                    .background(
+                        if (isGranted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface,
+                        RoundedCornerShape(12.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    icon, 
-                    null, 
-                    tint = if(isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    imageVector = if (isGranted) Icons.Rounded.Check else icon,
+                    contentDescription = null,
+                    tint = if (isGranted) MaterialTheme.colorScheme.onSecondary else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp) // Smaller icon inside
                 )
             }
-            
-            Spacer(Modifier.width(16.dp))
-            
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    title,
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isGranted) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    description,
+                    text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 16.sp // Tighter line height
                 )
             }
-            
-            Spacer(Modifier.width(8.dp))
-            
-            if (isGranted) {
-                Icon(
-                    Icons.Rounded.CheckCircle, 
-                    null, 
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
-                )
-            } else {
-                 Button(
-                    onClick = onClick,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                    modifier = Modifier.height(36.dp),
-                    shape = RoundedCornerShape(50)
+
+            if (!isGranted) {
+                 // Use filled tonal button for "Grant" for better visibility
+                FilledTonalButton(
+                    onClick = onGrant,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp)
                 ) {
-                    Text("Grant", fontSize = 12.sp)
+                    Text(
+                        if (title == "Root Access" || title == "Storage Access") "Grant" else "Allow",
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
         }
