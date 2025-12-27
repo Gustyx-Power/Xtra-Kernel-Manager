@@ -82,16 +82,13 @@ pub fn read_gpu_freq() -> i32 {
 }
 
 pub fn read_gpu_busy() -> i32 {
-    // Try gpu_busy_percentage first (Qualcomm, format: "2 %" or just "2")
     if let Some(content) = read_sysfs("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage") {
-        // Extract just the number (handles "2 %" or "2")
         let num_str = content.split_whitespace().next().unwrap_or("0");
         if let Ok(busy) = num_str.parse::<i32>() {
             return busy;
         }
     }
 
-    // Fallback: gpubusy format "busy_time total_time" - calculate percentage
     if let Some(content) = read_sysfs("/sys/class/kgsl/kgsl-3d0/gpubusy") {
         let parts: Vec<&str> = content.split_whitespace().collect();
         if parts.len() >= 2

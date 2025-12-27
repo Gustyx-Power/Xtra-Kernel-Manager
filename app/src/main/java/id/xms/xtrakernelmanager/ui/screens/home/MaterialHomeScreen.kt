@@ -72,6 +72,7 @@ fun MaterialHomeScreen(
     val gpuInfo by viewModel.gpuInfo.collectAsState()
     val batteryInfo by viewModel.batteryInfo.collectAsState()
     val systemInfo by viewModel.systemInfo.collectAsState()
+    val powerInfo by viewModel.powerInfo.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.loadBatteryInfo(context)
@@ -159,7 +160,7 @@ fun MaterialHomeScreen(
                 
                 // Power Insight Card (New)
                 StaggeredEntry(delayMillis = 600) {
-                     MaterialPowerInsightCard()
+                     MaterialPowerInsightCard(powerInfo)
                 }
                 
                 // Bottom Spacing
@@ -1019,7 +1020,19 @@ fun StaggeredEntry(
 }
 
 @Composable
-fun MaterialPowerInsightCard() {
+fun MaterialPowerInsightCard(powerInfo: id.xms.xtrakernelmanager.data.model.PowerInfo) {
+    // Determine badge text and color based on charging status
+    val (badgeText, badgeColor) = if (powerInfo.isCharging) {
+        "Charging" to MaterialTheme.colorScheme.primaryContainer
+    } else {
+        "Screen On" to MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val badgeTextColor = if (powerInfo.isCharging) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onTertiaryContainer
+    }
+    
     Card(
         modifier = Modifier.fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(32.dp),
@@ -1034,7 +1047,7 @@ fun MaterialPowerInsightCard() {
             // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween, // Push end items to right
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 // Icon + Title Group
@@ -1068,14 +1081,14 @@ fun MaterialPowerInsightCard() {
 
                 // Badge (Pushed to Right)
                 Surface(
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    color = badgeColor,
                     shape = RoundedCornerShape(50),
                 ) {
                     Text(
-                         text = "Screen On",
+                        text = badgeText,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        color = badgeTextColor,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
@@ -1090,34 +1103,34 @@ fun MaterialPowerInsightCard() {
                 // SOT Circular Indicator
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(150.dp) // Bigger Size
+                    modifier = Modifier.size(150.dp)
                 ) {
                     // Background Track
                     WavyCircularProgressIndicator(
                         progress = 1f,
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                        strokeWidth = 16.dp, // Thicker
-                        amplitude = 3.dp,    // Subtle wave
-                        frequency = 10       // Calmer frequency
+                        strokeWidth = 16.dp,
+                        amplitude = 3.dp,
+                        frequency = 10
                     )
                     
-                    // Progress (Dummy: 65% for ~6h SOT goal)
+                    // Progress (based on 8 hour SOT goal)
                     WavyCircularProgressIndicator(
-                        progress = 0.65f,
+                        progress = powerInfo.getSotProgress(8),
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.primary,
-                        strokeWidth = 16.dp, // Thicker
-                        amplitude = 3.dp,    // Subtle wave
-                        frequency = 10       // Calmer frequency
+                        strokeWidth = 16.dp,
+                        amplitude = 3.dp,
+                        frequency = 10
                     )
                     
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "5h 24m", // Dummy Data
-                            style = MaterialTheme.typography.headlineMedium, // Bigger Font
+                            text = powerInfo.formatScreenOnTime(),
+                            style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Black,
                             color = MaterialTheme.colorScheme.primary
                         )
@@ -1129,14 +1142,27 @@ fun MaterialPowerInsightCard() {
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    PowerInsightItem(label = "Deep Sleep", value = "85%", icon = Icons.Rounded.Bedtime)
-                    PowerInsightItem(label = "Active Drain", value = "-10%/h", icon = Icons.Rounded.TrendingDown)
-                    PowerInsightItem(label = "Idle Drain", value = "-0.8%/h", icon = Icons.Rounded.PhoneAndroid)
+                    PowerInsightItem(
+                        label = "Deep Sleep", 
+                        value = String.format("%.0f%%", powerInfo.deepSleepPercentage), 
+                        icon = Icons.Rounded.Bedtime
+                    )
+                    PowerInsightItem(
+                        label = "Active Drain", 
+                        value = String.format("-%.1f%%/h", powerInfo.activeDrainRate), 
+                        icon = Icons.Rounded.TrendingDown
+                    )
+                    PowerInsightItem(
+                        label = "Idle Drain", 
+                        value = String.format("-%.1f%%/h", powerInfo.idleDrainRate), 
+                        icon = Icons.Rounded.PhoneAndroid
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun WavyCircularProgressIndicator(

@@ -120,13 +120,120 @@ object NativeLib {
         }
     }
     
-    // Native method declarations
+
+    /**
+     * Read battery level percentage (0-100)
+     */
+    fun readBatteryLevel(): Int? {
+        if (!isLoaded) return null
+        return try {
+            val level = readBatteryLevelNative()
+            if (level in 0..100) level else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readBatteryLevel failed: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Read battery drain rate in mA (positive = discharging, negative = charging)
+     */
+    fun readDrainRate(): Int? {
+        if (!isLoaded) return null
+        return try {
+            readDrainRateNative()
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readDrainRate failed: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Read wakeup count (number of wakeups from sleep)
+     */
+    fun readWakeupCount(): Int? {
+        if (!isLoaded) return null
+        return try {
+            readWakeupCountNative()
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readWakeupCount failed: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Read suspend count (number of times device entered deep sleep)
+     */
+    fun readSuspendCount(): Int? {
+        if (!isLoaded) return null
+        return try {
+            readSuspendCountNative()
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readSuspendCount failed: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Check if device is currently charging
+     */
+    fun isCharging(): Boolean? {
+        if (!isLoaded) return null
+        return try {
+            isChargingNative()
+        } catch (e: Exception) {
+            Log.e(TAG, "Native isCharging failed: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Read battery temperature in Celsius (returns Float, e.g., 35.0)
+     */
+    fun readBatteryTemp(): Float? {
+        if (!isLoaded) return null
+        return try {
+            val temp = readBatteryTempNative()
+            if (temp > 0) temp / 10.0f else null // Convert deciCelsius to Celsius
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readBatteryTemp failed: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Read battery voltage in volts (returns Float, e.g., 4.2)
+     */
+    fun readBatteryVoltage(): Float? {
+        if (!isLoaded) return null
+        return try {
+            val mv = readBatteryVoltageNative()
+            if (mv > 0) mv / 1000.0f else null // Convert mV to V
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readBatteryVoltage failed: ${e.message}")
+            null
+        }
+    }
+    
+    
+    // CPU Module
     private external fun detectCpuClustersNative(): String
     private external fun readBatteryCurrentNative(): Int
     private external fun readCpuLoadNative(): Float
     private external fun readCpuTemperatureNative(): Float
+    
+    // GPU Module
     private external fun readGpuFreqNative(): Int
     private external fun readGpuBusyNative(): Int
+    
+    // Power Module
+    private external fun readBatteryLevelNative(): Int
+    private external fun readDrainRateNative(): Int
+    private external fun readWakeupCountNative(): Int
+    private external fun readSuspendCountNative(): Int
+    private external fun isChargingNative(): Boolean
+    private external fun readBatteryTempNative(): Int
+    private external fun readBatteryVoltageNative(): Int
     
     /**
      * Parse JSON string from Rust into ClusterInfo list
