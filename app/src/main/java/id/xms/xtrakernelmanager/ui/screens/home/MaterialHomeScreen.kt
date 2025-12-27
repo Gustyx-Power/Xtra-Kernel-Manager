@@ -599,27 +599,18 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
                     )
                 }
                 
-                // Smart Badge: Status
-                val isCharging = batteryInfo.status.contains("Charging", ignoreCase = true)
+                // Smart Badge: Technology
                 Surface(
-                    color = if(isCharging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
                     shape = RoundedCornerShape(50),
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                         if(isCharging) {
-                            Icon(Icons.Rounded.Bolt, null, modifier = Modifier.size(12.dp), tint = MaterialTheme.colorScheme.onPrimary)
-                         }
-                         Text(
-                            text = batteryInfo.status,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
+                    Text(
+                        text = batteryInfo.technology.takeIf { it != "Unknown" } ?: "Li-ion",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
                 }
             }
 
