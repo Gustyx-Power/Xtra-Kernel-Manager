@@ -1,37 +1,13 @@
-use std::ffi::CString;
-use std::process::Command;
+use crate::utils;
 
 const KGSL_GPUCLK: &str = "/sys/class/kgsl/kgsl-3d0/gpuclk";
 const KGSL_CLOCK_MHZ: &str = "/sys/class/kgsl/kgsl-3d0/clock_mhz";
 const MALI_GPU_CLOCK: &str = "/sys/kernel/gpu/gpu_clock";
 const MALI_CLOCK: &str = "/sys/devices/platform/mali.0/clock";
 
-fn read_file_libc(path: &str) -> Option<String> {
-    let c_path = CString::new(path).ok()?;
-
-    unsafe {
-        let fd = libc::open(c_path.as_ptr(), libc::O_RDONLY);
-        if fd < 0 {
-            return None;
-        }
-
-        let mut buffer = [0u8; 64];
-        let bytes_read = libc::read(fd, buffer.as_mut_ptr() as *mut libc::c_void, buffer.len());
-
-        libc::close(fd);
-
-        if bytes_read <= 0 {
-            return None;
-        }
-
-        String::from_utf8(buffer[..bytes_read as usize].to_vec())
-            .ok()
-            .map(|s| s.trim().to_string())
-    }
-}
-
+#[inline]
 fn read_sysfs(path: &str) -> Option<String> {
-    read_file_libc(path)
+    utils::read_file_libc(path)
 }
 
 fn parse_freq_to_mhz(value: &str) -> Option<i32> {

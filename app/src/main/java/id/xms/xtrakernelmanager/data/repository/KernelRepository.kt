@@ -322,29 +322,46 @@ class KernelRepository {
         val selinux = RootManager.executeCommand("getenforce 2>/dev/null")
             .getOrNull()?.trim() ?: "Unknown"
 
-        val (totalRam, availableRam) = try {
-            val memInfo = RootManager.executeCommand("cat /proc/meminfo").getOrNull() ?: ""
-            val total = memInfo.lines()
-                .firstOrNull { it.startsWith("MemTotal:") }
-                ?.split("\\s+".toRegex())?.get(1)?.toLongOrNull() ?: 0L
-            val available = memInfo.lines()
-                .firstOrNull { it.startsWith("MemAvailable:") }
-                ?.split("\\s+".toRegex())?.get(1)?.toLongOrNull() ?: 0L
-            Pair(total, available)
-        } catch (e: Exception) {
-            Pair(0L, 0L)
+        // Use native MemInfo for faster reading
+        val memInfo = NativeLib.readMemInfo()
+        val (totalRam, availableRam) = if (memInfo != null) {
+            Pair(memInfo.totalKb, memInfo.availableKb)
+        } else {
+            // Fallback to shell if native fails
+            try {
+                val memInfoRaw = RootManager.executeCommand("cat /proc/meminfo").getOrNull() ?: ""
+                val total = memInfoRaw.lines()
+                    .firstOrNull { it.startsWith("MemTotal:") }
+                    ?.split("\\s+".toRegex())?.get(1)?.toLongOrNull() ?: 0L
+                val available = memInfoRaw.lines()
+                    .firstOrNull { it.startsWith("MemAvailable:") }
+                    ?.split("\\s+".toRegex())?.get(1)?.toLongOrNull() ?: 0L
+                Pair(total, available)
+            } catch (e: Exception) {
+                Pair(0L, 0L)
+            }
         }
 
-        val zramSize = RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
-            .getOrNull()?.trim()?.toLongOrNull() ?: 0L
+        // Use native ZRAM reading
+        val zramSize = NativeLib.readZramSize() 
+            ?: RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
+                .getOrNull()?.trim()?.toLongOrNull() ?: 0L
 
         val statFs = android.os.StatFs(android.os.Environment.getDataDirectory().path)
         val totalStorage = statFs.totalBytes
         val availableStorage = statFs.availableBytes
 
-        val swapTotalBytes = getSwapTotalSize()
-        val swapUsedBytes = getSwapUsedSize()
-        val swapFreeBytes = swapTotalBytes - swapUsedBytes
+        // Use native swap info
+        val swapTotalBytes = if (memInfo != null) {
+            memInfo.swapTotalKb * 1024
+        } else {
+            getSwapTotalSize()
+        }
+        val swapFreeBytes = if (memInfo != null) {
+            memInfo.swapFreeKb * 1024
+        } else {
+            swapTotalBytes - getSwapUsedSize()
+        }
 
         SystemInfo(
             androidVersion = androidVersion,

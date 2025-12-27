@@ -252,6 +252,65 @@ object NativeLib {
         }
     }
     
+    /**
+     * Memory info data class
+     */
+    data class MemInfo(
+        val totalKb: Long,
+        val availableKb: Long,
+        val freeKb: Long,
+        val cachedKb: Long,
+        val buffersKb: Long,
+        val swapTotalKb: Long,
+        val swapFreeKb: Long
+    )
+    
+    /**
+     * Read memory info from /proc/meminfo using native code
+     */
+    fun readMemInfo(): MemInfo? {
+        if (!isLoaded) return null
+        return try {
+            val json = readMemInfoNative()
+            parseMemInfoFromJson(json)
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readMemInfo failed: ${e.message}")
+            null
+        }
+    }
+    
+    private fun parseMemInfoFromJson(json: String): MemInfo? {
+        return try {
+            val obj = org.json.JSONObject(json)
+            MemInfo(
+                totalKb = obj.optLong("total_kb", 0),
+                availableKb = obj.optLong("available_kb", 0),
+                freeKb = obj.optLong("free_kb", 0),
+                cachedKb = obj.optLong("cached_kb", 0),
+                buffersKb = obj.optLong("buffers_kb", 0),
+                swapTotalKb = obj.optLong("swap_total_kb", 0),
+                swapFreeKb = obj.optLong("swap_free_kb", 0)
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse MemInfo JSON: ${e.message}")
+            null
+        }
+    }
+    
+    /**
+     * Read ZRAM disk size in bytes
+     */
+    fun readZramSize(): Long? {
+        if (!isLoaded) return null
+        return try {
+            val size = readZramSizeNative()
+            if (size > 0) size else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readZramSize failed: ${e.message}")
+            null
+        }
+    }
+    
     
     // CPU Module
     private external fun detectCpuClustersNative(): String
@@ -272,6 +331,10 @@ object NativeLib {
     private external fun isChargingNative(): Boolean
     private external fun readBatteryTempNative(): Int
     private external fun readBatteryVoltageNative(): Int
+    
+    // Memory Module
+    private external fun readMemInfoNative(): String
+    private external fun readZramSizeNative(): Long
     
     /**
      * Parse JSON string from Rust into ClusterInfo list

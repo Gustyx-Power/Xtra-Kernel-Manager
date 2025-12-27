@@ -1,10 +1,16 @@
 mod cpu;
 mod gpu;
+mod memory;
 mod power;
+mod utils;
 
 use jni::objects::JClass;
 use jni::sys::{jboolean, jstring};
 use jni::JNIEnv;
+
+// ============================================================================
+// CPU Module JNI
+// ============================================================================
 
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_detectCpuClustersNative(
@@ -132,4 +138,29 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
     _class: JClass,
 ) -> i32 {
     power::read_battery_voltage_mv()
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readMemInfoNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let info = memory::read_meminfo();
+
+    let json = match serde_json::to_string(&info) {
+        Ok(json) => json,
+        Err(_) => "{}".to_string(),
+    };
+
+    env.new_string(json)
+        .expect("Failed to create Java string")
+        .into_raw()
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readZramSizeNative(
+    _env: JNIEnv,
+    _class: JClass,
+) -> i64 {
+    memory::read_zram_size()
 }

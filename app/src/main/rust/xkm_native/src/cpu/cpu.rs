@@ -1,9 +1,7 @@
+use crate::utils;
 use serde::Serialize;
 use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
 use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 static PREV_TOTAL: AtomicI64 = AtomicI64::new(0);
 static PREV_IDLE: AtomicI64 = AtomicI64::new(0);
@@ -24,23 +22,28 @@ pub struct ClusterInfo {
     pub policy_path: String,
 }
 
-fn read_sysfs_file(path: &str) -> Option<String> {
-    fs::read_to_string(path).ok().map(|s| s.trim().to_string())
+/// Read sysfs file using shared libc utils.
+#[inline]
+fn read_sysfs(path: &str) -> Option<String> {
+    utils::read_file_libc(path)
 }
 
-
+/// Read sysfs file and parse to i32.
+#[inline]
 fn read_sysfs_int(path: &str) -> Option<i32> {
-    read_sysfs_file(path)?.parse().ok()
+    read_sysfs(path)?.parse().ok()
 }
 
-
+/// Read sysfs file and parse to i64.
+#[inline]
 fn read_sysfs_long(path: &str) -> Option<i64> {
-    read_sysfs_file(path)?.parse().ok()
+    read_sysfs(path)?.parse().ok()
 }
 
-
+/// Read sysfs file and parse to f32.
+#[inline]
 fn read_sysfs_float(path: &str) -> Option<f32> {
-    read_sysfs_file(path)?.parse().ok()
+    read_sysfs(path)?.parse().ok()
 }
 
 
@@ -50,7 +53,7 @@ pub fn detect_cpu_clusters() -> Vec<ClusterInfo> {
 
     for i in 0..16 {
         let cpu_path = format!("/sys/devices/system/cpu/cpu{}", i);
-        if Path::new(&cpu_path).exists() {
+        if utils::file_exists(&cpu_path) {
             available_cores.push(i);
         }
     }
@@ -92,11 +95,11 @@ pub fn detect_cpu_clusters() -> Vec<ClusterInfo> {
             read_sysfs_int(&format!("{}/cpufreq/scaling_max_freq", base_path)).unwrap_or(max_freq);
 
         
-        let governor = read_sysfs_file(&format!("{}/cpufreq/scaling_governor", base_path))
+        let governor = read_sysfs(&format!("{}/cpufreq/scaling_governor", base_path))
             .unwrap_or_else(|| "schedutil".to_string());
 
         
-        let available_govs = read_sysfs_file(&format!(
+        let available_govs = read_sysfs(&format!(
             "{}/cpufreq/scaling_available_governors",
             base_path
         ))
@@ -126,12 +129,13 @@ pub fn detect_cpu_clusters() -> Vec<ClusterInfo> {
 
     clusters
 }
+
 pub fn read_core_data() -> String {
     let mut cores_data = Vec::new();
     
     for core in 0..16 {
         let base_path = format!("/sys/devices/system/cpu/cpu{}", core);
-        if !Path::new(&base_path).exists() {
+        if !utils::file_exists(&base_path) {
             continue;
         }
         
@@ -144,7 +148,7 @@ pub fn read_core_data() -> String {
         let (freq, governor) = if is_online {
             let freq = read_sysfs_int(&format!("{}/cpufreq/scaling_cur_freq", base_path))
                 .unwrap_or(0) / 1000; 
-            let gov = read_sysfs_file(&format!("{}/cpufreq/scaling_governor", base_path))
+            let gov = read_sysfs(&format!("{}/cpufreq/scaling_governor", base_path))
                 .unwrap_or_else(|| "unknown".to_string());
             (freq, gov)
         } else {
@@ -179,10 +183,7 @@ pub fn read_battery_current() -> i32 {
 }
 
 pub fn read_cpu_load() -> f32 {
-    let now_ms = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0);
+    let now_ms = utils::now_millis();
     
     let last_time = LAST_LOAD_TIME.load(Ordering::Relaxed);
     
@@ -212,11 +213,9 @@ pub fn read_cpu_load() -> f32 {
             CACHED_LOAD.load(Ordering::Relaxed) as f32 / 100.0
         }
     } else {
-        // First call, no previous data - return 0 and store current values
         0.0
     };
     
-    // Update atomic state
     PREV_TOTAL.store(total, Ordering::Relaxed);
     PREV_IDLE.store(idle, Ordering::Relaxed);
     LAST_LOAD_TIME.store(now_ms, Ordering::Relaxed);
@@ -225,36 +224,12 @@ pub fn read_cpu_load() -> f32 {
     load
 }
 
-/// Read /proc/stat using libc for better Android compatibility
-/// Returns (total_jiffies, idle_jiffies)
+
 fn read_proc_stat_values() -> Option<(i64, i64)> {
-    // Use libc direct read - more reliable on Android
-    use std::ffi::CString;
-    use std::io::Read;
-    
-    let path = CString::new("/proc/stat").ok()?;
-    
-    // Open file with libc
-    let fd = unsafe { libc::open(path.as_ptr(), libc::O_RDONLY) };
-    if fd < 0 {
-        return None;
-    }
-    
-    // Read into buffer
     let mut buffer = [0u8; 512];
-    let bytes_read = unsafe {
-        libc::read(fd, buffer.as_mut_ptr() as *mut libc::c_void, buffer.len())
-    };
+    let bytes = utils::read_file_libc_buf("/proc/stat", &mut buffer)?;
     
-    // Close file
-    unsafe { libc::close(fd) };
-    
-    if bytes_read <= 0 {
-        return None;
-    }
-    
-    // Parse the first "cpu " line
-    let content = std::str::from_utf8(&buffer[..bytes_read as usize]).ok()?;
+    let content = std::str::from_utf8(&buffer[..bytes]).ok()?;
     let cpu_line = content.lines().find(|line| line.starts_with("cpu "))?;
     
     let values: Vec<i64> = cpu_line

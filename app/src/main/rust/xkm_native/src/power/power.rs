@@ -1,49 +1,13 @@
-use std::ffi::CString;
-use std::process::Command;
+use crate::utils;
 use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
-
 
 static LAST_BATTERY_UA: AtomicI64 = AtomicI64::new(0);
 static LAST_SAMPLE_TIME: AtomicU64 = AtomicU64::new(0);
 
-fn read_file_libc(path: &str) -> Option<String> {
-    let c_path = CString::new(path).ok()?;
-
-    unsafe {
-        let fd = libc::open(c_path.as_ptr(), libc::O_RDONLY);
-        if fd < 0 {
-            return None;
-        }
-
-        let mut buffer = [0u8; 128];
-        let bytes_read = libc::read(fd, buffer.as_mut_ptr() as *mut libc::c_void, buffer.len());
-
-        libc::close(fd);
-
-        if bytes_read <= 0 {
-            return None;
-        }
-
-        String::from_utf8(buffer[..bytes_read as usize].to_vec())
-            .ok()
-            .map(|s| s.trim().to_string())
-    }
-}
-
-
+#[inline]
 fn read_sysfs(path: &str) -> Option<String> {
-    read_file_libc(path)
+    utils::read_file_libc(path)
 }
-
-
-fn now_millis() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0)
-}
-
 
 fn read_battery_current_ua() -> i64 {
     let paths = [
@@ -87,8 +51,7 @@ pub fn read_battery_level() -> i32 {
 
 pub fn read_drain_rate_ma() -> i32 {
     let current_ua = read_battery_current_ua();
-    let now = now_millis();
-
+    let now = utils::now_millis();
 
     LAST_BATTERY_UA.store(current_ua, Ordering::Relaxed);
     LAST_SAMPLE_TIME.store(now, Ordering::Relaxed);
@@ -119,22 +82,6 @@ pub fn read_suspend_count() -> i32 {
     0
 }
 
-
-pub fn read_suspend_time_secs() -> i64 {
-    if let Some(content) = read_sysfs("/proc/stat") {
-        for line in content.lines() {
-            if line.starts_with("cpu ") {
-                let values: Vec<&str> = line.split_whitespace().collect();
-                if values.len() > 4 {
-                    if let Ok(idle_jiffies) = values[4].parse::<i64>() {
-                        return idle_jiffies / 100;
-                    }
-                }
-            }
-        }
-    }
-    0
-}
 
 pub fn is_charging() -> bool {
     let paths = [
