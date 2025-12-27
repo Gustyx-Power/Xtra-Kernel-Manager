@@ -10,22 +10,44 @@ import kotlinx.coroutines.withContext
 class KernelRepository {
 
     private val TAG = "KernelRepository"
+    private var cachedClusters: List<ClusterInfo>? = null
 
     suspend fun getCPUInfo(): CPUInfo = withContext(Dispatchers.IO) {
-        val clusters = detectClustersAdvanced()
-        val cores = clusters.flatMap { cluster ->
-            cluster.cores.map { coreNum ->
-                getCoreInfo(coreNum, cluster.clusterNumber)
+        val clusters = cachedClusters ?: run {
+            val nativeClusters = NativeLib.detectCpuClusters()
+            if (nativeClusters != null && nativeClusters.isNotEmpty()) {
+                nativeClusters.also { cachedClusters = it }
+            } else {
+                detectClustersAdvanced().also { cachedClusters = it }
             }
         }
         
-        // Use native for temperature (single read is fine)
+        val nativeCoreData = NativeLib.readCoreData()
+        
+        val cores = if (nativeCoreData != null && nativeCoreData.isNotEmpty()) {
+            nativeCoreData.map { coreData ->
+                val cluster = clusters.find { coreData.core in it.cores }
+                CoreInfo(
+                    coreNumber = coreData.core,
+                    currentFreq = coreData.freq,
+                    minFreq = cluster?.minFreq ?: 0,
+                    maxFreq = cluster?.maxFreq ?: 0,
+                    governor = coreData.governor,
+                    isOnline = coreData.online,
+                    cluster = cluster?.clusterNumber ?: 0
+                )
+            }
+        } else {
+            clusters.flatMap { cluster ->
+                cluster.cores.map { coreNum ->
+                    getCoreInfo(coreNum, cluster.clusterNumber)
+                }
+            }
+        }
+        
         val temp = NativeLib.readCpuTemperature() ?: getCPUTemperature()
-        
-        // Use Kotlin for CPU load (requires root for /proc/stat on Android)
-        val load = getCPULoad()
-        
-        Log.d(TAG, "CPU info retrieved - temp: $temp, load: $load, clusters: ${clusters.size}")
+        val nativeLoad = NativeLib.readCpuLoad()
+        val load = if (nativeLoad != null && nativeLoad > 0.1f) nativeLoad else getCPULoad()
         
         CPUInfo(
             cores = cores,

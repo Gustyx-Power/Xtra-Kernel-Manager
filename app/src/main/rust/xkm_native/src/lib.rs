@@ -48,6 +48,17 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
 }
 
 #[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readCoreDataNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let json = cpu::read_core_data();
+    env.new_string(json)
+        .expect("Failed to create Java string")
+        .into_raw()
+}
+
+#[unsafe(no_mangle)]
 pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readGpuFreqNative(
     _env: JNIEnv,
     _class: JClass,

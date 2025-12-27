@@ -92,6 +92,43 @@ object NativeLib {
     }
     
     /**
+     * Read dynamic data for all CPU cores (frequency, online status, governor)
+     * Returns list of CoreData objects or null if native lib not available
+     */
+    data class CoreData(val core: Int, val online: Boolean, val freq: Int, val governor: String)
+    
+    fun readCoreData(): List<CoreData>? {
+        if (!isLoaded) return null
+        
+        return try {
+            val json = readCoreDataNative()
+            parseCoreDataFromJson(json)
+        } catch (e: Exception) {
+            Log.e(TAG, "Native readCoreData failed: ${e.message}")
+            null
+        }
+    }
+    
+    private fun parseCoreDataFromJson(json: String): List<CoreData> {
+        val coreDataList = mutableListOf<CoreData>()
+        try {
+            val jsonArray = JSONArray(json)
+            for (i in 0 until jsonArray.length()) {
+                val obj = jsonArray.getJSONObject(i)
+                coreDataList.add(CoreData(
+                    core = obj.getInt("core"),
+                    online = obj.getBoolean("online"),
+                    freq = obj.getInt("freq"),
+                    governor = obj.getString("governor")
+                ))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse core data JSON: ${e.message}")
+        }
+        return coreDataList
+    }
+    
+    /**
      * Read GPU frequency in MHz using native code
      * Returns null if native lib not available
      */
@@ -221,6 +258,7 @@ object NativeLib {
     private external fun readBatteryCurrentNative(): Int
     private external fun readCpuLoadNative(): Float
     private external fun readCpuTemperatureNative(): Float
+    private external fun readCoreDataNative(): String
     
     // GPU Module
     private external fun readGpuFreqNative(): Int
