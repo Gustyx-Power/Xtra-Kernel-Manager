@@ -1139,23 +1139,28 @@ fun MaterialPowerInsightCard(powerInfo: id.xms.xtrakernelmanager.data.model.Powe
                 
                 // Stats Column
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
+                    PowerInsightItem(
+                        label = "Screen On", 
+                        value = powerInfo.formatScreenOnTime(), 
+                        icon = Icons.Rounded.LightMode
+                    )
+                    PowerInsightItem(
+                        label = "Screen Off", 
+                        value = powerInfo.formatScreenOffTime(), 
+                        icon = Icons.Rounded.DarkMode
+                    )
                     PowerInsightItem(
                         label = "Deep Sleep", 
                         value = String.format("%.0f%%", powerInfo.deepSleepPercentage), 
                         icon = Icons.Rounded.Bedtime
                     )
                     PowerInsightItem(
-                        label = "Active Drain", 
+                        label = "Drain Rate", 
                         value = String.format("-%.1f%%/h", powerInfo.activeDrainRate), 
-                        icon = Icons.Rounded.TrendingDown
-                    )
-                    PowerInsightItem(
-                        label = "Idle Drain", 
-                        value = String.format("-%.1f%%/h", powerInfo.idleDrainRate), 
-                        icon = Icons.Rounded.PhoneAndroid
+                        icon = Icons.Rounded.BatteryAlert
                     )
                 }
             }

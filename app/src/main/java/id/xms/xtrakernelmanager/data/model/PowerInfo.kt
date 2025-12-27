@@ -31,6 +31,19 @@ data class PowerInfo(
     }
     
     /**
+     * Format screen off time as human readable string
+     */
+    fun formatScreenOffTime(): String {
+        val hours = screenOffTime / (1000 * 60 * 60)
+        val minutes = (screenOffTime / (1000 * 60)) % 60
+        return if (hours > 0) {
+            "${hours}h ${minutes}m"
+        } else {
+            "${minutes}m"
+        }
+    }
+    
+    /**
      * Calculate SOT progress (0.0 - 1.0) based on 8 hour goal
      */
     fun getSotProgress(goalHours: Int = 8): Float {

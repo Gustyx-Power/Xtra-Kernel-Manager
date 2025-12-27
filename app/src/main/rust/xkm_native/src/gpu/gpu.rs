@@ -30,28 +30,8 @@ fn read_file_libc(path: &str) -> Option<String> {
     }
 }
 
-fn read_file_root(path: &str) -> Option<String> {
-    let output = Command::new("su")
-        .arg("-c")
-        .arg(format!("cat {}", path))
-        .output()
-        .ok()?;
-
-    if output.status.success() {
-        String::from_utf8(output.stdout)
-            .ok()
-            .map(|s| s.trim().to_string())
-    } else {
-        None
-    }
-}
-
 fn read_sysfs(path: &str) -> Option<String> {
-    if let Some(content) = read_file_libc(path) {
-        return Some(content);
-    }
-
-    read_file_root(path)
+    read_file_libc(path)
 }
 
 fn parse_freq_to_mhz(value: &str) -> Option<i32> {

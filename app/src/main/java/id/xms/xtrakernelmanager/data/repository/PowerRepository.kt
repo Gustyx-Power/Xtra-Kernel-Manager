@@ -75,6 +75,10 @@ class PowerRepository {
      */
     private fun getScreenOnOffTime(context: Context): Pair<Long, Long> {
         try {
+            if (!hasUsageStatsPermission(context)) {
+                return Pair(0L, 0L)
+            }
+            
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
                 ?: return Pair(0L, 0L)
             
@@ -84,10 +88,21 @@ class PowerRepository {
             
             val events = usageStatsManager.queryEvents(startTime, endTime)
             
+            if (!events.hasNextEvent()) {
+                return Pair(0L, 0L)
+            }
+            
             var screenOnTime = 0L
             var screenOffTime = 0L
             var lastEventTime = startTime
-            var isScreenOn = true // Assume screen starts on
+            
+            // We need to determine initial state. This is hard without previous event.
+            // But we can iterate first to find the first event.
+            // A safer heuristic: If first event is SCREEN_OFF, it implies it was ON before.
+            // If first event is SCREEN_ON, it implies it was OFF before.
+            // For simplicity and to avoid "24h" bug, we start counting ONLY after first event?
+            // Or we assume OFF initially.
+            var isScreenOn = false 
             
             val event = UsageEvents.Event()
             while (events.hasNextEvent()) {
@@ -120,6 +135,9 @@ class PowerRepository {
             } else {
                 screenOffTime += remaining
             }
+            
+            // Sanity check: if calculated SOT > 24h (impossible), clamp it.
+            if (screenOnTime > 24 * 60 * 60 * 1000L) screenOnTime = 0
             
             return Pair(screenOnTime, screenOffTime)
             

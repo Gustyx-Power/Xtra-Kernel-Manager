@@ -11,11 +11,13 @@ import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.data.repository.KernelRepository
 import id.xms.xtrakernelmanager.data.repository.PowerRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeViewModel : ViewModel() {
 
@@ -50,16 +52,30 @@ class HomeViewModel : ViewModel() {
 
     private fun startMonitoring() {
         viewModelScope.launch {
-            while (true) {
-                _cpuInfo.value = kernelRepository.getCPUInfo()
-                _gpuInfo.value = kernelRepository.getGPUInfo()
-                _systemInfo.value = kernelRepository.getSystemInfo()
-                context?.let {
-                    _batteryInfo.value = batteryRepository.getBatteryInfo(it)
-                    _powerInfo.value = powerRepository.getPowerInfo(it)
-                }
+            withContext(Dispatchers.IO) {
+                while (true) {
+                    try {
+                        val cpu = kernelRepository.getCPUInfo()
+                        val gpu = kernelRepository.getGPUInfo()
+                        val sys = kernelRepository.getSystemInfo()
+                        
+                        // Update state (StateFlow is thread-safe)
+                        _cpuInfo.value = cpu
+                        _gpuInfo.value = gpu
+                        _systemInfo.value = sys
+                        
+                        context?.let {
+                             val bat = batteryRepository.getBatteryInfo(it)
+                             val pwr = powerRepository.getPowerInfo(it)
+                             _batteryInfo.value = bat
+                             _powerInfo.value = pwr
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
 
-                delay(1000)
+                    delay(1000)
+                }
             }
         }
     }
