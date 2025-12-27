@@ -160,7 +160,7 @@ fun MaterialHomeScreen(
                 
                 // Power Insight Card (New)
                 StaggeredEntry(delayMillis = 600) {
-                     MaterialPowerInsightCard(powerInfo)
+                     MaterialPowerInsightCard(powerInfo, batteryInfo)
                 }
                 
                 // Bottom Spacing
@@ -1011,7 +1011,10 @@ fun StaggeredEntry(
 }
 
 @Composable
-fun MaterialPowerInsightCard(powerInfo: id.xms.xtrakernelmanager.data.model.PowerInfo) {
+fun MaterialPowerInsightCard(
+    powerInfo: id.xms.xtrakernelmanager.data.model.PowerInfo,
+    batteryInfo: BatteryInfo
+) {
     // Determine badge text and color based on charging status
     val (badgeText, badgeColor) = if (powerInfo.isCharging) {
         "Charging" to MaterialTheme.colorScheme.primaryContainer
@@ -1108,7 +1111,7 @@ fun MaterialPowerInsightCard(powerInfo: id.xms.xtrakernelmanager.data.model.Powe
                     
                     // Progress (based on 8 hour SOT goal)
                     WavyCircularProgressIndicator(
-                        progress = powerInfo.getSotProgress(8),
+                        progress = batteryInfo.level / 100f,
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.primary,
                         strokeWidth = 16.dp,
@@ -1121,8 +1124,8 @@ fun MaterialPowerInsightCard(powerInfo: id.xms.xtrakernelmanager.data.model.Powe
                     ) {
                         Text(
                             text = powerInfo.formatScreenOnTime(),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Black,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
@@ -1141,11 +1144,11 @@ fun MaterialPowerInsightCard(powerInfo: id.xms.xtrakernelmanager.data.model.Powe
                     PowerInsightItem(
                         label = "Screen Off", 
                         value = powerInfo.formatScreenOffTime(), 
-                        icon = Icons.Rounded.DarkMode
+                        icon = Icons.Rounded.ScreenLockPortrait
                     )
                     PowerInsightItem(
                         label = "Deep Sleep", 
-                        value = String.format("%.0f%%", powerInfo.deepSleepPercentage), 
+                        value = powerInfo.formatDeepSleepTime(), 
                         icon = Icons.Rounded.Bedtime
                     )
                     PowerInsightItem(

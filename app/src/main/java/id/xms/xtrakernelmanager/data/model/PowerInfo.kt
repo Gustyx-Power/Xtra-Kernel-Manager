@@ -50,4 +50,15 @@ data class PowerInfo(
         val goalMs = goalHours * 60 * 60 * 1000L
         return (screenOnTime.toFloat() / goalMs).coerceIn(0f, 1f)
     }
+
+    fun formatDeepSleepTime(): String {
+        val deepSleepTime = (screenOffTime * (deepSleepPercentage / 100)).toLong()
+        val hours = deepSleepTime / (1000 * 60 * 60)
+        val minutes = (deepSleepTime / (1000 * 60)) % 60
+        return if (hours > 0) {
+            "${hours}h ${minutes}m"
+        } else {
+            "${minutes}m"
+        }
+    }
 }
