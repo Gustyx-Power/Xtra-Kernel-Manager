@@ -26,11 +26,12 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.4-Debug-testdev"
+        versionName = "2.4-Dev" // dev  = debug release = stable version
 
-        // Build date in format YYYY.MM.dd
+        // Build Parsing
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
         buildConfigField("String", "BUILD_DATE", "\"$buildDate\"")
+        buildConfigField("long", "BUILD_TIMESTAMP", "${System.currentTimeMillis()}L")
 
         vectorDrawables {
             useSupportLibrary = true
@@ -124,6 +125,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.graphics:graphics-shapes:1.0.1")
     
     // Material 3 Expressive (when available, fallback to standard)
     implementation("androidx.compose.material:material-icons-extended")

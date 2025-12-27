@@ -41,6 +41,20 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.border
 import androidx.compose.ui.unit.em
 import id.xms.xtrakernelmanager.R
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.graphics.vector.PathBuilder
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.PathFillType
+import androidx.graphics.shapes.RoundedPolygon
+import androidx.graphics.shapes.star
+import androidx.graphics.shapes.CornerRounding
+import androidx.graphics.shapes.toPath
+import androidx.compose.ui.graphics.asAndroidPath
+import android.graphics.Matrix
+import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.ui.components.DeviceSilhouette
@@ -163,6 +177,11 @@ fun MaterialHomeScreen(
                      MaterialPowerInsightCard(powerInfo, batteryInfo)
                 }
                 
+                // App Info Section
+                StaggeredEntry(delayMillis = 700) {
+                    MaterialAppInfoSection()
+                }
+
                 // Bottom Spacing
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -1257,4 +1276,389 @@ fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
         }
     }
 }
+
+@Composable
+fun MaterialAppInfoSection() {
+    Card(
+        modifier = Modifier.fillMaxWidth().animateContentSize(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) // Slightly distinct background
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // Top Row: Maintainer & Release
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max), // Ensure equal height
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Maintainer Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(), // Fill available height
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxSize(), // Fill column to distribute space
+                        verticalArrangement = Arrangement.SpaceBetween // Push content to edges
+                    ) {
+                        // Avatar & Badge
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                             SubcomposeAsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data("https://github.com/Xtra-Manager-Software.png")
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Maintainer Avatar",
+                                loading = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("XT", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    }
+                                },
+                                error = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("XT", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CookieShape)
+                            )
+                            
+                            Surface(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "TEAM",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        
+                        Column {
+                            Text(
+                                text = "MAINTAINER",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                letterSpacing = 1.sp
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "XMS Team", 
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    imageVector = Icons.Rounded.Verified,
+                                    contentDescription = "Verified",
+                                    tint = MaterialTheme.colorScheme.primary, 
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                             Text(
+                                text = "@Xtra-Manager-Software",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f), // Reduced alpha for handle
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+                
+                // Release Card
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(), // Fill available height
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxSize(), // Fill column
+                        verticalArrangement = Arrangement.SpaceBetween // Distribute vertical space
+                    ) {
+                         val fullVersion = BuildConfig.VERSION_NAME
+                         val isDebug = fullVersion.contains("Dev", ignoreCase = true)
+                         val badgeText = if (isDebug) "DEBUG" else "STABLE"
+                         val badgeColor = if (isDebug) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+                         
+                         val versionSplit = fullVersion.split("-", limit = 2)
+                         val mainVersion = versionSplit.getOrNull(0) ?: fullVersion
+                         // Remove hyphen from suffix
+                         val versionSuffix = versionSplit.getOrNull(1) ?: ""
+
+                         // Icon & Badge
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                             Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(badgeColor.copy(alpha = 0.2f)), // Match badge color
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Inventory, // Cardboard Box "Kardus"
+                                    contentDescription = null,
+                                    tint = badgeColor,
+                                    modifier = Modifier.size(20.dp) // Smaller icon
+                                )
+                            }
+                            
+                             Surface(
+                                color = badgeColor.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(50)
+                            ) {
+                                Text(
+                                    text = badgeText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = badgeColor, 
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                        
+                         Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp), 
+                            modifier = Modifier.padding(top = 12.dp) 
+                         ) {
+                            Text(
+                                text = "VERSION", 
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                letterSpacing = 1.sp
+                            )
+                             Text(
+                                text = mainVersion,
+                                style = MaterialTheme.typography.headlineMedium, 
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (versionSuffix.isNotEmpty()) {
+                                 Text(
+                                    text = versionSuffix,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), 
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                            val relativeTime = try {
+                                android.text.format.DateUtils.getRelativeTimeSpanString(
+                                    BuildConfig.BUILD_TIMESTAMP,
+                                    System.currentTimeMillis(),
+                                    android.text.format.DateUtils.MINUTE_IN_MILLIS
+                                ).toString()
+                            } catch (e: Exception) {
+                                BuildConfig.BUILD_DATE // Fallback
+                            }
+                             Text(
+                                text = relativeTime, 
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontFamily = FontFamily.Monospace,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Project Info Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "ABOUT XKM",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "Xtra Kernel Manager is a free and open-source Kernel Managers designed to give you full control over your device's kernel. Built with Kotlin Jetpack Compose for a smooth and responsive user experience.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Start,
+                            lineHeight = 20.sp
+                        )
+                    }
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // GitHub Button
+                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                        Button(
+                            onClick = { uriHandler.openUri("https://github.com/Xtra-Manager-Software") },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            // Custom GitHub Icon
+                            Icon(
+                                imageVector = GithubIcon, 
+                                contentDescription = null, 
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("GitHub")
+                        }
+                        
+                        // Credits Button
+                        Button(
+                            onClick = { uriHandler.openUri("https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager") },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), 
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Icon(Icons.Rounded.Info, null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Credit")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private val GithubIcon: ImageVector
+    get() {
+        if (_GithubIcon != null) return _GithubIcon!!
+        _GithubIcon = ImageVector.Builder(
+            name = "Github",
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f
+        ).apply {
+            path(
+                fill = SolidColor(Color.Black),
+                fillAlpha = 1f,
+                stroke = null,
+                strokeAlpha = 1f,
+                strokeLineWidth = 1.0f,
+                strokeLineCap = StrokeCap.Butt,
+                strokeLineJoin = StrokeJoin.Miter,
+                strokeLineMiter = 1.0f,
+                pathFillType = PathFillType.NonZero
+            ) {
+                moveTo(12.0f, 1.27f)
+                curveTo(5.97f, 1.27f, 1.08f, 6.04f, 1.08f, 11.93f)
+                curveTo(1.08f, 16.64f, 4.23f, 20.64f, 8.5f, 22.01f)
+                curveTo(9.05f, 22.11f, 9.25f, 21.78f, 9.25f, 21.5f)
+                curveTo(9.25f, 21.25f, 9.24f, 20.59f, 9.24f, 19.71f)
+                curveTo(6.18f, 20.36f, 5.54f, 18.27f, 5.54f, 18.27f)
+                curveTo(5.04f, 17.03f, 4.31f, 16.7f, 4.31f, 16.7f)
+                curveTo(3.31f, 16.03f, 4.38f, 16.04f, 4.38f, 16.04f)
+                curveTo(5.49f, 16.12f, 6.07f, 17.15f, 6.07f, 17.15f)
+                curveTo(7.05f, 18.79f, 8.64f, 18.32f, 9.27f, 18.04f)
+                curveTo(9.36f, 17.35f, 9.64f, 16.89f, 9.95f, 16.63f)
+                curveTo(7.51f, 16.36f, 4.95f, 15.44f, 4.95f, 11.36f)
+                curveTo(4.95f, 10.2f, 5.38f, 9.24f, 6.08f, 8.49f)
+                curveTo(5.97f, 8.22f, 5.59f, 7.13f, 6.18f, 5.67f)
+                curveTo(6.18f, 5.67f, 7.1f, 5.38f, 9.19f, 6.76f)
+                curveTo(10.06f, 6.52f, 11.0f, 6.4f, 11.93f, 6.4f)
+                curveTo(12.86f, 6.4f, 13.8f, 6.52f, 14.67f, 6.76f)
+                curveTo(16.76f, 5.38f, 17.67f, 5.67f, 17.67f, 5.67f)
+                curveTo(18.27f, 7.13f, 17.89f, 8.22f, 17.78f, 8.49f)
+                curveTo(18.48f, 9.24f, 18.91f, 10.2f, 18.91f, 11.36f)
+                curveTo(18.91f, 15.45f, 16.34f, 16.35f, 13.89f, 16.62f)
+                curveTo(14.28f, 16.95f, 14.63f, 17.61f, 14.63f, 18.61f)
+                curveTo(14.63f, 20.04f, 14.61f, 21.2f, 14.61f, 21.5f)
+                curveTo(14.61f, 21.79f, 14.81f, 22.12f, 15.37f, 22.01f)
+                curveTo(19.62f, 20.63f, 22.78f, 16.64f, 22.78f, 11.93f)
+                curveTo(22.78f, 6.04f, 17.88f, 1.27f, 11.93f, 1.27f)
+                close()
+            }
+        }.build()
+        return _GithubIcon!!
+    }
+
+private var _GithubIcon: ImageVector? = null
+
+private val CookieShape = object : androidx.compose.ui.graphics.Shape {
+    override fun createOutline(size: androidx.compose.ui.geometry.Size, layoutDirection: androidx.compose.ui.unit.LayoutDirection, density: androidx.compose.ui.unit.Density): androidx.compose.ui.graphics.Outline {
+        val p = androidx.compose.ui.graphics.Path()
+        val androidPath = p.asAndroidPath()
+        val matrix = Matrix()
+        
+        val polygon = RoundedPolygon.star(
+            numVerticesPerRadius = 6,
+            innerRadius = 0.75f,
+            rounding = CornerRounding(0.5f),
+            innerRounding = CornerRounding(0.5f)
+        )
+        
+        val minSize = minOf(size.width, size.height)
+        val scale = minSize / 2f 
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        
+        matrix.setScale(scale, scale)
+        matrix.postTranslate(cx, cy)
+        
+        polygon.toPath(androidPath)
+        androidPath.transform(matrix)
+        
+        return androidx.compose.ui.graphics.Outline.Generic(p)
+    }
+}
+
 
