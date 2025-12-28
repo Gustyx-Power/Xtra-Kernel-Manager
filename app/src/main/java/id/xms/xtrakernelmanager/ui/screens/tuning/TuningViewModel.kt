@@ -29,6 +29,7 @@ class TuningViewModel(
     private val gpuUseCase: GPUControlUseCase = GPUControlUseCase(),
     private val ramUseCase: RAMControlUseCase = RAMControlUseCase(),
     private val thermalUseCase: ThermalControlUseCase = ThermalControlUseCase(),
+    private val overlayUseCase: id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase = id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase(),
     private val tomlManager: TomlConfigManager = TomlConfigManager(),
 ) : ViewModel() {
 
@@ -61,6 +62,10 @@ class TuningViewModel(
   private val _gpuInfo = MutableStateFlow(GPUInfo())
   val gpuInfo: StateFlow<GPUInfo>
     get() = _gpuInfo.asStateFlow()
+
+  private val _cpuTemperature = MutableStateFlow(0f)
+  val cpuTemperature: StateFlow<Float>
+    get() = _cpuTemperature.asStateFlow()
 
   private val _isMediatek = MutableStateFlow(false)
   val isMediatek: StateFlow<Boolean>
@@ -230,6 +235,9 @@ class TuningViewModel(
     if (!_isMediatek.value) {
       _gpuInfo.value = gpuUseCase.getGPUInfo()
     }
+
+    // Update temperature
+    _cpuTemperature.value = overlayUseCase.getTemperature()
 
     val states = mutableMapOf<Int, ClusterUIState>()
     updatedClusters.forEach { cluster ->

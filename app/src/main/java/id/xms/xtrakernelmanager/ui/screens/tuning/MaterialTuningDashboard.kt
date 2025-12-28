@@ -111,6 +111,7 @@ fun MaterialTuningDashboard(
       if (thermalCardExpanded) {
         item(span = StaggeredGridItemSpan.FullLine, key = "thermal_card") {
           ExpandableThermalCard(
+              viewModel = viewModel,
               expanded = true,
               onExpandChange = {
                 thermalCardExpanded = it
@@ -133,6 +134,7 @@ fun MaterialTuningDashboard(
         }
         item(key = "thermal_card") {
           ExpandableThermalCard(
+              viewModel = viewModel,
               expanded = false,
               onExpandChange = {
                 thermalCardExpanded = it
@@ -146,7 +148,7 @@ fun MaterialTuningDashboard(
       item(span = StaggeredGridItemSpan.FullLine) { DashboardProfileCard() }
 
       // 5. GPU Card (Expandable)
-      item(span = StaggeredGridItemSpan.FullLine) { ExpandableGPUCard() }
+      item(span = StaggeredGridItemSpan.FullLine) { ExpandableGPUCard(viewModel = viewModel) }
 
       // 6 & 7. Memory & Network (Dynamic Bento Layout)
       // 6 & 7. Memory & Network (Dynamic Bento Layout)
@@ -581,19 +583,20 @@ fun ExpandableNetworkCard(
 
 @Composable
 fun ExpandableCPUCard(
-    viewModel: TuningViewModel, // Add viewModel if needed, or remove if not used. 
-    // Actually, for simple nav card we might not need viewModel unless used for data.
-    // But to match signature calls elsewhere let's verify usage. 
-    // Wait, the call sites pass 'expanded' etc. I need to change them too.
-    // For now let's keep the params minimal and I will update call sites.
+    viewModel: TuningViewModel,
     onClickNav: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val cpuClusters by viewModel.cpuClusters.collectAsState()
+    val currentGovernor = cpuClusters.firstOrNull()?.governor?.replaceFirstChar { 
+        it.uppercase() 
+    } ?: "—"
+    
     DashboardNavCard(
         title = "CPU",
         subtitle = "Clock & Governor",
         icon = Icons.Rounded.Memory,
-        badgeText = "Walt",
+        badgeText = currentGovernor, // Now shows real governor
         onClick = onClickNav,
     )
 }
@@ -601,11 +604,16 @@ fun ExpandableCPUCard(
 
 @Composable
 fun ExpandableThermalCard(
+    viewModel: TuningViewModel,
     expanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
     onClickNav: () -> Unit,
     topLeftContent: @Composable () -> Unit = {},
 ) {
+  // Get real temperature from ViewModel
+  val temperature by viewModel.cpuTemperature.collectAsState()
+  val tempDisplay = if (temperature > 0) "${temperature.toInt()}°C" else "—"
+  
   val height by
       animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "thermal_height")
 
@@ -623,7 +631,7 @@ fun ExpandableThermalCard(
           title = "Thermal",
           subtitle = "Normal",
           icon = Icons.Rounded.Thermostat,
-          badgeText = "38°C",
+          badgeText = tempDisplay, // Now shows real temperature
           onClick = { onExpandChange(true) },
       )
     } else {
@@ -865,7 +873,10 @@ fun DashboardProfileCard() {
 }
 
 @Composable
-fun ExpandableGPUCard() {
+fun ExpandableGPUCard(viewModel: TuningViewModel) {
+  // Get real GPU data from ViewModel
+  val gpuInfo by viewModel.gpuInfo.collectAsState()
+  
   var expanded by remember { mutableStateOf(false) }
   var sliderValue by remember { mutableFloatStateOf(0.7f) }
   var governorValue by remember { mutableStateOf("msm-adreno-tz") }
@@ -873,13 +884,20 @@ fun ExpandableGPUCard() {
   var maxFreq by remember { mutableStateOf("680 MHz") }
   var rendererValue by remember { mutableStateOf("SkiaGL (Vulkan)") }
 
+  // Extract GPU model from renderer (e.g., "Adreno (TM) 725" -> "Adreno 725")
+  val gpuModel = gpuInfo.renderer
+      .replace("(TM)", "")
+      .replace("(R)", "")
+      .trim()
+      .ifEmpty { "Unknown GPU" }
+
   Card(
       modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }.animateContentSize(),
       shape = RoundedCornerShape(24.dp),
       colors =
           CardDefaults.cardColors(
               containerColor =
-                  MaterialTheme.colorScheme.secondaryContainer // Monet: Secondary Container
+                  MaterialTheme.colorScheme.secondaryContainer
           ),
   ) {
     Column(modifier = Modifier.padding(24.dp)) {
@@ -895,8 +913,17 @@ fun ExpandableGPUCard() {
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
             shape = RoundedCornerShape(8.dp),
         ) {
+          // Show vendor from gpuInfo (e.g., "Qualcomm" -> "ADRENO")
+          val badgeText = when {
+            gpuInfo.vendor.contains("Qualcomm", ignoreCase = true) -> "ADRENO"
+            gpuInfo.vendor.contains("ARM", ignoreCase = true) -> "MALI"
+            gpuInfo.vendor.contains("PowerVR", ignoreCase = true) -> "POWERVR"
+            gpuInfo.renderer.contains("Adreno", ignoreCase = true) -> "ADRENO"
+            gpuInfo.renderer.contains("Mali", ignoreCase = true) -> "MALI"
+            else -> gpuInfo.vendor.uppercase().take(8)
+          }
           Text(
-              text = "ADRENO",
+              text = badgeText,
               modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
               style = MaterialTheme.typography.labelSmall,
               letterSpacing = 1.sp,
@@ -911,7 +938,7 @@ fun ExpandableGPUCard() {
       Column {
         Row(verticalAlignment = Alignment.Bottom) {
           Text(
-              text = "220",
+              text = "${gpuInfo.currentFreq}",
               style = MaterialTheme.typography.displayMedium,
               fontWeight = FontWeight.Medium,
               lineHeight = 40.sp,
@@ -946,7 +973,7 @@ fun ExpandableGPUCard() {
               verticalArrangement = Arrangement.Center, // Centered vertically like Home
           ) {
             Text(
-                text = "33%",
+                text = "${gpuInfo.gpuLoad}%",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -970,7 +997,7 @@ fun ExpandableGPUCard() {
               verticalArrangement = Arrangement.Center,
           ) {
             Text(
-                text = "Adreno 725",
+                text = gpuModel,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -987,43 +1014,75 @@ fun ExpandableGPUCard() {
 
       // Expanded Controls
       AnimatedVisibility(visible = expanded) {
+        // Get ViewModel states  
+        val isFrequencyLocked by viewModel.isGpuFrequencyLocked.collectAsState()
+        
+        // Build freq options from availableFreqs
+        val freqOptions = gpuInfo.availableFreqs.map { "${it} MHz" }
+        
+        // Track selected values
+        var selectedMinFreq by remember(gpuInfo.minFreq) { 
+          mutableStateOf("${gpuInfo.minFreq} MHz") 
+        }
+        var selectedMaxFreq by remember(gpuInfo.maxFreq) { 
+          mutableStateOf("${gpuInfo.maxFreq} MHz") 
+        }
+        var powerSliderValue by remember(gpuInfo.powerLevel, gpuInfo.numPwrLevels) {
+          mutableFloatStateOf(
+            if (gpuInfo.numPwrLevels > 0) 1f - (gpuInfo.powerLevel.toFloat() / gpuInfo.numPwrLevels.toFloat())
+            else 0.5f
+          )
+        }
+        
         Column(
             modifier = Modifier.padding(top = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-          // Governor
+          // Governor (display only, not changeable for GPU)
           GpuControlRow(
               label = "Governor",
-              value = governorValue,
+              value = "msm-adreno-tz",
               icon = Icons.Rounded.Speed,
-              options = listOf("msm-adreno-tz", "performance", "powersave", "userspace"),
-              onValueChange = { governorValue = it },
+              options = listOf("msm-adreno-tz"),
+              onValueChange = { /* GPU governor not changeable */ },
           )
 
-          // Min/Max Tiles
+          // Min/Max Tiles with real freq options - auto-lock on change
           Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GpuTile(
                 modifier = Modifier.weight(1f),
                 label = "Min Frequency",
-                value = minFreq,
-                options = listOf("305 MHz", "400 MHz", "500 MHz", "680 MHz"),
-                onValueChange = { minFreq = it },
+                value = selectedMinFreq,
+                options = freqOptions.ifEmpty { listOf("${gpuInfo.minFreq} MHz") },
+                onValueChange = { newValue ->
+                  selectedMinFreq = newValue
+                  // Auto-lock when changed
+                  val minFreq = newValue.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
+                  val maxFreq = selectedMaxFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
+                  viewModel.lockGPUFrequency(minFreq, maxFreq)
+                },
             )
             GpuTile(
                 modifier = Modifier.weight(1f),
                 label = "Max Frequency",
-                value = maxFreq,
-                options = listOf("305 MHz", "400 MHz", "500 MHz", "680 MHz"),
-                onValueChange = { maxFreq = it },
+                value = selectedMaxFreq,
+                options = freqOptions.ifEmpty { listOf("${gpuInfo.maxFreq} MHz") },
+                onValueChange = { newValue ->
+                  selectedMaxFreq = newValue
+                  // Auto-lock when changed
+                  val minFreq = selectedMinFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
+                  val maxFreq = newValue.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
+                  viewModel.lockGPUFrequency(minFreq, maxFreq)
+                },
             )
           }
 
-          // Power Slider
+          // Power Slider with WavySlider style - 0 to 10
           Surface(
               modifier = Modifier.fillMaxWidth(),
-              color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), // Inner Surface
+              color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
               shape = RoundedCornerShape(16.dp),
           ) {
             Column(modifier = Modifier.padding(16.dp)) {
@@ -1037,22 +1096,30 @@ fun ExpandableGPUCard() {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    "Level ${(sliderValue * 10).toInt()}",
+                    "Level ${(powerSliderValue * 10).toInt()}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
               }
               Spacer(Modifier.height(16.dp))
-              WavySlider(value = sliderValue, onValueChange = { sliderValue = it })
+              WavySlider(
+                  value = powerSliderValue, 
+                  onValueChange = { newValue ->
+                    powerSliderValue = newValue
+                    // Calculate power level 0-10, then map to actual GPU power levels
+                    val level = ((1f - newValue) * gpuInfo.numPwrLevels.coerceAtLeast(1)).toInt()
+                    viewModel.setGPUPowerLevel(level)
+                  }
+              )
             }
           }
 
           // Renderer
           GpuControlRow(
               label = "Renderer",
-              value = rendererValue,
-              options = listOf("SkiaGL (Vulkan)", "SkiaGL (OpenGL)", "SkiaVK"),
-              onValueChange = { rendererValue = it },
+              value = gpuInfo.rendererType,
+              options = listOf("skiavk", "skiagl", "opengl"),
+              onValueChange = { viewModel.setGPURenderer(it) },
           )
         }
       }
@@ -1211,12 +1278,6 @@ fun GpuTile(
     }
   }
 }
-
-// @Preview
-// @Composable
-// fun MaterialTuningPreview() {
-//   MaterialTheme { MaterialTuningDashboard() }
-// }
 
 @Composable
 fun WavySlider(
