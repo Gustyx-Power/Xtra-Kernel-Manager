@@ -3,6 +3,8 @@ package id.xms.xtrakernelmanager.ui.screens.tuning
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,6 +48,7 @@ fun MaterialTuningDashboard(
 ) {
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    var memoryCardExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -144,24 +148,192 @@ fun MaterialTuningDashboard(
                 ExpandableGPUCard()
             }
 
-            // 6. Memory Nav 
-            item {
-                DashboardNavCard(
-                    title = "Memory",
-                    subtitle = "ZRAM 50% • LMK",
-                    icon = Icons.Rounded.SdCard,
-                    onClick = { onNavigate("memory_tuning") }
-                )
+            // 6 & 7. Memory & Network (Dynamic Bento Layout)
+            if (memoryCardExpanded) {
+                item(span = StaggeredGridItemSpan.FullLine) {
+                    ExpandableMemoryCard(
+                        expanded = true,
+                        onExpandChange = { memoryCardExpanded = it },
+                        onClickNav = { onNavigate("memory_tuning") },
+                        topRightContent = {
+                            DashboardNavCard(
+                                title = "Network",
+                                subtitle = "Westwood • DNS",
+                                icon = Icons.Rounded.Router,
+                                onClick = { onNavigate("network_tuning") }
+                            )
+                        }
+                    )
+                }
+            } else {
+                item(span = StaggeredGridItemSpan.SingleLane) {
+                    ExpandableMemoryCard(
+                        expanded = false,
+                        onExpandChange = { memoryCardExpanded = it },
+                        onClickNav = { onNavigate("memory_tuning") }
+                    )
+                }
+                item(span = StaggeredGridItemSpan.SingleLane) {
+                    DashboardNavCard(
+                        title = "Network",
+                        subtitle = "Westwood • DNS",
+                        icon = Icons.Rounded.Router,
+                        onClick = { onNavigate("network_tuning") }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpandableMemoryCard(
+    expanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
+    onClickNav: () -> Unit,
+    topRightContent: @Composable () -> Unit = {}
+) {
+    // Animation
+    val height by animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "height")
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onExpandChange(!expanded) }
+    ) {
+        if (!expanded) {
+            // COLLAPSED STATE (Simple Card)
+            Card(
+                modifier = Modifier.fillMaxSize(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                 Column(
+                    modifier = Modifier.padding(20.dp).fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Icon(Icons.Rounded.SdCard, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp))
+                    Column {
+                        Text("Memory", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                        Text("ZRAM 50% • LMK", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        } else {
+            // EXPANDED STATE (L-SHAPE LAYOUT)
+            
+            val cornerRadius = 24.dp
+            val gap = 24.dp
+            val cutoutHeight = 120.dp // Match DashboardNavCard height
+            val themeColor = MaterialTheme.colorScheme.secondaryContainer
+            
+            // 1. TOP RIGHT CARD (Slot for external content, e.g. Network Card)
+            
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) // Placeholder for Left L-Arm
+                    
+                    // TOP RIGHT SLOT
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(cutoutHeight)
+                    ) {
+                        topRightContent()
+                    }
+                }
             }
 
-            // 7. TCP 
-            item {
-                DashboardNavCard(
-                    title = "Network",
-                    subtitle = "Westwood • DNS",
-                    icon = Icons.Rounded.Router,
-                    onClick = { onNavigate("network_tuning") }
-                )
+            
+            Box(
+                 modifier = Modifier.fillMaxSize()
+            ) {
+                // The L-Shape Background
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val colW = w / 2 - gap.toPx() / 2 // Width of left column
+                    val ch = cutoutHeight.toPx() + gap.toPx()
+                    val cr = cornerRadius.toPx()
+                    val ir = cornerRadius.toPx() // Match inverted radius with card corner radius
+                    
+                    val path = Path().apply {
+                        // Start Top-Left
+                        moveTo(0f, cr)
+                        quadraticTo(0f, 0f, cr, 0f)
+                        
+                        // Top Edge to Top-Right Corner of Left Leg
+                        lineTo(colW - cr, 0f)
+                        quadraticTo(colW, 0f, colW, cr)
+                        
+                        // Going Down the inner vertical edge
+                        lineTo(colW, ch - ir)
+                        
+                        arcTo(
+                            rect = androidx.compose.ui.geometry.Rect(
+                                left = colW,
+                                top = ch - 2 * ir,
+                                right = colW + 2 * ir,
+                                bottom = ch
+                            ),
+                            startAngleDegrees = 180f,
+                            sweepAngleDegrees = -90f,
+                            forceMoveTo = false
+                        )
+                        
+                        // Top Edge of Bottom-Right Section
+                        lineTo(w - cr, ch)
+                        quadraticTo(w, ch, w, ch + cr)
+                        
+                        // Right Edge
+                        lineTo(w, h - cr)
+                        quadraticTo(w, h, w - cr, h)
+                        
+                        // Bottom Edge
+                        lineTo(cr, h)
+                        quadraticTo(0f, h, 0f, h - cr)
+                        
+                        close()
+                    }
+                    
+                    drawPath(path, color = themeColor) 
+                }
+                
+                // CONTENT LAYOUT
+                // We overlay content on the L-shape
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // Left Column Content (ZRAM)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Header info
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                             Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                                 Icon(Icons.Rounded.Memory, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                             }
+                        }
+                        
+                    }
+
+                    // Right Column (Empty Top + Content Bottom)
+                    Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                         Spacer(modifier = Modifier.height(cutoutHeight + gap)) // Skip Cutout + Gap
+                         
+                         // Bottom Right Content (Placeholder / Empty)
+                         Column(
+                             modifier = Modifier.fillMaxSize().padding(20.dp),
+                             verticalArrangement = Arrangement.Center
+                         ) {
+                                // Content temporarily removed as requested
+                         }
+                    }
+                }
             }
         }
     }
