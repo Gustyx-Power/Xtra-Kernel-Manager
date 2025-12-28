@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
+
 
 /**
  * Game Tool Item Data
@@ -251,12 +251,10 @@ private fun EsportsModeCard(
             }
         }
         
-        LottieSwitchControlled(
+        EsportsAnimatedSwitch(
             checked = isEnabled,
             onCheckedChange = onToggle,
-            width = 50.dp,
-            height = 24.dp,
-            scale = 1.8f
+            activeColor = Color(0xFFFF5722)
         )
     }
 }

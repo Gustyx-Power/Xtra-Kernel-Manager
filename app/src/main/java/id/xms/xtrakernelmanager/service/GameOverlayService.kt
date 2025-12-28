@@ -38,8 +38,10 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.R
 
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.*
+
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 
@@ -453,46 +455,11 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             setViewTreeLifecycleOwner(this@GameOverlayService)
             setViewTreeSavedStateRegistryOwner(this@GameOverlayService)
             setContent {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.9f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Bolt,
-                            contentDescription = null,
-                            tint = Color(0xFFFF6B00),
-                            modifier = Modifier.size(100.dp)
-                        )
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Text(
-                            text = "MODE MONSTER",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF6B00),
-                            letterSpacing = 4.sp
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "AKTIF",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White,
-                            letterSpacing = 2.sp
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text(
-                            text = "Max CPU • Max GPU • Performance",
-                            fontSize = 16.sp,
-                            color = Color(0xFF888888)
-                        )
+                EsportsActivationAnimation(
+                    onAnimationComplete = {
+                        // Will be removed after animation
                     }
-                }
+                )
             }
         }
         
@@ -503,13 +470,12 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             return
         }
         
-        // Remove after 2 seconds
+        // Remove after 4.5 seconds (matches animation duration + buffer)
         CoroutineScope(Dispatchers.Main).launch {
-            delay(2000)
+            delay(4500)
             try {
                 windowManager.removeView(animationView)
             } catch (e: Exception) {
-                // View may already be removed
             }
         }
     }
