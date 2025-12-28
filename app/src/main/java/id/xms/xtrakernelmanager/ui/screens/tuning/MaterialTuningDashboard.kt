@@ -34,6 +34,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.Canvas
 import kotlin.math.sin
 import kotlin.math.PI
+import androidx.compose.ui.graphics.Color
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -243,49 +244,103 @@ fun DashboardNavCard(
 
 @Composable
 fun DashboardProfileCard() {
+    var expanded by remember { mutableStateOf(false) }
+    var selectedProfile by remember { mutableStateOf("Performance") }
+    val profiles = listOf("Performance", "Balance", "Powersave", "Battery")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp),
+            .animateContentSize()
+            .clickable { expanded = !expanded },
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer // Distinctive color
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer 
         )
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(20.dp)
+        Column(
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp)
         ) {
-            // Icon Bubble
-            Surface(
-                modifier = Modifier.size(48.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Rounded.Bolt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onTertiaryContainer
+                // Icon Bubble
+                Surface(
+                    modifier = Modifier.size(48.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        val icon = when(selectedProfile) {
+                            "Performance" -> Icons.Rounded.Bolt
+                            "Powersave" -> Icons.Rounded.Eco
+                            "Battery" -> Icons.Rounded.BatteryFull
+                            else -> Icons.Rounded.Speed // Balance
+                        }
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = selectedProfile,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Text(
+                        text = "Active Profile",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
                     )
                 }
+
+
             }
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Perform",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-                Text(
-                    text = "Active Profile",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                )
+            // Expanded List
+            AnimatedVisibility(visible = expanded) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.08f)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        profiles.forEach { profile ->
+                            val isSelected = profile == selectedProfile
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .clickable { 
+                                        selectedProfile = profile
+                                        expanded = false 
+                                    }
+                                    .background(if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f) else Color.Transparent)
+                                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                 Text(
+                                    text = profile,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = if (isSelected) 1f else 0.8f)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
