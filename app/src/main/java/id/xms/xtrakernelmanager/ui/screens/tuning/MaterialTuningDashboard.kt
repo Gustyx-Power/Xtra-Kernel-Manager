@@ -540,11 +540,21 @@ fun GpuControlRow(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 options.forEach { option ->
+                    val isSelected = option == value
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { 
+                            Text(
+                                option, 
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            ) 
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        ),
                         onClick = {
                             onValueChange(option)
                             expanded = false
@@ -586,11 +596,21 @@ fun GpuTile(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 options.forEach { option ->
+                    val isSelected = option == value
                     DropdownMenuItem(
-                        text = { Text(option) },
+                        text = { 
+                            Text(
+                                option, 
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                            ) 
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        ),
                         onClick = {
                             onValueChange(option)
                             expanded = false
