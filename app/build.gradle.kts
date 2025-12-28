@@ -21,12 +21,19 @@ android {
     namespace = "id.xms.xtrakernelmanager"
     compileSdk = 36
 
+    @Suppress("UnstableApiUsage")
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
+
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.4-Debug-Ci3-W1"
+        versionName = "2.4-Debug-Ci4-W1"
 
         // Build date in format YYYY.MM.dd
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -70,8 +77,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
         lint.disable.add("NullSafeMutableLiveData")
     }
 
@@ -99,7 +106,7 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 }
 
