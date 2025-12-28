@@ -11,6 +11,8 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,7 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
@@ -33,6 +37,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
+import id.xms.xtrakernelmanager.domain.root.RootManager
 
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.*
 import kotlinx.coroutines.*
@@ -84,6 +89,9 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     
     // Game Tools states
     private var gameToolState by mutableStateOf(GameToolState())
+    
+    // Esports Mode animation state
+    private var showEsportsModeAnimation by mutableStateOf(false)
     
 
 
@@ -288,7 +296,17 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 fpsValue = fpsValue,
                 isExpanded = isExpanded,
                 onToggleExpanded = { isExpanded = !isExpanded },
-                onDrag = { _, _ -> },
+                onDrag = { _, dy ->
+                    // Update window position when dragging
+                    params?.let { p ->
+                        p.y = (p.y + dy.toInt()).coerceIn(0, 800)
+                        try {
+                            windowManager.updateViewLayout(overlayView, p)
+                        } catch (e: Exception) {
+                            // View may not be attached
+                        }
+                    }
+                },
                 accentColor = accentColor
             )
             
@@ -323,7 +341,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                     onBlockNotificationsChange = { setBlockNotifications(it) },
                     onDndChange = { setDND(it) },
                     onClearRam = { clearRAM() },
-                    onScreenRecord = { startScreenRecord() },
+                    onScreenshot = { takeScreenshot() },
                     onToolsClick = { showToast("Alat: Fitur segera hadir!") },
                     onClose = { isExpanded = false },
                     
@@ -332,9 +350,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             }
         }
     }
-    
-    // ==================== Control Functions ====================
-    
+       
     private fun setPerformanceMode(mode: String) {
         CoroutineScope(Dispatchers.Main).launch {
             val result = withContext(Dispatchers.IO) {
@@ -386,6 +402,11 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         CoroutineScope(Dispatchers.Main).launch {
             gameToolState = gameToolState.copy(blockNotifications = enabled)
             preferencesManager.setGameControlHideNotif(enabled)
+            
+            // Actually hide notifications via root
+            withContext(Dispatchers.IO) {
+                gameControlUseCase.hideNotifications(enabled)
+            }
             showToast(if (enabled) "Blokir Notifikasi: ON" else "Blokir Notifikasi: OFF")
         }
     }
@@ -396,10 +417,100 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             preferencesManager.setEsportsMode(enabled)
             
             if (enabled) {
-                // Apply performance mode when esports enabled
-                setPerformanceMode("performance")
+                // Close overlay first
+                isExpanded = false
+                
+                // Show fullscreen animation overlay
+                showFullscreenEsportsAnimation()
+                
+                // Enable Monster Mode: max clocks
+                withContext(Dispatchers.IO) {
+                    gameControlUseCase.enableMonsterMode()
+                }
+            } else {
+                // Disable Monster Mode: restore defaults
+                withContext(Dispatchers.IO) {
+                    gameControlUseCase.disableMonsterMode()
+                }
+                showToast("Mode Monster: OFF")
             }
-            showToast(if (enabled) "Mode Esports: ON" else "Mode Esports: OFF")
+        }
+    }
+    
+    private fun showFullscreenEsportsAnimation() {
+        // Create fullscreen overlay params
+        val fullscreenParams = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            PixelFormat.TRANSLUCENT
+        )
+        
+        val animationView = ComposeView(this).apply {
+            setViewTreeLifecycleOwner(this@GameOverlayService)
+            setViewTreeSavedStateRegistryOwner(this@GameOverlayService)
+            setContent {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.9f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Bolt,
+                            contentDescription = null,
+                            tint = Color(0xFFFF6B00),
+                            modifier = Modifier.size(100.dp)
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+                        Text(
+                            text = "MODE MONSTER",
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF6B00),
+                            letterSpacing = 4.sp
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "AKTIF",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White,
+                            letterSpacing = 2.sp
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = "Max CPU • Max GPU • Performance",
+                            fontSize = 16.sp,
+                            color = Color(0xFF888888)
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Add fullscreen animation view
+        try {
+            windowManager.addView(animationView, fullscreenParams)
+        } catch (e: Exception) {
+            return
+        }
+        
+        // Remove after 2 seconds
+        CoroutineScope(Dispatchers.Main).launch {
+            delay(2000)
+            try {
+                windowManager.removeView(animationView)
+            } catch (e: Exception) {
+                // View may already be removed
+            }
         }
     }
     
@@ -407,7 +518,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         CoroutineScope(Dispatchers.Main).launch {
             gameToolState = gameToolState.copy(touchGuard = enabled)
             preferencesManager.setTouchGuard(enabled)
-            showToast(if (enabled) "Touch Guard: ON" else "Touch Guard: OFF")
+            showToast(if (enabled) "Pencegah Salah Sentuh: ON" else "Pencegah Salah Sentuh: OFF")
         }
     }
     
@@ -451,13 +562,29 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
     
     private fun takeScreenshot() {
-        showToast("Screenshot: Feature coming soon")
-        // TODO: Implement screenshot
-    }
-    
-    private fun startScreenRecord() {
-        showToast("Rekam Layar: Feature coming soon")
-        // TODO: Implement screen recording
+        CoroutineScope(Dispatchers.Main).launch {
+            // Hide overlay briefly for clean screenshot
+            val wasExpanded = isExpanded
+            isExpanded = false
+            delay(300)
+            
+            // Use screencap with timestamp filename
+            val timestamp = System.currentTimeMillis()
+            val filename = "/sdcard/Pictures/Screenshot_$timestamp.png"
+            
+            withContext(Dispatchers.IO) {
+                // Take screenshot using screencap
+                RootManager.executeCommand("screencap -p $filename")
+                // Trigger media scan so it appears in gallery
+                RootManager.executeCommand("am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$filename")
+            }
+            
+            showToast("Screenshot disimpan: Pictures/Screenshot_$timestamp.png")
+            
+            // Restore overlay state after screenshot
+            delay(300)
+            isExpanded = wasExpanded
+        }
     }
     
 
