@@ -30,6 +30,9 @@ class PreferencesManager(private val context: Context) {
   // Thermal configuration keys
   private val THERMAL_PRESET = stringPreferencesKey("thermal_preset")
   private val THERMAL_SET_ON_BOOT = booleanPreferencesKey("thermal_set_on_boot")
+  
+  // CPU Set on Boot
+  private val CPU_SET_ON_BOOT = booleanPreferencesKey("cpu_set_on_boot")
 
   // I/O scheduler key
   private val IO_SCHEDULER = stringPreferencesKey("io_scheduler")
@@ -116,6 +119,14 @@ class PreferencesManager(private val context: Context) {
 
   fun getThermalSetOnBoot(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[THERMAL_SET_ON_BOOT] ?: false }
+
+  // CPU Set on Boot
+  suspend fun setCpuSetOnBoot(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[CPU_SET_ON_BOOT] = enabled }
+  }
+
+  fun getCpuSetOnBoot(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[CPU_SET_ON_BOOT] ?: false }
 
   suspend fun setIOScheduler(scheduler: String) {
     context.dataStore.edit { prefs -> prefs[IO_SCHEDULER] = scheduler }

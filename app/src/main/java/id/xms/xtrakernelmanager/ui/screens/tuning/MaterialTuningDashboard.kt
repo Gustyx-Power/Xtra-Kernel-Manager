@@ -38,6 +38,7 @@ import kotlin.math.sin
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MaterialTuningDashboard(
+    viewModel: TuningViewModel,
     preferencesManager: PreferencesManager? = null,
     onNavigate: (String) -> Unit = {},
 ) {
@@ -107,43 +108,17 @@ fun MaterialTuningDashboard(
       item(span = StaggeredGridItemSpan.FullLine) { HeroDeviceCard() }
 
       // 2 & 3. CPU & Thermal (Dynamic Bento Layout)
-      if (cpuCardExpanded) {
-        item(span = StaggeredGridItemSpan.FullLine, key = "cpu_card") {
-          ExpandableCPUCard(
-              expanded = true,
-              onExpandChange = {
-                cpuCardExpanded = it
-                if (it) thermalCardExpanded = false
-              },
-              onClickNav = { onNavigate("cpu_tuning") },
-              topRightContent = {
-                ExpandableThermalCard(
-                    expanded = false,
-                    onExpandChange = {
-                      thermalCardExpanded = it
-                      if (it) cpuCardExpanded = false
-                    },
-                    onClickNav = { onNavigate("thermal_tuning") },
-                )
-              },
-          )
-        }
-      } else if (thermalCardExpanded) {
+      if (thermalCardExpanded) {
         item(span = StaggeredGridItemSpan.FullLine, key = "thermal_card") {
           ExpandableThermalCard(
               expanded = true,
               onExpandChange = {
                 thermalCardExpanded = it
-                if (it) cpuCardExpanded = false
               },
               onClickNav = { onNavigate("thermal_tuning") },
               topLeftContent = {
                 ExpandableCPUCard(
-                    expanded = false,
-                    onExpandChange = {
-                      cpuCardExpanded = it
-                      if (it) thermalCardExpanded = false
-                    },
+                    viewModel = viewModel,
                     onClickNav = { onNavigate("cpu_tuning") },
                 )
               },
@@ -152,11 +127,7 @@ fun MaterialTuningDashboard(
       } else {
         item(key = "cpu_card") {
           ExpandableCPUCard(
-              expanded = false,
-              onExpandChange = {
-                cpuCardExpanded = it
-                if (it) thermalCardExpanded = false
-              },
+              viewModel = viewModel,
               onClickNav = { onNavigate("cpu_tuning") },
           )
         }
@@ -165,7 +136,6 @@ fun MaterialTuningDashboard(
               expanded = false,
               onExpandChange = {
                 thermalCardExpanded = it
-                if (it) cpuCardExpanded = false
               },
               onClickNav = { onNavigate("thermal_tuning") },
           )
@@ -611,106 +581,23 @@ fun ExpandableNetworkCard(
 
 @Composable
 fun ExpandableCPUCard(
-    expanded: Boolean,
-    onExpandChange: (Boolean) -> Unit,
+    viewModel: TuningViewModel, // Add viewModel if needed, or remove if not used. 
+    // Actually, for simple nav card we might not need viewModel unless used for data.
+    // But to match signature calls elsewhere let's verify usage. 
+    // Wait, the call sites pass 'expanded' etc. I need to change them too.
+    // For now let's keep the params minimal and I will update call sites.
     onClickNav: () -> Unit,
     modifier: Modifier = Modifier,
-    topRightContent: @Composable () -> Unit = {},
 ) {
-  val height by animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "cpu_height")
-
-  Box(
-      modifier =
-          modifier.fillMaxWidth().height(height).clickable(
-              interactionSource = remember { MutableInteractionSource() },
-              indication = null,
-          ) {
-            onExpandChange(!expanded)
-          }
-  ) {
-    if (!expanded) {
-      DashboardNavCard(
-          title = "CPU",
-          subtitle = "Clock & Governor",
-          icon = Icons.Rounded.Memory,
-          badgeText = "Walt",
-          onClick = { onExpandChange(true) },
-      )
-    } else {
-      val cornerRadius = 24.dp
-      val gap = 24.dp
-      val cutoutHeight = 120.dp
-      val themeColor = MaterialTheme.colorScheme.secondaryContainer
-
-      Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
-          Box(modifier = Modifier.weight(1f).fillMaxHeight())
-          Box(modifier = Modifier.weight(1f).height(cutoutHeight)) { topRightContent() }
-        }
-      }
-
-      Box(modifier = Modifier.fillMaxSize()) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-          val w = size.width
-          val h = size.height
-          val colW = w / 2 - gap.toPx() / 2
-          val ch = cutoutHeight.toPx() + gap.toPx()
-          val cr = cornerRadius.toPx()
-          val ir = cornerRadius.toPx()
-
-          val path =
-              Path().apply {
-                moveTo(0f, cr)
-                quadraticTo(0f, 0f, cr, 0f)
-                lineTo(colW - cr, 0f)
-                quadraticTo(colW, 0f, colW, cr)
-                lineTo(colW, ch - ir)
-                arcTo(
-                    androidx.compose.ui.geometry.Rect(colW, ch - 2 * ir, colW + 2 * ir, ch),
-                    180f,
-                    -90f,
-                    false,
-                )
-                lineTo(w - cr, ch)
-                quadraticTo(w, ch, w, ch + cr)
-                lineTo(w, h - cr)
-                quadraticTo(w, h, w - cr, h)
-                lineTo(cr, h)
-                quadraticTo(0f, h, 0f, h - cr)
-                close()
-              }
-          drawPath(path, color = themeColor)
-        }
-
-        Row(modifier = Modifier.fillMaxSize()) {
-          Column(
-              modifier = Modifier.weight(1f).fillMaxHeight().padding(20.dp),
-              verticalArrangement = Arrangement.SpaceBetween,
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                  modifier =
-                      Modifier.size(40.dp)
-                          .clip(RoundedCornerShape(12.dp))
-                          .background(MaterialTheme.colorScheme.primaryContainer),
-                  contentAlignment = Alignment.Center,
-              ) {
-                Icon(
-                    Icons.Rounded.Memory,
-                    null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-              }
-            }
-          }
-          Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-            Spacer(modifier = Modifier.height(cutoutHeight + gap))
-          }
-        }
-      }
-    }
-  }
+    DashboardNavCard(
+        title = "CPU",
+        subtitle = "Clock & Governor",
+        icon = Icons.Rounded.Memory,
+        badgeText = "Walt",
+        onClick = onClickNav,
+    )
 }
+
 
 @Composable
 fun ExpandableThermalCard(
@@ -1325,11 +1212,11 @@ fun GpuTile(
   }
 }
 
-@Preview
-@Composable
-fun MaterialTuningPreview() {
-  MaterialTheme { MaterialTuningDashboard() }
-}
+// @Preview
+// @Composable
+// fun MaterialTuningPreview() {
+//   MaterialTheme { MaterialTuningDashboard() }
+// }
 
 @Composable
 fun WavySlider(

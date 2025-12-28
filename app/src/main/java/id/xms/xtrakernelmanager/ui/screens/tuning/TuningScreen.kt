@@ -26,7 +26,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun TuningScreen(preferencesManager: PreferencesManager) {
+fun TuningScreen(
+    preferencesManager: PreferencesManager,
+    onNavigate: (String) -> Unit = {}
+) {
   val factory = TuningViewModel.Factory(preferencesManager)
   val viewModel: TuningViewModel = viewModel(factory = factory)
 
@@ -133,7 +136,11 @@ fun TuningScreen(preferencesManager: PreferencesManager) {
   }
 
   if (layoutStyle != "legacy") {
-    MaterialTuningDashboard(preferencesManager = preferencesManager)
+    MaterialTuningDashboard(
+        viewModel = viewModel,
+        preferencesManager = preferencesManager,
+        onNavigate = onNavigate
+    )
   } else {
     Box {
       LazyColumn(

@@ -423,6 +423,12 @@ class TuningViewModel(
     }
   }
 
+  fun setCpuSetOnBoot(enabled: Boolean) {
+    viewModelScope.launch(Dispatchers.IO) {
+      preferencesManager.setCpuSetOnBoot(enabled)
+    }
+  }
+
   fun setIOScheduler(scheduler: String) {
     viewModelScope.launch(Dispatchers.IO) {
       Log.d("TuningViewModel", "Setting IO Scheduler to: $scheduler")
