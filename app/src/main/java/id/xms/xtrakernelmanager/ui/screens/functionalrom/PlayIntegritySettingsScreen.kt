@@ -19,15 +19,31 @@ import id.xms.xtrakernelmanager.ui.components.PillCard
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayIntegritySettingsScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: FunctionalRomViewModel? = null
 ) {
-    // UI State for toggles (UI only, no backend logic)
-    var playIntegrityFixEnabled by remember { mutableStateOf(false) }
-    var spoofBootloaderEnabled by remember { mutableStateOf(false) }
+    // Collect state from ViewModel if available, otherwise use local state
+    val uiState = viewModel?.uiState?.collectAsState()?.value
+    
+    // Local UI State for toggles (fallback when no ViewModel)
+    var playIntegrityFixEnabled by remember { mutableStateOf(uiState?.playIntegrityFixEnabled ?: false) }
+    var spoofBootloaderEnabled by remember { mutableStateOf(uiState?.spoofBootloaderEnabled ?: false) }
+    var gamePropsEnabled by remember { mutableStateOf(uiState?.gamePropsEnabled ?: false) }
+    var unlimitedPhotosEnabled by remember { mutableStateOf(uiState?.unlimitedPhotosEnabled ?: false) }
+    var netflixSpoofEnabled by remember { mutableStateOf(uiState?.netflixSpoofEnabled ?: false) }
+    // Auto Update PIF - UI only for now
     var autoUpdatePifEnabled by remember { mutableStateOf(false) }
-    var gamePropsEnabled by remember { mutableStateOf(false) }
-    var unlimitedPhotosEnabled by remember { mutableStateOf(false) }
-    var netflixSpoofEnabled by remember { mutableStateOf(false) }
+
+    // Sync with ViewModel state
+    LaunchedEffect(uiState) {
+        uiState?.let {
+            playIntegrityFixEnabled = it.playIntegrityFixEnabled
+            spoofBootloaderEnabled = it.spoofBootloaderEnabled
+            gamePropsEnabled = it.gamePropsEnabled
+            unlimitedPhotosEnabled = it.unlimitedPhotosEnabled
+            netflixSpoofEnabled = it.netflixSpoofEnabled
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -81,7 +97,10 @@ fun PlayIntegritySettingsScreen(
                         else
                             stringResource(R.string.play_integrity_fix_desc_disabled),
                         checked = playIntegrityFixEnabled,
-                        onCheckedChange = { playIntegrityFixEnabled = it }
+                        onCheckedChange = { 
+                            playIntegrityFixEnabled = it
+                            viewModel?.setPlayIntegrityFix(it)
+                        }
                     )
 
                     HorizontalDivider(
@@ -97,7 +116,10 @@ fun PlayIntegritySettingsScreen(
                         else
                             stringResource(R.string.spoof_bootloader_desc_disabled),
                         checked = spoofBootloaderEnabled,
-                        onCheckedChange = { spoofBootloaderEnabled = it }
+                        onCheckedChange = { 
+                            spoofBootloaderEnabled = it
+                            viewModel?.setSpoofBootloader(it)
+                        }
                     )
 
                     HorizontalDivider(
@@ -129,7 +151,10 @@ fun PlayIntegritySettingsScreen(
                         else
                             stringResource(R.string.game_props_desc_disabled),
                         checked = gamePropsEnabled,
-                        onCheckedChange = { gamePropsEnabled = it }
+                        onCheckedChange = { 
+                            gamePropsEnabled = it
+                            viewModel?.setGameProps(it)
+                        }
                     )
 
                     HorizontalDivider(
@@ -145,7 +170,10 @@ fun PlayIntegritySettingsScreen(
                         else
                             stringResource(R.string.unlimited_photos_backup_desc_disabled),
                         checked = unlimitedPhotosEnabled,
-                        onCheckedChange = { unlimitedPhotosEnabled = it }
+                        onCheckedChange = { 
+                            unlimitedPhotosEnabled = it
+                            viewModel?.setUnlimitedPhotos(it)
+                        }
                     )
 
                     HorizontalDivider(
@@ -161,7 +189,10 @@ fun PlayIntegritySettingsScreen(
                         else
                             stringResource(R.string.netflix_spoof_desc_disabled),
                         checked = netflixSpoofEnabled,
-                        onCheckedChange = { netflixSpoofEnabled = it }
+                        onCheckedChange = { 
+                            netflixSpoofEnabled = it
+                            viewModel?.setNetflixSpoof(it)
+                        }
                     )
                 }
             }
