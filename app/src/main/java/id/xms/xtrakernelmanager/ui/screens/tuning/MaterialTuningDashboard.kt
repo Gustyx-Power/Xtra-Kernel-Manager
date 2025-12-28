@@ -59,11 +59,38 @@ fun MaterialTuningDashboard(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* Import Action */ }) {
-                        Icon(Icons.Rounded.FolderOpen, contentDescription = "Import Profile")
-                    }
-                    IconButton(onClick = { /* Export Action */ }) {
-                        Icon(Icons.Rounded.Save, contentDescription = "Export Profile")
+                    var showMenu by remember { mutableStateOf(false) }
+
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Import Profile") },
+                                onClick = { 
+                                    showMenu = false
+                                    /* Import Action */ 
+                                },
+                                leadingIcon = { 
+                                    Icon(Icons.Rounded.FolderOpen, contentDescription = null) 
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Export Profile") },
+                                onClick = { 
+                                    showMenu = false
+                                    /* Export Action */ 
+                                },
+                                leadingIcon = { 
+                                    Icon(Icons.Rounded.Save, contentDescription = null) 
+                                }
+                            )
+                        }
                     }
                 },
                 scrollBehavior = scrollBehavior
