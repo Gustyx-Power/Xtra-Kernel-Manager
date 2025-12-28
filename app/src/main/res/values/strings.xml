@@ -649,4 +649,18 @@
     <string name="double_tap_wake_desc_enabled">Double tap to wake enabled</string>
     <string name="double_tap_wake_desc_disabled">Double tap to wake disabled</string>
 
+    <!-- Security Gate -->
+    <string name="security_warning_title">Access Restricted</string>
+    <string name="security_warning_message">This device is not registered in the official OOSExgang VIP community. Access to Functional ROM features requires community membership.</string>
+    <string name="security_warning_button">Understood</string>
+
+    <!-- Touch Boost -->
+    <string name="touch_boost">Touch Boost</string>
+    <string name="touch_boost_desc_enabled">Touch boost enabled - improved touch response</string>
+    <string name="touch_boost_desc_disabled">Touch boost disabled</string>
+
+    <!-- Feature Availability -->
+    <string name="feature_not_available">Feature not available on this device</string>
+    <string name="loading_features">Detecting available features…</string>
+
 </resources>
