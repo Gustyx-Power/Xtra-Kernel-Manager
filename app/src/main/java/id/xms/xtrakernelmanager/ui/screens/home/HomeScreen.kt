@@ -577,138 +577,363 @@ fun CountdownRebootDialog(
 }
 
 // COMPONENTS (Card & Visuals)
+
+/**
+ * Modern Material Design 3 CPU Information Card
+ * Features: Circular load gauge, temperature badge, core grid visualization
+ * No dropdown - all content always visible
+ */
 @SuppressLint("DefaultLocale")
 @Composable
 fun CPUInfoCardNoDropdown(cpuInfo: CPUInfo) {
-    var isExpanded by remember { mutableStateOf(true) }
-    
-    // Arrow rotation animation
-    val arrowRotation by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
+    // Animated CPU load value
+    val animatedLoad by animateFloatAsState(
+        targetValue = cpuInfo.totalLoad / 100f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
         ),
-        label = "arrowRotation"
+        label = "cpuLoad"
     )
     
-    // Icon scale animation on toggle
-    var iconPressed by remember { mutableStateOf(false) }
-    val iconScale by animateFloatAsState(
-        targetValue = if (iconPressed) 0.85f else 1f,
+    // Animated temperature value
+    val animatedTemp by animateFloatAsState(
+        targetValue = cpuInfo.temperature,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
+            dampingRatio = Spring.DampingRatioNoBouncy,
+            stiffness = Spring.StiffnessMediumLow
         ),
-        label = "iconScale"
+        label = "cpuTemp"
     )
     
-    // Header icon glow animation
-    val headerIconScale by animateFloatAsState(
-        targetValue = if (isExpanded) 1.1f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "headerIconScale"
-    )
+    // Temperature color interpolation
+    val tempColor = when {
+        animatedTemp < 40f -> MaterialTheme.colorScheme.primary
+        animatedTemp < 55f -> MaterialTheme.colorScheme.tertiary
+        animatedTemp < 70f -> Color(0xFFFF9800) // Orange
+        else -> MaterialTheme.colorScheme.error
+    }
     
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(), 
-        onClick = { 
-            iconPressed = true
-            isExpanded = !isExpanded 
-        }
-    ) {
-        // Reset icon press state after animation
-        LaunchedEffect(iconPressed) {
-            if (iconPressed) {
-                delay(150)
-                iconPressed = false
+    // Load color based on percentage
+    val loadColor = when {
+        animatedLoad < 0.3f -> MaterialTheme.colorScheme.primary
+        animatedLoad < 0.6f -> MaterialTheme.colorScheme.tertiary
+        animatedLoad < 0.85f -> Color(0xFFFF9800) // Orange
+        else -> MaterialTheme.colorScheme.error
+    }
+    
+    GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            // Header Section
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        tonalElevation = 2.dp
+                    ) {
+                        Icon(
+                            Icons.Default.Memory,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .size(26.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = stringResource(R.string.cpu_information),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = cpuInfo.cores.firstOrNull()?.governor?.uppercase() ?: stringResource(R.string.unknown),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+                
+                // Temperature Badge
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = tempColor.copy(alpha = 0.15f),
+                    border = BorderStroke(1.dp, tempColor.copy(alpha = 0.3f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Thermostat,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = tempColor
+                        )
+                        Text(
+                            text = "${String.format(Locale.US, "%.1f", animatedTemp)}°C",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = tempColor
+                        )
+                    }
+                }
             }
+            
+            // Main Content: CPU Load Gauge + Stats
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Large Circular CPU Load Gauge
+                Box(
+                    modifier = Modifier.size(120.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Background track
+                    CircularProgressIndicator(
+                        progress = { 1f },
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        strokeWidth = 10.dp,
+                        trackColor = Color.Transparent,
+                        strokeCap = StrokeCap.Round
+                    )
+                    // Animated progress
+                    CircularProgressIndicator(
+                        progress = { animatedLoad },
+                        modifier = Modifier.fillMaxSize(),
+                        color = loadColor,
+                        strokeWidth = 10.dp,
+                        trackColor = Color.Transparent,
+                        strokeCap = StrokeCap.Round
+                    )
+                    // Center text
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = loadColor
+                        )
+                        Text(
+                            text = "CPU Load",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                // Stats Column
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Active Cores
+                    CPUStatRow(
+                        icon = Icons.Default.Memory,
+                        label = "Active Cores",
+                        value = "${cpuInfo.cores.count { it.isOnline }} / ${cpuInfo.cores.size}",
+                        valueColor = MaterialTheme.colorScheme.primary
+                    )
+                    
+                    // Max Frequency
+                    val maxFreq = cpuInfo.cores.filter { it.isOnline }.maxOfOrNull { it.currentFreq } ?: 0
+                    CPUStatRow(
+                        icon = Icons.Default.Speed,
+                        label = "Max Freq",
+                        value = if (maxFreq >= 1000) "${String.format(Locale.US, "%.1f", maxFreq / 1000f)} GHz" else "$maxFreq MHz",
+                        valueColor = MaterialTheme.colorScheme.tertiary
+                    )
+                    
+                    // Min Frequency  
+                    val minFreq = cpuInfo.cores.filter { it.isOnline }.minOfOrNull { it.currentFreq } ?: 0
+                    CPUStatRow(
+                        icon = Icons.Default.SlowMotionVideo,
+                        label = "Min Freq",
+                        value = if (minFreq >= 1000) "${String.format(Locale.US, "%.1f", minFreq / 1000f)} GHz" else "$minFreq MHz",
+                        valueColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Divider
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                thickness = 1.dp
+            )
+            
+            // Core Visualization Grid
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = stringResource(R.string.clockspeed_per_core),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                // Core Grid
+                val coreRows = cpuInfo.cores.chunked(4)
+                val globalMaxFreq = cpuInfo.cores.maxOfOrNull { it.maxFreq } ?: 1
+                
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    coreRows.forEach { rowCores ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            rowCores.forEach { core ->
+                                CoreIndicator(
+                                    coreNumber = core.coreNumber,
+                                    currentFreq = core.currentFreq,
+                                    maxFreq = globalMaxFreq,
+                                    isOnline = core.isOnline
+                                )
+                            }
+                            // Fill empty slots for alignment
+                            repeat(4 - rowCores.size) {
+                                Spacer(modifier = Modifier.width(70.dp))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * CPU Stat Row - Compact stat display
+ */
+@Composable
+private fun CPUStatRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    valueColor: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = valueColor
+        )
+    }
+}
+
+/**
+ * Core Indicator - Individual CPU core visualization
+ * Shows frequency with color-coded circular indicator
+ */
+@Composable
+private fun CoreIndicator(
+    coreNumber: Int,
+    currentFreq: Int,
+    maxFreq: Int,
+    isOnline: Boolean
+) {
+    val freqRatio = if (maxFreq > 0) currentFreq.toFloat() / maxFreq else 0f
+    
+    // Color based on frequency ratio
+    val coreColor = when {
+        !isOnline -> MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+        freqRatio < 0.25f -> MaterialTheme.colorScheme.primary // Low - Blue
+        freqRatio < 0.5f -> MaterialTheme.colorScheme.tertiary // Medium - Teal
+        freqRatio < 0.75f -> Color(0xFFFF9800) // High - Orange
+        else -> MaterialTheme.colorScheme.error // Very High - Red
+    }
+    
+    // Animated progress for the core indicator
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (isOnline) freqRatio else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "coreProgress_$coreNumber"
+    )
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(70.dp)
+    ) {
+        // Circular indicator
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background circle
+            CircularProgressIndicator(
+                progress = { 1f },
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                strokeWidth = 4.dp,
+                trackColor = Color.Transparent,
+                strokeCap = StrokeCap.Round
+            )
+            // Progress circle
+            CircularProgressIndicator(
+                progress = { animatedProgress },
+                modifier = Modifier.fillMaxSize(),
+                color = coreColor,
+                strokeWidth = 4.dp,
+                trackColor = Color.Transparent,
+                strokeCap = StrokeCap.Round
+            )
+            // Core number
+            Text(
+                text = "$coreNumber",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (isOnline) coreColor else MaterialTheme.colorScheme.outline
+            )
         }
         
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        shape = MaterialTheme.shapes.medium, 
-                        color = MaterialTheme.colorScheme.primaryContainer, 
-                        tonalElevation = 2.dp,
-                        modifier = Modifier.scale(headerIconScale)
-                    ) {
-                        Icon(Icons.Default.Memory, null, modifier = Modifier
-                            .padding(8.dp)
-                            .size(24.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                    }
-                    Text(stringResource(R.string.cpu_information), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                }
-                IconButton(
-                    onClick = { 
-                        iconPressed = true
-                        isExpanded = !isExpanded 
-                    },
-                    modifier = Modifier.scale(iconScale)
-                ) { 
-                    Icon(
-                        Icons.Default.KeyboardArrowDown, 
-                        null,
-                        modifier = Modifier.graphicsLayer { 
-                            rotationZ = arrowRotation 
-                        }
-                    ) 
-                }
-            }
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ), 
-                    expandFrom = Alignment.Top
-                ) + fadeIn(
-                    animationSpec = tween(200)
-                ) + slideInVertically(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow
-                    ),
-                    initialOffsetY = { -it / 4 }
-                ),
-                exit = shrinkVertically(
-                    animationSpec = tween(150)
-                ) + fadeOut(
-                    animationSpec = tween(100)
-                ),
-                label = "CPU"
-            ) {
-                Column(modifier = Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        InfoChipCompact(Icons.Default.Thermostat, "${cpuInfo.temperature}°C")
-                        InfoChipCompact(Icons.Default.Speed, stringResource(R.string.load, String.format(Locale.US, "%.0f", cpuInfo.totalLoad)))
-                        InfoChipCompact(Icons.Default.Dashboard, cpuInfo.cores.firstOrNull()?.governor ?: stringResource(R.string.unknown))
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                         Text(stringResource(R.string.clockspeed_per_core), style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                         val rows = cpuInfo.cores.chunked(4)
-                         val maxFreq = cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0
-                         rows.forEach { rowCores ->
-                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                 rowCores.forEach { core ->
-                                     val isHot = core.isOnline && core.currentFreq == maxFreq
-                                     FreqItemCompact(freq = core.currentFreq, label = "CPU${core.coreNumber}", isActive = isHot, isOffline = !core.isOnline)
-                                 }
-                             }
-                         }
-                    }
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        Text(text = "Active Cores: ${cpuInfo.cores.count { it.isOnline }} / ${cpuInfo.cores.size}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            }
-        }
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        // Frequency text
+        Text(
+            text = if (isOnline) {
+                if (currentFreq >= 1000) "${currentFreq / 1000}G" else "$currentFreq"
+            } else {
+                "OFF"
+            },
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (isOnline) FontWeight.Medium else FontWeight.Normal,
+            color = if (isOnline) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline
+        )
     }
 }
 

@@ -1,7 +1,7 @@
 <p align="center">
 <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin">
 <a href="https://github.com/Gustyx-Power/Xtra-Kernel-Manager/releases"><img src="https://img.shields.io/github/v/release/Gustyx-Power/Xtra-Kernel-Manager?label=Release&style=for-the-badge&logo=github&logoColor=white&labelColor=222" alt="Latest Release"></a>
-<a href="LICENSE"><img src="https://img.shields.io/badge/GPL--3.0-white?style=for-the-badge&logo=andela&logoColor=white&label=License&labelColor=222" alt="License"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/MIT-white?style=for-the-badge&logo=andela&logoColor=white&label=License&labelColor=222" alt="License"></a>
 </p>
 
 ## About Xtra Kernel Manager
@@ -47,4 +47,4 @@
 
 ## License
 
-Xtra Kernel Manager is open-sourced software licensed under the [GPL-3.0 license](LICENSE).
+Xtra Kernel Manager is open-sourced software licensed under the [MIT license](LICENSE).

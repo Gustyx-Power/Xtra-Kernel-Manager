@@ -1,10 +1,19 @@
 package id.xms.xtrakernelmanager.ui.screens.info
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +21,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,9 +30,12 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -180,7 +194,7 @@ fun InfoScreen() {
                     ) {
                         InfoStatItem(value = "2", label = "Founders")
                         InfoStatItem(value = "2", label = "Contributors")
-                        InfoStatItem(value = "1", label = "Tester")
+                        InfoStatItem(value = "5", label = "Tester")
                     }
                 }
             }
@@ -306,7 +320,7 @@ fun InfoScreen() {
                             imageResId = R.drawable.team_contributor_shimoku,
                             name = "Shimoku",
                             role = stringResource(R.string.info_role_contributor),
-                            country = "🇷🇺",
+                            country = "🇺🇦",
                             isFounder = false
                         )
                     }
@@ -352,19 +366,119 @@ fun InfoScreen() {
                     
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
                     
-                    // Tester - Single centered
-                    Box(
+                    // Testers Carousel - iOS-style stacked carousel
+                    val testers = listOf(
+                        Triple(R.drawable.team_tester_achmad, R.string.team_tester_achmad, "🇮🇩"),
+                        Triple(R.drawable.team_tester_hasan, R.string.team_tester_hasan, "🇮🇩"),
+                        Triple(R.drawable.team_tester_reffan, R.string.team_tester_reffan, "🇮🇩"),
+                        Triple(R.drawable.team_tester_wil, R.string.team_tester_wil, "🇮🇩"),
+                        Triple(R.drawable.team_sm_tester, R.string.team_tester_shadow_monarch, "🇵🇰")
+                    )
+                    
+                    val pagerState = rememberPagerState(pageCount = { testers.size })
+                    
+                    // Auto-slide every 3 seconds
+                    LaunchedEffect(pagerState) {
+                        while (true) {
+                            delay(3000L)
+                            val nextPage = (pagerState.currentPage + 1) % testers.size
+                            pagerState.animateScrollToPage(
+                                page = nextPage,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                )
+                            )
+                        }
+                    }
+                    
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        TeamMemberCard(
-                            modifier = Modifier.widthIn(max = 180.dp),
-                            imageResId = R.drawable.team_tester_wil,
-                            name = "WiL",
-                            role = stringResource(R.string.info_role_tester),
-                            country = "🇮🇩",
-                            isFounder = false
-                        )
+                        // Stack-style pager like iOS recent apps
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            contentPadding = PaddingValues(horizontal = 80.dp),
+                            pageSpacing = (-20).dp,
+                            beyondViewportPageCount = 2
+                        ) { page ->
+                            val (imageRes, nameRes, country) = testers[page]
+                            
+                            // Calculate scale and alpha based on distance from current page
+                            val pageOffset = (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
+                            val scale by animateFloatAsState(
+                                targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.85f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
+                                label = "scale"
+                            )
+                            val alpha by animateFloatAsState(
+                                targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.6f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioNoBouncy,
+                                    stiffness = Spring.StiffnessMedium
+                                ),
+                                label = "alpha"
+                            )
+                            
+                            Box(
+                                modifier = Modifier
+                                    .graphicsLayer {
+                                        scaleX = scale
+                                        scaleY = scale
+                                        this.alpha = alpha
+                                        // Add slight rotation for depth effect
+                                        rotationY = pageOffset * -5f
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                TeamMemberCard(
+                                    modifier = Modifier.width(160.dp),
+                                    imageResId = imageRes,
+                                    name = stringResource(nameRes),
+                                    role = stringResource(R.string.info_role_tester),
+                                    country = country,
+                                    isFounder = false
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // Page indicators
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            testers.forEachIndexed { index, _ ->
+                                val isSelected = pagerState.currentPage == index
+                                val indicatorSize by animateFloatAsState(
+                                    targetValue = if (isSelected) 10f else 6f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    ),
+                                    label = "indicator"
+                                )
+                                Box(
+                                    modifier = Modifier
+                                        .size(indicatorSize.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (isSelected)
+                                                MaterialTheme.colorScheme.primary
+                                            else
+                                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                                        )
+                                )
+                            }
+                        }
                     }
                 }
             }

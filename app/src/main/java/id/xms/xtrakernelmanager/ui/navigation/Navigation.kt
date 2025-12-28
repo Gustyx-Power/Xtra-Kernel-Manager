@@ -23,6 +23,9 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -161,7 +164,37 @@ fun Navigation(preferencesManager: PreferencesManager) {
             }
 
             composable("functionalrom") {
+                val context = LocalContext.current
+                val functionalRomViewModel = remember {
+                    FunctionalRomViewModel(
+                        preferencesManager = preferencesManager,
+                        context = context.applicationContext
+                    )
+                }
                 FunctionalRomScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToPlayIntegrity = {
+                        navController.navigate("playintegritysettings")
+                    },
+                    onNavigateToXiaomiTouch = {
+                        navController.navigate("xiaomitouchsettings")
+                    },
+                    viewModel = functionalRomViewModel
+                )
+            }
+
+            composable("playintegritysettings") {
+                PlayIntegritySettingsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("xiaomitouchsettings") {
+                XiaomiTouchSettingsScreen(
                     onNavigateBack = {
                         navController.popBackStack()
                     }
