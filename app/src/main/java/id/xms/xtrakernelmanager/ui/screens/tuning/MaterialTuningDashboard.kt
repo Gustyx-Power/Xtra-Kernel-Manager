@@ -294,6 +294,11 @@ fun DashboardProfileCard() {
 @Composable
 fun ExpandableGPUCard() {
     var expanded by remember { mutableStateOf(false) }
+    var sliderValue by remember { mutableFloatStateOf(0.7f) }
+    var governorValue by remember { mutableStateOf("msm-adreno-tz") }
+    var minFreq by remember { mutableStateOf("305 MHz") }
+    var maxFreq by remember { mutableStateOf("680 MHz") }
+    var rendererValue by remember { mutableStateOf("SkiaGL (Vulkan)") }
 
     Card(
         modifier = Modifier
@@ -431,15 +436,15 @@ fun ExpandableGPUCard() {
                     modifier = Modifier.padding(top = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     
                     // Governor
                     GpuControlRow(
                         label = "Governor",
-                        value = "msm-adreno-tz",
+                        value = governorValue,
                         icon = Icons.Rounded.Speed,
                         options = listOf("msm-adreno-tz", "performance", "powersave", "userspace"),
-                        onValueChange = { /* TODO */ }
+                        onValueChange = { governorValue = it }
                     )
 
                     // Min/Max Tiles
@@ -447,16 +452,16 @@ fun ExpandableGPUCard() {
                         GpuTile(
                             modifier = Modifier.weight(1f),
                             label = "Min Frequency",
-                            value = "305 MHz",
+                            value = minFreq,
                             options = listOf("305 MHz", "400 MHz", "500 MHz", "680 MHz"),
-                            onValueChange = { /* TODO */ }
+                            onValueChange = { minFreq = it }
                         )
                         GpuTile(
                             modifier = Modifier.weight(1f),
                             label = "Max Frequency",
-                            value = "680 MHz",
+                            value = maxFreq,
                             options = listOf("305 MHz", "400 MHz", "500 MHz", "680 MHz"),
-                            onValueChange = { /* TODO */ }
+                            onValueChange = { maxFreq = it }
                         )
                     }
 
@@ -472,12 +477,12 @@ fun ExpandableGPUCard() {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text("Power Level", style = MaterialTheme.typography.bodySmall)
-                                Text("Level 5", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                                Text("Level ${(sliderValue * 10).toInt()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             }
                             Spacer(Modifier.height(16.dp))
                             WavySlider(
-                                value = 0.7f, 
-                                onValueChange = {}
+                                value = sliderValue, 
+                                onValueChange = { sliderValue = it }
                             )
                         }
                     }
@@ -485,10 +490,10 @@ fun ExpandableGPUCard() {
                     // Renderer
                     GpuControlRow(
                         label = "Renderer",
-                        value = "SkiaGL (Vulkan)",
+                        value = rendererValue,
                         icon = Icons.Rounded.Brush,
                         options = listOf("SkiaGL (Vulkan)", "SkiaGL (OpenGL)", "SkiaVK"),
-                        onValueChange = { /* TODO */ }
+                        onValueChange = { rendererValue = it }
                     )
                 }
             }
@@ -515,7 +520,9 @@ fun GpuControlRow(
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(12.dp),
+                modifier = Modifier
+                    .padding(12.dp)
+                    .fillMaxWidth(), // Added fillMaxWidth
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
