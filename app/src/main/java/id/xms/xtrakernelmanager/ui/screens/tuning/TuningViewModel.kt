@@ -115,6 +115,12 @@ class TuningViewModel(
   val lockedGpuMaxFreq: StateFlow<Int>
     get() = _lockedGpuMaxFreq.asStateFlow()
 
+  // Auto-refresh control
+  private val _isRefreshEnabled = MutableStateFlow(true)
+  
+  // Static data cache flags
+  private var staticDataLoaded = false
+
   private var deviceInfoCache: Triple<String, String, String>? = null
 
   init {
@@ -162,13 +168,26 @@ class TuningViewModel(
 
   private suspend fun startAutoRefresh() {
     while (true) {
-      delay(2000)
-      if (_isRootAvailable.value && !_isLoading.value) {
-        refreshCurrentValues()
+      delay(5000) // Optimized: 5 seconds instead of 2
+      if (_isRootAvailable.value && !_isLoading.value && _isRefreshEnabled.value) {
+        refreshDynamicValues() // Only refresh dynamic data
       }
     }
   }
 
+  // Pause/Resume auto-refresh for screen lifecycle
+  fun pauseAutoRefresh() {
+    _isRefreshEnabled.value = false
+  }
+
+  fun resumeAutoRefresh() {
+    _isRefreshEnabled.value = true
+    viewModelScope.launch {
+      refreshDynamicValues()
+    }
+  }
+
+  // Full refresh - includes static data (called on init)
   private suspend fun refreshCurrentValues() {
     val updatedClusters = cpuUseCase.detectClusters()
     _cpuClusters.value = updatedClusters
@@ -188,15 +207,40 @@ class TuningViewModel(
     }
     _clusterStates.value = states
 
-    val currentIO = getCurrentIOScheduler()
-    if (currentIO.isNotEmpty()) {
-      _currentIOScheduler.value = currentIO
+    // Only load static data once
+    if (!staticDataLoaded) {
+      val currentIO = getCurrentIOScheduler()
+      if (currentIO.isNotEmpty()) {
+        _currentIOScheduler.value = currentIO
+      }
+
+      val currentTCP = getCurrentTCPCongestion()
+      if (currentTCP.isNotEmpty()) {
+        _currentTCPCongestion.value = currentTCP
+      }
+      staticDataLoaded = true
+    }
+  }
+
+  // Lightweight refresh - only dynamic data (called every 5s)
+  private suspend fun refreshDynamicValues() {
+    val updatedClusters = cpuUseCase.detectClusters()
+    _cpuClusters.value = updatedClusters
+
+    if (!_isMediatek.value) {
+      _gpuInfo.value = gpuUseCase.getGPUInfo()
     }
 
-    val currentTCP = getCurrentTCPCongestion()
-    if (currentTCP.isNotEmpty()) {
-      _currentTCPCongestion.value = currentTCP
+    val states = mutableMapOf<Int, ClusterUIState>()
+    updatedClusters.forEach { cluster ->
+      states[cluster.clusterNumber] =
+          ClusterUIState(
+              minFreq = cluster.currentMinFreq.toFloat(),
+              maxFreq = cluster.currentMaxFreq.toFloat(),
+              governor = cluster.governor,
+          )
     }
+    _clusterStates.value = states
   }
 
   private suspend fun loadSystemInfo() {
