@@ -8,30 +8,20 @@ import android.provider.Settings
 import android.view.*
 import android.widget.Toast
 import androidx.compose.animation.*
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -43,9 +33,20 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
-import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
-import kotlinx.coroutines.*
 
+import id.xms.xtrakernelmanager.ui.components.gameoverlay.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
+
+/**
+ * Game Overlay Service - Redesigned
+ * 
+ * Features:
+ * - Sidebar navigation with Performance Panel and Game Tools tabs
+ * - Quick Apps with floating window capability
+ * - Material You / Monet dynamic colors with dark blue fallback
+ * - Glassmorphic UI design
+ */
 class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     private lateinit var windowManager: WindowManager
@@ -54,28 +55,38 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
 
     private var params: WindowManager.LayoutParams? = null
-    private var offsetX = 0
-    private var offsetY = 0
 
     // Use cases
     private val gameOverlayUseCase = GameOverlayUseCase()
     private val gameControlUseCase by lazy { GameControlUseCase(applicationContext) }
     private val preferencesManager by lazy { PreferencesManager(applicationContext) }
 
-    private var pollingJob: Job? = null
 
-    // FPS monitoring states
-    private var cpuUsage by mutableStateOf("0")
-    private var gpuUsage by mutableStateOf("0")
+    private var pollingJob: Job? = null
+    private var gameStartTime: Long = 0L
+
+    // States
+    private var isExpanded by mutableStateOf(false)
+    private var currentTab by mutableStateOf(SidebarTab.PERFORMANCE)
+    
+    // Performance monitoring states
+    private var cpuFreq by mutableStateOf("0")
+    private var cpuLoad by mutableFloatStateOf(0f)
+    private var gpuFreq by mutableStateOf("0")
+    private var gpuLoad by mutableFloatStateOf(0f)
     private var fpsValue by mutableStateOf("60")
     private var tempValue by mutableStateOf("0")
-
-    // Control panel states
-    private var isExpanded by mutableStateOf(false)
+    private var gameDuration by mutableStateOf("0:00")
+    private var batteryPercentage by mutableIntStateOf(100)
+    
+    // Control states
     private var currentPerformanceMode by mutableStateOf("balanced")
-    private var isDndEnabled by mutableStateOf(false)
-    private var isHideNotif by mutableStateOf(false)
     private var isClearingRam by mutableStateOf(false)
+    
+    // Game Tools states
+    private var gameToolState by mutableStateOf(GameToolState())
+    
+
 
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
@@ -89,46 +100,115 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        
-        // Check overlay permission before creating overlay
+        gameStartTime = System.currentTimeMillis()
+
+        // Check overlay permission
         if (!Settings.canDrawOverlays(this)) {
             showToast("Please grant overlay permission for Game Overlay")
             stopSelf()
             return
         }
-        
+
         loadPreferences()
+
         createOverlay()
         startPolling()
     }
 
     private fun loadPreferences() {
         CoroutineScope(Dispatchers.Main).launch {
-            preferencesManager.isGameControlDNDEnabled().collect { isDndEnabled = it }
+            // Load DND state
+            preferencesManager.isGameControlDNDEnabled().collect { enabled ->
+                gameToolState = gameToolState.copy(doNotDisturb = enabled)
+            }
         }
         CoroutineScope(Dispatchers.Main).launch {
-            preferencesManager.isGameControlHideNotifEnabled().collect { isHideNotif = it }
+            // Load Hide Notifications state
+            preferencesManager.isGameControlHideNotifEnabled().collect { enabled ->
+                gameToolState = gameToolState.copy(blockNotifications = enabled)
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            // Load Esports Mode state
+            preferencesManager.isEsportsModeEnabled().collect { enabled ->
+                gameToolState = gameToolState.copy(esportsMode = enabled)
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            // Load Touch Guard state
+            preferencesManager.isTouchGuardEnabled().collect { enabled ->
+                gameToolState = gameToolState.copy(touchGuard = enabled)
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            // Load Auto Reject Calls state
+            preferencesManager.isAutoRejectCallsEnabled().collect { enabled ->
+                gameToolState = gameToolState.copy(autoRejectCalls = enabled)
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            // Load Lock Brightness state
+            preferencesManager.isLockBrightnessEnabled().collect { enabled ->
+                gameToolState = gameToolState.copy(lockBrightness = enabled)
+            }
         }
         CoroutineScope(Dispatchers.Main).launch {
             currentPerformanceMode = gameControlUseCase.getCurrentPerformanceMode()
         }
     }
 
+
+
     private fun startPolling() {
         pollingJob = CoroutineScope(Dispatchers.Main).launch {
             while (true) {
-                cpuUsage = withContext(Dispatchers.IO) {
-                    "%.0f".format(gameOverlayUseCase.getCPULoad())
+                // CPU monitoring
+                cpuFreq = withContext(Dispatchers.IO) {
+                    val freq = gameOverlayUseCase.getMaxCPUFreq()
+                    if (freq >= 1000) "%.2f".format(freq / 1000f) else freq.toString()
                 }
-                gpuUsage = withContext(Dispatchers.IO) {
-                    "%.0f".format(gameOverlayUseCase.getGPULoad())
+                cpuLoad = withContext(Dispatchers.IO) {
+                    gameOverlayUseCase.getCPULoad()
                 }
+                
+                // GPU monitoring
+                gpuFreq = withContext(Dispatchers.IO) {
+                    val freq = gameOverlayUseCase.getMaxCPUFreq() // Placeholder for GPU freq
+                    freq.toString()
+                }
+                gpuLoad = withContext(Dispatchers.IO) {
+                    gameOverlayUseCase.getGPULoad()
+                }
+                
+                // FPS
                 fpsValue = withContext(Dispatchers.IO) {
                     gameOverlayUseCase.getCurrentFPS().toString()
                 }
+                
+                // Temperature
                 tempValue = withContext(Dispatchers.IO) {
                     "%.1f".format(gameOverlayUseCase.getTemperature())
                 }
+                
+                // Game duration
+                val durationMs = System.currentTimeMillis() - gameStartTime
+                val minutes = (durationMs / 60000).toInt()
+                val seconds = ((durationMs % 60000) / 1000).toInt()
+                gameDuration = if (minutes >= 60) {
+                    "${minutes / 60}h ${minutes % 60}m"
+                } else {
+                    "$minutes:${"%02d".format(seconds)}"
+                }
+                
+                // Battery
+                val batteryIntent = registerReceiver(null, 
+                    android.content.IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                val level = batteryIntent?.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = batteryIntent?.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1) ?: -1
+                batteryPercentage = if (level >= 0 && scale > 0) {
+                    (level * 100 / scale)
+                } else 100
+                
                 delay(1000)
             }
         }
@@ -149,7 +229,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.END
-            x = 20
+            x = 0
             y = 100
         }
 
@@ -157,7 +237,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             setViewTreeLifecycleOwner(this@GameOverlayService)
             setViewTreeSavedStateRegistryOwner(this@GameOverlayService)
             setContent {
-                MaterialTheme {
+                GameOverlayTheme {
                     GameOverlayContent()
                 }
             }
@@ -167,369 +247,96 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     @Composable
+    private fun GameOverlayTheme(content: @Composable () -> Unit) {
+        // Use Material You colors on Android 12+, fallback to dark blue theme
+        val colorScheme = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            dynamicDarkColorScheme(LocalContext.current)
+        } else {
+            darkColorScheme(
+                primary = Color(0xFF5C6BC0),      // Indigo 400
+                onPrimary = Color.White,
+                primaryContainer = Color(0xFF1A237E), // Indigo 900
+                secondary = Color(0xFF7986CB),
+                surface = Color(0xFF121212),
+                onSurface = Color.White,
+                background = Color(0xFF0D0D0D)
+            )
+        }
+        
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content
+        )
+    }
+
+    @Composable
     private fun GameOverlayContent() {
-        Column(
+        val accentColor = MaterialTheme.colorScheme.primary
+        
+        Box(
             modifier = Modifier.pointerInput(Unit) {
                 detectDragGestures { change, dragAmount ->
                     change.consume()
                     val lp = params ?: return@detectDragGestures
-                    offsetX += dragAmount.x.toInt()
-                    offsetY += dragAmount.y.toInt()
                     lp.x -= dragAmount.x.toInt()
                     lp.y += dragAmount.y.toInt()
                     windowManager.updateViewLayout(overlayView, lp)
                 }
             }
         ) {
-            AnimatedVisibility(
-                visible = !isExpanded,
-                enter = fadeIn() + scaleIn(),
-                exit = fadeOut() + scaleOut()
-            ) {
-                CompactFPSView()
-            }
+            // Trigger Handle (collapsed state)
+            TriggerHandle(
+                fpsValue = fpsValue,
+                isExpanded = isExpanded,
+                onToggleExpanded = { isExpanded = !isExpanded },
+                onDrag = { _, _ -> },
+                accentColor = accentColor
+            )
             
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                ExpandedControlPanel()
-            }
-        }
-    }
-
-    @Composable
-    private fun CompactFPSView() {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { isExpanded = !isExpanded }
-        ) {
-            // Game icon button
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .shadow(6.dp, CircleShape)
-                    .background(Color(0xFF1F1F1F), CircleShape)
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.SportsEsports,
-                    contentDescription = null,
-                    tint = Color(0xFF4CAF50),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(Modifier.height(4.dp))
-
-            // FPS display
-            Box(
-                modifier = Modifier
-                    .shadow(6.dp, RoundedCornerShape(8.dp))
-                    .background(Color(0xFF1F1F1F), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = fpsValue,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun ExpandedControlPanel() {
-        val scrollState = rememberScrollState()
-        
-        Card(
-            modifier = Modifier
-                .width(260.dp)
-                .heightIn(max = 400.dp) // Maximum height to fit screen
-                .shadow(12.dp, RoundedCornerShape(16.dp))
-                .clickable { }, // Prevent drag when tapping inside
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1F1F1F)
-            ),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .verticalScroll(scrollState)
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Header with close button
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.SportsEsports,
-                            contentDescription = null,
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(20.dp)
+            // Expanded Sidebar Layout
+            ExpandedSidebarLayout(
+                isExpanded = isExpanded,
+                currentTab = currentTab,
+                onTabSelected = { currentTab = it },
+                onClose = { isExpanded = false },
+                mainContent = {
+                    when (currentTab) {
+                        SidebarTab.PERFORMANCE -> PerformancePanel(
+                            cpuFreq = "${cpuFreq}GHz",
+                            cpuLoad = cpuLoad,
+                            gpuFreq = "${gpuFreq}MHz",
+                            gpuLoad = gpuLoad,
+                            fps = fpsValue,
+                            temperature = tempValue,
+                            gameDuration = gameDuration,
+                            batteryPercentage = batteryPercentage,
+                            currentPerformanceMode = currentPerformanceMode,
+                            onPerformanceModeChange = { setPerformanceMode(it) },
+                            onClearRam = { clearRAM() },
+                            isClearingRam = isClearingRam,
+                            accentColor = accentColor
                         )
-                        Text(
-                            text = "Game Control",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                        SidebarTab.GAME_TOOLS -> GameToolsPanel(
+                            toolState = gameToolState,
+                            onEsportsModeChange = { setEsportsMode(it) },
+                            onTouchGuardChange = { setTouchGuard(it) },
+                            onBlockNotificationsChange = { setBlockNotifications(it) },
+                            onDndChange = { setDND(it) },
+                            onAutoRejectCallsChange = { setAutoRejectCalls(it) },
+                            onLockBrightnessChange = { setLockBrightness(it) },
+                            onScreenshot = { takeScreenshot() },
+                            onScreenRecord = { startScreenRecord() },
+                            accentColor = accentColor
                         )
                     }
-                    IconButton(
-                        onClick = { isExpanded = false },
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Close",
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-
-                // Performance info - compact 4 columns
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    CompactInfoChip("FPS", fpsValue, Color(0xFF4CAF50))
-                    CompactInfoChip("CPU", "$cpuUsage%", Color(0xFF2196F3))
-                    CompactInfoChip("GPU", "$gpuUsage%", Color(0xFFFF9800))
-                    CompactInfoChip("T°", "$tempValue°", Color(0xFFF44336))
-                }
-
-                HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f), thickness = 0.5.dp)
-
-                // Performance Mode - Compact row
-                Text(
-                    text = "Performance",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    CompactModeChip(
-                        "🔋",
-                        "Battery",
-                        currentPerformanceMode == "battery",
-                        Modifier.weight(1f)
-                    ) { setPerformanceMode("battery") }
-
-                    CompactModeChip(
-                        "⚖️",
-                        "Balance",
-                        currentPerformanceMode == "balanced",
-                        Modifier.weight(1f)
-                    ) { setPerformanceMode("balanced") }
-
-                    CompactModeChip(
-                        "⚡",
-                        "Perf",
-                        currentPerformanceMode == "performance",
-                        Modifier.weight(1f)
-                    ) { setPerformanceMode("performance") }
-                }
-
-                HorizontalDivider(color = Color.Gray.copy(alpha = 0.3f), thickness = 0.5.dp)
-
-                // Quick Controls
-                Text(
-                    text = "Quick Controls",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium
-                )
-
-                // DND Toggle - Compact
-                CompactControlToggle(
-                    label = "Do Not Disturb",
-                    icon = Icons.Default.DoNotDisturb,
-                    checked = isDndEnabled
-                ) { setDND(it) }
-
-                // Hide Notif Toggle - Compact
-                CompactControlToggle(
-                    label = "Hide Notifications",
-                    icon = Icons.Default.NotificationsOff,
-                    checked = isHideNotif
-                ) { setHideNotifications(it) }
-
-                // Clear RAM Button - in Quick Controls
-                ClearRamButton(
-                    isClearing = isClearingRam,
-                    onClick = { clearRAM() }
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun ClearRamButton(
-        isClearing: Boolean,
-        onClick: () -> Unit
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF2A2A2A), RoundedCornerShape(8.dp))
-                .clickable(enabled = !isClearing) { onClick() }
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.CleaningServices,
-                    contentDescription = null,
-                    tint = Color(0xFF4CAF50),
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = if (isClearing) "Clearing..." else "Clear RAM",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White
-                )
-            }
-            
-            if (isClearing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(18.dp),
-                    color = Color(0xFF4CAF50),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Icon(
-                    Icons.Default.PlayArrow,
-                    contentDescription = "Run",
-                    tint = Color(0xFF4CAF50),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun CompactInfoChip(label: String, value: String, color: Color) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .background(Color(0xFF2A2A2A), RoundedCornerShape(8.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = value,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Text(
-                text = label,
-                fontSize = 9.sp,
-                color = Color.Gray
+                },
+                accentColor = accentColor
             )
         }
     }
-
-    @Composable
-    private fun CompactModeChip(
-        emoji: String,
-        label: String,
-        isSelected: Boolean,
-        modifier: Modifier,
-        onClick: () -> Unit
-    ) {
-        OutlinedButton(
-            onClick = onClick,
-            modifier = modifier.height(44.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = if (isSelected) Color(0xFF4CAF50).copy(alpha = 0.2f) else Color.Transparent
-            ),
-            border = BorderStroke(
-                width = if (isSelected) 1.5.dp else 0.5.dp,
-                color = if (isSelected) Color(0xFF4CAF50) else Color.Gray.copy(alpha = 0.5f)
-            ),
-            contentPadding = PaddingValues(4.dp),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    emoji,
-                    fontSize = 14.sp
-                )
-                Text(
-                    label,
-                    fontSize = 9.sp,
-                    color = if (isSelected) Color(0xFF4CAF50) else Color.White,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-
-    @Composable
-    private fun CompactControlToggle(
-        label: String,
-        icon: ImageVector,
-        checked: Boolean,
-        onCheckedChange: (Boolean) -> Unit
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color(0xFF2A2A2A), RoundedCornerShape(8.dp))
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = if (checked) Color(0xFF4CAF50) else Color.Gray,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White
-                )
-            }
-            LottieSwitchControlled(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                width = 50.dp,
-                height = 24.dp,
-                scale = 1.8f
-            )
-        }
-    }
-
-    // Control functions
+    
+    // ==================== Control Functions ====================
+    
     private fun setPerformanceMode(mode: String) {
         CoroutineScope(Dispatchers.Main).launch {
             val result = withContext(Dispatchers.IO) {
@@ -539,21 +346,19 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 currentPerformanceMode = mode
                 preferencesManager.setPerfMode(mode)
                 val modeLabel = when(mode) {
-                    "battery" -> "Battery Saver"
-                    "balanced" -> "Balanced"
-                    "performance" -> "Performance"
+                    "battery" -> "Hemat Baterai"
+                    "balanced" -> "Seimbang"
+                    "performance" -> "Monster"
                     else -> mode
                 }
                 showToast("Mode: $modeLabel")
             }
         }
     }
-
+    
     private fun setDND(enabled: Boolean) {
-        // Check permission first
         if (!gameControlUseCase.hasDNDPermission()) {
             showToast("Please grant DND access in Settings")
-            // Open DND settings
             try {
                 val intent = Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -570,32 +375,62 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 else gameControlUseCase.disableDND()
             }
             result.onSuccess {
-                isDndEnabled = enabled
+                gameToolState = gameToolState.copy(doNotDisturb = enabled)
                 preferencesManager.setGameControlDND(enabled)
-                showToast(if (enabled) "Do Not Disturb: ON" else "Do Not Disturb: OFF")
+                showToast(if (enabled) "Jangan Ganggu: ON" else "Jangan Ganggu: OFF")
             }.onFailure { error ->
-                when (error) {
-                    is GameControlUseCase.DNDPermissionException -> {
-                        showToast("Grant DND permission in Settings")
-                    }
-                    else -> {
-                        showToast("DND error: ${error.message}")
-                    }
-                }
+                showToast("DND error: ${error.message}")
             }
         }
     }
-
-    private fun setHideNotifications(enabled: Boolean) {
+    
+    private fun setBlockNotifications(enabled: Boolean) {
         CoroutineScope(Dispatchers.Main).launch {
-            isHideNotif = enabled
+            gameToolState = gameToolState.copy(blockNotifications = enabled)
             preferencesManager.setGameControlHideNotif(enabled)
-            showToast(if (enabled) "Hide Notifications: ON" else "Hide Notifications: OFF")
+            showToast(if (enabled) "Blokir Notifikasi: ON" else "Blokir Notifikasi: OFF")
         }
     }
-
+    
+    private fun setEsportsMode(enabled: Boolean) {
+        CoroutineScope(Dispatchers.Main).launch {
+            gameToolState = gameToolState.copy(esportsMode = enabled)
+            preferencesManager.setEsportsMode(enabled)
+            
+            if (enabled) {
+                // Apply performance mode when esports enabled
+                setPerformanceMode("performance")
+            }
+            showToast(if (enabled) "Mode Esports: ON" else "Mode Esports: OFF")
+        }
+    }
+    
+    private fun setTouchGuard(enabled: Boolean) {
+        CoroutineScope(Dispatchers.Main).launch {
+            gameToolState = gameToolState.copy(touchGuard = enabled)
+            preferencesManager.setTouchGuard(enabled)
+            showToast(if (enabled) "Touch Guard: ON" else "Touch Guard: OFF")
+        }
+    }
+    
+    private fun setAutoRejectCalls(enabled: Boolean) {
+        CoroutineScope(Dispatchers.Main).launch {
+            gameToolState = gameToolState.copy(autoRejectCalls = enabled)
+            preferencesManager.setAutoRejectCalls(enabled)
+            showToast(if (enabled) "Tolak Panggilan: ON" else "Tolak Panggilan: OFF")
+        }
+    }
+    
+    private fun setLockBrightness(enabled: Boolean) {
+        CoroutineScope(Dispatchers.Main).launch {
+            gameToolState = gameToolState.copy(lockBrightness = enabled)
+            preferencesManager.setLockBrightness(enabled)
+            showToast(if (enabled) "Kunci Kecerahan: ON" else "Kunci Kecerahan: OFF")
+        }
+    }
+    
     private fun clearRAM() {
-        if (isClearingRam) return // Prevent double tap
+        if (isClearingRam) return
         
         CoroutineScope(Dispatchers.Main).launch {
             isClearingRam = true
@@ -606,16 +441,27 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             
             result.onSuccess { clearResult ->
                 val message = if (clearResult.freedMB > 0) {
-                    "Cleared ${clearResult.freedMB} MB RAM"
+                    "Dibersihkan ${clearResult.freedMB} MB RAM"
                 } else {
-                    "RAM already optimized (${clearResult.availableMB} MB free)"
+                    "RAM sudah optimal (${clearResult.availableMB} MB free)"
                 }
                 showToast(message)
             }.onFailure {
-                showToast("Failed to clear RAM")
+                showToast("Gagal membersihkan RAM")
             }
         }
     }
+    
+    private fun takeScreenshot() {
+        showToast("Screenshot: Feature coming soon")
+        // TODO: Implement screenshot
+    }
+    
+    private fun startScreenRecord() {
+        showToast("Rekam Layar: Feature coming soon")
+        // TODO: Implement screen recording
+    }
+    
 
     override fun onDestroy() {
         super.onDestroy()
@@ -628,3 +474,5 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     override fun onBind(intent: Intent?): IBinder? = null
 }
+
+
