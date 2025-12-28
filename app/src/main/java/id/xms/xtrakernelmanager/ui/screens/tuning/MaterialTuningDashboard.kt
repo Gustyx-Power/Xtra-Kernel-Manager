@@ -307,7 +307,7 @@ fun ExpandableGPUCard() {
             .animateContentSize(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.secondaryContainer // Monet: Secondary Container
         )
     ) {
         Column(
@@ -322,17 +322,18 @@ fun ExpandableGPUCard() {
                     text = "GPU",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
                 )
                 Surface(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = "ADRENO",
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        letterSpacing = 1.sp
+                        letterSpacing = 1.sp,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
@@ -346,19 +347,20 @@ fun ExpandableGPUCard() {
                         text = "220",
                         style = MaterialTheme.typography.displayMedium,
                         fontWeight = FontWeight.Medium,
-                        lineHeight = 40.sp
+                        lineHeight = 40.sp,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Text(
                         text = " MHz",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
                         modifier = Modifier.padding(bottom = 6.dp)
                     )
                 }
                 Text(
                     text = "Frequency",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
                 )
             }
 
@@ -374,7 +376,7 @@ fun ExpandableGPUCard() {
                     modifier = Modifier
                         .weight(1f)
                         .height(90.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), // Inner Surface
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
@@ -386,7 +388,8 @@ fun ExpandableGPUCard() {
                         Text(
                             text = "33%",
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Load",
@@ -401,7 +404,7 @@ fun ExpandableGPUCard() {
                     modifier = Modifier
                         .weight(1f)
                         .height(90.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), // Inner Surface
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
@@ -413,12 +416,14 @@ fun ExpandableGPUCard() {
                         Column {
                             Text(
                                 text = "Adreno (TM)",
-                                style = MaterialTheme.typography.titleSmall
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "725",
                                 style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Medium
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         Text(
@@ -436,7 +441,7 @@ fun ExpandableGPUCard() {
                     modifier = Modifier.padding(top = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     
                     // Governor
                     GpuControlRow(
@@ -468,7 +473,7 @@ fun ExpandableGPUCard() {
                     // Power Slider
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), // Inner Surface
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -476,7 +481,7 @@ fun ExpandableGPUCard() {
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Power Level", style = MaterialTheme.typography.bodySmall)
+                                Text("Power Level", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
                                 Text("Level ${(sliderValue * 10).toInt()}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             }
                             Spacer(Modifier.height(16.dp))
@@ -514,14 +519,14 @@ fun GpuControlRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { expanded = true },
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), // Inner Surface
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
             Row(
                 modifier = Modifier
                     .padding(12.dp)
-                    .fillMaxWidth(), // Added fillMaxWidth
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -529,10 +534,10 @@ fun GpuControlRow(
                     if (icon != null) {
                         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text(label, style = MaterialTheme.typography.bodyMedium)
+                    Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -578,7 +583,7 @@ fun GpuTile(
 
     Surface(
         modifier = modifier.clickable { expanded = true },
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), // Inner Surface
         shape = RoundedCornerShape(12.dp)
     ) {
         Column {
@@ -589,7 +594,7 @@ fun GpuTile(
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
-                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
