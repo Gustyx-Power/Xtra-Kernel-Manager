@@ -53,7 +53,7 @@ fun PerformancePanel(
     onBlockNotificationsChange: (Boolean) -> Unit,
     onDndChange: (Boolean) -> Unit,
     onClearRam: () -> Unit,
-    onScreenRecord: () -> Unit,
+    onScreenshot: () -> Unit,
     onToolsClick: () -> Unit,
     onClose: () -> Unit,
     
@@ -62,16 +62,15 @@ fun PerformancePanel(
 ) {
     Row(
         modifier = modifier
-            .widthIn(max = 420.dp)
+            .widthIn(max = 500.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color(0xFF0D1117))
             .border(1.dp, Color(0xFF30363D), RoundedCornerShape(16.dp))
     ) {
-        // LEFT SIDEBAR
+        // LEFT SIDEBAR - wrap content height
         Column(
             modifier = Modifier
-                .width(90.dp)
-                .fillMaxHeight()
+                .width(80.dp)
                 .background(Color(0xFF161B22))
                 .padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -79,7 +78,7 @@ fun PerformancePanel(
         ) {
             SideBtn(
                 icon = Icons.Outlined.Speed,
-                text = "Mode\nEsports",
+                text = "Mode\nMonster",
                 active = esportsMode,
                 color = Color(0xFFFF6B6B),
                 onClick = { onEsportsModeChange(!esportsMode) }
@@ -92,11 +91,11 @@ fun PerformancePanel(
                 onClick = { onTouchGuardChange(!touchGuard) }
             )
             SideBtn(
-                icon = Icons.Outlined.Build,
-                text = "Alat",
+                icon = Icons.Default.CleaningServices,
+                text = if (isClearingRam) "Clearing..." else "Clear\nRAM",
                 active = false,
-                color = Color(0xFF74B9FF),
-                onClick = onToolsClick
+                color = Color(0xFF4CAF50),
+                onClick = { if (!isClearingRam) onClearRam() }
             )
         }
         
@@ -159,34 +158,11 @@ fun PerformancePanel(
             
             Spacer(Modifier.height(12.dp))
             
-            // Toggles
+            // Action Buttons (tap-only, no Switch)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                ToggleRow(Icons.Outlined.NotificationsOff, "Blokir Notifikasi", blockNotifications, onBlockNotificationsChange)
-                ToggleRow(Icons.Default.DoNotDisturb, "Jangan Ganggu", doNotDisturb, onDndChange)
-                ToggleRow(Icons.Outlined.Videocam, "Rekam Layar", false) { onScreenRecord() }
-                
-                // Clear RAM
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(Color(0xFF238636))
-                        .clickable(enabled = !isClearingRam) { onClearRam() }
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    if (isClearingRam) {
-                        CircularProgressIndicator(Modifier.size(18.dp), Color.White, strokeWidth = 2.dp)
-                        Spacer(Modifier.width(10.dp))
-                        Text("Membersihkan...", color = Color.White, fontWeight = FontWeight.Medium)
-                    } else {
-                        Icon(Icons.Default.CleaningServices, null, tint = Color.White, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(10.dp))
-                        Text("Bersihkan RAM", color = Color.White, fontWeight = FontWeight.Medium)
-                    }
-                }
+                ActionButton(Icons.Outlined.NotificationsOff, "Blokir Notifikasi", blockNotifications) { onBlockNotificationsChange(!blockNotifications) }
+                ActionButton(Icons.Default.DoNotDisturb, "Jangan Ganggu", doNotDisturb) { onDndChange(!doNotDisturb) }
+                ActionButton(Icons.Outlined.CameraAlt, "Screenshot", false) { onScreenshot() }
             }
         }
     }
@@ -237,35 +213,31 @@ private fun StatText(value: String, color: Color) {
 }
 
 @Composable
-private fun ToggleRow(icon: ImageVector, label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+private fun ActionButton(icon: ImageVector, label: String, active: Boolean, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(44.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(if (checked) Color(0xFF1F6FEB).copy(alpha = 0.15f) else Color(0xFF21262D))
-            .border(1.dp, if (checked) Color(0xFF58A6FF).copy(0.3f) else Color(0xFF30363D), RoundedCornerShape(22.dp))
-            .clickable { onChange(!checked) }
+            .background(if (active) Color(0xFF1F6FEB).copy(alpha = 0.2f) else Color(0xFF21262D))
+            .border(1.dp, if (active) Color(0xFF58A6FF).copy(0.4f) else Color(0xFF30363D), RoundedCornerShape(22.dp))
+            .clickable { onClick() }
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = if (checked) Color(0xFF58A6FF) else Color(0xFF8B949E), modifier = Modifier.size(20.dp))
+            Icon(icon, null, tint = if (active) Color(0xFF58A6FF) else Color(0xFF8B949E), modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(12.dp))
-            Text(label, fontSize = 13.sp, color = if (checked) Color.White else Color(0xFFC9D1D9))
+            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = if (active) Color.White else Color(0xFFC9D1D9))
         }
-        Switch(
-            checked = checked,
-            onCheckedChange = null,
-            modifier = Modifier.scale(0.75f),
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = Color(0xFF58A6FF),
-                uncheckedThumbColor = Color(0xFF8B949E),
-                uncheckedTrackColor = Color(0xFF30363D),
-                uncheckedBorderColor = Color(0xFF484F58)
-            )
+        
+        // Status indicator dot instead of Switch
+        Box(
+            modifier = Modifier
+                .size(12.dp)
+                .clip(CircleShape)
+                .background(if (active) Color(0xFF4CAF50) else Color(0xFF6B7280))
         )
     }
 }
