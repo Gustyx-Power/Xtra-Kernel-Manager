@@ -50,6 +50,8 @@ fun MaterialTuningDashboard(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var memoryCardExpanded by remember { mutableStateOf(false) }
     var networkCardExpanded by remember { mutableStateOf(false) }
+    var cpuCardExpanded by remember { mutableStateOf(false) }
+    var thermalCardExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -117,26 +119,70 @@ fun MaterialTuningDashboard(
                 HeroDeviceCard()
             }
 
-            // 2. CPU Nav 
-            item {
-                DashboardNavCard(
-                    title = "CPU",
-                    subtitle = "Clock & Governor",
-                    icon = Icons.Rounded.Memory,
-                    badgeText = "Walt",
-                    onClick = { onNavigate("cpu_tuning") }
-                )
-            }
-
-            // 3. Thermal Nav 
-            item {
-                DashboardNavCard(
-                    title = "Thermal",
-                    subtitle = "Normal",
-                    icon = Icons.Rounded.Thermostat,
-                    badgeText = "38°C",
-                    onClick = { onNavigate("thermal_tuning") }
-                )
+            // 2 & 3. CPU & Thermal (Dynamic Bento Layout)
+            if (cpuCardExpanded) {
+                 item(span = StaggeredGridItemSpan.FullLine) {
+                     ExpandableCPUCard(
+                         expanded = true,
+                         onExpandChange = { 
+                             cpuCardExpanded = it
+                             if (it) thermalCardExpanded = false
+                         },
+                         onClickNav = { onNavigate("cpu_tuning") },
+                         topRightContent = {
+                             ExpandableThermalCard(
+                                 expanded = false,
+                                 onExpandChange = { 
+                                      thermalCardExpanded = it
+                                      if (it) cpuCardExpanded = false
+                                 },
+                                 onClickNav = { onNavigate("thermal_tuning") }
+                             )
+                         }
+                     )
+                 }
+            } else if (thermalCardExpanded) {
+                 item(span = StaggeredGridItemSpan.FullLine) {
+                     ExpandableThermalCard(
+                         expanded = true,
+                         onExpandChange = { 
+                              thermalCardExpanded = it
+                              if (it) cpuCardExpanded = false
+                         },
+                         onClickNav = { onNavigate("thermal_tuning") },
+                         topLeftContent = {
+                             ExpandableCPUCard(
+                                 expanded = false,
+                                 onExpandChange = { 
+                                      cpuCardExpanded = it
+                                      if (it) thermalCardExpanded = false
+                                 },
+                                 onClickNav = { onNavigate("cpu_tuning") }
+                             )
+                         }
+                     )
+                 }
+            } else {
+                 item {
+                     ExpandableCPUCard(
+                         expanded = false,
+                         onExpandChange = { 
+                              cpuCardExpanded = it
+                              if (it) thermalCardExpanded = false
+                         },
+                         onClickNav = { onNavigate("cpu_tuning") }
+                     )
+                 }
+                 item {
+                     ExpandableThermalCard(
+                         expanded = false,
+                         onExpandChange = { 
+                              thermalCardExpanded = it
+                              if (it) cpuCardExpanded = false
+                         },
+                         onClickNav = { onNavigate("thermal_tuning") }
+                     )
+                 }
             }
 
             // 4. Profile Card 
@@ -544,16 +590,6 @@ fun ExpandableNetworkCard(
                     // Left Column (Empty Top + Content Bottom)
                     Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
                          Spacer(modifier = Modifier.height(cutoutHeight + gap))
-                         
-                         // Bottom Left Content (Network Details)
-                         Column(
-                             modifier = Modifier.fillMaxSize().padding(20.dp),
-                             verticalArrangement = Arrangement.SpaceBetween
-                         ) {
-                             // Network Stats placeholder
-                             Text("Network Stats", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                             Text("Sending...", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                         }
                     }
 
                     // Right Column Content (Header)
@@ -568,6 +604,176 @@ fun ExpandableNetworkCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                              Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
                                  Icon(Icons.Rounded.Router, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                             }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ExpandableCPUCard(
+    expanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
+    onClickNav: () -> Unit,
+    topRightContent: @Composable () -> Unit = {}
+) {
+    val height by animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "cpu_height")
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onExpandChange(!expanded) }
+    ) {
+        if (!expanded) {
+            DashboardNavCard(
+                title = "CPU",
+                subtitle = "Clock & Governor",
+                icon = Icons.Rounded.Memory,
+                badgeText = "Walt",
+                onClick = { onExpandChange(true) }
+            )
+        } else {
+            val cornerRadius = 24.dp
+            val gap = 24.dp
+            val cutoutHeight = 120.dp
+            val themeColor = MaterialTheme.colorScheme.secondaryContainer
+            
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) 
+                    Box(modifier = Modifier.weight(1f).height(cutoutHeight)) { topRightContent() }
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val colW = w / 2 - gap.toPx() / 2 
+                    val ch = cutoutHeight.toPx() + gap.toPx()
+                    val cr = cornerRadius.toPx()
+                    val ir = cornerRadius.toPx()
+                    
+                    val path = Path().apply {
+                        moveTo(0f, cr)
+                        quadraticTo(0f, 0f, cr, 0f)
+                        lineTo(colW - cr, 0f)
+                        quadraticTo(colW, 0f, colW, cr)
+                        lineTo(colW, ch - ir)
+                        arcTo(androidx.compose.ui.geometry.Rect(colW, ch - 2 * ir, colW + 2 * ir, ch), 180f, -90f, false)
+                        lineTo(w - cr, ch)
+                        quadraticTo(w, ch, w, ch + cr)
+                        lineTo(w, h - cr)
+                        quadraticTo(w, h, w - cr, h)
+                        lineTo(cr, h)
+                        quadraticTo(0f, h, 0f, h - cr)
+                        close()
+                    }
+                    drawPath(path, color = themeColor) 
+                }
+                
+                Row(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight().padding(20.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                             Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                                 Icon(Icons.Rounded.Memory, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                             }
+                        }
+                    }
+                    Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                         Spacer(modifier = Modifier.height(cutoutHeight + gap)) 
+                         
+
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpandableThermalCard(
+    expanded: Boolean,
+    onExpandChange: (Boolean) -> Unit,
+    onClickNav: () -> Unit,
+    topLeftContent: @Composable () -> Unit = {}
+) {
+    val height by animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "thermal_height")
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onExpandChange(!expanded) }
+    ) {
+        if (!expanded) {
+            DashboardNavCard(
+                title = "Thermal",
+                subtitle = "Normal",
+                icon = Icons.Rounded.Thermostat,
+                badgeText = "38°C",
+                onClick = { onExpandChange(true) }
+            )
+        } else {
+            val cornerRadius = 24.dp
+            val gap = 24.dp
+            val cutoutHeight = 120.dp
+            val themeColor = MaterialTheme.colorScheme.secondaryContainer
+            
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                    Box(modifier = Modifier.weight(1f).height(cutoutHeight)) { topLeftContent() }
+                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) 
+                }
+            }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val w = size.width
+                    val h = size.height
+                    val bodyX = w / 2 + gap.toPx() / 2 
+                    val ch = cutoutHeight.toPx() + gap.toPx()
+                    val cr = cornerRadius.toPx()
+                    val ir = cornerRadius.toPx()
+                    
+                    val path = Path().apply {
+                        moveTo(bodyX + cr, 0f)
+                        quadraticTo(bodyX, 0f, bodyX, cr)
+                        lineTo(bodyX, ch - ir)
+                        arcTo(androidx.compose.ui.geometry.Rect(bodyX - 2 * ir, ch - 2 * ir, bodyX, ch), 0f, 90f, false)
+                        lineTo(cr, ch)
+                        quadraticTo(0f, ch, 0f, ch + cr)
+                        lineTo(0f, h - cr)
+                        quadraticTo(0f, h, cr, h)
+                        lineTo(w - cr, h)
+                        quadraticTo(w, h, w, h - cr)
+                        lineTo(w, cr)
+                        quadraticTo(w, 0f, w - cr, 0f)
+                        lineTo(bodyX + cr, 0f)
+                        close()
+                    }
+                    drawPath(path, color = themeColor) 
+                }
+                
+                Row(modifier = Modifier.fillMaxSize()) {
+                    Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+                         Spacer(modifier = Modifier.height(cutoutHeight + gap))
+                    }
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxHeight().padding(20.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                             Box(modifier = Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
+                                 Icon(Icons.Rounded.Thermostat, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
                              }
                         }
                     }
