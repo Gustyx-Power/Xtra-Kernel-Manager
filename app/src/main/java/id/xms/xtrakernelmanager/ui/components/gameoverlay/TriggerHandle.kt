@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.ui.components.gameoverlay
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
@@ -78,29 +79,10 @@ fun TriggerHandle(
                 }
                 .clickable { onToggleExpanded() }
         ) {
-            // Handle bar (edge indicator)
-            Box(
-                modifier = Modifier
-                    .width(6.dp)
-                    .height(40.dp)
-                    .shadow(4.dp, RoundedCornerShape(3.dp))
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                accentColor.copy(alpha = pulseAlpha * 0.8f),
-                                accentColor.copy(alpha = pulseAlpha)
-                            )
-                        ),
-                        shape = RoundedCornerShape(3.dp)
-                    )
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
             // Game icon
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(40.dp)
                     .shadow(6.dp, CircleShape)
                     .background(
                         color = Color(0xFF1A1A1A).copy(alpha = 0.95f),
@@ -113,13 +95,13 @@ fun TriggerHandle(
                     Icons.Default.SportsEsports,
                     contentDescription = "Game Control",
                     tint = accentColor,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             
-            // FPS Counter
+            // FPS Counter (smaller)
             FpsBadge(
                 fpsValue = fpsValue,
                 accentColor = accentColor
@@ -129,7 +111,7 @@ fun TriggerHandle(
 }
 
 /**
- * FPS Badge - Compact FPS display
+ * FPS Badge 
  */
 @Composable
 fun FpsBadge(
@@ -141,10 +123,17 @@ fun FpsBadge(
         modifier = modifier
             .shadow(4.dp, RoundedCornerShape(8.dp))
             .background(
-                color = Color(0xFF1A1A1A).copy(alpha = 0.95f),
+                color = Color(0xFF0D1117),
                 shape = RoundedCornerShape(8.dp)
             )
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .border(
+                width = 1.5.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(Color(0xFF00D4FF), Color(0xFF0088AA))
+                ),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -154,12 +143,14 @@ fun FpsBadge(
                 text = fpsValue,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = accentColor
+                color = Color(0xFFFFB347),
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
             )
             Text(
                 text = "FPS",
                 fontSize = 8.sp,
-                color = Color.Gray
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF58A6FF)
             )
         }
     }

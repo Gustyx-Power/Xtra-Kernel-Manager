@@ -102,6 +102,40 @@ class GameOverlayUseCase {
         return 0f
     }
 
+    suspend fun getGPUFreq(): Int {
+        val gpuFreqPaths = listOf(
+            "/sys/class/kgsl/kgsl-3d0/gpuclk",
+            "/sys/kernel/gpu/gpu_clock",
+            "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq",
+            "/sys/devices/platform/soc/5000000.qcom,kgsl-3d0/kgsl/kgsl-3d0/gpuclk",
+            "/sys/class/misc/mali0/device/cur_freq",
+            "/sys/kernel/debug/clk/gpu/clk_measure"
+        )
+
+        for (path in gpuFreqPaths) {
+            try {
+                val result = RootManager.readFile(path).getOrNull()?.trim()
+                if (result != null && result.isNotEmpty()) {
+                    val freq = result.toLongOrNull() ?: continue
+                    if (freq > 0) {
+                        // Normalize to MHz
+                        // Usually raw is in Hz or kHz
+                        return if (freq > 1_000_000) {
+                            (freq / 1_000_000).toInt() // Hz -> MHz
+                        } else if (freq > 1_000) {
+                            (freq / 1_000).toInt() // kHz -> MHz
+                        } else {
+                            freq.toInt() // Assume MHz
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                continue
+            }
+        }
+        return 0
+    }
+
     /**
      * Get battery temperature as the main temperature source
      * This is more reliable across all devices

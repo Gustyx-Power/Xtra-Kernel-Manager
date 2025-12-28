@@ -67,7 +67,6 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     // States
     private var isExpanded by mutableStateOf(false)
-    private var currentTab by mutableStateOf(SidebarTab.PERFORMANCE)
     
     // Performance monitoring states
     private var cpuFreq by mutableStateOf("0")
@@ -173,7 +172,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 
                 // GPU monitoring
                 gpuFreq = withContext(Dispatchers.IO) {
-                    val freq = gameOverlayUseCase.getMaxCPUFreq() // Placeholder for GPU freq
+                    val freq = gameOverlayUseCase.getGPUFreq()
                     freq.toString()
                 }
                 gpuLoad = withContext(Dispatchers.IO) {
@@ -293,45 +292,44 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 accentColor = accentColor
             )
             
-            // Expanded Sidebar Layout
-            ExpandedSidebarLayout(
-                isExpanded = isExpanded,
-                currentTab = currentTab,
-                onTabSelected = { currentTab = it },
-                onClose = { isExpanded = false },
-                mainContent = {
-                    when (currentTab) {
-                        SidebarTab.PERFORMANCE -> PerformancePanel(
-                            cpuFreq = "${cpuFreq}GHz",
-                            cpuLoad = cpuLoad,
-                            gpuFreq = "${gpuFreq}MHz",
-                            gpuLoad = gpuLoad,
-                            fps = fpsValue,
-                            temperature = tempValue,
-                            gameDuration = gameDuration,
-                            batteryPercentage = batteryPercentage,
-                            currentPerformanceMode = currentPerformanceMode,
-                            onPerformanceModeChange = { setPerformanceMode(it) },
-                            onClearRam = { clearRAM() },
-                            isClearingRam = isClearingRam,
-                            accentColor = accentColor
-                        )
-                        SidebarTab.GAME_TOOLS -> GameToolsPanel(
-                            toolState = gameToolState,
-                            onEsportsModeChange = { setEsportsMode(it) },
-                            onTouchGuardChange = { setTouchGuard(it) },
-                            onBlockNotificationsChange = { setBlockNotifications(it) },
-                            onDndChange = { setDND(it) },
-                            onAutoRejectCallsChange = { setAutoRejectCalls(it) },
-                            onLockBrightnessChange = { setLockBrightness(it) },
-                            onScreenshot = { takeScreenshot() },
-                            onScreenRecord = { startScreenRecord() },
-                            accentColor = accentColor
-                        )
-                    }
-                },
-                accentColor = accentColor
-            )
+            // Expanded Overlay
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + scaleIn(initialScale = 0.8f),
+                exit = fadeOut() + scaleOut(targetScale = 0.8f)
+            ) {
+                PerformancePanel(
+                    cpuFreq = "${cpuFreq}GHz",
+                    cpuLoad = cpuLoad,
+                    gpuFreq = "${gpuFreq}MHz",
+                    gpuLoad = gpuLoad,
+                    fps = fpsValue,
+                    temperature = tempValue,
+                    gameDuration = gameDuration,
+                    batteryPercentage = batteryPercentage,
+                    currentPerformanceMode = currentPerformanceMode,
+                    
+                    // Game Tools States
+                    esportsMode = gameToolState.esportsMode,
+                    touchGuard = gameToolState.touchGuard,
+                    blockNotifications = gameToolState.blockNotifications,
+                    doNotDisturb = gameToolState.doNotDisturb,
+                    isClearingRam = isClearingRam,
+                    
+                    // Actions
+                    onPerformanceModeChange = { setPerformanceMode(it) },
+                    onEsportsModeChange = { setEsportsMode(it) },
+                    onTouchGuardChange = { setTouchGuard(it) },
+                    onBlockNotificationsChange = { setBlockNotifications(it) },
+                    onDndChange = { setDND(it) },
+                    onClearRam = { clearRAM() },
+                    onScreenRecord = { startScreenRecord() },
+                    onToolsClick = { showToast("Alat: Fitur segera hadir!") },
+                    onClose = { isExpanded = false },
+                    
+                    accentColor = accentColor
+                )
+            }
         }
     }
     

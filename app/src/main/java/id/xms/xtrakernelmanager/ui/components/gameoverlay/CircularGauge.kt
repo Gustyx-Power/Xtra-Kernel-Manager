@@ -34,37 +34,27 @@ fun CircularGauge(
     value: Float,
     maxValue: Float = 100f,
     modifier: Modifier = Modifier,
-    size: Dp = 80.dp,
-    strokeWidth: Dp = 8.dp,
+    size: Dp = 100.dp,
+    strokeWidth: Dp = 10.dp,
     primaryColor: Color = MaterialTheme.colorScheme.primary,
-    secondaryColor: Color = primaryColor.copy(alpha = 0.3f),
-    backgroundColor: Color = Color(0xFF2A2A2A),
+    backgroundColor: Color = Color(0xFF1E1E1E),
     valueText: String? = null,
+    subText: String? = null,
     label: String = "",
-    unit: String = "",
-    valueFontSize: TextUnit = 18.sp,
-    labelFontSize: TextUnit = 10.sp
+    valueFontSize: TextUnit = 20.sp,
+    labelFontSize: TextUnit = 12.sp
 ) {
     // Animate the value changes
     val animatedValue by animateFloatAsState(
         targetValue = value.coerceIn(0f, maxValue),
         animationSpec = tween(
-            durationMillis = 500,
+            durationMillis = 800,
             easing = FastOutSlowInEasing
         ),
         label = "gauge_animation"
     )
     
-    val sweepAngle = (animatedValue / maxValue) * 270f // 270 degree arc
-    
-    // Color gradient based on value percentage
-    val gradientColors = remember(primaryColor) {
-        listOf(
-            primaryColor.copy(alpha = 0.7f),
-            primaryColor,
-            primaryColor.copy(alpha = 0.9f)
-        )
-    }
+    val sweepAngle = (animatedValue / maxValue) * 260f 
     
     Box(
         modifier = modifier.size(size),
@@ -78,11 +68,11 @@ fun CircularGauge(
             )
             val topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2)
             
-            // Background arc
+            // Background arc (darker track)
             drawArc(
                 color = backgroundColor,
-                startAngle = 135f,
-                sweepAngle = 270f,
+                startAngle = 140f,
+                sweepAngle = 260f,
                 useCenter = false,
                 topLeft = topLeft,
                 size = arcSize,
@@ -92,14 +82,11 @@ fun CircularGauge(
                 )
             )
             
-            // Progress arc with gradient
+            // Progress arc
             if (sweepAngle > 0) {
                 drawArc(
-                    brush = Brush.sweepGradient(
-                        colors = gradientColors,
-                        center = Offset(this.size.width / 2, this.size.height / 2)
-                    ),
-                    startAngle = 135f,
+                    color = primaryColor, 
+                    startAngle = 140f,
                     sweepAngle = sweepAngle,
                     useCenter = false,
                     topLeft = topLeft,
@@ -118,46 +105,34 @@ fun CircularGauge(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = valueText ?: "${animatedValue.toInt()}$unit",
-                fontSize = valueFontSize,
+                text = valueText ?: "",
+                fontSize = valueFontSize, // e.g. 2.92GHz
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
-            if (label.isNotEmpty()) {
+            if (!subText.isNullOrEmpty()) {
                 Text(
-                    text = label,
-                    fontSize = labelFontSize,
+                    text = subText, // e.g. 16%
+                    fontSize = 12.sp,
                     color = Color.Gray
                 )
             }
         }
+        
+        // Label at bottom (CPU/GPU)
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = (-5).dp)
+        ) {
+            Text(
+                text = label, // CPU / GPU
+                fontSize = labelFontSize,
+                fontWeight = FontWeight.Medium,
+                color = primaryColor
+            )
+        }
     }
-}
-
-/**
- * Compact Circular Gauge - Smaller version for overlay use
- */
-@Composable
-fun CompactCircularGauge(
-    value: Float,
-    maxValue: Float = 100f,
-    modifier: Modifier = Modifier,
-    primaryColor: Color = MaterialTheme.colorScheme.primary,
-    valueText: String,
-    label: String
-) {
-    CircularGauge(
-        value = value,
-        maxValue = maxValue,
-        modifier = modifier,
-        size = 60.dp,
-        strokeWidth = 5.dp,
-        primaryColor = primaryColor,
-        valueText = valueText,
-        label = label,
-        valueFontSize = 14.sp,
-        labelFontSize = 8.sp
-    )
 }
 
 /**
@@ -166,42 +141,29 @@ fun CompactCircularGauge(
 @Composable
 fun HardwareGauge(
     type: HardwareGaugeType,
-    value: Float,
+    loadValue: Float,
     freqValue: String,
     modifier: Modifier = Modifier
 ) {
     val (color, label) = when (type) {
-        HardwareGaugeType.CPU -> Pair(Color(0xFF2196F3), "CPU")
-        HardwareGaugeType.GPU -> Pair(Color(0xFFFF9800), "GPU")
+        HardwareGaugeType.CPU -> Pair(Color(0xFF00B0FF), "CPU") // Light Blue
+        HardwareGaugeType.GPU -> Pair(Color(0xFFFF9100), "GPU") // Orange
     }
     
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    CircularGauge(
+        value = loadValue,
+        maxValue = 100f,
+        size = 90.dp,
+        strokeWidth = 8.dp,
+        primaryColor = color,
+        backgroundColor = Color(0xFF1A1A1A),
+        valueText = freqValue,
+        subText = "${loadValue.toInt()}%",
+        label = label,
+        valueFontSize = 14.sp,
+        labelFontSize = 11.sp,
         modifier = modifier
-    ) {
-        CircularGauge(
-            value = value,
-            maxValue = 100f,
-            size = 70.dp,
-            strokeWidth = 6.dp,
-            primaryColor = color,
-            valueText = freqValue,
-            label = "",
-            valueFontSize = 14.sp
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = color
-        )
-        Text(
-            text = "${value.toInt()}%",
-            fontSize = 10.sp,
-            color = Color.Gray
-        )
-    }
+    )
 }
 
 enum class HardwareGaugeType {
