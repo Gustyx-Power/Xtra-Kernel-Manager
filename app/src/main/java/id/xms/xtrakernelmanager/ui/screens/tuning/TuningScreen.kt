@@ -39,7 +39,7 @@ fun TuningScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     val lifecycleOwner = LocalLifecycleOwner.current
-
+    val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
     var resumeKey by remember { mutableStateOf(0) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
@@ -49,14 +49,12 @@ fun TuningScreen(
     var isImporting by remember { mutableStateOf(false) }
     var detectionTimeoutReached by remember { mutableStateOf(false) }
 
-    // Export launcher - Create file
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/toml")
     ) { uri ->
         uri?.let {
             scope.launch {
                 try {
-                    // AUTO FILE NAME!
                     val fileName = viewModel.getExportFileName()
                     val success = viewModel.exportConfigToUri(context, it)
                     Toast.makeText(
@@ -76,7 +74,6 @@ fun TuningScreen(
         }
     }
 
-    // Import launcher - Open file
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -133,12 +130,17 @@ fun TuningScreen(
         }
     }
 
-    Box {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+    if (layoutStyle != "legacy") {
+        MaterialTuningDashboard(
+            preferencesManager = preferencesManager
+        )
+    } else {
+        Box {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -483,5 +485,6 @@ fun TuningScreen(
                 }
             )
         }
+    }
     }
 }
