@@ -116,8 +116,9 @@ fun MaterialTuningDashboard(
             item {
                 DashboardNavCard(
                     title = "CPU",
-                    subtitle = "Clusters & Gov",
+                    subtitle = "Clock & Governor",
                     icon = Icons.Rounded.Memory,
+                    badgeText = "Walt",
                     onClick = { onNavigate("cpu_tuning") }
                 )
             }
@@ -126,8 +127,9 @@ fun MaterialTuningDashboard(
             item {
                 DashboardNavCard(
                     title = "Thermal",
-                    subtitle = "38°C • Normal",
+                    subtitle = "Normal",
                     icon = Icons.Rounded.Thermostat,
+                    badgeText = "38°C",
                     onClick = { onNavigate("thermal_tuning") }
                 )
             }
@@ -229,6 +231,7 @@ fun DashboardNavCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
+    badgeText: String? = null,
     onClick: () -> Unit
 ) {
     Card(
@@ -247,12 +250,34 @@ fun DashboardNavCard(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+
+                if (badgeText != null) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(100)
+                    ) {
+                        Text(
+                            text = badgeText,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+            }
+            
             Column {
                 Text(
                     text = title,
@@ -453,7 +478,7 @@ fun ExpandableGPUCard() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Load Box
+                // Inner Card 1: Load
                 Surface(
                     modifier = Modifier
                         .weight(1f)
@@ -465,23 +490,23 @@ fun ExpandableGPUCard() {
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.Center // Centered vertically like Home
                     ) {
                         Text(
                             text = "33%",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Load",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
 
-                // Model Box
+                // Inner Card 2: GPU Name
                 Surface(
                     modifier = Modifier
                         .weight(1f)
@@ -493,25 +518,19 @@ fun ExpandableGPUCard() {
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Column {
-                            Text(
-                                text = "Adreno (TM)",
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "725",
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                        Text(
+                            text = "Adreno 725",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2
+                        )
                         Text(
                             text = "GPU",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
                 }
