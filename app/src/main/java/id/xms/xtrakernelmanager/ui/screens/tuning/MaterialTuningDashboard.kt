@@ -491,7 +491,6 @@ fun ExpandableGPUCard() {
                     GpuControlRow(
                         label = "Renderer",
                         value = rendererValue,
-                        icon = Icons.Rounded.Brush,
                         options = listOf("SkiaGL (Vulkan)", "SkiaGL (OpenGL)", "SkiaVK"),
                         onValueChange = { rendererValue = it }
                     )
@@ -505,7 +504,7 @@ fun ExpandableGPUCard() {
 fun GpuControlRow(
     label: String, 
     value: String, 
-    icon: ImageVector,
+    icon: ImageVector? = null,
     options: List<String> = emptyList(),
     onValueChange: (String) -> Unit = {}
 ) {
@@ -527,7 +526,9 @@ fun GpuControlRow(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (icon != null) {
+                        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     Text(label, style = MaterialTheme.typography.bodyMedium)
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
