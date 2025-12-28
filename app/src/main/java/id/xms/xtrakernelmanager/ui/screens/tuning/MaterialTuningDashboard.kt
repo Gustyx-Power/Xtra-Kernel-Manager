@@ -24,6 +24,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.Canvas
+import kotlin.math.sin
+import kotlin.math.PI
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -427,7 +437,9 @@ fun ExpandableGPUCard() {
                     GpuControlRow(
                         label = "Governor",
                         value = "msm-adreno-tz",
-                        icon = Icons.Rounded.Speed
+                        icon = Icons.Rounded.Speed,
+                        options = listOf("msm-adreno-tz", "performance", "powersave", "userspace"),
+                        onValueChange = { /* TODO */ }
                     )
 
                     // Min/Max Tiles
@@ -435,12 +447,16 @@ fun ExpandableGPUCard() {
                         GpuTile(
                             modifier = Modifier.weight(1f),
                             label = "Min Frequency",
-                            value = "305 MHz"
+                            value = "305 MHz",
+                            options = listOf("305 MHz", "400 MHz", "500 MHz", "680 MHz"),
+                            onValueChange = { /* TODO */ }
                         )
                         GpuTile(
                             modifier = Modifier.weight(1f),
                             label = "Max Frequency",
-                            value = "680 MHz"
+                            value = "680 MHz",
+                            options = listOf("305 MHz", "400 MHz", "500 MHz", "680 MHz"),
+                            onValueChange = { /* TODO */ }
                         )
                     }
 
@@ -458,8 +474,11 @@ fun ExpandableGPUCard() {
                                 Text("Power Level", style = MaterialTheme.typography.bodySmall)
                                 Text("Level 5", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             }
-                            Spacer(Modifier.height(8.dp))
-                            Slider(value = 0.7f, onValueChange = {})
+                            Spacer(Modifier.height(16.dp))
+                            WavySlider(
+                                value = 0.7f, 
+                                onValueChange = {}
+                            )
                         }
                     }
 
@@ -467,7 +486,9 @@ fun ExpandableGPUCard() {
                     GpuControlRow(
                         label = "Renderer",
                         value = "SkiaGL (Vulkan)",
-                        icon = Icons.Rounded.Brush
+                        icon = Icons.Rounded.Brush,
+                        options = listOf("SkiaGL (Vulkan)", "SkiaGL (OpenGL)", "SkiaVK"),
+                        onValueChange = { /* TODO */ }
                     )
                 }
             }
@@ -476,44 +497,98 @@ fun ExpandableGPUCard() {
 }
 
 @Composable
-fun GpuControlRow(label: String, value: String, icon: ImageVector) {
+fun GpuControlRow(
+    label: String, 
+    value: String, 
+    icon: ImageVector,
+    options: List<String> = emptyList(),
+    onValueChange: (String) -> Unit = {}
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { expanded = true },
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(label, style = MaterialTheme.typography.bodyMedium)
+        Column {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(label, style = MaterialTheme.typography.bodyMedium)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onValueChange(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun GpuTile(modifier: Modifier = Modifier, label: String, value: String) {
+fun GpuTile(
+    modifier: Modifier = Modifier, 
+    label: String, 
+    value: String,
+    options: List<String> = emptyList(),
+    onValueChange: (String) -> Unit = {}
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Surface(
-        modifier = modifier,
+        modifier = modifier.clickable { expanded = true },
         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp)
-        ) {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
-                Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp))
+        Column {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
+                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp))
+                }
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onValueChange(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -524,5 +599,80 @@ fun GpuTile(modifier: Modifier = Modifier, label: String, value: String) {
 fun MaterialTuningPreview() {
     MaterialTheme {
         MaterialTuningDashboard()
+    }
+}
+
+@Composable
+fun WavySlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    waveAmplitude: Float = 10f,
+    waveFrequency: Float = 20f,
+    strokeWidth: Float = 12f
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(waveAmplitude.dp * 3)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    val newValue = (offset.x / size.width).coerceIn(0f, 1f)
+                    onValueChange(newValue)
+                }
+            }
+            .pointerInput(Unit) {
+                detectDragGestures { change, _ ->
+                    val newValue = (change.position.x / size.width).coerceIn(0f, 1f)
+                    onValueChange(newValue)
+                }
+            }
+    ) {
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+            val centerY = height / 2
+
+            // Build the full wave path
+            val path = Path()
+            path.moveTo(0f, centerY)
+
+            val step = 5f 
+            var x = 0f
+            while (x <= width) {
+                val y = centerY + sin((x / width) * (PI * waveFrequency)) * waveAmplitude
+                path.lineTo(x, y.toFloat())
+                x += step
+            }
+
+            // Draw inactive track (full wave)
+            drawPath(
+                path = path,
+                color = inactiveColor,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+
+            // Draw active track (clipped wave)
+            drawContext.canvas.save()
+            drawContext.canvas.clipRect(0f, 0f, width * value, height)
+            drawPath(
+                path = path,
+                color = primaryColor,
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+            )
+            drawContext.canvas.restore()
+            
+            // Draw thumb
+            val thumbX = width * value
+            val thumbY = centerY + sin((thumbX / width) * (PI * waveFrequency)) * waveAmplitude
+            drawCircle(
+                color = primaryColor,
+                radius = strokeWidth,
+                center = Offset(thumbX, thumbY.toFloat())
+            )
+        }
     }
 }
