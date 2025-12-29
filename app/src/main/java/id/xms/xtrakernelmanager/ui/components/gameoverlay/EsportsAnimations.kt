@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -181,7 +183,9 @@ private val particleColors = listOf(
 @Composable
 fun EsportsActivationAnimation(
     modifier: Modifier = Modifier,
-    onAnimationComplete: () -> Unit = {}
+    onAnimationComplete: () -> Unit = {},
+    modeMonsterText: String = stringResource(R.string.mode_monster),
+    activatedText: String = stringResource(R.string.mode_monster_activated)
 ) {
     val animationProgress = remember { Animatable(0f) }
     
@@ -587,7 +591,7 @@ fun EsportsActivationAnimation(
                 )
                 textStrokeOffsets.forEach { offset ->
                     Text(
-                        text = "MODE MONSTER",
+                        text = modeMonsterText,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.Black.copy(alpha = textAlpha),
@@ -595,9 +599,8 @@ fun EsportsActivationAnimation(
                         modifier = Modifier.offset(x = offset.x.dp, y = offset.y.dp)
                     )
                 }
-                // Main text
                 Text(
-                    text = "MODE MONSTER",
+                    text = modeMonsterText,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFFF5722).copy(alpha = textAlpha),
@@ -616,7 +619,7 @@ fun EsportsActivationAnimation(
                 )
                 textStrokeOffsets.forEach { offset ->
                     Text(
-                        text = "DIAKTIFKAN",
+                        text = activatedText,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = Color.Black.copy(alpha = textAlpha * 0.8f),
@@ -624,9 +627,8 @@ fun EsportsActivationAnimation(
                         modifier = Modifier.offset(x = offset.x.dp, y = offset.y.dp)
                     )
                 }
-                // Main text
                 Text(
-                    text = "DIAKTIFKAN",
+                    text = activatedText,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White.copy(alpha = textAlpha * 0.8f),
