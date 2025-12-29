@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.model.*
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.preferences.TomlConfigManager
+import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import id.xms.xtrakernelmanager.domain.usecase.*
 import java.io.BufferedReader
@@ -70,6 +71,18 @@ class TuningViewModel(
   private val _isMediatek = MutableStateFlow(false)
   val isMediatek: StateFlow<Boolean>
     get() = _isMediatek.asStateFlow()
+
+  private val _thermalZones = MutableStateFlow<List<NativeLib.ThermalZone>>(emptyList())
+  val thermalZones: StateFlow<List<NativeLib.ThermalZone>>
+    get() = _thermalZones.asStateFlow()
+
+  private val _currentThermalPreset = MutableStateFlow("class0")
+  val currentThermalPreset: StateFlow<String>
+    get() = _currentThermalPreset.asStateFlow()
+
+  private val _isThermalSetOnBoot = MutableStateFlow(false)
+  val isThermalSetOnBoot: StateFlow<Boolean>
+    get() = _isThermalSetOnBoot.asStateFlow()
 
   private val _currentConfig = MutableStateFlow(TuningConfig())
   val currentConfig: StateFlow<TuningConfig>
@@ -133,6 +146,8 @@ class TuningViewModel(
       _currentIOScheduler.value = preferencesManager.getIOScheduler().first()
       _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
       _currentPerfMode.value = preferencesManager.getPerfMode().first()
+      _currentThermalPreset.value = preferencesManager.getThermalPreset().first()
+      _isThermalSetOnBoot.value = preferencesManager.getThermalSetOnBoot().first()
 
       // Load saved GPU lock state
       loadGpuLockState()
@@ -249,6 +264,8 @@ class TuningViewModel(
           )
     }
     _clusterStates.value = states
+
+    _thermalZones.value = NativeLib.readThermalZones()
   }
 
   private suspend fun loadSystemInfo() {
@@ -472,6 +489,8 @@ class TuningViewModel(
     viewModelScope.launch(Dispatchers.IO) {
       thermalUseCase.setThermalMode(preset, setOnBoot)
       preferencesManager.setThermalConfig(preset, setOnBoot)
+      _currentThermalPreset.value = preset
+      _isThermalSetOnBoot.value = setOnBoot
     }
   }
 

@@ -315,6 +315,33 @@ object NativeLib {
 
   private external fun readZramSizeNative(): Long
 
+  private external fun readThermalZonesNative(): String
+
+  /**
+   * Read all thermal zones
+   */
+  data class ThermalZone(val name: String, val temp: Float)
+
+  fun readThermalZones(): List<ThermalZone> {
+    if (!isLoaded) return emptyList()
+    return try {
+        val json = readThermalZonesNative()
+        val list = mutableListOf<ThermalZone>()
+        val jsonArray = JSONArray(json)
+        for (i in 0 until jsonArray.length()) {
+            val obj = jsonArray.getJSONObject(i)
+            list.add(ThermalZone(
+                name = obj.getString("name"),
+                temp = obj.getDouble("temp").toFloat()
+            ))
+        }
+        list
+    } catch (e: Exception) {
+        Log.e(TAG, "Native readThermalZones failed: ${e.message}")
+        emptyList()
+    }
+  }
+
   /** Parse JSON string from Rust into ClusterInfo list */
   private fun parseClustersFromJson(json: String): List<ClusterInfo> {
     val clusters = mutableListOf<ClusterInfo>()

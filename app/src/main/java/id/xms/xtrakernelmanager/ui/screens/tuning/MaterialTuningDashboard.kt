@@ -10,11 +10,16 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.staggeredgrid.*
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -611,8 +616,10 @@ fun ExpandableThermalCard(
     topLeftContent: @Composable () -> Unit = {},
 ) {
   // Get real temperature from ViewModel
-  val temperature by viewModel.cpuTemperature.collectAsState()
-  val tempDisplay = if (temperature > 0) "${temperature.toInt()}°C" else "—"
+  val cpuTemp by viewModel.cpuTemperature.collectAsState()
+  val thermalZones by viewModel.thermalZones.collectAsState()
+  
+  val tempDisplay = if (cpuTemp > 0) "${cpuTemp.toInt()}°C" else "—"
   
   val height by
       animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "thermal_height")
@@ -629,7 +636,7 @@ fun ExpandableThermalCard(
     if (!expanded) {
       DashboardNavCard(
           title = "Thermal",
-          subtitle = "Normal",
+          subtitle = "Monitor & Profiles",
           icon = Icons.Rounded.Thermostat,
           badgeText = tempDisplay, // Now shows real temperature
           onClick = { onExpandChange(true) },
@@ -681,34 +688,216 @@ fun ExpandableThermalCard(
           drawPath(path, color = themeColor)
         }
 
-        Row(modifier = Modifier.fillMaxSize()) {
-          Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-            Spacer(modifier = Modifier.height(cutoutHeight + gap))
-          }
-          Column(
-              modifier = Modifier.weight(1f).fillMaxHeight().padding(20.dp),
-              verticalArrangement = Arrangement.SpaceBetween,
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                  modifier =
-                      Modifier.size(40.dp)
-                          .clip(RoundedCornerShape(12.dp))
-                          .background(MaterialTheme.colorScheme.primaryContainer),
-                  contentAlignment = Alignment.Center,
+        Column(modifier = Modifier.fillMaxSize()) {
+          Row(modifier = Modifier.fillMaxWidth()) {
+              // Left: Spacer for Cutout area
+              Spacer(
+                  modifier = Modifier
+                      .weight(1f)
+                      .height(cutoutHeight + gap)
+              )
+              
+              // Right: Header Icon
+              Column(
+                  modifier = Modifier
+                      .weight(1f)
+                      .padding(top = 20.dp, end = 20.dp, start = 32.dp)
               ) {
-                Icon(
-                    Icons.Rounded.Thermostat,
-                    null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
+                  val currentPreset by viewModel.currentThermalPreset.collectAsState()
+
+                  Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.SpaceBetween,
+                      verticalAlignment = Alignment.CenterVertically
+                  ) {
+                      Box(
+                          modifier = Modifier
+                              .size(40.dp)
+                              .clip(RoundedCornerShape(12.dp))
+                              .background(MaterialTheme.colorScheme.primaryContainer),
+                          contentAlignment = Alignment.Center,
+                      ) {
+                          Icon(
+                              Icons.Rounded.Thermostat,
+                              null,
+                              tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                          )
+                      }
+                      
+                      Surface(
+                          color = MaterialTheme.colorScheme.tertiaryContainer,
+                          shape = RoundedCornerShape(8.dp),
+                      ) {
+                          Text(
+                              text = currentPreset,
+                              style = MaterialTheme.typography.labelMedium,
+                              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                              color = MaterialTheme.colorScheme.onTertiaryContainer
+                          )
+                      }
+                  }
+
+
               }
-            }
           }
-        }
+
+          // Bottom Section: Set on Boot Toggle (Full Width)
+          Column(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .weight(1f)
+                  .padding(horizontal = 20.dp),
+              verticalArrangement = Arrangement.Center
+          ) {
+              ThermalPresetDropdown(viewModel)
+              Spacer(modifier = Modifier.height(16.dp))
+              ThermalSetOnBootToggle(viewModel)
+          }
       }
     }
   }
+}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ThermalPresetDropdown(viewModel: TuningViewModel) {
+    val currentPreset by viewModel.currentThermalPreset.collectAsState()
+    val setOnBoot by viewModel.isThermalSetOnBoot.collectAsState()
+    val presets = listOf("Class 0", "Extreme", "Dynamic", "Incalls", "Thermal 20")
+    
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        Surface(
+            modifier = Modifier.fillMaxWidth().clickable { expanded = true },
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    "Thermal Profile",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        currentPreset,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        Icons.Rounded.ArrowDropDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            presets.forEach { preset ->
+                val isSelected = preset == currentPreset
+                DropdownMenuItem(
+                    text = { 
+                        Text(
+                            preset,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    onClick = {
+                        viewModel.setThermalPreset(preset, setOnBoot)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ThermalSetOnBootToggle(viewModel: TuningViewModel) {
+    val currentPreset by viewModel.currentThermalPreset.collectAsState()
+    val setOnBoot by viewModel.isThermalSetOnBoot.collectAsState()
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            "Set on Boot",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium
+        )
+        Switch(
+            checked = setOnBoot,
+            onCheckedChange = { 
+                 viewModel.setThermalPreset(currentPreset, it)
+            },
+            thumbContent = if (setOnBoot) {
+                {
+                    Icon(
+                        imageVector = Icons.Rounded.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                    )
+                }
+            } else {
+                null
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+            )
+        )
+    }
+}
+
+@Composable
+fun ThermalZoneItem(zone: id.xms.xtrakernelmanager.domain.native.NativeLib.ThermalZone) {
+    val color = when {
+        zone.temp > 60 -> MaterialTheme.colorScheme.errorContainer
+        zone.temp > 45 -> MaterialTheme.colorScheme.tertiaryContainer 
+        else -> MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    
+    val contentColor = when {
+        zone.temp > 60 -> MaterialTheme.colorScheme.onErrorContainer
+        zone.temp > 45 -> MaterialTheme.colorScheme.onTertiaryContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(color)
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "${zone.temp.toInt()}°", 
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = contentColor
+        )
+        Text(
+            text = zone.name.take(10), // Truncate long names
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1,
+            color = contentColor.copy(alpha = 0.8f)
+        )
+    }
 }
 
 @Composable
