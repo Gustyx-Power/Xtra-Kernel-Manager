@@ -663,4 +663,43 @@
     <string name="feature_not_available">Feature not available on this device</string>
     <string name="loading_features">Detecting available features…</string>
 
+
+    <!-- Esports Mode & Game Overlay -->
+    <string name="esports_mode">Esports Mode</string>
+    <string name="esports_mode_desc">Maximum optimization for gaming</string>
+    <string name="mode_monster">MODE MONSTER</string>
+    <string name="mode_monster_activated">ACTIVATED</string>
+    
+    <string name="overlay_grant_dnd">Please grant DND access in Settings</string>
+    <string name="overlay_error_settings">Could not open Settings</string>
+    <string name="overlay_grant_permission">Please grant overlay permission for Game Overlay</string>
+    <string name="overlay_dnd_status">Do Not Disturb: %s</string>
+    <string name="overlay_block_notif_status">Block Notifications: %s</string>
+    <string name="overlay_mistouch_status">Mistouch Prevention: %s</string>
+    <string name="overlay_reject_call_status">Reject Calls: %s</string>
+    <string name="overlay_brightness_lock_status">Brightness Lock: %s</string>
+    <string name="overlay_monster_mode_off">Monster Mode: OFF</string>
+    <string name="overlay_tools_coming_soon">Tools: Feature coming soon!</string>
+    <string name="overlay_ram_cleaned">Cleaned %s MB RAM</string>
+    <string name="overlay_ram_optimal">RAM is already optimal (%s MB free)</string>
+    <string name="overlay_ram_failed">Failed to clean RAM</string>
+    <string name="overlay_screenshot_saved">Screenshot saved: %s</string>
+    <string name="overlay_screen_record_error">Screen recording not implemented yet</string>
+
+    <string name="game_tools_title">Gaming Settings</string>
+    <string name="game_tools_mistouch">Mistouch\nPrevention</string>
+    <string name="game_tools_block_notif">Block\nNotifications</string>
+    <string name="game_tools_dnd">Do Not\nDisturb</string>
+    <string name="game_tools_reject_calls">Reject\nCalls</string>
+    <string name="game_tools_lock_brightness">Lock\nBrightness</string>
+    <string name="game_tools_action">Action</string>
+    <string name="game_tools_screenshot">Screenshot</string>
+    <string name="game_tools_screen_record">Screen Record</string>
+    <string name="game_tools_monitor">Performance Monitor</string>
+    <string name="game_tools_fps">FPS</string>
+    <string name="game_control_title">Game Control</string>
+    <string name="game_tools_mode_monster">Mode\nMonster</string>
+    <string name="game_tools_clear_ram">Clear\nRAM</string>
+    <string name="game_tools_clearing">Clearing…</string>
+
 </resources>
