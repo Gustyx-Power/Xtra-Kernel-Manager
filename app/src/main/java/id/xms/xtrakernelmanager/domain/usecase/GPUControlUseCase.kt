@@ -23,10 +23,14 @@ class GPUControlUseCase {
             ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
 
     // Use JNI for currentFreq (fast native read), fallback to shell
-    val currentFreq = id.xms.xtrakernelmanager.domain.native.NativeLib.readGpuFreq()
-        ?: RootManager.executeCommand("cat $basePath/gpuclk 2>/dev/null")
-            .getOrNull()?.trim()?.toIntOrNull()?.div(1000000)
-        ?: 0
+    val currentFreq =
+        id.xms.xtrakernelmanager.domain.native.NativeLib.readGpuFreq()
+            ?: RootManager.executeCommand("cat $basePath/gpuclk 2>/dev/null")
+                .getOrNull()
+                ?.trim()
+                ?.toIntOrNull()
+                ?.div(1000000)
+            ?: 0
 
     val powerLevel =
         RootManager.executeCommand("cat $basePath/default_pwrlevel 2>/dev/null")
@@ -41,10 +45,13 @@ class GPUControlUseCase {
             ?.toIntOrNull() ?: availableFreqs.size.coerceAtLeast(1)
 
     // Use JNI for gpuLoad (fast native read), fallback to shell
-    val gpuLoad = id.xms.xtrakernelmanager.domain.native.NativeLib.readGpuBusy()
-        ?: RootManager.executeCommand("cat $basePath/gpu_busy_percentage 2>/dev/null")
-            .getOrNull()?.trim()?.toIntOrNull()
-        ?: 0
+    val gpuLoad =
+        id.xms.xtrakernelmanager.domain.native.NativeLib.readGpuBusy()
+            ?: RootManager.executeCommand("cat $basePath/gpu_busy_percentage 2>/dev/null")
+                .getOrNull()
+                ?.trim()
+                ?.toIntOrNull()
+            ?: 0
 
     // Detect GPU vendor and renderer from dumpsys SurfaceFlinger
     val glesRaw =
@@ -57,18 +64,21 @@ class GPUControlUseCase {
       val clean = glesRaw.substringAfter("GLES:").trim()
       val parts = clean.split(",").map { it.trim() }
       openglVersion = parts.firstOrNull { it.contains("OpenGL", ignoreCase = true) } ?: "Unknown"
-      renderer = parts.firstOrNull {
-        Regex("adreno|mali|powervr|nvidia", RegexOption.IGNORE_CASE).containsMatchIn(it)
-      } ?: (parts.getOrNull(1) ?: "Unknown")
-      vendor = parts.firstOrNull {
-        Regex("qualcomm|arm|nvidia|imagination", RegexOption.IGNORE_CASE).containsMatchIn(it)
-      } ?: when {
-        renderer.contains("Adreno", true) -> "Qualcomm"
-        renderer.contains("Mali", true) -> "ARM"
-        renderer.contains("PowerVR", true) -> "Imagination"
-        renderer.contains("NVIDIA", true) -> "NVIDIA"
-        else -> "Unknown"
-      }
+      renderer =
+          parts.firstOrNull {
+            Regex("adreno|mali|powervr|nvidia", RegexOption.IGNORE_CASE).containsMatchIn(it)
+          } ?: (parts.getOrNull(1) ?: "Unknown")
+      vendor =
+          parts.firstOrNull {
+            Regex("qualcomm|arm|nvidia|imagination", RegexOption.IGNORE_CASE).containsMatchIn(it)
+          }
+              ?: when {
+                renderer.contains("Adreno", true) -> "Qualcomm"
+                renderer.contains("Mali", true) -> "ARM"
+                renderer.contains("PowerVR", true) -> "Imagination"
+                renderer.contains("NVIDIA", true) -> "NVIDIA"
+                else -> "Unknown"
+              }
     }
 
     val currentRenderer = detectCurrentRenderer()

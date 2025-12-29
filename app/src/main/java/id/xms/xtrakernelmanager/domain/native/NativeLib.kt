@@ -317,28 +317,23 @@ object NativeLib {
 
   private external fun readThermalZonesNative(): String
 
-  /**
-   * Read all thermal zones
-   */
+  /** Read all thermal zones */
   data class ThermalZone(val name: String, val temp: Float)
 
   fun readThermalZones(): List<ThermalZone> {
     if (!isLoaded) return emptyList()
     return try {
-        val json = readThermalZonesNative()
-        val list = mutableListOf<ThermalZone>()
-        val jsonArray = JSONArray(json)
-        for (i in 0 until jsonArray.length()) {
-            val obj = jsonArray.getJSONObject(i)
-            list.add(ThermalZone(
-                name = obj.getString("name"),
-                temp = obj.getDouble("temp").toFloat()
-            ))
-        }
-        list
+      val json = readThermalZonesNative()
+      val list = mutableListOf<ThermalZone>()
+      val jsonArray = JSONArray(json)
+      for (i in 0 until jsonArray.length()) {
+        val obj = jsonArray.getJSONObject(i)
+        list.add(ThermalZone(name = obj.getString("name"), temp = obj.getDouble("temp").toFloat()))
+      }
+      list
     } catch (e: Exception) {
-        Log.e(TAG, "Native readThermalZones failed: ${e.message}")
-        emptyList()
+      Log.e(TAG, "Native readThermalZones failed: ${e.message}")
+      emptyList()
     }
   }
 

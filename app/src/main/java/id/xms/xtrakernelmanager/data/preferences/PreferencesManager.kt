@@ -30,7 +30,7 @@ class PreferencesManager(private val context: Context) {
   // Thermal configuration keys
   private val THERMAL_PRESET = stringPreferencesKey("thermal_preset")
   private val THERMAL_SET_ON_BOOT = booleanPreferencesKey("thermal_set_on_boot")
-  
+
   // CPU Set on Boot
   private val CPU_SET_ON_BOOT = booleanPreferencesKey("cpu_set_on_boot")
 

@@ -23,9 +23,9 @@ import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-import id.xms.xtrakernelmanager.ui.screens.tuning.CPUTuningScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -172,16 +172,18 @@ fun Navigation(preferencesManager: PreferencesManager) {
               onNavigateToSettings = { navController.navigate("profiles") },
           )
         }
-        composable("tuning") { TuningScreen(preferencesManager = preferencesManager, onNavigate = { navController.navigate(it) }) }
+        composable("tuning") {
+          TuningScreen(
+              preferencesManager = preferencesManager,
+              onNavigate = { navController.navigate(it) },
+          )
+        }
         composable("cpu_tuning") {
-             val parentEntry = remember(navBackStackEntry) {
-                 navController.getBackStackEntry("tuning")
-             }
-             val viewModel = androidx.lifecycle.viewmodel.compose.viewModel<TuningViewModel>(parentEntry)
-             CPUTuningScreen(
-                 viewModel = viewModel,
-                 onNavigateBack = { navController.popBackStack() }
-             )
+          val parentEntry =
+              remember(navBackStackEntry) { navController.getBackStackEntry("tuning") }
+          val viewModel =
+              androidx.lifecycle.viewmodel.compose.viewModel<TuningViewModel>(parentEntry)
+          CPUTuningScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
         }
         composable("profiles") {
           val context = LocalContext.current

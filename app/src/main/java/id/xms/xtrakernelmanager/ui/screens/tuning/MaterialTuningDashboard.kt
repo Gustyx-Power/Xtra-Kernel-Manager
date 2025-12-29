@@ -11,16 +11,11 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.*
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,14 +28,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.layout.onGloballyPositioned
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import kotlin.math.PI
 import kotlin.math.sin
@@ -121,9 +115,7 @@ fun MaterialTuningDashboard(
           ExpandableThermalCard(
               viewModel = viewModel,
               expanded = true,
-              onExpandChange = {
-                thermalCardExpanded = it
-              },
+              onExpandChange = { thermalCardExpanded = it },
               onClickNav = { onNavigate("thermal_tuning") },
               topLeftContent = {
                 ExpandableCPUCard(
@@ -144,15 +136,13 @@ fun MaterialTuningDashboard(
           ExpandableThermalCard(
               viewModel = viewModel,
               expanded = false,
-              onExpandChange = {
-                thermalCardExpanded = it
-              },
+              onExpandChange = { thermalCardExpanded = it },
               onClickNav = { onNavigate("thermal_tuning") },
           )
         }
       }
 
-      item(span = StaggeredGridItemSpan.FullLine) { DashboardProfileCard() }
+      item(span = StaggeredGridItemSpan.FullLine) { DashboardProfileCard(viewModel) }
       item(span = StaggeredGridItemSpan.FullLine) { ExpandableGPUCard(viewModel = viewModel) }
 
       if (networkCardExpanded) {
@@ -176,9 +166,7 @@ fun MaterialTuningDashboard(
           ExpandableNetworkCard(
               viewModel = viewModel,
               expanded = false,
-              onExpandChange = {
-                networkCardExpanded = it
-              },
+              onExpandChange = { networkCardExpanded = it },
               onClickNav = { onNavigate("network_tuning") },
           )
         }
@@ -201,7 +189,8 @@ fun ExpandableNetworkCard(
     topRightContent: @Composable () -> Unit = {},
 ) {
   // Animation
-  val height by animateDpAsState(targetValue = if (expanded) 420.dp else 120.dp, label = "net_height")
+  val height by
+      animateDpAsState(targetValue = if (expanded) 420.dp else 120.dp, label = "net_height")
 
   Box(
       modifier =
@@ -251,7 +240,6 @@ fun ExpandableNetworkCard(
       val gap = 24.dp
       val cutoutHeight = 120.dp // Match DashboardNavCard height
       val themeColor = MaterialTheme.colorScheme.secondaryContainer
-
 
       Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
@@ -322,227 +310,337 @@ fun ExpandableNetworkCard(
         // We overlay content on the L-shape
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp), // Unified padding
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.Top,
         ) {
-            // TOP SECTION: Left Content (Header + Status) | Right Spacer (Memory Card)
-            Row(modifier = Modifier.fillMaxWidth()) {
-                // Left Side Container
-                Column(modifier = Modifier.weight(1f)) {
-                    // Header
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier.size(36.dp) 
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                Icons.Rounded.Router,
-                                null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            "Network", 
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Status Badge
-                    val networkStatus by viewModel.networkStatus.collectAsState()
-                    Surface(
-                        shape = RoundedCornerShape(50), 
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f), // Glassy feel
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                        ) {
-                            // Green Status Dot (Visual Indicator)
-                            Box(
-                                modifier = Modifier
-                                    .size(6.dp)
-                                    .clip(CircleShape)
-                                    .background(androidx.compose.ui.graphics.Color(0xFF4CAF50)) // Material Green
-                            )
-                            
-                            Spacer(modifier = Modifier.width(8.dp))
-                            
-                            Text(
-                                networkStatus,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
+          // TOP SECTION: Left Content (Header + Status) | Right Spacer (Memory Card)
+          Row(modifier = Modifier.fillMaxWidth()) {
+            // Left Side Container
+            Column(modifier = Modifier.weight(1f)) {
+              // Header
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier =
+                        Modifier.size(36.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                  Icon(
+                      Icons.Rounded.Router,
+                      null,
+                      tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                      modifier = Modifier.size(20.dp),
+                  )
                 }
-
-                // Right Side Gap
-                Spacer(modifier = Modifier.width(20.dp)) 
-                
-                // Matches Memory Card Height + visual alignment
-                Spacer(modifier = Modifier.weight(1f).height(cutoutHeight)) 
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Hostname UI (Horizontal Strip) - Full Width Row 2
-            val currentHostname by viewModel.currentHostname.collectAsState()
-            var editHostnameDialog by remember { mutableStateOf(false) }
-
-            Surface(
-                onClick = { editHostnameDialog = true }, // Make whole card clickable
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceContainer, // Darker contrast
-                modifier = Modifier.fillMaxWidth().height(60.dp) // Fixed height strip
-            ) {
-               Row(
-                   modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                   verticalAlignment = Alignment.CenterVertically,
-                   horizontalArrangement = Arrangement.SpaceBetween
-               ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Rounded.Smartphone, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.tertiary)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            "Hostname", 
-                            style = MaterialTheme.typography.labelMedium, 
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            currentHostname.ifEmpty { "android" },
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    
-                    Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-               }
-            }
-
-            // Dialog
-            if (editHostnameDialog) {
-                var input by remember { mutableStateOf(currentHostname) }
-                AlertDialog(
-                    onDismissRequest = { editHostnameDialog = false },
-                    title = { Text("Set Hostname") },
-                    text = { OutlinedTextField(value = input, onValueChange = { input = it }, label = { Text("Hostname") }, singleLine = true, shape = RoundedCornerShape(12.dp)) },
-                    confirmButton = { TextButton(onClick = { viewModel.setHostname(input); editHostnameDialog = false }) { Text("Save") } },
-                    dismissButton = { TextButton(onClick = { editHostnameDialog = false }) { Text("Cancel") } }
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    "Network",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
+              }
+
+              Spacer(modifier = Modifier.height(8.dp))
+
+              // Status Badge
+              val networkStatus by viewModel.networkStatus.collectAsState()
+              Surface(
+                  shape = RoundedCornerShape(50),
+                  color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f), // Glassy feel
+                  modifier = Modifier.wrapContentSize(),
+              ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                ) {
+                  // Green Status Dot (Visual Indicator)
+                  Box(
+                      modifier =
+                          Modifier.size(6.dp)
+                              .clip(CircleShape)
+                              .background(
+                                  androidx.compose.ui.graphics.Color(0xFF4CAF50)
+                              ) // Material Green
+                  )
+
+                  Spacer(modifier = Modifier.width(8.dp))
+
+                  Text(
+                      networkStatus,
+                      style = MaterialTheme.typography.labelMedium,
+                      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                      fontWeight = FontWeight.SemiBold,
+                  )
+                }
+              }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            // Right Side Gap
+            Spacer(modifier = Modifier.width(20.dp))
 
-            // BOTTOM SECTION: TCP + Private DNS (Row spanning full width)
-            val currentTCP by viewModel.currentTCPCongestion.collectAsState()
-            val availableTCP by viewModel.availableTCPCongestion.collectAsState()
-            var expandedDropdown by remember { mutableStateOf(false) }
-            var tcpBoxWidth by remember { mutableStateOf(0) }
+            // Matches Memory Card Height + visual alignment
+            Spacer(modifier = Modifier.weight(1f).height(cutoutHeight))
+          }
 
-            val currentDNS by viewModel.currentDNS.collectAsState()
-            val availableDNS = viewModel.availableDNS
-            var expandedDNSDropdown by remember { mutableStateOf(false) }
-            var dnsBoxWidth by remember { mutableStateOf(0) }
+          Spacer(modifier = Modifier.height(16.dp))
 
+          // Hostname UI (Horizontal Strip) - Full Width Row 2
+          val currentHostname by viewModel.currentHostname.collectAsState()
+          var editHostnameDialog by remember { mutableStateOf(false) }
+
+          Surface(
+              onClick = { editHostnameDialog = true }, // Make whole card clickable
+              shape = RoundedCornerShape(16.dp),
+              color = MaterialTheme.colorScheme.surfaceContainer, // Darker contrast
+              modifier = Modifier.fillMaxWidth().height(60.dp), // Fixed height strip
+          ) {
             Row(
-                modifier = Modifier.fillMaxWidth().weight(1f), // Take remaining height
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                 // TCP Congestion UI
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.6f),
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Wifi, null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("TCP", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, maxLines = 1)
-                        }
-                        
-                        Box(modifier = Modifier.fillMaxWidth().onGloballyPositioned { tcpBoxWidth = it.size.width }) {
-                            OutlinedButton(
-                                onClick = { expandedDropdown = true },
-                                modifier = Modifier.fillMaxWidth().height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainer, contentColor = MaterialTheme.colorScheme.onSurface),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                            ) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = currentTCP.ifEmpty { "?" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                    Icon(if (expandedDropdown) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, null, modifier = Modifier.size(16.dp))
-                                }
-                            }
-                            DropdownMenu(
-                                expanded = expandedDropdown, 
-                                onDismissRequest = { expandedDropdown = false }, 
-                                modifier = Modifier.width(with(LocalDensity.current) { tcpBoxWidth.toDp() })
-                            ) {
-                                availableTCP.forEach { tcp -> DropdownMenuItem(text = { Text(tcp) }, onClick = { viewModel.setTCPCongestion(tcp); expandedDropdown = false }) }
-                            }
-                        }
-                    }
-                }
+              Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Icon(
+                    Icons.Rounded.Smartphone,
+                    null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.tertiary,
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    "Hostname",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    currentHostname.ifEmpty { "android" },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+              }
 
-                // Private DNS UI
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.6f),
-                    modifier = Modifier.weight(1f).fillMaxHeight()
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(16.dp),
-                        verticalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Rounded.Security, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("DNS", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary, maxLines = 1)
-                        }
-
-                        Box(modifier = Modifier.fillMaxWidth().onGloballyPositioned { dnsBoxWidth = it.size.width }) {
-                            OutlinedButton(
-                                onClick = { expandedDNSDropdown = true },
-                                modifier = Modifier.fillMaxWidth().height(48.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainer, contentColor = MaterialTheme.colorScheme.onSurface),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                            ) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text(text = currentDNS.ifEmpty { "Auto" }, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
-                                    Icon(if (expandedDNSDropdown) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown, null, modifier = Modifier.size(16.dp))
-                                }
-                            }
-                            DropdownMenu(
-                                expanded = expandedDNSDropdown, 
-                                onDismissRequest = { expandedDNSDropdown = false }, 
-                                modifier = Modifier.width(with(LocalDensity.current) { dnsBoxWidth.toDp() })
-                            ) {
-                                availableDNS.forEach { (name, hostname) -> DropdownMenuItem(text = { Text(name) }, onClick = { viewModel.setPrivateDNS(name, hostname); expandedDNSDropdown = false }) }
-                            }
-                        }
-                    }
-                }
+              Icon(
+                  Icons.Rounded.Edit,
+                  null,
+                  modifier = Modifier.size(18.dp),
+                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
             }
+          }
+
+          // Dialog
+          if (editHostnameDialog) {
+            var input by remember { mutableStateOf(currentHostname) }
+            AlertDialog(
+                onDismissRequest = { editHostnameDialog = false },
+                title = { Text("Set Hostname") },
+                text = {
+                  OutlinedTextField(
+                      value = input,
+                      onValueChange = { input = it },
+                      label = { Text("Hostname") },
+                      singleLine = true,
+                      shape = RoundedCornerShape(12.dp),
+                  )
+                },
+                confirmButton = {
+                  TextButton(
+                      onClick = {
+                        viewModel.setHostname(input)
+                        editHostnameDialog = false
+                      }
+                  ) {
+                    Text("Save")
+                  }
+                },
+                dismissButton = {
+                  TextButton(onClick = { editHostnameDialog = false }) { Text("Cancel") }
+                },
+            )
+          }
+
+          Spacer(modifier = Modifier.height(12.dp))
+
+          // BOTTOM SECTION: TCP + Private DNS (Row spanning full width)
+          val currentTCP by viewModel.currentTCPCongestion.collectAsState()
+          val availableTCP by viewModel.availableTCPCongestion.collectAsState()
+          var expandedDropdown by remember { mutableStateOf(false) }
+          var tcpBoxWidth by remember { mutableStateOf(0) }
+
+          val currentDNS by viewModel.currentDNS.collectAsState()
+          val availableDNS = viewModel.availableDNS
+          var expandedDNSDropdown by remember { mutableStateOf(false) }
+          var dnsBoxWidth by remember { mutableStateOf(0) }
+
+          Row(
+              modifier = Modifier.fillMaxWidth().weight(1f), // Take remaining height
+              horizontalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            // TCP Congestion UI
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.6f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            ) {
+              Column(
+                  modifier = Modifier.fillMaxSize().padding(16.dp),
+                  verticalArrangement = Arrangement.SpaceBetween,
+              ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      Icons.Rounded.Wifi,
+                      null,
+                      modifier = Modifier.size(20.dp),
+                      tint = MaterialTheme.colorScheme.primary,
+                  )
+                  Spacer(modifier = Modifier.width(8.dp))
+                  Text(
+                      "TCP",
+                      style = MaterialTheme.typography.titleMedium,
+                      color = MaterialTheme.colorScheme.primary,
+                      maxLines = 1,
+                  )
+                }
+
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth().onGloballyPositioned { tcpBoxWidth = it.size.width }
+                ) {
+                  OutlinedButton(
+                      onClick = { expandedDropdown = true },
+                      modifier = Modifier.fillMaxWidth().height(48.dp),
+                      shape = RoundedCornerShape(12.dp),
+                      contentPadding = PaddingValues(horizontal = 12.dp),
+                      colors =
+                          ButtonDefaults.outlinedButtonColors(
+                              containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                              contentColor = MaterialTheme.colorScheme.onSurface,
+                          ),
+                      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                  ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                      Text(
+                          text = currentTCP.ifEmpty { "?" },
+                          style = MaterialTheme.typography.bodyMedium,
+                          maxLines = 1,
+                          overflow = TextOverflow.Ellipsis,
+                          modifier = Modifier.weight(1f),
+                      )
+                      Icon(
+                          if (expandedDropdown) Icons.Rounded.KeyboardArrowUp
+                          else Icons.Rounded.KeyboardArrowDown,
+                          null,
+                          modifier = Modifier.size(16.dp),
+                      )
+                    }
+                  }
+                  DropdownMenu(
+                      expanded = expandedDropdown,
+                      onDismissRequest = { expandedDropdown = false },
+                      modifier = Modifier.width(with(LocalDensity.current) { tcpBoxWidth.toDp() }),
+                  ) {
+                    availableTCP.forEach { tcp ->
+                      DropdownMenuItem(
+                          text = { Text(tcp) },
+                          onClick = {
+                            viewModel.setTCPCongestion(tcp)
+                            expandedDropdown = false
+                          },
+                      )
+                    }
+                  }
+                }
+              }
+            }
+
+            // Private DNS UI
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.6f),
+                modifier = Modifier.weight(1f).fillMaxHeight(),
+            ) {
+              Column(
+                  modifier = Modifier.fillMaxSize().padding(16.dp),
+                  verticalArrangement = Arrangement.SpaceBetween,
+              ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                  Icon(
+                      Icons.Rounded.Security,
+                      null,
+                      modifier = Modifier.size(18.dp),
+                      tint = MaterialTheme.colorScheme.secondary,
+                  )
+                  Spacer(modifier = Modifier.width(8.dp))
+                  Text(
+                      "DNS",
+                      style = MaterialTheme.typography.titleMedium,
+                      color = MaterialTheme.colorScheme.secondary,
+                      maxLines = 1,
+                  )
+                }
+
+                Box(
+                    modifier =
+                        Modifier.fillMaxWidth().onGloballyPositioned { dnsBoxWidth = it.size.width }
+                ) {
+                  OutlinedButton(
+                      onClick = { expandedDNSDropdown = true },
+                      modifier = Modifier.fillMaxWidth().height(48.dp),
+                      shape = RoundedCornerShape(12.dp),
+                      contentPadding = PaddingValues(horizontal = 12.dp),
+                      colors =
+                          ButtonDefaults.outlinedButtonColors(
+                              containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                              contentColor = MaterialTheme.colorScheme.onSurface,
+                          ),
+                      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                  ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                      Text(
+                          text = currentDNS.ifEmpty { "Auto" },
+                          style = MaterialTheme.typography.bodyMedium,
+                          maxLines = 1,
+                          overflow = TextOverflow.Ellipsis,
+                          modifier = Modifier.weight(1f),
+                      )
+                      Icon(
+                          if (expandedDNSDropdown) Icons.Rounded.KeyboardArrowUp
+                          else Icons.Rounded.KeyboardArrowDown,
+                          null,
+                          modifier = Modifier.size(16.dp),
+                      )
+                    }
+                  }
+                  DropdownMenu(
+                      expanded = expandedDNSDropdown,
+                      onDismissRequest = { expandedDNSDropdown = false },
+                      modifier = Modifier.width(with(LocalDensity.current) { dnsBoxWidth.toDp() }),
+                  ) {
+                    availableDNS.forEach { (name, hostname) ->
+                      DropdownMenuItem(
+                          text = { Text(name) },
+                          onClick = {
+                            viewModel.setPrivateDNS(name, hostname)
+                            expandedDNSDropdown = false
+                          },
+                      )
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -552,16 +650,16 @@ fun ExpandableNetworkCard(
 @Composable
 fun HeroDeviceCard(viewModel: TuningViewModel) {
   val cpuLoad by viewModel.cpuLoad.collectAsState()
-  
+
   // Real device info from Android Build API
   val manufacturer = android.os.Build.MANUFACTURER.uppercase()
   val model = android.os.Build.MODEL
   val codename = android.os.Build.DEVICE.uppercase()
   val board = android.os.Build.BOARD.lowercase()
-  
+
   // Format CPU load as percentage
   val loadDisplay = "${cpuLoad.toInt()}% Load"
-  
+
   Card(
       modifier = Modifier.fillMaxWidth().height(140.dp),
       shape = RoundedCornerShape(24.dp),
@@ -631,20 +729,18 @@ fun ExpandableCPUCard(
     onClickNav: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val cpuClusters by viewModel.cpuClusters.collectAsState()
-    val currentGovernor = cpuClusters.firstOrNull()?.governor?.replaceFirstChar { 
-        it.uppercase() 
-    } ?: "—"
-    
-    DashboardNavCard(
-        title = "CPU",
-        subtitle = "Clock & Governor",
-        icon = Icons.Rounded.Memory,
-        badgeText = currentGovernor, // Now shows real governor
-        onClick = onClickNav,
-    )
-}
+  val cpuClusters by viewModel.cpuClusters.collectAsState()
+  val currentGovernor =
+      cpuClusters.firstOrNull()?.governor?.replaceFirstChar { it.uppercase() } ?: "—"
 
+  DashboardNavCard(
+      title = "CPU",
+      subtitle = "Clock & Governor",
+      icon = Icons.Rounded.Memory,
+      badgeText = currentGovernor, // Now shows real governor
+      onClick = onClickNav,
+  )
+}
 
 @Composable
 fun ExpandableThermalCard(
@@ -657,9 +753,9 @@ fun ExpandableThermalCard(
   // Get real temperature from ViewModel
   val cpuTemp by viewModel.cpuTemperature.collectAsState()
   val thermalZones by viewModel.thermalZones.collectAsState()
-  
+
   val tempDisplay = if (cpuTemp > 0) "${cpuTemp.toInt()}°C" else "—"
-  
+
   val height by
       animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "thermal_height")
 
@@ -729,272 +825,283 @@ fun ExpandableThermalCard(
 
         Column(modifier = Modifier.fillMaxSize()) {
           Row(modifier = Modifier.fillMaxWidth()) {
-              // Left: Spacer + Single Status Badge
-              Column(
-                  modifier = Modifier
-                      .weight(1f)
-                      .padding(start = 24.dp, end = 8.dp)
+            // Left: Spacer + Single Status Badge
+            Column(modifier = Modifier.weight(1f).padding(start = 24.dp, end = 8.dp)) {
+              Spacer(
+                  modifier = Modifier.height(cutoutHeight + gap + 16.dp)
+              ) // Lowered by extra 16dp for generous clearance
+              // Single Health Badge
+              val (healthIcon, healthText, healthColor) =
+                  when {
+                    cpuTemp < 60 ->
+                        Triple(
+                            Icons.Rounded.CheckCircle,
+                            "System Healthy",
+                            MaterialTheme.colorScheme.primary,
+                        )
+                    cpuTemp < 80 ->
+                        Triple(
+                            Icons.Rounded.Warning,
+                            "System Warm",
+                            MaterialTheme.colorScheme.tertiary,
+                        )
+                    else ->
+                        Triple(
+                            Icons.Rounded.Dangerous,
+                            "Throttling",
+                            MaterialTheme.colorScheme.error,
+                        )
+                  }
+
+              Surface(
+                  color = healthColor.copy(alpha = 0.1f),
+                  contentColor = healthColor,
+                  shape = RoundedCornerShape(12.dp),
+                  border =
+                      androidx.compose.foundation.BorderStroke(
+                          1.dp,
+                          healthColor.copy(alpha = 0.2f),
+                      ),
+                  modifier = Modifier.fillMaxWidth(),
               ) {
-                  Spacer(modifier = Modifier.height(cutoutHeight + gap + 16.dp)) // Lowered by extra 16dp for generous clearance           
-                  // Single Health Badge
-                  val (healthIcon, healthText, healthColor) = when {
-                      cpuTemp < 60 -> Triple(Icons.Rounded.CheckCircle, "System Healthy", MaterialTheme.colorScheme.primary)
-                      cpuTemp < 80 -> Triple(Icons.Rounded.Warning, "System Warm", MaterialTheme.colorScheme.tertiary)
-                      else -> Triple(Icons.Rounded.Dangerous, "Throttling", MaterialTheme.colorScheme.error)
-                  }
-                  
-                  Surface(
-                      color = healthColor.copy(alpha = 0.1f),
-                      contentColor = healthColor,
-                      shape = RoundedCornerShape(12.dp),
-                      border = androidx.compose.foundation.BorderStroke(1.dp, healthColor.copy(alpha = 0.2f)),
-                      modifier = Modifier.fillMaxWidth()
-                  ) {
-                      Row(
-                          modifier = Modifier.padding(vertical = 10.dp),
-                          verticalAlignment = Alignment.CenterVertically,
-                          horizontalArrangement = Arrangement.Center
-                      ) {
-                          Icon(healthIcon, null, modifier = Modifier.size(16.dp))
-                          Spacer(modifier = Modifier.width(8.dp))
-                          Text(
-                              text = healthText,
-                              style = MaterialTheme.typography.labelMedium,
-                              fontWeight = FontWeight.SemiBold
-                          )
-                      }
-                  }
+                Row(
+                    modifier = Modifier.padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                  Icon(healthIcon, null, modifier = Modifier.size(16.dp))
+                  Spacer(modifier = Modifier.width(8.dp))
+                  Text(
+                      text = healthText,
+                      style = MaterialTheme.typography.labelMedium,
+                      fontWeight = FontWeight.SemiBold,
+                  )
+                }
+              }
+            }
+
+            // Right: Header Icon
+            Column(
+                modifier = Modifier.weight(1f).padding(top = 20.dp, end = 20.dp, start = 32.dp)
+            ) {
+              val currentPreset by viewModel.currentThermalPreset.collectAsState()
+
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Box(
+                    modifier =
+                        Modifier.size(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                  Icon(
+                      Icons.Rounded.Thermostat,
+                      null,
+                      tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                  )
+                }
+
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = RoundedCornerShape(8.dp),
+                ) {
+                  Text(
+                      text = currentPreset,
+                      style = MaterialTheme.typography.labelMedium,
+                      modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                      color = MaterialTheme.colorScheme.onTertiaryContainer,
+                  )
+                }
               }
 
-              
-              // Right: Header Icon
-              Column(
-                  modifier = Modifier
-                      .weight(1f)
-                      .padding(top = 20.dp, end = 20.dp, start = 32.dp)
-              ) {
-                  val currentPreset by viewModel.currentThermalPreset.collectAsState()
+              Spacer(modifier = Modifier.height(24.dp))
 
-                  Row(
-                      modifier = Modifier.fillMaxWidth(),
-                      horizontalArrangement = Arrangement.SpaceBetween,
-                      verticalAlignment = Alignment.CenterVertically
-                  ) {
-                      Box(
-                          modifier = Modifier
-                              .size(40.dp)
-                              .clip(RoundedCornerShape(12.dp))
-                              .background(MaterialTheme.colorScheme.primaryContainer),
-                          contentAlignment = Alignment.Center,
-                      ) {
-                          Icon(
-                              Icons.Rounded.Thermostat,
-                              null,
-                              tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                          )
-                      }
-                      
-                      Surface(
-                          color = MaterialTheme.colorScheme.tertiaryContainer,
-                          shape = RoundedCornerShape(8.dp),
-                      ) {
-                          Text(
-                              text = currentPreset,
-                              style = MaterialTheme.typography.labelMedium,
-                              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                              color = MaterialTheme.colorScheme.onTertiaryContainer
-                          )
-                      }
-                  }
-                  
-                  Spacer(modifier = Modifier.height(24.dp))
-                  
-                  // Wavy Temperature Indicator
-                  Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                      val progress = (cpuTemp / 100f).coerceIn(0f, 1f)
-                      val color = when {
-                          cpuTemp < 45 -> MaterialTheme.colorScheme.primary
-                          cpuTemp < 60 -> MaterialTheme.colorScheme.tertiary
-                          else -> MaterialTheme.colorScheme.error
-                      }
-                      
-                      val statusText = when {
-                          cpuTemp < 45 -> "Normal"
-                          cpuTemp < 65 -> "Warm"
-                          else -> "Overheat"
-                      }
-                      
-                      WavyCircularProgressIndicator(
-                          progress = progress,
-                          text = "${cpuTemp.toInt()}°C",
-                          subtext = statusText,
-                          modifier = Modifier.size(140.dp),
-                          color = color,
-                          trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.5f),
-                          strokeWidth = 10.dp,
-                          amplitude = 3.dp,
-                          frequency = 8
-                      )
-                  }
-          }
+              // Wavy Temperature Indicator
+              Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                val progress = (cpuTemp / 100f).coerceIn(0f, 1f)
+                val color =
+                    when {
+                      cpuTemp < 45 -> MaterialTheme.colorScheme.primary
+                      cpuTemp < 60 -> MaterialTheme.colorScheme.tertiary
+                      else -> MaterialTheme.colorScheme.error
+                    }
+
+                val statusText =
+                    when {
+                      cpuTemp < 45 -> "Normal"
+                      cpuTemp < 65 -> "Warm"
+                      else -> "Overheat"
+                    }
+
+                WavyCircularProgressIndicator(
+                    progress = progress,
+                    text = "${cpuTemp.toInt()}°C",
+                    subtext = statusText,
+                    modifier = Modifier.size(140.dp),
+                    color = color,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    strokeWidth = 10.dp,
+                    amplitude = 3.dp,
+                    frequency = 8,
+                )
+              }
+            }
           }
 
           Column(
-              modifier = Modifier
-                  .fillMaxWidth()
-                  .weight(1f)
-                  .padding(horizontal = 20.dp),
-              verticalArrangement = Arrangement.Center
+              modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 20.dp),
+              verticalArrangement = Arrangement.Center,
           ) {
-              ThermalPresetDropdown(viewModel)
-              Spacer(modifier = Modifier.height(16.dp))
-              ThermalSetOnBootToggle(viewModel)
+            ThermalPresetDropdown(viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+            ThermalSetOnBootToggle(viewModel)
           }
+        }
       }
     }
   }
-}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThermalPresetDropdown(viewModel: TuningViewModel) {
-    val currentPreset by viewModel.currentThermalPreset.collectAsState()
-    val setOnBoot by viewModel.isThermalSetOnBoot.collectAsState()
-    val presets = listOf("Class 0", "Extreme", "Dynamic", "Incalls", "Thermal 20")
-    
-    var expanded by remember { mutableStateOf(false) }
+  val currentPreset by viewModel.currentThermalPreset.collectAsState()
+  val setOnBoot by viewModel.isThermalSetOnBoot.collectAsState()
+  val presets = listOf("Class 0", "Extreme", "Dynamic", "Incalls", "Thermal 20")
 
-    Box {
-        Surface(
-            modifier = Modifier.fillMaxWidth().clickable { expanded = true },
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    "Thermal Profile",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        currentPreset,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        Icons.Rounded.ArrowDropDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        }
+  var expanded by remember { mutableStateOf(false) }
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            shape = RoundedCornerShape(12.dp),
-        ) {
-            presets.forEach { preset ->
-                val isSelected = preset == currentPreset
-                DropdownMenuItem(
-                    text = { 
-                        Text(
-                            preset,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                        )
-                    },
-                    onClick = {
-                        viewModel.setThermalPreset(preset, setOnBoot)
-                        expanded = false
-                    }
-                )
-            }
+  Box {
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable { expanded = true },
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+      Column(modifier = Modifier.padding(12.dp)) {
+        Text(
+            "Thermal Profile",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(4.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Text(
+              currentPreset,
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.Medium,
+              color = MaterialTheme.colorScheme.primary,
+          )
+          Spacer(modifier = Modifier.width(4.dp))
+          Icon(
+              Icons.Rounded.ArrowDropDown,
+              contentDescription = null,
+              modifier = Modifier.size(16.dp),
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
         }
+      }
     }
+
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false },
+        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+        shape = RoundedCornerShape(12.dp),
+    ) {
+      presets.forEach { preset ->
+        val isSelected = preset == currentPreset
+        DropdownMenuItem(
+            text = {
+              Text(
+                  preset,
+                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                  color =
+                      if (isSelected) MaterialTheme.colorScheme.primary
+                      else MaterialTheme.colorScheme.onSurface,
+              )
+            },
+            onClick = {
+              viewModel.setThermalPreset(preset, setOnBoot)
+              expanded = false
+            },
+        )
+      }
+    }
+  }
 }
 
 @Composable
 fun ThermalSetOnBootToggle(viewModel: TuningViewModel) {
-    val currentPreset by viewModel.currentThermalPreset.collectAsState()
-    val setOnBoot by viewModel.isThermalSetOnBoot.collectAsState()
+  val currentPreset by viewModel.currentThermalPreset.collectAsState()
+  val setOnBoot by viewModel.isThermalSetOnBoot.collectAsState()
 
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            "Set on Boot",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-        Switch(
-            checked = setOnBoot,
-            onCheckedChange = { 
-                 viewModel.setThermalPreset(currentPreset, it)
-            },
-            thumbContent = if (setOnBoot) {
-                {
-                    Icon(
-                        imageVector = Icons.Rounded.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                    )
-                }
+  Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Text("Set on Boot", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+    Switch(
+        checked = setOnBoot,
+        onCheckedChange = { viewModel.setThermalPreset(currentPreset, it) },
+        thumbContent =
+            if (setOnBoot) {
+              {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
+                )
+              }
             } else {
-                null
+              null
             },
-            colors = SwitchDefaults.colors(
+        colors =
+            SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
                 checkedTrackColor = MaterialTheme.colorScheme.primary,
-            )
-        )
-    }
+            ),
+    )
+  }
 }
 
 @Composable
 fun ThermalZoneItem(zone: id.xms.xtrakernelmanager.domain.native.NativeLib.ThermalZone) {
-    val color = when {
+  val color =
+      when {
         zone.temp > 60 -> MaterialTheme.colorScheme.errorContainer
-        zone.temp > 45 -> MaterialTheme.colorScheme.tertiaryContainer 
+        zone.temp > 45 -> MaterialTheme.colorScheme.tertiaryContainer
         else -> MaterialTheme.colorScheme.surfaceContainerHigh
-    }
-    
-    val contentColor = when {
+      }
+
+  val contentColor =
+      when {
         zone.temp > 60 -> MaterialTheme.colorScheme.onErrorContainer
         zone.temp > 45 -> MaterialTheme.colorScheme.onTertiaryContainer
         else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+      }
 
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(color)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "${zone.temp.toInt()}°", 
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = contentColor
-        )
-        Text(
-            text = zone.name.take(10), // Truncate long names
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1,
-            color = contentColor.copy(alpha = 0.8f)
-        )
-    }
+  Column(
+      modifier = Modifier.clip(RoundedCornerShape(12.dp)).background(color).padding(8.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    Text(
+        text = "${zone.temp.toInt()}°",
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.Bold,
+        color = contentColor,
+    )
+    Text(
+        text = zone.name.take(10), // Truncate long names
+        style = MaterialTheme.typography.labelSmall,
+        maxLines = 1,
+        color = contentColor.copy(alpha = 0.8f),
+    )
+  }
 }
 
 @Composable
@@ -1059,10 +1166,10 @@ fun DashboardNavCard(
 }
 
 @Composable
-fun DashboardProfileCard() {
+fun DashboardProfileCard(viewModel: TuningViewModel) {
   var expanded by remember { mutableStateOf(false) }
-  var selectedProfile by remember { mutableStateOf("Performance") }
-  val profiles = listOf("Performance", "Balance", "Powersave", "Battery")
+  val selectedProfile by viewModel.selectedProfile.collectAsState()
+  val profiles = viewModel.availableProfiles
 
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
@@ -1128,7 +1235,7 @@ fun DashboardProfileCard() {
                       Modifier.fillMaxWidth()
                           .clip(RoundedCornerShape(14.dp))
                           .clickable {
-                            selectedProfile = profile
+                            viewModel.applyGlobalProfile(profile)
                             expanded = false
                           }
                           .background(
@@ -1162,7 +1269,7 @@ fun DashboardProfileCard() {
 fun ExpandableGPUCard(viewModel: TuningViewModel) {
   // Get real GPU data from ViewModel
   val gpuInfo by viewModel.gpuInfo.collectAsState()
-  
+
   var expanded by remember { mutableStateOf(false) }
   var sliderValue by remember { mutableFloatStateOf(0.7f) }
   var governorValue by remember { mutableStateOf("msm-adreno-tz") }
@@ -1171,20 +1278,14 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
   var rendererValue by remember { mutableStateOf("SkiaGL (Vulkan)") }
 
   // Extract GPU model from renderer (e.g., "Adreno (TM) 725" -> "Adreno 725")
-  val gpuModel = gpuInfo.renderer
-      .replace("(TM)", "")
-      .replace("(R)", "")
-      .trim()
-      .ifEmpty { "Unknown GPU" }
+  val gpuModel =
+      gpuInfo.renderer.replace("(TM)", "").replace("(R)", "").trim().ifEmpty { "Unknown GPU" }
 
   Card(
       modifier = Modifier.fillMaxWidth().clickable { expanded = !expanded }.animateContentSize(),
       shape = RoundedCornerShape(24.dp),
       colors =
-          CardDefaults.cardColors(
-              containerColor =
-                  MaterialTheme.colorScheme.secondaryContainer
-          ),
+          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
   ) {
     Column(modifier = Modifier.padding(24.dp)) {
       // Header
@@ -1200,14 +1301,15 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
             shape = RoundedCornerShape(8.dp),
         ) {
           // Show vendor from gpuInfo (e.g., "Qualcomm" -> "ADRENO")
-          val badgeText = when {
-            gpuInfo.vendor.contains("Qualcomm", ignoreCase = true) -> "ADRENO"
-            gpuInfo.vendor.contains("ARM", ignoreCase = true) -> "MALI"
-            gpuInfo.vendor.contains("PowerVR", ignoreCase = true) -> "POWERVR"
-            gpuInfo.renderer.contains("Adreno", ignoreCase = true) -> "ADRENO"
-            gpuInfo.renderer.contains("Mali", ignoreCase = true) -> "MALI"
-            else -> gpuInfo.vendor.uppercase().take(8)
-          }
+          val badgeText =
+              when {
+                gpuInfo.vendor.contains("Qualcomm", ignoreCase = true) -> "ADRENO"
+                gpuInfo.vendor.contains("ARM", ignoreCase = true) -> "MALI"
+                gpuInfo.vendor.contains("PowerVR", ignoreCase = true) -> "POWERVR"
+                gpuInfo.renderer.contains("Adreno", ignoreCase = true) -> "ADRENO"
+                gpuInfo.renderer.contains("Mali", ignoreCase = true) -> "MALI"
+                else -> gpuInfo.vendor.uppercase().take(8)
+              }
           Text(
               text = badgeText,
               modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -1300,28 +1402,29 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
 
       // Expanded Controls
       AnimatedVisibility(visible = expanded) {
-        // Get ViewModel states  
+        // Get ViewModel states
         val isFrequencyLocked by viewModel.isGpuFrequencyLocked.collectAsState()
-        
+
         // Build freq options from availableFreqs
         val freqOptions = gpuInfo.availableFreqs.map { "${it} MHz" }
-        
+
         // Track selected values
-        var selectedMinFreq by remember(gpuInfo.minFreq) { 
-          mutableStateOf("${gpuInfo.minFreq} MHz") 
-        }
-        var selectedMaxFreq by remember(gpuInfo.maxFreq) { 
-          mutableStateOf("${gpuInfo.maxFreq} MHz") 
-        }
+        var selectedMinFreq by
+            remember(gpuInfo.minFreq) { mutableStateOf("${gpuInfo.minFreq} MHz") }
+        var selectedMaxFreq by
+            remember(gpuInfo.maxFreq) { mutableStateOf("${gpuInfo.maxFreq} MHz") }
         val maxPowerLevel = gpuInfo.numPwrLevels.coerceIn(1, 10) // Cap at 10
-        var powerSliderValue by remember(gpuInfo.powerLevel, maxPowerLevel) {
-          mutableFloatStateOf(
-            // Map current GPU power level to slider (0.0 - 1.0)
-            if (maxPowerLevel > 0) gpuInfo.powerLevel.coerceAtMost(maxPowerLevel).toFloat() / maxPowerLevel.toFloat()
-            else 0f
-          )
-        }
-        
+        var powerSliderValue by
+            remember(gpuInfo.powerLevel, maxPowerLevel) {
+              mutableFloatStateOf(
+                  // Map current GPU power level to slider (0.0 - 1.0)
+                  if (maxPowerLevel > 0)
+                      gpuInfo.powerLevel.coerceAtMost(maxPowerLevel).toFloat() /
+                          maxPowerLevel.toFloat()
+                  else 0f
+              )
+            }
+
         Column(
             modifier = Modifier.padding(top = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -1391,12 +1494,12 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
               }
               Spacer(Modifier.height(16.dp))
               WavySlider(
-                  value = powerSliderValue, 
+                  value = powerSliderValue,
                   onValueChange = { newValue ->
                     powerSliderValue = newValue
                     val level = (newValue * maxPowerLevel).toInt()
                     viewModel.setGPUPowerLevel(level)
-                  }
+                  },
               )
             }
           }
@@ -1641,6 +1744,7 @@ fun WavySlider(
     }
   }
 }
+
 @Composable
 fun WavyCircularProgressIndicator(
     progress: Float, // 0.0 to 1.0
@@ -1651,78 +1755,78 @@ fun WavyCircularProgressIndicator(
     amplitude: Dp = 4.dp, // Height of the wave
     frequency: Int = 12, // Number of waves around the circle
     text: String? = null,
-    subtext: String? = null
+    subtext: String? = null,
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-            val width = size.width
-            val height = size.height
-            val radius = (minOf(width, height) / 2) - amplitude.toPx() - strokeWidth.toPx()
-            val centerX = width / 2
-            val centerY = height / 2
-            val ampPx = amplitude.toPx()
-            val strokePx = strokeWidth.toPx()
+  Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+      val width = size.width
+      val height = size.height
+      val radius = (minOf(width, height) / 2) - amplitude.toPx() - strokeWidth.toPx()
+      val centerX = width / 2
+      val centerY = height / 2
+      val ampPx = amplitude.toPx()
+      val strokePx = strokeWidth.toPx()
 
-            // Function to generate wavy path
-            fun createWavyPath(endAngle: Float): Path {
-                val path = Path()
-                val steps = 360 // Resolution
-                
-                for (i in 0..steps) {
-                    val angleDeg = i.toFloat()
-                    if (angleDeg > endAngle) break
-                    
-                    val angleRad = Math.toRadians(angleDeg.toDouble() - 90) // Start from top
-                    
-                    // Wave offset logic: sin(angle * frequency)
-                    val waveOffset = kotlin.math.sin(angleRad * frequency) * ampPx
-                    
-                    val r = radius + waveOffset
-                    val x = centerX + r * kotlin.math.cos(angleRad)
-                    val y = centerY + r * kotlin.math.sin(angleRad)
-                    
-                    if (i == 0) {
-                        path.moveTo(x.toFloat(), y.toFloat())
-                    } else {
-                        path.lineTo(x.toFloat(), y.toFloat())
-                    }
-                }
-                return path
-            }
+      // Function to generate wavy path
+      fun createWavyPath(endAngle: Float): Path {
+        val path = Path()
+        val steps = 360 // Resolution
 
-            // Draw Track (Full Circle)
-            drawPath(
-                path = createWavyPath(360f),
-                color = trackColor,
-                style = Stroke(width = strokePx, cap = StrokeCap.Round)
-            )
+        for (i in 0..steps) {
+          val angleDeg = i.toFloat()
+          if (angleDeg > endAngle) break
 
-            // Draw Progress
-            if (progress > 0) {
-               drawPath(
-                    path = createWavyPath(360f * progress),
-                    color = color,
-                    style = Stroke(width = strokePx, cap = StrokeCap.Round)
-                ) 
-            }
+          val angleRad = Math.toRadians(angleDeg.toDouble() - 90) // Start from top
+
+          // Wave offset logic: sin(angle * frequency)
+          val waveOffset = kotlin.math.sin(angleRad * frequency) * ampPx
+
+          val r = radius + waveOffset
+          val x = centerX + r * kotlin.math.cos(angleRad)
+          val y = centerY + r * kotlin.math.sin(angleRad)
+
+          if (i == 0) {
+            path.moveTo(x.toFloat(), y.toFloat())
+          } else {
+            path.lineTo(x.toFloat(), y.toFloat())
+          }
         }
-        
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (text != null) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            if (subtext != null) {
-                Text(
-                    text = subtext,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
+        return path
+      }
+
+      // Draw Track (Full Circle)
+      drawPath(
+          path = createWavyPath(360f),
+          color = trackColor,
+          style = Stroke(width = strokePx, cap = StrokeCap.Round),
+      )
+
+      // Draw Progress
+      if (progress > 0) {
+        drawPath(
+            path = createWavyPath(360f * progress),
+            color = color,
+            style = Stroke(width = strokePx, cap = StrokeCap.Round),
+        )
+      }
     }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      if (text != null) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+      }
+      if (subtext != null) {
+        Text(
+            text = subtext,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+      }
+    }
+  }
 }

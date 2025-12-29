@@ -30,7 +30,8 @@ class TuningViewModel(
     private val gpuUseCase: GPUControlUseCase = GPUControlUseCase(),
     private val ramUseCase: RAMControlUseCase = RAMControlUseCase(),
     private val thermalUseCase: ThermalControlUseCase = ThermalControlUseCase(),
-    private val overlayUseCase: id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase = id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase(),
+    private val overlayUseCase: id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase =
+        id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase(),
     private val tomlManager: TomlConfigManager = TomlConfigManager(),
 ) : ViewModel() {
 
@@ -110,57 +111,109 @@ class TuningViewModel(
   val networkStatus: StateFlow<String>
     get() = _networkStatus.asStateFlow()
 
-  val availableDNS = listOf(
-      "Automatic" to "",
-      "Off" to "off",
-      "Google" to "dns.google",
-      "Cloudflare" to "1dot1dot1dot1.cloudflare-dns.com",
-      "AdGuard" to "dns.adguard.com",
-      "Quad9" to "dns.quad9.net"
-  )
+  val availableDNS =
+      listOf(
+          "Automatic" to "",
+          "Off" to "off",
+          "Google" to "dns.google",
+          "Cloudflare" to "1dot1dot1dot1.cloudflare-dns.com",
+          "AdGuard" to "dns.adguard.com",
+          "Quad9" to "dns.quad9.net",
+      )
+
+  // Global Profile State
+  private val _selectedProfile = MutableStateFlow("Balance")
+  val selectedProfile: StateFlow<String>
+    get() = _selectedProfile.asStateFlow()
+
+  val availableProfiles = listOf("Performance", "Balance", "Powersave", "Battery")
+
+  // Store device's default governor (captured at init)
+  private var defaultGovernor: String = "schedutil"
+
+  fun applyGlobalProfile(profile: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+      _selectedProfile.value = profile
+
+      // Map profile to CPU governor - Balance uses device default
+      val governor =
+          when (profile) {
+            "Performance" -> "performance"
+            "Balance" -> defaultGovernor // Use device's original governor
+            "Powersave" -> "powersave"
+            "Battery" -> "conservative"
+            else -> defaultGovernor
+          }
+
+      // Apply governor to all CPU clusters
+      _cpuClusters.value.forEach { cluster ->
+        cpuUseCase.setClusterGovernor(cluster.clusterNumber, governor)
+      }
+
+      // Refresh values after applying
+      refreshDynamicValues()
+    }
+  }
+
+  // Call this after first cluster detection to capture default governor
+  private fun captureDefaultGovernor() {
+    val firstCluster = _cpuClusters.value.firstOrNull()
+    if (firstCluster != null && firstCluster.governor.isNotEmpty()) {
+      defaultGovernor = firstCluster.governor
+    }
+  }
 
   fun setPrivateDNS(name: String, hostname: String) {
-      viewModelScope.launch(Dispatchers.IO) {
-          if (hostname == "off") {
-               RootManager.executeCommand("settings put global private_dns_mode off")
-          } else if (hostname.isEmpty()) {
-               RootManager.executeCommand("settings put global private_dns_mode opportunistic")
-          } else {
-               RootManager.executeCommand("settings put global private_dns_mode hostname")
-               RootManager.executeCommand("settings put global private_dns_specifier $hostname")
-          }
-          _currentDNS.value = name
+    viewModelScope.launch(Dispatchers.IO) {
+      if (hostname == "off") {
+        RootManager.executeCommand("settings put global private_dns_mode off")
+      } else if (hostname.isEmpty()) {
+        RootManager.executeCommand("settings put global private_dns_mode opportunistic")
+      } else {
+        RootManager.executeCommand("settings put global private_dns_mode hostname")
+        RootManager.executeCommand("settings put global private_dns_specifier $hostname")
       }
+      _currentDNS.value = name
+    }
   }
 
   private fun loadDNS() {
-      viewModelScope.launch(Dispatchers.IO) {
-          val mode = RootManager.executeCommand("settings get global private_dns_mode").getOrNull()?.trim() ?: "off"
-          val specifier = RootManager.executeCommand("settings get global private_dns_specifier").getOrNull()?.trim() ?: ""
-          
-          val dnsName = when {
-              mode == "off" -> "Off"
-              mode == "hostname" -> availableDNS.find { it.second == specifier }?.first ?: "Custom"
-              else -> "Automatic"
+    viewModelScope.launch(Dispatchers.IO) {
+      val mode =
+          RootManager.executeCommand("settings get global private_dns_mode").getOrNull()?.trim()
+              ?: "off"
+      val specifier =
+          RootManager.executeCommand("settings get global private_dns_specifier")
+              .getOrNull()
+              ?.trim() ?: ""
+
+      val dnsName =
+          when {
+            mode == "off" -> "Off"
+            mode == "hostname" -> availableDNS.find { it.second == specifier }?.first ?: "Custom"
+            else -> "Automatic"
           }
-           _currentDNS.value = dnsName
-      }
+      _currentDNS.value = dnsName
+    }
   }
 
   private fun startNetworkMonitoring() {
-      viewModelScope.launch(Dispatchers.IO) {
-          while (true) {
-              val route = RootManager.executeCommand("ip route get 8.8.8.8").getOrNull() ?: ""
-              val status = when {
-                  route.contains("dev wlan") -> "WiFi: Connected"
-                  route.contains("dev rmnet") || route.contains("dev ccmni") || route.contains("dev vvlan") -> "Mobile Data" 
-                  route.contains("via") -> "Online" 
-                  else -> "Offline"
-              }
-              _networkStatus.value = status
-              delay(5000) 
-          }
+    viewModelScope.launch(Dispatchers.IO) {
+      while (true) {
+        val route = RootManager.executeCommand("ip route get 8.8.8.8").getOrNull() ?: ""
+        val status =
+            when {
+              route.contains("dev wlan") -> "WiFi: Connected"
+              route.contains("dev rmnet") ||
+                  route.contains("dev ccmni") ||
+                  route.contains("dev vvlan") -> "Mobile Data"
+              route.contains("via") -> "Online"
+              else -> "Offline"
+            }
+        _networkStatus.value = status
+        delay(5000)
       }
+    }
   }
 
   // Device Hostname
@@ -178,8 +231,8 @@ class TuningViewModel(
   fun setHostname(hostname: String) {
     viewModelScope.launch(Dispatchers.IO) {
       if (hostname.isNotBlank()) {
-          RootManager.executeCommand("setprop net.hostname $hostname")
-          _currentHostname.value = hostname
+        RootManager.executeCommand("setprop net.hostname $hostname")
+        _currentHostname.value = hostname
       }
     }
   }
@@ -223,7 +276,7 @@ class TuningViewModel(
 
   // Auto-refresh control
   private val _isRefreshEnabled = MutableStateFlow(true)
-  
+
   // Static data cache flags
   private var staticDataLoaded = false
 
@@ -236,7 +289,7 @@ class TuningViewModel(
       _currentPerfMode.value = preferencesManager.getPerfMode().first()
       _currentThermalPreset.value = preferencesManager.getThermalPreset().first()
       _isThermalSetOnBoot.value = preferencesManager.getThermalSetOnBoot().first()
-      
+
       // Load DNS state
       loadDNS()
       loadHostname()
@@ -295,9 +348,7 @@ class TuningViewModel(
 
   fun resumeAutoRefresh() {
     _isRefreshEnabled.value = true
-    viewModelScope.launch {
-      refreshDynamicValues()
-    }
+    viewModelScope.launch { refreshDynamicValues() }
   }
 
   // Full refresh - includes static data (called on init)
@@ -366,6 +417,7 @@ class TuningViewModel(
 
   private suspend fun loadSystemInfo() {
     _cpuClusters.value = cpuUseCase.detectClusters()
+    captureDefaultGovernor() // Save device's default governor for Balance profile
     _isMediatek.value = detectMediatek()
 
     if (!_isMediatek.value) {
@@ -591,9 +643,7 @@ class TuningViewModel(
   }
 
   fun setCpuSetOnBoot(enabled: Boolean) {
-    viewModelScope.launch(Dispatchers.IO) {
-      preferencesManager.setCpuSetOnBoot(enabled)
-    }
+    viewModelScope.launch(Dispatchers.IO) { preferencesManager.setCpuSetOnBoot(enabled) }
   }
 
   fun setIOScheduler(scheduler: String) {
