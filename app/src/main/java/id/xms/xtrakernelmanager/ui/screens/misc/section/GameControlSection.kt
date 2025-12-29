@@ -78,6 +78,26 @@ fun GameControlSection(
     var hasOverlayPermission by remember {
         mutableStateOf(Settings.canDrawOverlays(context))
     }
+    
+    // Check usage access permission (needed to detect foreground app)
+    var hasUsageAccessPermission by remember {
+        mutableStateOf(hasUsageStatsPermission(context))
+    }
+    
+    // Refresh permission state when returning from settings
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                hasOverlayPermission = Settings.canDrawOverlays(context)
+                hasUsageAccessPermission = hasUsageStatsPermission(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // Overlay permission launcher
     val overlayPermissionLauncher = rememberLauncherForActivityResult(
@@ -86,9 +106,16 @@ fun GameControlSection(
         hasOverlayPermission = Settings.canDrawOverlays(context)
     }
     
-    // Start/stop GameMonitorService based on enabled games
-    LaunchedEffect(enabledCount, hasOverlayPermission) {
-        if (enabledCount > 0 && hasOverlayPermission) {
+    // Usage access permission launcher
+    val usageAccessLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        hasUsageAccessPermission = hasUsageStatsPermission(context)
+    }
+    
+    // Start/stop GameMonitorService based on enabled games AND both permissions
+    LaunchedEffect(enabledCount, hasOverlayPermission, hasUsageAccessPermission) {
+        if (enabledCount > 0 && hasOverlayPermission && hasUsageAccessPermission) {
             startGameMonitorService(context)
         } else {
             stopGameMonitorService(context)
@@ -158,7 +185,7 @@ fun GameControlSection(
                 )
             }
 
-            // Permission button if needed
+            // Permission button if needed - Overlay
             if (!hasOverlayPermission) {
                 Button(
                     onClick = {
@@ -180,6 +207,28 @@ fun GameControlSection(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.game_control_grant_overlay))
+                }
+            }
+            
+            // Permission button if needed - Usage Access
+            if (hasOverlayPermission && !hasUsageAccessPermission) {
+                Button(
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                        usageAccessLauncher.launch(intent)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.game_control_grant_usage_access))
                 }
             }
             
@@ -634,4 +683,18 @@ private fun serializeGameApps(apps: List<GameApp>): String {
         jsonArray.put(obj)
     }
     return jsonArray.toString()
+}
+
+private fun hasUsageStatsPermission(context: Context): Boolean {
+    return try {
+        val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as android.app.AppOpsManager
+        val mode = appOps.unsafeCheckOpNoThrow(
+            android.app.AppOpsManager.OPSTR_GET_USAGE_STATS,
+            android.os.Process.myUid(),
+            context.packageName
+        )
+        mode == android.app.AppOpsManager.MODE_ALLOWED
+    } catch (e: Exception) {
+        false
+    }
 }
