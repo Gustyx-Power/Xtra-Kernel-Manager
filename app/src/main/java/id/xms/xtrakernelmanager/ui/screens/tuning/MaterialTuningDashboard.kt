@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import kotlin.math.PI
 import kotlin.math.sin
@@ -690,12 +691,43 @@ fun ExpandableThermalCard(
 
         Column(modifier = Modifier.fillMaxSize()) {
           Row(modifier = Modifier.fillMaxWidth()) {
-              // Left: Spacer for Cutout area
-              Spacer(
+              // Left: Spacer + Single Status Badge
+              Column(
                   modifier = Modifier
                       .weight(1f)
-                      .height(cutoutHeight + gap)
-              )
+                      .padding(start = 24.dp, end = 8.dp)
+              ) {
+                  Spacer(modifier = Modifier.height(cutoutHeight + gap + 16.dp)) // Lowered by extra 16dp for generous clearance           
+                  // Single Health Badge
+                  val (healthIcon, healthText, healthColor) = when {
+                      cpuTemp < 60 -> Triple(Icons.Rounded.CheckCircle, "System Healthy", MaterialTheme.colorScheme.primary)
+                      cpuTemp < 80 -> Triple(Icons.Rounded.Warning, "System Warm", MaterialTheme.colorScheme.tertiary)
+                      else -> Triple(Icons.Rounded.Dangerous, "Throttling", MaterialTheme.colorScheme.error)
+                  }
+                  
+                  Surface(
+                      color = healthColor.copy(alpha = 0.1f),
+                      contentColor = healthColor,
+                      shape = RoundedCornerShape(12.dp),
+                      border = androidx.compose.foundation.BorderStroke(1.dp, healthColor.copy(alpha = 0.2f)),
+                      modifier = Modifier.fillMaxWidth()
+                  ) {
+                      Row(
+                          modifier = Modifier.padding(vertical = 10.dp),
+                          verticalAlignment = Alignment.CenterVertically,
+                          horizontalArrangement = Arrangement.Center
+                      ) {
+                          Icon(healthIcon, null, modifier = Modifier.size(16.dp))
+                          Spacer(modifier = Modifier.width(8.dp))
+                          Text(
+                              text = healthText,
+                              style = MaterialTheme.typography.labelMedium,
+                              fontWeight = FontWeight.SemiBold
+                          )
+                      }
+                  }
+              }
+
               
               // Right: Header Icon
               Column(
@@ -736,12 +768,39 @@ fun ExpandableThermalCard(
                           )
                       }
                   }
-
-
-              }
+                  
+                  Spacer(modifier = Modifier.height(24.dp))
+                  
+                  // Wavy Temperature Indicator
+                  Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                      val progress = (cpuTemp / 100f).coerceIn(0f, 1f)
+                      val color = when {
+                          cpuTemp < 45 -> MaterialTheme.colorScheme.primary
+                          cpuTemp < 60 -> MaterialTheme.colorScheme.tertiary
+                          else -> MaterialTheme.colorScheme.error
+                      }
+                      
+                      val statusText = when {
+                          cpuTemp < 45 -> "Normal"
+                          cpuTemp < 65 -> "Warm"
+                          else -> "Overheat"
+                      }
+                      
+                      WavyCircularProgressIndicator(
+                          progress = progress,
+                          text = "${cpuTemp.toInt()}°C",
+                          subtext = statusText,
+                          modifier = Modifier.size(140.dp),
+                          color = color,
+                          trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.5f),
+                          strokeWidth = 10.dp,
+                          amplitude = 3.dp,
+                          frequency = 8
+                      )
+                  }
+          }
           }
 
-          // Bottom Section: Set on Boot Toggle (Full Width)
           Column(
               modifier = Modifier
                   .fillMaxWidth()
@@ -1542,4 +1601,89 @@ fun WavySlider(
       )
     }
   }
+}
+@Composable
+fun WavyCircularProgressIndicator(
+    progress: Float, // 0.0 to 1.0
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    strokeWidth: Dp = 8.dp,
+    amplitude: Dp = 4.dp, // Height of the wave
+    frequency: Int = 12, // Number of waves around the circle
+    text: String? = null,
+    subtext: String? = null
+) {
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+            val width = size.width
+            val height = size.height
+            val radius = (minOf(width, height) / 2) - amplitude.toPx() - strokeWidth.toPx()
+            val centerX = width / 2
+            val centerY = height / 2
+            val ampPx = amplitude.toPx()
+            val strokePx = strokeWidth.toPx()
+
+            // Function to generate wavy path
+            fun createWavyPath(endAngle: Float): Path {
+                val path = Path()
+                val steps = 360 // Resolution
+                
+                for (i in 0..steps) {
+                    val angleDeg = i.toFloat()
+                    if (angleDeg > endAngle) break
+                    
+                    val angleRad = Math.toRadians(angleDeg.toDouble() - 90) // Start from top
+                    
+                    // Wave offset logic: sin(angle * frequency)
+                    val waveOffset = kotlin.math.sin(angleRad * frequency) * ampPx
+                    
+                    val r = radius + waveOffset
+                    val x = centerX + r * kotlin.math.cos(angleRad)
+                    val y = centerY + r * kotlin.math.sin(angleRad)
+                    
+                    if (i == 0) {
+                        path.moveTo(x.toFloat(), y.toFloat())
+                    } else {
+                        path.lineTo(x.toFloat(), y.toFloat())
+                    }
+                }
+                return path
+            }
+
+            // Draw Track (Full Circle)
+            drawPath(
+                path = createWavyPath(360f),
+                color = trackColor,
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
+            )
+
+            // Draw Progress
+            if (progress > 0) {
+               drawPath(
+                    path = createWavyPath(360f * progress),
+                    color = color,
+                    style = Stroke(width = strokePx, cap = StrokeCap.Round)
+                ) 
+            }
+        }
+        
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            if (text != null) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            if (subtext != null) {
+                Text(
+                    text = subtext,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    }
 }
