@@ -1303,10 +1303,12 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
         var selectedMaxFreq by remember(gpuInfo.maxFreq) { 
           mutableStateOf("${gpuInfo.maxFreq} MHz") 
         }
-        var powerSliderValue by remember(gpuInfo.powerLevel, gpuInfo.numPwrLevels) {
+        val maxPowerLevel = gpuInfo.numPwrLevels.coerceIn(1, 10) // Cap at 10
+        var powerSliderValue by remember(gpuInfo.powerLevel, maxPowerLevel) {
           mutableFloatStateOf(
-            if (gpuInfo.numPwrLevels > 0) 1f - (gpuInfo.powerLevel.toFloat() / gpuInfo.numPwrLevels.toFloat())
-            else 0.5f
+            // Map current GPU power level to slider (0.0 - 1.0)
+            if (maxPowerLevel > 0) gpuInfo.powerLevel.coerceAtMost(maxPowerLevel).toFloat() / maxPowerLevel.toFloat()
+            else 0f
           )
         }
         
@@ -1372,7 +1374,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    "Level ${(powerSliderValue * 10).toInt()}",
+                    "Level ${(powerSliderValue * maxPowerLevel).toInt()}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -1382,8 +1384,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
                   value = powerSliderValue, 
                   onValueChange = { newValue ->
                     powerSliderValue = newValue
-                    // Calculate power level 0-10, then map to actual GPU power levels
-                    val level = ((1f - newValue) * gpuInfo.numPwrLevels.coerceAtLeast(1)).toInt()
+                    val level = (newValue * maxPowerLevel).toInt()
                     viewModel.setGPUPowerLevel(level)
                   }
               )
