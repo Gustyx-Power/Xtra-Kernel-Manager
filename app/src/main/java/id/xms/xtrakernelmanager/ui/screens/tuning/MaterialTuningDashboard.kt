@@ -114,9 +114,8 @@ fun MaterialTuningDashboard(
         contentPadding = PaddingValues(bottom = 24.dp),
     ) {
       // 1. Hero Card
-      item(span = StaggeredGridItemSpan.FullLine) { HeroDeviceCard() }
+      item(span = StaggeredGridItemSpan.FullLine) { HeroDeviceCard(viewModel) }
 
-      // 2 & 3. CPU & Thermal (Dynamic Bento Layout)
       if (thermalCardExpanded) {
         item(span = StaggeredGridItemSpan.FullLine, key = "thermal_card") {
           ExpandableThermalCard(
@@ -551,7 +550,18 @@ fun ExpandableNetworkCard(
 }
 
 @Composable
-fun HeroDeviceCard() {
+fun HeroDeviceCard(viewModel: TuningViewModel) {
+  val cpuLoad by viewModel.cpuLoad.collectAsState()
+  
+  // Real device info from Android Build API
+  val manufacturer = android.os.Build.MANUFACTURER.uppercase()
+  val model = android.os.Build.MODEL
+  val codename = android.os.Build.DEVICE.uppercase()
+  val board = android.os.Build.BOARD.lowercase()
+  
+  // Format CPU load as percentage
+  val loadDisplay = "${cpuLoad.toInt()}% Load"
+  
   Card(
       modifier = Modifier.fillMaxWidth().height(140.dp),
       shape = RoundedCornerShape(24.dp),
@@ -569,7 +579,7 @@ fun HeroDeviceCard() {
           verticalAlignment = Alignment.Top,
       ) {
         Text(
-            text = "XIAOMI",
+            text = manufacturer,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -579,7 +589,7 @@ fun HeroDeviceCard() {
             modifier = Modifier.padding(top = 4.dp),
         ) {
           Text(
-              text = "TARO",
+              text = codename,
               modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
@@ -589,12 +599,12 @@ fun HeroDeviceCard() {
 
       Column {
         Text(
-            text = "23049PCD8G",
+            text = model,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Medium,
         )
         Text(
-            text = "marble - 18% Load",
+            text = "$board • $loadDisplay",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

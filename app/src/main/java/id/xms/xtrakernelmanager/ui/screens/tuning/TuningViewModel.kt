@@ -68,6 +68,10 @@ class TuningViewModel(
   val cpuTemperature: StateFlow<Float>
     get() = _cpuTemperature.asStateFlow()
 
+  private val _cpuLoad = MutableStateFlow(0f)
+  val cpuLoad: StateFlow<Float>
+    get() = _cpuLoad.asStateFlow()
+
   private val _isMediatek = MutableStateFlow(false)
   val isMediatek: StateFlow<Boolean>
     get() = _isMediatek.asStateFlow()
@@ -342,6 +346,9 @@ class TuningViewModel(
 
     // Update temperature
     _cpuTemperature.value = overlayUseCase.getTemperature()
+
+    // Update CPU load via JNI
+    _cpuLoad.value = NativeLib.readCpuLoad() ?: 0f
 
     val states = mutableMapOf<Int, ClusterUIState>()
     updatedClusters.forEach { cluster ->
