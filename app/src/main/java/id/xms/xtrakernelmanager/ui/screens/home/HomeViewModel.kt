@@ -54,7 +54,7 @@ class HomeViewModel : ViewModel() {
                     _batteryInfo.value = batteryRepository.getBatteryInfo(it)
                 }
 
-                delay(1000)
+                delay(500)
             }
         }
     }

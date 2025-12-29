@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 
 /**
  * Performance Panel - Game Control Overlay
@@ -78,21 +80,21 @@ fun PerformancePanel(
         ) {
             SideBtn(
                 icon = Icons.Outlined.Speed,
-                text = "Mode\nMonster",
+                text = stringResource(R.string.game_tools_mode_monster),
                 active = esportsMode,
                 color = Color(0xFFFF6B6B),
                 onClick = { onEsportsModeChange(!esportsMode) }
             )
             SideBtn(
                 icon = Icons.Default.TouchApp,
-                text = "Pencegah\nSalah Sentuh",
+                text = stringResource(R.string.game_tools_mistouch),
                 active = touchGuard,
                 color = Color(0xFF4ECDC4),
                 onClick = { onTouchGuardChange(!touchGuard) }
             )
             SideBtn(
                 icon = Icons.Default.CleaningServices,
-                text = if (isClearingRam) "Clearing..." else "Clear\nRAM",
+                text = if (isClearingRam) stringResource(R.string.game_tools_clearing) else stringResource(R.string.game_tools_clear_ram),
                 active = false,
                 color = Color(0xFF4CAF50),
                 onClick = { if (!isClearingRam) onClearRam() }
@@ -120,7 +122,7 @@ fun PerformancePanel(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text("Game Control", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(stringResource(R.string.game_control_title), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
                 IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
                     Icon(Icons.Default.Close, "Close", tint = Color(0xFF8B949E), modifier = Modifier.size(16.dp))
@@ -160,9 +162,9 @@ fun PerformancePanel(
             
             // Action Buttons (tap-only, no Switch)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                ActionButton(Icons.Outlined.NotificationsOff, "Blokir Notifikasi", blockNotifications) { onBlockNotificationsChange(!blockNotifications) }
-                ActionButton(Icons.Default.DoNotDisturb, "Jangan Ganggu", doNotDisturb) { onDndChange(!doNotDisturb) }
-                ActionButton(Icons.Outlined.CameraAlt, "Screenshot", false) { onScreenshot() }
+                ActionButton(Icons.Outlined.NotificationsOff, stringResource(R.string.game_tools_block_notif).replace("\n", " "), blockNotifications) { onBlockNotificationsChange(!blockNotifications) }
+                ActionButton(Icons.Default.DoNotDisturb, stringResource(R.string.game_tools_dnd).replace("\n", " "), doNotDisturb) { onDndChange(!doNotDisturb) }
+                ActionButton(Icons.Outlined.CameraAlt, stringResource(R.string.game_tools_screenshot), false) { onScreenshot() }
             }
         }
     }

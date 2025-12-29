@@ -611,4 +611,43 @@
     <string name="touch_grip_mode_desc_enabled">Mode genggam touch aktif</string>
     <string name="touch_grip_mode_desc_disabled">Mode genggam touch nonaktif</string>
 
+
+    <!-- Esports Mode & Game Overlay -->
+    <string name="esports_mode">Mode Esports</string>
+    <string name="esports_mode_desc">Optimasi maksimal untuk gaming</string>
+    <string name="mode_monster">MODE MONSTER</string>
+    <string name="mode_monster_activated">DIAKTIFKAN</string>
+    
+    <string name="overlay_grant_dnd">Mohon berikan akses Jangan Ganggu di Pengaturan</string>
+    <string name="overlay_error_settings">Gagal membuka Pengaturan</string>
+    <string name="overlay_grant_permission">Mohon berikan izin overlay untuk Game Overlay</string>
+    <string name="overlay_dnd_status">Jangan Ganggu: %s</string>
+    <string name="overlay_block_notif_status">Blokir Notifikasi: %s</string>
+    <string name="overlay_mistouch_status">Pencegah Salah Sentuh: %s</string>
+    <string name="overlay_reject_call_status">Tolak Panggilan: %s</string>
+    <string name="overlay_brightness_lock_status">Kunci Kecerahan: %s</string>
+    <string name="overlay_monster_mode_off">Mode Monster: OFF</string>
+    <string name="overlay_tools_coming_soon">Alat: Fitur segera hadir!</string>
+    <string name="overlay_ram_cleaned">Dibersihkan %s MB RAM</string>
+    <string name="overlay_ram_optimal">RAM sudah optimal (%s MB tersedia)</string>
+    <string name="overlay_ram_failed">Gagal membersihkan RAM</string>
+    <string name="overlay_screenshot_saved">Screenshot disimpan: %s</string>
+    <string name="overlay_screen_record_error">Perekaman layar belum tersedia</string>
+
+    <string name="game_tools_title">Pengaturan Gaming</string>
+    <string name="game_tools_mistouch">Pencegah\nSalah Sentuh</string>
+    <string name="game_tools_block_notif">Blokir\nNotifikasi</string>
+    <string name="game_tools_dnd">Jangan\nGanggu</string>
+    <string name="game_tools_reject_calls">Tolak\nPanggilan</string>
+    <string name="game_tools_lock_brightness">Kunci\nKecerahan</string>
+    <string name="game_tools_action">Aksi</string>
+    <string name="game_tools_screenshot">Tangkap Layar</string>
+    <string name="game_tools_screen_record">Rekam Layar</string>
+    <string name="game_tools_monitor">Monitor Performa</string>
+    <string name="game_tools_fps">FPS</string>
+    <string name="game_control_title">Kontrol Game</string>
+    <string name="game_tools_mode_monster">Mode\nMonster</string>
+    <string name="game_tools_clear_ram">Bersihkan\nRAM</string>
+    <string name="game_tools_clearing">Membersihkan…</string>
+
 </resources>

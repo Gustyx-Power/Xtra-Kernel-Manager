@@ -18,8 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.xms.xtrakernelmanager.R
 
 
 /**
@@ -78,7 +80,7 @@ fun GameToolsPanel(
         
         // Toggle Tools Grid (2 columns)
         Text(
-            text = "Pengaturan Gaming",
+            text = stringResource(R.string.game_tools_title),
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Gray,
@@ -93,7 +95,7 @@ fun GameToolsPanel(
             GameToolToggleCard(
                 icon = Icons.Outlined.TouchApp,
                 selectedIcon = Icons.Filled.TouchApp,
-                label = "Pencegah\nSalah Sentuh",
+                label = stringResource(R.string.game_tools_mistouch),
                 isEnabled = toolState.touchGuard,
                 onToggle = onTouchGuardChange,
                 accentColor = accentColor,
@@ -103,7 +105,7 @@ fun GameToolsPanel(
             GameToolToggleCard(
                 icon = Icons.Outlined.NotificationsOff,
                 selectedIcon = Icons.Filled.NotificationsOff,
-                label = "Blokir\nNotifikasi",
+                label = stringResource(R.string.game_tools_block_notif),
                 isEnabled = toolState.blockNotifications,
                 onToggle = onBlockNotificationsChange,
                 accentColor = accentColor,
@@ -119,7 +121,7 @@ fun GameToolsPanel(
             GameToolToggleCard(
                 icon = Icons.Outlined.DoNotDisturbOn,
                 selectedIcon = Icons.Filled.DoNotDisturbOn,
-                label = "Jangan\nGanggu",
+                label = stringResource(R.string.game_tools_dnd),
                 isEnabled = toolState.doNotDisturb,
                 onToggle = onDndChange,
                 accentColor = accentColor,
@@ -129,7 +131,7 @@ fun GameToolsPanel(
             GameToolToggleCard(
                 icon = Icons.Outlined.PhoneDisabled,
                 selectedIcon = Icons.Filled.PhoneDisabled,
-                label = "Tolak\nPanggilan",
+                label = stringResource(R.string.game_tools_reject_calls),
                 isEnabled = toolState.autoRejectCalls,
                 onToggle = onAutoRejectCallsChange,
                 accentColor = accentColor,
@@ -145,7 +147,7 @@ fun GameToolsPanel(
             GameToolToggleCard(
                 icon = Icons.Outlined.LightMode,
                 selectedIcon = Icons.Filled.LightMode,
-                label = "Kunci\nKecerahan",
+                label = stringResource(R.string.game_tools_lock_brightness),
                 isEnabled = toolState.lockBrightness,
                 onToggle = onLockBrightnessChange,
                 accentColor = accentColor,
@@ -165,7 +167,7 @@ fun GameToolsPanel(
         
         // Action Buttons
         Text(
-            text = "Aksi",
+            text = stringResource(R.string.game_tools_action),
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Gray
@@ -177,7 +179,7 @@ fun GameToolsPanel(
         ) {
             GameToolActionButton(
                 icon = Icons.Outlined.Screenshot,
-                label = "Screenshot",
+                label = stringResource(R.string.game_tools_screenshot),
                 onClick = onScreenshot,
                 accentColor = accentColor,
                 modifier = Modifier.weight(1f)
@@ -185,7 +187,7 @@ fun GameToolsPanel(
             
             GameToolActionButton(
                 icon = Icons.Outlined.Videocam,
-                label = "Rekam Layar",
+                label = stringResource(R.string.game_tools_screen_record),
                 onClick = onScreenRecord,
                 accentColor = accentColor,
                 modifier = Modifier.weight(1f)
@@ -238,13 +240,13 @@ private fun EsportsModeCard(
             )
             Column {
                 Text(
-                    text = "Mode Esports",
+                    text = stringResource(R.string.esports_mode),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (isEnabled) Color(0xFFFF5722) else Color.White
                 )
                 Text(
-                    text = "Optimasi maksimal untuk gaming",
+                    text = stringResource(R.string.esports_mode_desc),
                     fontSize = 10.sp,
                     color = Color.Gray
                 )
