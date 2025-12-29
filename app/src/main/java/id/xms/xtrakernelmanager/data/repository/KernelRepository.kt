@@ -214,31 +214,39 @@ class KernelRepository {
     return 0f
   }
 
-  private suspend fun getCPULoad(): Float {
-    return try {
-      // First reading
-      val (total1, idle1) = readProcStatValues() ?: return 0f
+    // Store previous CPU stats for differential calculation
+    private var prevCpuIdle: Long = 0L
+    private var prevCpuTotal: Long = 0L
 
-      // Wait 100ms for measurable delta
-      kotlinx.coroutines.delay(100)
-
-      // Second reading
-      val (total2, idle2) = readProcStatValues() ?: return 0f
-
-      // Calculate delta
-      val totalDiff = total2 - total1
-      val idleDiff = idle2 - idle1
-
-      if (totalDiff > 0) {
-        ((totalDiff - idleDiff).toFloat() / totalDiff.toFloat()) * 100f
-      } else {
-        0f
-      }
-    } catch (e: Exception) {
-      Log.e(TAG, "getCPULoad failed: ${e.message}")
-      0f
+    private suspend fun getCPULoad(): Float {
+        return try {
+            val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return 0f
+            val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
+            val values = cpuLine.split("\\s+".toRegex()).drop(1).mapNotNull { it.toLongOrNull() }
+            if (values.size < 4) return 0f
+            
+            val idle = values[3] + (values.getOrNull(4) ?: 0L) // idle + iowait
+            val total = values.sum()
+            
+            // Calculate differential (delta) load
+            val diffIdle = idle - prevCpuIdle
+            val diffTotal = total - prevCpuTotal
+            
+            // Store current values for next calculation
+            prevCpuIdle = idle
+            prevCpuTotal = total
+            
+            // Return differential CPU load percentage
+            if (diffTotal > 0) {
+                ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat() * 100f).coerceIn(0f, 100f)
+            } else {
+                0f
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getCPULoad failed: ${e.message}")
+            0f
+        }
     }
-  }
 
   private suspend fun readProcStatValues(): Pair<Long, Long>? {
     val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return null

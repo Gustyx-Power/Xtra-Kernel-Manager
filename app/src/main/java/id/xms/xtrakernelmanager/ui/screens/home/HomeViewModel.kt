@@ -74,7 +74,7 @@ class HomeViewModel : ViewModel() {
             e.printStackTrace()
           }
 
-          delay(1000)
+          delay(500)
         }
       }
     }
