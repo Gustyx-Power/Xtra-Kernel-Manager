@@ -158,15 +158,34 @@ class KernelRepository {
         return 0f
     }
 
+    // Store previous CPU stats for differential calculation
+    private var prevCpuIdle: Long = 0L
+    private var prevCpuTotal: Long = 0L
+
     private suspend fun getCPULoad(): Float {
         return try {
             val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return 0f
             val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
             val values = cpuLine.split("\\s+".toRegex()).drop(1).mapNotNull { it.toLongOrNull() }
             if (values.size < 4) return 0f
-            val idle = values[3]
+            
+            val idle = values[3] + (values.getOrNull(4) ?: 0L) // idle + iowait
             val total = values.sum()
-            if (total > 0) ((total - idle).toFloat() / total.toFloat()) * 100f else 0f
+            
+            // Calculate differential (delta) load
+            val diffIdle = idle - prevCpuIdle
+            val diffTotal = total - prevCpuTotal
+            
+            // Store current values for next calculation
+            prevCpuIdle = idle
+            prevCpuTotal = total
+            
+            // Return differential CPU load percentage
+            if (diffTotal > 0) {
+                ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat() * 100f).coerceIn(0f, 100f)
+            } else {
+                0f
+            }
         } catch (e: Exception) {
             0f
         }
