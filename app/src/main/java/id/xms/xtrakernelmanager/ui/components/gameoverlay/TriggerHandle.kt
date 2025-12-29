@@ -46,8 +46,6 @@ fun TriggerHandle(
     modifier: Modifier = Modifier,
     accentColor: Color = MaterialTheme.colorScheme.primary
 ) {
-    var offsetY by remember { mutableFloatStateOf(0f) }
-    
     // Pulse animation for handle
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -69,11 +67,10 @@ fun TriggerHandle(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .offset { IntOffset(0, offsetY.roundToInt()) }
                 .pointerInput(Unit) {
                     detectDragGestures { change, dragAmount ->
                         change.consume()
-                        offsetY += dragAmount.y
+                        // Delegate drag to parent service which handles WindowManager
                         onDrag(dragAmount.x, dragAmount.y)
                     }
                 }

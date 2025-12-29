@@ -197,4 +197,144 @@ class GameControlUseCase(private val context: Context) {
             else -> "balanced"
         }
     }
+
+    // ==================== MONSTER MODE ====================
+
+    /**
+     * Enable Monster Mode - Max performance with locked UI
+     */
+    suspend fun enableMonsterMode(): Result<Boolean> {
+        return try {
+            val commands = mutableListOf<String>()
+
+            // 1. Set all CPUs to max frequency with performance governor
+            for (i in 0..7) {
+                val basePath = "/sys/devices/system/cpu/cpu$i/cpufreq"
+                commands.add("cat $basePath/cpuinfo_max_freq > $basePath/scaling_max_freq 2>/dev/null")
+                commands.add("cat $basePath/cpuinfo_max_freq > $basePath/scaling_min_freq 2>/dev/null")
+                commands.add("echo performance > $basePath/scaling_governor 2>/dev/null")
+            }
+
+            // 2. Max GPU frequency (Adreno/KGSL)
+            commands.addAll(listOf(
+                "echo 1 > /sys/class/kgsl/kgsl-3d0/force_clk_on 2>/dev/null",
+                "cat /sys/class/kgsl/kgsl-3d0/max_gpuclk > /sys/class/kgsl/kgsl-3d0/gpuclk 2>/dev/null",
+                "echo 0 > /sys/class/kgsl/kgsl-3d0/throttling 2>/dev/null",
+                "echo 1 > /sys/class/kgsl/kgsl-3d0/force_bus_on 2>/dev/null",
+                "echo 1 > /sys/class/kgsl/kgsl-3d0/force_rail_on 2>/dev/null"
+            ))
+
+            // Execute all commands
+            for (cmd in commands) {
+                RootManager.executeCommand(cmd)
+            }
+
+            // 3. Apply thermal dynamic via ThermalControlUseCase
+            try {
+                val thermalUseCase = ThermalControlUseCase()
+                thermalUseCase.setThermalMode("Dynamic", false)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to set thermal: ${e.message}")
+            }
+
+            Log.d(TAG, "Monster Mode enabled")
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error enabling Monster Mode", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Disable Monster Mode - Restore balanced settings
+     */
+    suspend fun disableMonsterMode(): Result<Boolean> {
+        return try {
+            // Restore schedutil governor
+            for (i in 0..7) {
+                val basePath = "/sys/devices/system/cpu/cpu$i/cpufreq"
+                RootManager.executeCommand("echo schedutil > $basePath/scaling_governor 2>/dev/null")
+            }
+
+            // Disable GPU force clocks
+            RootManager.executeCommand("echo 0 > /sys/class/kgsl/kgsl-3d0/force_clk_on 2>/dev/null")
+            RootManager.executeCommand("echo 0 > /sys/class/kgsl/kgsl-3d0/force_bus_on 2>/dev/null")
+            RootManager.executeCommand("echo 0 > /sys/class/kgsl/kgsl-3d0/force_rail_on 2>/dev/null")
+
+            Log.d(TAG, "Monster Mode disabled")
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error disabling Monster Mode", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Set Immersive Mode - Lock statusbar and navigation
+     */
+    suspend fun setImmersiveMode(enabled: Boolean): Result<Boolean> {
+        return try {
+            if (enabled) {
+                // Lock statusbar and navigation using policy_control
+                // This is the most reliable method across Android versions
+                RootManager.executeCommand("settings put global policy_control immersive.full=*")
+                
+                // For MIUI/HyperOS: also disable status bar gestures
+                RootManager.executeCommand("settings put global force_immersive_on_apps *")
+            } else {
+                // Restore normal behavior
+                RootManager.executeCommand("settings put global policy_control null")
+                RootManager.executeCommand("settings put global force_immersive_on_apps null")
+            }
+            Log.d(TAG, "Immersive mode: $enabled")
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting immersive mode", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Hide Notifications - Block notification popup
+     */
+    suspend fun hideNotifications(enabled: Boolean): Result<Boolean> {
+        return try {
+            val command = if (enabled) {
+                // Disable heads-up and popup notifications
+                "settings put global heads_up_notifications_enabled 0"
+            } else {
+                // Enable heads-up notifications
+                "settings put global heads_up_notifications_enabled 1"
+            }
+            RootManager.executeCommand(command)
+            Log.d(TAG, "Hide notifications: $enabled")
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error hiding notifications", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Start System Screen Recorder - MIUI/HyperOS specific first
+     */
+    suspend fun startScreenRecord(): Result<Boolean> {
+        return try {
+            // Try MIUI/HyperOS first since user is on HyperOS
+            val miuiResult = RootManager.executeCommand(
+                "am start -a android.intent.action.MAIN -n com.miui.screenrecorder/com.miui.screenrecorder.ui.ScreenRecorderActivity"
+            )
+            
+            if (miuiResult.isFailure) {
+                // Fallback: try to start via broadcast
+                RootManager.executeCommand("am broadcast -a com.miui.screenrecorder.action.START_SCREENRECORD")
+            }
+            
+            Log.d(TAG, "Screen record triggered")
+            Result.success(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error starting screen record", e)
+            Result.failure(e)
+        }
+    }
 }
