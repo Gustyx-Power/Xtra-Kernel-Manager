@@ -96,6 +96,90 @@ class TuningViewModel(
   val availableTCPCongestion: StateFlow<List<String>>
     get() = _availableTCPCongestion.asStateFlow()
 
+  // Private DNS
+  private val _currentDNS = MutableStateFlow("Automatic")
+  val currentDNS: StateFlow<String>
+    get() = _currentDNS.asStateFlow()
+
+  // Network Status
+  private val _networkStatus = MutableStateFlow("WiFi: Connected")
+  val networkStatus: StateFlow<String>
+    get() = _networkStatus.asStateFlow()
+
+  val availableDNS = listOf(
+      "Automatic" to "",
+      "Off" to "off",
+      "Google" to "dns.google",
+      "Cloudflare" to "1dot1dot1dot1.cloudflare-dns.com",
+      "AdGuard" to "dns.adguard.com",
+      "Quad9" to "dns.quad9.net"
+  )
+
+  fun setPrivateDNS(name: String, hostname: String) {
+      viewModelScope.launch(Dispatchers.IO) {
+          if (hostname == "off") {
+               RootManager.executeCommand("settings put global private_dns_mode off")
+          } else if (hostname.isEmpty()) {
+               RootManager.executeCommand("settings put global private_dns_mode opportunistic")
+          } else {
+               RootManager.executeCommand("settings put global private_dns_mode hostname")
+               RootManager.executeCommand("settings put global private_dns_specifier $hostname")
+          }
+          _currentDNS.value = name
+      }
+  }
+
+  private fun loadDNS() {
+      viewModelScope.launch(Dispatchers.IO) {
+          val mode = RootManager.executeCommand("settings get global private_dns_mode").getOrNull()?.trim() ?: "off"
+          val specifier = RootManager.executeCommand("settings get global private_dns_specifier").getOrNull()?.trim() ?: ""
+          
+          val dnsName = when {
+              mode == "off" -> "Off"
+              mode == "hostname" -> availableDNS.find { it.second == specifier }?.first ?: "Custom"
+              else -> "Automatic"
+          }
+           _currentDNS.value = dnsName
+      }
+  }
+
+  private fun startNetworkMonitoring() {
+      viewModelScope.launch(Dispatchers.IO) {
+          while (true) {
+              val route = RootManager.executeCommand("ip route get 8.8.8.8").getOrNull() ?: ""
+              val status = when {
+                  route.contains("dev wlan") -> "WiFi: Connected"
+                  route.contains("dev rmnet") || route.contains("dev ccmni") || route.contains("dev vvlan") -> "Mobile Data" 
+                  route.contains("via") -> "Online" 
+                  else -> "Offline"
+              }
+              _networkStatus.value = status
+              delay(5000) 
+          }
+      }
+  }
+
+  // Device Hostname
+  private val _currentHostname = MutableStateFlow("")
+  val currentHostname: StateFlow<String>
+    get() = _currentHostname.asStateFlow()
+
+  fun loadHostname() {
+    viewModelScope.launch(Dispatchers.IO) {
+      val hostname = RootManager.executeCommand("getprop net.hostname").getOrNull()?.trim() ?: ""
+      _currentHostname.value = hostname
+    }
+  }
+
+  fun setHostname(hostname: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+      if (hostname.isNotBlank()) {
+          RootManager.executeCommand("setprop net.hostname $hostname")
+          _currentHostname.value = hostname
+      }
+    }
+  }
+
   private val _availableCompressionAlgorithms = MutableStateFlow<List<String>>(emptyList())
   val availableCompressionAlgorithms: StateFlow<List<String>>
     get() = _availableCompressionAlgorithms.asStateFlow()
@@ -148,6 +232,10 @@ class TuningViewModel(
       _currentPerfMode.value = preferencesManager.getPerfMode().first()
       _currentThermalPreset.value = preferencesManager.getThermalPreset().first()
       _isThermalSetOnBoot.value = preferencesManager.getThermalSetOnBoot().first()
+      
+      // Load DNS state
+      loadDNS()
+      loadHostname()
 
       // Load saved GPU lock state
       loadGpuLockState()
@@ -181,6 +269,7 @@ class TuningViewModel(
     if (_isRootAvailable.value) {
       loadSystemInfo()
       refreshCurrentValues()
+      startNetworkMonitoring()
     }
 
     _isLoading.value = false
