@@ -141,6 +141,17 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
 }
 
 #[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readThermalZonesNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let json = power::read_thermal_zones();
+    env.new_string(json)
+        .expect("Failed to create Java string")
+        .into_raw()
+}
+
+#[unsafe(no_mangle)]
 pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readMemInfoNative(
     env: JNIEnv,
     _class: JClass,
