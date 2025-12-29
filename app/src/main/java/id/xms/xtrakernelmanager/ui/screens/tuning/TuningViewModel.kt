@@ -163,6 +163,30 @@ class TuningViewModel(
     }
   }
 
+  // CPU Frequency Control - sets min/max freq for a specific cluster
+  fun setCpuClusterFrequency(clusterIndex: Int, minFreqMhz: Int, maxFreqMhz: Int) {
+    viewModelScope.launch(Dispatchers.IO) {
+      cpuUseCase.setClusterFrequency(clusterIndex, minFreqMhz, maxFreqMhz)
+      refreshDynamicValues()
+    }
+  }
+
+  // CPU Governor Control - sets governor for a specific cluster
+  fun setCpuClusterGovernor(clusterIndex: Int, governor: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+      cpuUseCase.setClusterGovernor(clusterIndex, governor)
+      refreshDynamicValues()
+    }
+  }
+
+  // CPU Core Online/Offline Control
+  fun setCpuCoreOnline(coreId: Int, online: Boolean) {
+    viewModelScope.launch(Dispatchers.IO) {
+      cpuUseCase.setCoreOnline(coreId, online)
+      refreshDynamicValues()
+    }
+  }
+
   fun setPrivateDNS(name: String, hostname: String) {
     viewModelScope.launch(Dispatchers.IO) {
       if (hostname == "off") {

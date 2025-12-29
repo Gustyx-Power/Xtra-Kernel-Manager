@@ -127,21 +127,21 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
         FrequencyDropdownTile(
             modifier = Modifier.weight(1f),
             label = "Min Frequency",
-            value = "${cluster.minFreq} MHz",
-            options = (300..2000 step 100).map { "$it MHz" },
+            value = "${cluster.currentMinFreq} MHz",
+            options = (cluster.minFreq..cluster.maxFreq step 100).map { "$it MHz" },
             onValueChange = { selectedStr ->
               val freq = selectedStr.removeSuffix(" MHz").toIntOrNull() ?: cluster.minFreq
-              viewModel.setCPUFrequency(cluster.clusterNumber, freq, cluster.maxFreq)
+              viewModel.setCpuClusterFrequency(cluster.clusterNumber, freq, cluster.currentMaxFreq)
             },
         )
         FrequencyDropdownTile(
             modifier = Modifier.weight(1f),
             label = "Max Frequency",
-            value = "${cluster.maxFreq} MHz",
-            options = (300..2000 step 100).map { "$it MHz" },
+            value = "${cluster.currentMaxFreq} MHz",
+            options = (cluster.minFreq..cluster.maxFreq step 100).map { "$it MHz" },
             onValueChange = { selectedStr ->
               val freq = selectedStr.removeSuffix(" MHz").toIntOrNull() ?: cluster.maxFreq
-              viewModel.setCPUFrequency(cluster.clusterNumber, cluster.minFreq, freq)
+              viewModel.setCpuClusterFrequency(cluster.clusterNumber, cluster.currentMinFreq, freq)
             },
         )
       }
@@ -149,7 +149,9 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
       GovernorCard(
           currentGovernor = cluster.governor,
           availableGovernors = cluster.availableGovernors,
-          onGovernorSelected = { newGov -> viewModel.setCPUGovernor(cluster.clusterNumber, newGov) },
+          onGovernorSelected = { newGov ->
+            viewModel.setCpuClusterGovernor(cluster.clusterNumber, newGov)
+          },
       )
 
       // Core Management
@@ -399,7 +401,7 @@ fun CoreControlList(cluster: ClusterInfo, viewModel: TuningViewModel) {
                     checked = checked.value,
                     onCheckedChange = {
                       checked.value = it
-                      viewModel.disableCPUCore(coreId, !it)
+                      viewModel.setCpuCoreOnline(coreId, it)
                     },
                 )
               }
