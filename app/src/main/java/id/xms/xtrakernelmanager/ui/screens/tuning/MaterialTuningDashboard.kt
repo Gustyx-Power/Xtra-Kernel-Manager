@@ -50,7 +50,6 @@ fun MaterialTuningDashboard(
 ) {
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-  var memoryCardExpanded by remember { mutableStateOf(false) }
   var networkCardExpanded by remember { mutableStateOf(false) }
   var cpuCardExpanded by remember { mutableStateOf(false) }
   var thermalCardExpanded by remember { mutableStateOf(false) }
@@ -150,51 +149,19 @@ fun MaterialTuningDashboard(
         }
       }
 
-      // 4. Profile Card
       item(span = StaggeredGridItemSpan.FullLine) { DashboardProfileCard() }
-
-      // 5. GPU Card (Expandable)
       item(span = StaggeredGridItemSpan.FullLine) { ExpandableGPUCard(viewModel = viewModel) }
 
-      // 6 & 7. Memory & Network (Dynamic Bento Layout)
-      // 6 & 7. Memory & Network (Dynamic Bento Layout)
-      if (memoryCardExpanded) {
-        item(span = StaggeredGridItemSpan.FullLine) {
-          ExpandableMemoryCard(
-              expanded = true,
-              onExpandChange = {
-                memoryCardExpanded = it // Toggle
-                if (it) networkCardExpanded = false // Ensure other is collapsed
-              },
-              onClickNav = { onNavigate("memory_tuning") },
-              topRightContent = {
-                ExpandableNetworkCard(
-                    expanded = false,
-                    onExpandChange = {
-                      networkCardExpanded = it
-                      if (it) memoryCardExpanded = false
-                    },
-                    onClickNav = { onNavigate("network_tuning") },
-                )
-              },
-          )
-        }
-      } else if (networkCardExpanded) {
+      if (networkCardExpanded) {
         item(span = StaggeredGridItemSpan.FullLine) {
           ExpandableNetworkCard(
               expanded = true,
               onExpandChange = {
-                networkCardExpanded = it
-                if (it) memoryCardExpanded = false
+                networkCardExpanded = it // Toggle
               },
               onClickNav = { onNavigate("network_tuning") },
-              topLeftContent = {
-                ExpandableMemoryCard(
-                    expanded = false,
-                    onExpandChange = {
-                      memoryCardExpanded = it
-                      if (it) networkCardExpanded = false
-                    },
+              topRightContent = {
+                DashboardMemoryCard(
                     onClickNav = { onNavigate("memory_tuning") },
                 )
               },
@@ -202,23 +169,17 @@ fun MaterialTuningDashboard(
         }
       } else {
         item(span = StaggeredGridItemSpan.SingleLane) {
-          ExpandableMemoryCard(
-              expanded = false,
-              onExpandChange = {
-                memoryCardExpanded = it
-                if (it) networkCardExpanded = false
-              },
-              onClickNav = { onNavigate("memory_tuning") },
-          )
-        }
-        item(span = StaggeredGridItemSpan.SingleLane) {
           ExpandableNetworkCard(
               expanded = false,
               onExpandChange = {
                 networkCardExpanded = it
-                if (it) memoryCardExpanded = false
               },
               onClickNav = { onNavigate("network_tuning") },
+          )
+        }
+        item(span = StaggeredGridItemSpan.SingleLane) {
+          DashboardMemoryCard(
+              onClickNav = { onNavigate("memory_tuning") },
           )
         }
       }
@@ -227,14 +188,14 @@ fun MaterialTuningDashboard(
 }
 
 @Composable
-fun ExpandableMemoryCard(
+fun ExpandableNetworkCard(
     expanded: Boolean,
     onExpandChange: (Boolean) -> Unit,
     onClickNav: () -> Unit,
     topRightContent: @Composable () -> Unit = {},
 ) {
   // Animation
-  val height by animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "height")
+  val height by animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "net_height")
 
   Box(
       modifier =
@@ -258,19 +219,19 @@ fun ExpandableMemoryCard(
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
           Icon(
-              Icons.Rounded.SdCard,
+              Icons.Rounded.Router,
               null,
               tint = MaterialTheme.colorScheme.primary,
               modifier = Modifier.size(28.dp),
           )
           Column {
             Text(
-                "Memory",
+                "Network",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "ZRAM 50% • LMK",
+                "Westwood • DNS",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -285,7 +246,6 @@ fun ExpandableMemoryCard(
       val cutoutHeight = 120.dp // Match DashboardNavCard height
       val themeColor = MaterialTheme.colorScheme.secondaryContainer
 
-      // 1. TOP RIGHT CARD (Slot for external content, e.g. Network Card)
 
       Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
@@ -353,7 +313,7 @@ fun ExpandableMemoryCard(
         // CONTENT LAYOUT
         // We overlay content on the L-shape
         Row(modifier = Modifier.fillMaxSize()) {
-          // Left Column Content (ZRAM)
+          // Left Column Content (Network)
           Column(
               modifier = Modifier.weight(1f).fillMaxHeight().padding(20.dp),
               verticalArrangement = Arrangement.SpaceBetween,
@@ -368,7 +328,7 @@ fun ExpandableMemoryCard(
                   contentAlignment = Alignment.Center,
               ) {
                 Icon(
-                    Icons.Rounded.Memory,
+                    Icons.Rounded.Router,
                     null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -448,143 +408,15 @@ fun HeroDeviceCard() {
 }
 
 @Composable
-fun ExpandableNetworkCard(
-    expanded: Boolean,
-    onExpandChange: (Boolean) -> Unit,
+fun DashboardMemoryCard(
     onClickNav: () -> Unit,
-    topLeftContent: @Composable () -> Unit = {},
 ) {
-  // Animation
-  val height by
-      animateDpAsState(targetValue = if (expanded) 380.dp else 120.dp, label = "net_height")
-
-  Box(
-      modifier =
-          Modifier.fillMaxWidth().height(height).clickable(
-              interactionSource = remember { MutableInteractionSource() },
-              indication = null,
-          ) {
-            onExpandChange(!expanded)
-          }
-  ) {
-    if (!expanded) {
-      // COLLAPSED STATE
-      DashboardNavCard(
-          title = "Network",
-          subtitle = "Westwood • DNS",
-          icon = Icons.Rounded.Router,
-          onClick = { onExpandChange(true) },
-      )
-    } else {
-      // EXPANDED STATE (MIRRORED L-SHAPE)
-
-      val cornerRadius = 24.dp
-      val gap = 24.dp
-      val cutoutHeight = 120.dp
-      val themeColor = MaterialTheme.colorScheme.secondaryContainer
-
-      // 1. TOP LEFT SLOT (e.g. Memory Card)
-      Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(gap)) {
-
-          // TOP LEFT SLOT
-          Box(modifier = Modifier.weight(1f).height(cutoutHeight)) { topLeftContent() }
-
-          Box(modifier = Modifier.weight(1f).fillMaxHeight()) // Placeholder for Right Body
-        }
-      }
-
-      // 2. THE MIRRORED L-SHAPE
-      Box(modifier = Modifier.fillMaxSize()) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-          val w = size.width
-          val h = size.height
-          val bodyX = w / 2 + gap.toPx() / 2 // Start of Right Body
-          val ch = cutoutHeight.toPx() + gap.toPx()
-          val cr = cornerRadius.toPx()
-          val ir = cornerRadius.toPx()
-
-          val path =
-              Path().apply {
-                // Start Top-Left of Right Body
-                moveTo(bodyX + cr, 0f)
-                quadraticTo(bodyX, 0f, bodyX, cr)
-
-                // Going Down the inner vertical edge
-                lineTo(bodyX, ch - ir)
-
-                // Inverted Corner (Turning Left)
-                arcTo(
-                    rect =
-                        androidx.compose.ui.geometry.Rect(
-                            left = bodyX - 2 * ir,
-                            top = ch - 2 * ir,
-                            right = bodyX,
-                            bottom = ch,
-                        ),
-                    startAngleDegrees = 0f,
-                    sweepAngleDegrees = 90f,
-                    forceMoveTo = false,
-                )
-
-                // Top Edge of Left Leg
-                lineTo(cr, ch)
-                quadraticTo(0f, ch, 0f, ch + cr)
-
-                // Left Edge
-                lineTo(0f, h - cr)
-                quadraticTo(0f, h, cr, h)
-
-                // Bottom Edge
-                lineTo(w - cr, h)
-                quadraticTo(w, h, w, h - cr)
-
-                // Right Edge
-                lineTo(w, cr)
-                quadraticTo(w, 0f, w - cr, 0f)
-
-                // Top Edge of Right Body
-                lineTo(bodyX + cr, 0f)
-
-                close()
-              }
-
-          drawPath(path, color = themeColor)
-        }
-
-        // Content Layout
-        Row(modifier = Modifier.fillMaxSize()) {
-          // Left Column (Empty Top + Content Bottom)
-          Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-            Spacer(modifier = Modifier.height(cutoutHeight + gap))
-          }
-
-          // Right Column Content (Header)
-          Column(
-              modifier = Modifier.weight(1f).fillMaxHeight().padding(20.dp),
-              verticalArrangement = Arrangement.SpaceBetween,
-          ) {
-            // Header info
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Box(
-                  modifier =
-                      Modifier.size(40.dp)
-                          .clip(RoundedCornerShape(12.dp))
-                          .background(MaterialTheme.colorScheme.primaryContainer),
-                  contentAlignment = Alignment.Center,
-              ) {
-                Icon(
-                    Icons.Rounded.Router,
-                    null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  DashboardNavCard(
+      title = "Memory",
+      subtitle = "ZRAM 50% • LMK",
+      icon = Icons.Rounded.SdCard,
+      onClick = onClickNav,
+  )
 }
 
 @Composable
