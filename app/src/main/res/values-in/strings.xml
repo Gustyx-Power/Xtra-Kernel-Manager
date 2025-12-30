@@ -379,6 +379,26 @@
     <string name="info_pling_url">https://www.pling.com/p/your-project-id</string>
     <string name="info_copyright">© %1$s Proyek XMS</string>
 
+    <!-- Team Section -->
+    <string name="info_community_name">Komunitas Xtra Manager Software</string>
+    <string name="info_community_tagline">Membangun alat canggih untuk penggemar Android</string>
+    <string name="info_core_team">Tim Inti</string>
+    <string name="info_founders_desc">Pendiri Komunitas XMS</string>
+    <string name="info_contributors">Kontributor</string>
+    <string name="info_contributors_desc">Kontributor komunitas</string>
+    <string name="info_quality_assurance">Jaminan Kualitas</string>
+    <string name="info_testers_desc">Memastikan kualitas dan stabilitas aplikasi</string>
+    <string name="info_role_founder">Pendiri</string>
+    <string name="info_role_contributor">Kontributor</string>
+    <string name="info_role_tester">Penguji Perangkat Lunak</string>
+
+    <!-- Team Member Names -->
+    <string name="team_tester_achmad">Achmad</string>
+    <string name="team_tester_hasan">Hasan</string>
+    <string name="team_tester_reffan">Reffan Lintang M</string>
+    <string name="team_tester_wil">WiL</string>
+    <string name="team_tester_shadow_monarch">Shadow Monarch</string>
+
     <!-- Theme Settings -->
     <string name="theme_settings">Pengaturan Tema</string>
     <string name="theme_glassmorphism">Glassmorphism</string>
@@ -544,16 +564,13 @@
     <string name="xiaomi_touch_settings_desc">Touch boost untuk implementasi sentuhan Xiaomi</string>
     <string name="category_display">Layar</string>
     <string name="unlock_additional_nits">Buka kunci nits tambahan</string>
-    <string name="unlock_additional_nits_desc_enabled">Nits tambahan aktif - kecerahan maksimum
-        ditingkatkan</string>
+    <string name="unlock_additional_nits_desc_enabled">Nits tambahan aktif - kecerahan maksimum ditingkatkan</string>
     <string name="unlock_additional_nits_desc_disabled">Nits tambahan nonaktif</string>
     <string name="dynamic_refresh_rate">Refresh Rate Dinamis</string>
-    <string name="dynamic_refresh_rate_desc_enabled">Refresh rate dinamis aktif - otomatis
-        menyesuaikan</string>
+    <string name="dynamic_refresh_rate_desc_enabled">Refresh rate dinamis aktif - otomatis menyesuaikan</string>
     <string name="dynamic_refresh_rate_desc_disabled">Refresh rate dinamis nonaktif</string>
     <string name="force_refresh_rate">Paksa Refresh Rate</string>
-    <string name="force_refresh_rate_desc_enabled">Paksa refresh rate aktif - kunci ke satu
-        kecepatan</string>
+    <string name="force_refresh_rate_desc_enabled">Paksa refresh rate aktif - kunci ke satu kecepatan</string>
     <string name="force_refresh_rate_desc_disabled">Paksa refresh rate nonaktif</string>
     <string name="force_refresh_rate_value">Nilai Paksa Refresh Rate</string>
     <string name="force_refresh_rate_value_desc">Pilih nilai refresh rate</string>
@@ -584,32 +601,23 @@
     <!-- Play Integrity Settings Screen -->
     <string name="play_integrity_settings_title">Pengaturan Play Integrity</string>
     <string name="play_integrity_fix">Play Integrity Fix</string>
-    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix aktif - melewati pemeriksaan
-        SafetyNet</string>
+    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix aktif - melewati pemeriksaan SafetyNet</string>
     <string name="play_integrity_fix_desc_disabled">Play Integrity Fix nonaktif</string>
     <string name="spoof_bootloader">Spoof Status Bootloader</string>
-    <string name="spoof_bootloader_desc_enabled">Bootloader dispoof terkunci - dapat melewati
-        integritas kuat</string>
+    <string name="spoof_bootloader_desc_enabled">Bootloader dispoof terkunci - dapat melewati integritas kuat</string>
     <string name="spoof_bootloader_desc_disabled">Spoof bootloader nonaktif</string>
     <string name="auto_update_pif">Auto Update PIF.apk</string>
-    <string name="auto_update_pif_desc_enabled">Otomatis update PIF.apk saat fingerprint/keybox
-        dicabut</string>
+    <string name="auto_update_pif_desc_enabled">Otomatis update PIF.apk saat fingerprint/keybox dicabut</string>
     <string name="auto_update_pif_desc_disabled">Auto update PIF.apk nonaktif</string>
     <string name="game_props">Game Props</string>
     <string name="game_props_desc_enabled">Game props aktif - membuka pengaturan grafis maksimum</string>
     <string name="game_props_desc_disabled">Game props nonaktif</string>
     <string name="unlimited_photos_backup">Backup Google Photos Unlimited</string>
-    <string name="unlimited_photos_backup_desc_enabled">Backup unlimited aktif - kualitas original
-        tanpa batas penyimpanan</string>
+    <string name="unlimited_photos_backup_desc_enabled">Backup unlimited aktif - kualitas original tanpa batas penyimpanan</string>
     <string name="unlimited_photos_backup_desc_disabled">Backup unlimited nonaktif</string>
     <string name="netflix_spoof">Netflix Spoof</string>
-    <string name="netflix_spoof_desc_enabled">Netflix spoof aktif - model perangkat dispoof untuk
-        kompatibilitas</string>
+    <string name="netflix_spoof_desc_enabled">Netflix spoof aktif - model perangkat dispoof untuk kompatibilitas</string>
     <string name="netflix_spoof_desc_disabled">Netflix spoof nonaktif</string>
-    <string name="per_app_thermals">Per App Thermals</string>
-    <string name="per_app_thermals_desc_enabled">Per-app thermals enabled - automatic thermal
-        profiles</string>
-    <string name="per_app_thermals_desc_disabled">Per-app thermals disabled</string>
 
     <!-- Xiaomi Touch Settings Screen -->
     <string name="xiaomi_touch_settings_title">Pengaturan Xiaomi Touch</string>
@@ -640,21 +648,6 @@
     <string name="touch_grip_mode">Mode Genggam Touch</string>
     <string name="touch_grip_mode_desc_enabled">Mode genggam touch aktif</string>
     <string name="touch_grip_mode_desc_disabled">Mode genggam touch nonaktif</string>
-
-    <!-- Security Gate -->
-    <string name="security_warning_title">Access Restricted</string>
-    <string name="security_warning_message">This device is not registered in the official OOSExgang
-        VIP community. Access to Functional ROM features requires community membership.</string>
-    <string name="security_warning_button">Understood</string>
-
-    <!-- Touch Boost -->
-    <string name="touch_boost">Touch Boost</string>
-    <string name="touch_boost_desc_enabled">Touch boost enabled - improved touch response</string>
-    <string name="touch_boost_desc_disabled">Touch boost disabled</string>
-
-    <!-- Feature Availability -->
-    <string name="feature_not_available">Fitur tidak tersedia di perangkat ini</string>
-    <string name="loading_features">Mendeteksi fitur tersedia…</string>
 
 
     <!-- Esports Mode & Game Overlay -->

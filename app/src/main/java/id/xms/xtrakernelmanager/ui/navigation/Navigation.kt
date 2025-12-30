@@ -28,6 +28,10 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -143,65 +147,71 @@ fun Navigation(preferencesManager: PreferencesManager) {
               items = bottomNavItems,
           )
         }
-      },
-  ) { paddingValues ->
-    if (isSetupCompleteState == null) {
-      // Loading / Splash State (prevents flash)
-      androidx.compose.foundation.layout.Box(
-          modifier = Modifier.fillMaxSize().padding(paddingValues)
-      )
-    } else {
-      val startDest = if (isSetupCompleteState == true) "home" else "setup"
-      NavHost(
-          navController = navController,
-          startDestination = startDest,
-          modifier = Modifier.padding(paddingValues),
-      ) {
-        composable("setup") {
-          SetupScreen(
-              onSetupComplete = { selectedLayout ->
-                scope.launch {
-                  preferencesManager.setLayoutStyle(selectedLayout)
-                  preferencesManager.setSetupComplete(true)
-                  // Navigation handled by LaunchedEffect above
+    ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(paddingValues)
+        ) {
+            composable("home") {
+                HomeScreen(preferencesManager = preferencesManager)
+            }
+            composable("tuning") {
+                TuningScreen(preferencesManager = preferencesManager)
+            }
+            composable("profiles") {
+                val context = LocalContext.current
+                val miscViewModel = remember {
+                    MiscViewModel(
+                        preferencesManager = preferencesManager,
+                        context = context.applicationContext
+                    )
                 }
-              }
-          )
-        }
-        composable("home") {
-          HomeScreen(
-              preferencesManager = preferencesManager,
-              onNavigateToSettings = { navController.navigate("profiles") },
-          )
-        }
-        composable("tuning") {
-          TuningScreen(
-              preferencesManager = preferencesManager,
-              onNavigate = { navController.navigate(it) },
-          )
-        }
-        composable("cpu_tuning") {
-          val parentEntry =
-              remember(navBackStackEntry) { navController.getBackStackEntry("tuning") }
-          val viewModel =
-              androidx.lifecycle.viewmodel.compose.viewModel<TuningViewModel>(parentEntry)
-          CPUTuningScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
-        }
-        composable("memory_tuning") {
-          val tuningViewModel: TuningViewModel =
-              viewModel(factory = TuningViewModel.Factory(preferencesManager))
-          MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
-        }
-        composable("profiles") {
-          val context = LocalContext.current
-          val miscViewModel = remember {
-            MiscViewModel(
-                preferencesManager = preferencesManager,
-                context = context.applicationContext,
-            )
-          }
-          MiscScreen(viewModel = miscViewModel)
-        }
+                MiscScreen(
+                    viewModel = miscViewModel,
+                    onNavigateToFunctionalRom = {
+                        navController.navigate("functionalrom")
+                    }
+                )
+            }
+
+            composable("functionalrom") {
+                val context = LocalContext.current
+                val functionalRomViewModel = remember {
+                    FunctionalRomViewModel(
+                        preferencesManager = preferencesManager,
+                        context = context.applicationContext
+                    )
+                }
+                FunctionalRomScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToPlayIntegrity = {
+                        navController.navigate("playintegritysettings")
+                    },
+                    onNavigateToXiaomiTouch = {
+                        navController.navigate("xiaomitouchsettings")
+                    },
+                    viewModel = functionalRomViewModel
+                )
+            }
+
+            composable("playintegritysettings") {
+                PlayIntegritySettingsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
+
+            composable("xiaomitouchsettings") {
+                XiaomiTouchSettingsScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
 
         composable("info") { InfoScreen() }
       }

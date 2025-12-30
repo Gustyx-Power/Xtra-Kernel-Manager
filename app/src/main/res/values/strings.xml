@@ -376,6 +376,26 @@
     <string name="info_pling_url">https://www.pling.com/p/your-project-id</string>
     <string name="info_copyright">© %1$s XMS Project</string>
 
+    <!-- Team Section -->
+    <string name="info_community_name">Xtra Manager Software Community</string>
+    <string name="info_community_tagline">Building powerful tools for Android enthusiasts</string>
+    <string name="info_core_team">Core Team</string>
+    <string name="info_founders_desc">Founders of XMS Community</string>
+    <string name="info_contributors">Contributors</string>
+    <string name="info_contributors_desc">Community contributors</string>
+    <string name="info_quality_assurance">Quality Assurance</string>
+    <string name="info_testers_desc">Ensuring app quality and stability</string>
+    <string name="info_role_founder">Founder</string>
+    <string name="info_role_contributor">Contributor</string>
+    <string name="info_role_tester">Software Tester</string>
+
+    <!-- Team Member Names -->
+    <string name="team_tester_achmad">Achmad</string>
+    <string name="team_tester_hasan">Hasan</string>
+    <string name="team_tester_reffan">Reffan Lintang M</string>
+    <string name="team_tester_wil">WiL</string>
+    <string name="team_tester_shadow_monarch">Shadow Monarch</string>
+
     <!-- Theme Settings -->
     <string name="theme_settings">Theme Settings</string>
     <string name="theme_glassmorphism">Glassmorphism</string>
@@ -698,6 +718,174 @@
     <string name="security_warning_title">Access Restricted</string>
     <string name="security_warning_message">This device is not registered in the official OOSExgang
         VIP community. Access to Functional ROM features requires community membership.</string>
+    <string name="security_warning_button">Understood</string>
+
+    <!-- Touch Boost -->
+    <string name="touch_boost">Touch Boost</string>
+    <string name="touch_boost_desc_enabled">Touch boost enabled - improved touch response</string>
+    <string name="touch_boost_desc_disabled">Touch boost disabled</string>
+
+    <!-- Feature Availability -->
+    <string name="feature_not_available">Feature not available on this device</string>
+    <string name="loading_features">Detecting available features…</string>
+
+
+    <!-- Esports Mode & Game Overlay -->
+    <string name="esports_mode">Esports Mode</string>
+    <string name="esports_mode_desc">Maximum optimization for gaming</string>
+    <string name="mode_monster">MODE MONSTER</string>
+    <string name="mode_monster_activated">ACTIVATED</string>
+
+    <string name="overlay_grant_dnd">Please grant DND access in Settings</string>
+    <string name="overlay_error_settings">Could not open Settings</string>
+    <string name="overlay_grant_permission">Please grant overlay permission for Game Overlay</string>
+    <string name="overlay_dnd_status">Do Not Disturb: %s</string>
+    <string name="overlay_block_notif_status">Block Notifications: %s</string>
+    <string name="overlay_mistouch_status">Mistouch Prevention: %s</string>
+    <string name="overlay_reject_call_status">Reject Calls: %s</string>
+    <string name="overlay_brightness_lock_status">Brightness Lock: %s</string>
+    <string name="overlay_monster_mode_off">Monster Mode: OFF</string>
+    <string name="overlay_tools_coming_soon">Tools: Feature coming soon!</string>
+    <string name="overlay_ram_cleaned">Cleaned %s MB RAM</string>
+    <string name="overlay_ram_optimal">RAM is already optimal (%s MB free)</string>
+    <string name="overlay_ram_failed">Failed to clean RAM</string>
+    <string name="overlay_screenshot_saved">Screenshot saved: %s</string>
+    <string name="overlay_screen_record_error">Screen recording not implemented yet</string>
+
+    <string name="game_tools_title">Gaming Settings</string>
+    <string name="game_tools_mistouch">Mistouch\nPrevention</string>
+    <string name="game_tools_block_notif">Block\nNotifications</string>
+    <string name="game_tools_dnd">Do Not\nDisturb</string>
+    <string name="game_tools_reject_calls">Reject\nCalls</string>
+    <string name="game_tools_lock_brightness">Lock\nBrightness</string>
+    <string name="game_tools_action">Action</string>
+    <string name="game_tools_screenshot">Screenshot</string>
+    <string name="game_tools_screen_record">Screen Record</string>
+    <string name="game_tools_monitor">Performance Monitor</string>
+    <string name="game_tools_fps">FPS</string>
+    <string name="game_control_title">Game Control</string>
+    <string name="game_tools_mode_monster">Mode\nMonster</string>
+    <string name="game_tools_clear_ram">Clear\nRAM</string>
+    <string name="game_tools_clearing">Clearing…</string>
+    <string name="game_control_grant_usage_access">Grant Usage Access Permission</string>
+
+    <!-- Functional ROM / Addons Screen -->
+    <string name="functional_rom_title">Addons</string>
+    <string name="functional_rom_card_title">Functional ROM</string>
+    <string name="functional_rom_card_desc">Configure additional ROM features</string>
+
+    <!-- PlayIntegrity Category -->
+    <string name="category_play_integrity">PlayIntegrity</string>
+    <string name="play_integrity_spoofs">Play Integrity Spoofs</string>
+    <string name="play_integrity_spoofs_desc">Configure Play Integrity spoofing</string>
+
+    <!-- Touch &amp; Kernel Category -->
+    <string name="category_touch_kernel">Touch &amp; Kernel</string>
+    <string name="xiaomi_touch_settings">Xiaomi-touch settings</string>
+    <string name="xiaomi_touch_settings_desc">Touch boost for xiaomi touch impl</string>
+
+    <!-- Display Category -->
+    <string name="category_display">Display</string>
+    <string name="unlock_additional_nits">Unlock additional nits on the display</string>
+    <string name="unlock_additional_nits_desc_enabled">High brightness mode enabled</string>
+    <string name="unlock_additional_nits_desc_disabled">High brightness mode disabled</string>
+    <string name="dynamic_refresh_rate">Dynamic Refresh Rate</string>
+    <string name="dynamic_refresh_rate_desc_enabled">Dynamic refresh rate enabled</string>
+    <string name="dynamic_refresh_rate_desc_disabled">Dynamic refresh rate disabled</string>
+    <string name="force_refresh_rate">Force refresh rate</string>
+    <string name="force_refresh_rate_desc_enabled">Force refresh rate enabled</string>
+    <string name="force_refresh_rate_desc_disabled">Force refresh rate disabled</string>
+    <string name="force_refresh_rate_value">Force refresh rate value</string>
+    <string name="force_refresh_rate_value_desc">Select refresh rate to force</string>
+    <string name="dc_dimming">DC Dimming</string>
+    <string name="dc_dimming_desc_enabled">DC dimming enabled</string>
+    <string name="dc_dimming_desc_disabled">DC dimming disabled</string>
+
+    <!-- System Category -->
+    <string name="category_system">System</string>
+    <string name="performance_mode">Performance mode</string>
+    <string name="performance_mode_desc_enabled">Performance mode enabled</string>
+    <string name="performance_mode_desc_disabled">Performance mode disabled</string>
+
+    <!-- Charging Category -->
+    <string name="category_charging">Charging</string>
+    <string name="bypass_charging">Bypass charging</string>
+    <string name="bypass_charging_desc_enabled">Bypass charging enabled</string>
+    <string name="bypass_charging_desc_disabled">Bypass charging disabled</string>
+
+    <!-- Play Integrity Settings Screen -->
+    <string name="play_integrity_settings_title">Play Integrity Settings</string>
+    <string name="play_integrity_fix">Play Integrity Fix</string>
+    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix enabled - passes SafetyNet checks</string>
+    <string name="play_integrity_fix_desc_disabled">Play Integrity Fix disabled</string>
+    <string name="spoof_bootloader">Spoof Bootloader Status</string>
+    <string name="spoof_bootloader_desc_enabled">Bootloader spoofed as locked - may pass strong integrity</string>
+    <string name="spoof_bootloader_desc_disabled">Bootloader spoof disabled</string>
+    <string name="auto_update_pif">Auto Update PIF.apk</string>
+    <string name="auto_update_pif_desc_enabled">Auto-updates PIF.apk when fingerprint/keybox revoked</string>
+    <string name="auto_update_pif_desc_disabled">Auto update PIF.apk disabled</string>
+    <string name="game_props">Game Props</string>
+    <string name="game_props_desc_enabled">Game props enabled - unlocks max graphics settings</string>
+    <string name="game_props_desc_disabled">Game props disabled</string>
+    <string name="per_app_thermals">Per App Thermals</string>
+    <string name="per_app_thermals_desc_enabled">Per-app thermals enabled - automatic thermal profiles</string>
+    <string name="per_app_thermals_desc_disabled">Per-app thermals disabled</string>
+    <string name="unlimited_photos_backup">Unlimited Google Photos Backup</string>
+    <string name="unlimited_photos_backup_desc_enabled">Unlimited backup enabled - original quality without storage limit</string>
+    <string name="unlimited_photos_backup_desc_disabled">Unlimited backup disabled</string>
+    <string name="netflix_spoof">Netflix Spoof</string>
+    <string name="netflix_spoof_desc_enabled">Netflix spoof enabled - device model spoofed for compatibility</string>
+    <string name="netflix_spoof_desc_disabled">Netflix spoof disabled</string>
+
+    <!-- Xiaomi Touch Settings Screen -->
+    <string name="xiaomi_touch_settings_title">Xiaomi Touch Settings</string>
+    <string name="touch_game_mode">Touch Game Mode</string>
+    <string name="touch_game_mode_desc_enabled">Touch game mode enabled</string>
+    <string name="touch_game_mode_desc_disabled">Touch game mode disabled</string>
+    <string name="touch_active_mode">Touch Active Mode</string>
+    <string name="touch_active_mode_desc_enabled">Touch active mode enabled</string>
+    <string name="touch_active_mode_desc_disabled">Touch active mode disabled</string>
+    <string name="touch_up_threshold">Touch Up Threshold</string>
+    <string name="touch_up_threshold_desc_enabled">Touch up threshold enabled</string>
+    <string name="touch_up_threshold_desc_disabled">Touch up threshold disabled</string>
+    <string name="touch_tolerance">Touch Tolerance</string>
+    <string name="touch_tolerance_desc_enabled">Touch tolerance enabled</string>
+    <string name="touch_tolerance_desc_disabled">Touch tolerance disabled</string>
+    <string name="touch_aim_sensitivity">Touch Aim Sensitivity</string>
+    <string name="touch_aim_sensitivity_desc_enabled">Touch aim sensitivity enabled</string>
+    <string name="touch_aim_sensitivity_desc_disabled">Touch aim sensitivity disabled</string>
+    <string name="touch_tap_stability">Touch Tap Stability</string>
+    <string name="touch_tap_stability_desc_enabled">Touch tap stability enabled</string>
+    <string name="touch_tap_stability_desc_disabled">Touch tap stability disabled</string>
+    <string name="touch_expert_mode">Touch Expert Mode</string>
+    <string name="touch_expert_mode_desc_enabled">Touch expert mode enabled</string>
+    <string name="touch_expert_mode_desc_disabled">Touch expert mode disabled</string>
+    <string name="touch_edge_filter">Touch Edge Filter</string>
+    <string name="touch_edge_filter_desc_enabled">Touch edge filter enabled</string>
+    <string name="touch_edge_filter_desc_disabled">Touch edge filter disabled</string>
+    <string name="touch_grip_mode">Touch Grip Mode</string>
+    <string name="touch_grip_mode_desc_enabled">Touch grip mode enabled</string>
+    <string name="touch_grip_mode_desc_disabled">Touch grip mode disabled</string>
+
+    <!-- Additional Charging Settings -->
+    <string name="smart_charging">Smart Charging</string>
+    <string name="smart_charging_desc_enabled">Smart charging enabled</string>
+    <string name="smart_charging_desc_disabled">Smart charging disabled</string>
+    <string name="charging_limit">Charging limit</string>
+    <string name="charging_limit_desc_enabled">Charging limit enabled</string>
+    <string name="charging_limit_desc_disabled">Charging limit disabled</string>
+    <string name="charging_limit_value">Charging limit value</string>
+    <string name="charging_limit_value_desc">Set maximum charging percentage</string>
+
+    <!-- Lock Screen Category -->
+    <string name="category_lock_screen">Lock Screen</string>
+    <string name="double_tap_wake">Double tap to wake</string>
+    <string name="double_tap_wake_desc_enabled">Double tap to wake enabled</string>
+    <string name="double_tap_wake_desc_disabled">Double tap to wake disabled</string>
+
+    <!-- Security Gate -->
+    <string name="security_warning_title">Access Restricted</string>
+    <string name="security_warning_message">This device is not registered in the official OOSExgang VIP community. Access to Functional ROM features requires community membership.</string>
     <string name="security_warning_button">Understood</string>
 
     <!-- Touch Boost -->

@@ -17,9 +17,23 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// Disable Google Services for debug build (allows different applicationId)
+afterEvaluate {
+    tasks.matching { it.name == "processDebugGoogleServices" }.configureEach {
+        enabled = false
+    }
+}
+
 android {
     namespace = "id.xms.xtrakernelmanager"
     compileSdk = 36
+
+    @Suppress("UnstableApiUsage")
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
 
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
@@ -48,6 +62,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -56,15 +74,11 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
-            
-            // Enable more aggressive resource shrinking
             ndk {
                 debugSymbolLevel = "NONE"
             }
         }
     }
-    
-    // Only include arm64-v8a to reduce size (most modern devices)
     splits {
         abi {
             isEnable = true
@@ -127,7 +141,7 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.4.0")
     implementation("androidx.graphics:graphics-shapes:1.1.0")
     
-    // Material 3 Expressive (when available, fallback to standard)
+    // Material 3 Expressive
     implementation("androidx.compose.material:material-icons-extended")
 
     // Navigation

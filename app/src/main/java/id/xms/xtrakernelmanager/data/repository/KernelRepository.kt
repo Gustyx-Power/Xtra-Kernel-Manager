@@ -218,6 +218,10 @@ class KernelRepository {
     private var prevCpuIdle: Long = 0L
     private var prevCpuTotal: Long = 0L
 
+    // Store previous CPU stats for differential calculation
+    private var prevCpuIdle: Long = 0L
+    private var prevCpuTotal: Long = 0L
+
     private suspend fun getCPULoad(): Float {
         return try {
             val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return 0f

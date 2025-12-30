@@ -83,11 +83,26 @@ fun GameControlSection(viewModel: MiscViewModel) {
         hasUsageAccessPermission = hasUsageStatsPermission(context)
       }
     }
-    lifecycleOwner.lifecycle.addObserver(observer)
-    onDispose {
-      lifecycleOwner.lifecycle.removeObserver(observer)
+
+    // Check usage access permission (needed to detect foreground app)
+    var hasUsageAccessPermission by remember {
+        mutableStateOf(hasUsageStatsPermission(context))
     }
-  }
+
+    // Refresh permission state when returning from settings
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                hasOverlayPermission = Settings.canDrawOverlays(context)
+                hasUsageAccessPermission = hasUsageStatsPermission(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
   // Overlay permission launcher
   val overlayPermissionLauncher =
@@ -95,23 +110,23 @@ fun GameControlSection(viewModel: MiscViewModel) {
           contract = ActivityResultContracts.StartActivityForResult()
       ) {
         hasOverlayPermission = Settings.canDrawOverlays(context)
-      }
-
-  // Usage access permission launcher
-  val usageAccessLauncher = rememberLauncherForActivityResult(
-      contract = ActivityResultContracts.StartActivityForResult()
-  ) {
-    hasUsageAccessPermission = hasUsageStatsPermission(context)
-  }
-
-  // Start/stop GameMonitorService based on enabled games AND both permissions
-  LaunchedEffect(enabledCount, hasOverlayPermission, hasUsageAccessPermission) {
-    if (enabledCount > 0 && hasOverlayPermission && hasUsageAccessPermission) {
-      startGameMonitorService(context)
-    } else {
-      stopGameMonitorService(context)
     }
-  }
+    
+    // Usage access permission launcher
+    val usageAccessLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        hasUsageAccessPermission = hasUsageStatsPermission(context)
+    }
+
+    // Start/stop GameMonitorService based on enabled games AND both permissions
+    LaunchedEffect(enabledCount, hasOverlayPermission, hasUsageAccessPermission) {
+        if (enabledCount > 0 && hasOverlayPermission && hasUsageAccessPermission) {
+            startGameMonitorService(context)
+        } else {
+            stopGameMonitorService(context)
+        }
+    }
 
   GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
     Column(
@@ -174,251 +189,261 @@ fun GameControlSection(viewModel: MiscViewModel) {
         )
       }
 
-      // Permission button if needed - Overlay
-      if (!hasOverlayPermission) {
-        Button(
-            onClick = {
-              val intent =
-                  Intent(
-                      Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                      "package:${context.packageName}".toUri(),
-                  )
-              overlayPermissionLauncher.launch(intent)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                ),
-        ) {
-          Icon(
-              imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-              contentDescription = null,
-              modifier = Modifier.size(20.dp),
-          )
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(stringResource(R.string.game_control_grant_overlay))
-        }
-      }
-
-      // Permission button if needed - Usage Access
-      if (hasOverlayPermission && !hasUsageAccessPermission) {
-        Button(
-            onClick = {
-              val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-              usageAccessLauncher.launch(intent)
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                ),
-        ) {
-          Icon(
-              imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-              contentDescription = null,
-              modifier = Modifier.size(20.dp),
-          )
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(stringResource(R.string.game_control_grant_usage_access))
-        }
-      }
-
-      // Expandable game list
-      AnimatedVisibility(
-          visible = expanded,
-          enter = fadeIn() + expandVertically(),
-          exit = fadeOut() + shrinkVertically(),
-      ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          HorizontalDivider()
-
-          Text(
-              text = stringResource(R.string.game_control_game_apps),
-              style = MaterialTheme.typography.titleSmall,
-              fontWeight = FontWeight.Bold,
-              modifier = Modifier.padding(top = 8.dp),
-          )
-
-          Text(
-              text = stringResource(R.string.game_control_toggle_info),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-
-          // Game list
-          if (gameApps.isEmpty()) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                    ),
-            ) {
-              Box(
-                  modifier = Modifier.fillMaxWidth().padding(24.dp),
-                  contentAlignment = Alignment.Center,
-              ) {
-                Text(
-                    text = stringResource(R.string.game_control_no_games_yet),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
-            }
-          } else {
-            gameApps.forEach { game ->
-              Card(
-                  modifier = Modifier.fillMaxWidth(),
-                  colors =
-                      CardDefaults.cardColors(
-                          containerColor =
-                              if (game.enabled)
-                                  MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                              else MaterialTheme.colorScheme.surfaceContainerHighest
-                      ),
-                  shape = RoundedCornerShape(12.dp),
-              ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                  Row(
-                      horizontalArrangement = Arrangement.spacedBy(12.dp),
-                      verticalAlignment = Alignment.CenterVertically,
-                      modifier = Modifier.weight(1f),
-                  ) {
-                    // App icon
-                    val appIcon =
-                        remember(game.packageName) {
-                          try {
-                            context.packageManager.getApplicationIcon(game.packageName)
-                          } catch (e: Exception) {
-                            null
-                          }
-                        }
-
-                    Box(
-                        modifier = Modifier.size(40.dp).clip(CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                      if (appIcon != null) {
-                        AsyncImage(
-                            model = appIcon,
-                            contentDescription = game.appName,
-                            modifier = Modifier.size(40.dp),
+            // Permission button if needed - Overlay
+            if (!hasOverlayPermission) {
+                Button(
+                    onClick = {
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            "package:${context.packageName}".toUri()
                         )
-                      } else {
-                        Box(
-                            modifier =
-                                Modifier.size(40.dp)
-                                    .background(
-                                        if (game.enabled) MaterialTheme.colorScheme.primary
-                                        else MaterialTheme.colorScheme.surfaceVariant
-                                    ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                          Text(
-                              text = game.appName.take(1).uppercase(),
-                              style = MaterialTheme.typography.titleMedium,
-                              fontWeight = FontWeight.Bold,
-                              color =
-                                  if (game.enabled) MaterialTheme.colorScheme.onPrimary
-                                  else MaterialTheme.colorScheme.onSurfaceVariant,
-                          )
-                        }
-                      }
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                      Text(text = game.appName, fontWeight = FontWeight.Medium)
-                      Text(
-                          text = game.packageName,
-                          style = MaterialTheme.typography.bodySmall,
-                          color = MaterialTheme.colorScheme.onSurfaceVariant,
-                      )
-                    }
-                  }
-
-                  Row(
-                      horizontalArrangement = Arrangement.spacedBy(4.dp),
-                      verticalAlignment = Alignment.CenterVertically,
-                  ) {
-                    // Delete button
-                    IconButton(
-                        onClick = {
-                          val updatedList = gameApps.filter { it.packageName != game.packageName }
-                          scope.launch { viewModel.saveGameApps(serializeGameApps(updatedList)) }
-                        },
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                      Icon(
-                          Icons.Default.Delete,
-                          contentDescription = stringResource(R.string.game_control_remove),
-                          tint = MaterialTheme.colorScheme.error,
-                          modifier = Modifier.size(20.dp),
-                      )
-                    }
-
-                    // Toggle switch
-                    LottieSwitchControlled(
-                        checked = game.enabled,
-                        onCheckedChange = { newEnabled ->
-                          if (!hasOverlayPermission && newEnabled) {
-                            // Request permission first
-                            val intent =
-                                Intent(
-                                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                    "package:${context.packageName}".toUri(),
-                                )
-                            overlayPermissionLauncher.launch(intent)
-                          } else {
-                            val updatedList =
-                                gameApps.map {
-                                  if (it.packageName == game.packageName)
-                                      it.copy(enabled = newEnabled)
-                                  else it
-                                }
-                            scope.launch { viewModel.saveGameApps(serializeGameApps(updatedList)) }
-                          }
-                        },
-                        width = 60.dp,
-                        height = 30.dp,
-                        scale = 2.0f,
+                        overlayPermissionLauncher.launch(intent)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
                     )
-                  }
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.game_control_grant_overlay))
                 }
-              }
             }
-          }
 
-          // Add game button
-          Button(
-              onClick = { showAddGameDialog = true },
-              modifier = Modifier.fillMaxWidth(),
-              shape = RoundedCornerShape(12.dp),
-          ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(stringResource(R.string.game_control_add_game))
-          }
+            // Permission button if needed - Usage Access
+            if (hasOverlayPermission && !hasUsageAccessPermission) {
+                Button(
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
+                        usageAccessLauncher.launch(intent)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.game_control_grant_usage_access))
+                }
+            }
+            
+            // Expandable game list
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HorizontalDivider()
+                    
+                    Text(
+                        text = stringResource(R.string.game_control_game_apps),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    
+                    Text(
+                        text = stringResource(R.string.game_control_toggle_info),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    // Game list
+                    if (gameApps.isEmpty()) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.game_control_no_games_yet),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        gameApps.forEach { game ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (game.enabled)
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                    else
+                                        MaterialTheme.colorScheme.surfaceContainerHighest
+                                ),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        // App icon
+                                        val appIcon = remember(game.packageName) {
+                                            try {
+                                                context.packageManager.getApplicationIcon(game.packageName)
+                                            } catch (e: Exception) {
+                                                null
+                                            }
+                                        }
+                                        
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (appIcon != null) {
+                                                AsyncImage(
+                                                    model = appIcon,
+                                                    contentDescription = game.appName,
+                                                    modifier = Modifier.size(40.dp)
+                                                )
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(40.dp)
+                                                        .background(
+                                                            if (game.enabled)
+                                                                MaterialTheme.colorScheme.primary
+                                                            else
+                                                                MaterialTheme.colorScheme.surfaceVariant
+                                                        ),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = game.appName.take(1).uppercase(),
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = if (game.enabled)
+                                                            MaterialTheme.colorScheme.onPrimary
+                                                        else
+                                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = game.appName,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Text(
+                                                text = game.packageName,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                    
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // Delete button
+                                        IconButton(
+                                            onClick = {
+                                                val updatedList = gameApps.filter { it.packageName != game.packageName }
+                                                scope.launch {
+                                                    viewModel.saveGameApps(serializeGameApps(updatedList))
+                                                }
+                                            },
+                                            modifier = Modifier.size(36.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Delete,
+                                                contentDescription = stringResource(R.string.game_control_remove),
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        
+                                        // Toggle switch
+                                        LottieSwitchControlled(
+                                            checked = game.enabled,
+                                            onCheckedChange = { newEnabled ->
+                                                if (!hasOverlayPermission && newEnabled) {
+                                                    // Request permission first
+                                                    val intent = Intent(
+                                                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                                        "package:${context.packageName}".toUri()
+                                                    )
+                                                    overlayPermissionLauncher.launch(intent)
+                                                } else {
+                                                    val updatedList = gameApps.map { 
+                                                        if (it.packageName == game.packageName) 
+                                                            it.copy(enabled = newEnabled) 
+                                                        else it 
+                                                    }
+                                                    scope.launch {
+                                                        viewModel.saveGameApps(serializeGameApps(updatedList))
+                                                    }
+                                                }
+                                            },
+                                            width = 60.dp,
+                                            height = 30.dp,
+                                            scale = 2.0f
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Add game button
+                    Button(
+                        onClick = { showAddGameDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.game_control_add_game))
+                    }
+                }
+            }
         }
-      }
     }
-  }
-
-  // Add game dialog
-  if (showAddGameDialog) {
-    AddGameDialog(
-        context = context,
-        existingPackages = gameApps.map { it.packageName },
-        onDismiss = { showAddGameDialog = false },
-        onConfirm = { newGame ->
-          val updatedList = gameApps + newGame
-          scope.launch { viewModel.saveGameApps(serializeGameApps(updatedList)) }
-          showAddGameDialog = false
-        },
-    )
-  }
+    
+    // Add game dialog
+    if (showAddGameDialog) {
+        AddGameDialog(
+            context = context,
+            existingPackages = gameApps.map { it.packageName },
+            onDismiss = { showAddGameDialog = false },
+            onConfirm = { newGame ->
+                val updatedList = gameApps + newGame
+                scope.launch {
+                    viewModel.saveGameApps(serializeGameApps(updatedList))
+                }
+                showAddGameDialog = false
+            }
+        )
+    }
 }
 
 private fun startGameMonitorService(context: Context) {

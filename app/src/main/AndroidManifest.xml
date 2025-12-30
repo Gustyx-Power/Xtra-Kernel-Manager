@@ -71,6 +71,17 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
+        <!-- Floating Window Service for Quick Apps -->
+        <service
+            android:name=".service.FloatingWindowService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Floating window for quick apps during gaming" />
+        </service>
+
         <!-- Battery Info Notification Service -->
         <service
             android:name=".service.BatteryInfoService"
