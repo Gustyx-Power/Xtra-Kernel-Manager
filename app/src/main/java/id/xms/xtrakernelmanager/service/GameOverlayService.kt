@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.service
 import android.app.Service
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.media.MediaPlayer
 import android.os.*
 import android.provider.Settings
 import android.view.*
@@ -71,6 +72,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     private var pollingJob: Job? = null
     private var gameStartTime: Long = 0L
+    private var mediaPlayer: MediaPlayer? = null
 
     // States
     private var isExpanded by mutableStateOf(false)
@@ -94,6 +96,9 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     
     // Esports Mode animation state
     private var showEsportsModeAnimation by mutableStateOf(false)
+    
+    // Overlay position: true = right (default), false = left
+    private var isOverlayOnRight by mutableStateOf(true)
     
 
 
@@ -230,6 +235,9 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     private fun createOverlay() {
+        // Load overlay position preference (default: right)
+        isOverlayOnRight = preferencesManager.getBoolean("overlay_position_right", true)
+        
         params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -237,7 +245,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.TOP or Gravity.END
+            gravity = Gravity.TOP or if (isOverlayOnRight) Gravity.END else Gravity.START
             x = 0
             y = 100
         }
@@ -346,6 +354,8 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                     onScreenshot = { takeScreenshot() },
                     onToolsClick = { showToast("Alat: Fitur segera hadir!") },
                     onClose = { isExpanded = false },
+                    onTogglePosition = { toggleOverlayPosition() },
+                    isOverlayOnRight = isOverlayOnRight,
                     
                     accentColor = accentColor
                 )
@@ -422,6 +432,16 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 // Close overlay first
                 isExpanded = false
                 
+                // Play vroom sound effect
+                try {
+                    mediaPlayer?.release()
+                    mediaPlayer = MediaPlayer.create(this@GameOverlayService, R.raw.vroom)
+                    mediaPlayer?.setOnCompletionListener { mp -> mp.release() }
+                    mediaPlayer?.start()
+                } catch (e: Exception) {
+                    // Ignore sound errors
+                }
+                
                 // Show fullscreen animation overlay
                 showFullscreenEsportsAnimation()
                 
@@ -472,7 +492,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         
         // Remove after 4.5 seconds (matches animation duration + buffer)
         CoroutineScope(Dispatchers.Main).launch {
-            delay(4500)
+            delay(5500)
             try {
                 windowManager.removeView(animationView)
             } catch (e: Exception) {
@@ -502,6 +522,23 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             preferencesManager.setLockBrightness(enabled)
             showToast(if (enabled) "Kunci Kecerahan: ON" else "Kunci Kecerahan: OFF")
         }
+    }
+    
+    private fun toggleOverlayPosition() {
+        isOverlayOnRight = !isOverlayOnRight
+        preferencesManager.setBoolean("overlay_position_right", isOverlayOnRight)
+        
+        // Update window layout with new gravity
+        params?.let { p ->
+            p.gravity = Gravity.TOP or if (isOverlayOnRight) Gravity.END else Gravity.START
+            p.x = 0
+            try {
+                windowManager.updateViewLayout(overlayView, p)
+            } catch (e: Exception) {
+                // View may not be attached
+            }
+        }
+        showToast(if (isOverlayOnRight) "Posisi: Kanan" else "Posisi: Kiri")
     }
     
     private fun clearRAM() {
