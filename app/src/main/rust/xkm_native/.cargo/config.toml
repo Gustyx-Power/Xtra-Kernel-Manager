@@ -1,4 +1,6 @@
 [target.aarch64-linux-android]
+ar = "/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-ar"
+linker = "/opt/android-ndk/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang"
 rustflags = [
     "-C",
     "target-cpu=generic",
