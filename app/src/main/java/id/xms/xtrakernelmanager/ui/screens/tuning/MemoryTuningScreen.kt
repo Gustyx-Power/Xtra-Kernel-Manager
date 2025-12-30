@@ -930,39 +930,49 @@ fun ExpandableIOCard(
     val devices = listOf("sda", "sdb", "sdc", "sdd")
 
     val containerColor = MaterialTheme.colorScheme.surfaceContainer
-    val shape = RoundedCornerShape(24.dp)
+    val shape = RoundedCornerShape(32.dp)
 
     Surface(
         modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
         color = containerColor,
         shape = shape,
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = "I/O Scheduler",
-                    style = MaterialTheme.typography.titleLarge, // Adjusted
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                // Use a different icon or simple status
-                Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.SdStorage,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(
+                        text = "I/O Scheduler",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                         text = if (expanded) "Tap to collapse" else "Manage disk I/O",
+                         style = MaterialTheme.typography.bodySmall,
+                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.weight(1f))
             }
 
             if (expanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     devices.forEach { device ->
                         DeviceIOSection(
                             deviceName = device.uppercase(),
@@ -988,80 +998,103 @@ fun DeviceIOSection(
     var dropdownExpanded by remember { mutableStateOf(false) }
     var applyOnBoot by remember { mutableStateOf(false) } // Represents "Set on Boot"
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Device Header with Switch
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF00E676)) // Keep Android Green signature
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = deviceName,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(if (applyOnBoot) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = deviceName,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                Switch(
+                    checked = applyOnBoot,
+                    onCheckedChange = { applyOnBoot = it },
+                    thumbContent = if (applyOnBoot) {
+                        {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else null,
+                    modifier = Modifier.scale(0.8f)
                 )
             }
 
-            // Set on Boot Switch
-            Switch(
-                checked = applyOnBoot,
-                onCheckedChange = { applyOnBoot = it },
-                modifier = Modifier.scale(0.8f)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Custom Dropdown
+            Text(
+                text = "Scheduler",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
             )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        // Scheduler Selection (Dropdown) - Always Enabled
-        ExposedDropdownMenuBox(
-            expanded = dropdownExpanded,
-            onExpandedChange = { dropdownExpanded = !dropdownExpanded },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            OutlinedTextField(
-                value = currentScheduler,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Scheduler", fontSize = 12.sp) },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropdownExpanded) },
-                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                    focusedLabelColor = MaterialTheme.colorScheme.primary
-                ),
-                textStyle = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
-                    .height(56.dp)
-            )
-
-            ExposedDropdownMenu(
+            
+            ExposedDropdownMenuBox(
                 expanded = dropdownExpanded,
-                onDismissRequest = { dropdownExpanded = false }
+                onExpandedChange = { dropdownExpanded = !dropdownExpanded },
+                modifier = Modifier.fillMaxWidth()
             ) {
-                availableSchedulers.forEach { scheduler ->
-                    DropdownMenuItem(
-                        text = { Text(text = scheduler) },
-                        onClick = {
-                            onSchedulerChange(scheduler)
-                            dropdownExpanded = false
-                        },
-                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                    )
+                 OutlinedTextField(
+                    value = currentScheduler,
+                    onValueChange = {},
+                    readOnly = true,
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = dropdownExpanded,
+                    onDismissRequest = { dropdownExpanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    availableSchedulers.forEach { scheduler ->
+                        DropdownMenuItem(
+                            text = { 
+                                Text(
+                                    text = scheduler,
+                                    fontWeight = if (scheduler == currentScheduler) FontWeight.Bold else FontWeight.Normal
+                                ) 
+                            },
+                             onClick = {
+                                onSchedulerChange(scheduler)
+                                dropdownExpanded = false
+                            },
+                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                        )
+                    }
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
