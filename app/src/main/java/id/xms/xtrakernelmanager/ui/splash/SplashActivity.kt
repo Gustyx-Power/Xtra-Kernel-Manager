@@ -106,17 +106,27 @@ class SplashActivity : ComponentActivity() {
       XtraKernelManagerTheme {
         val context = LocalContext.current
         val prefsManager = remember { PreferencesManager(context) }
-        ExpressiveSplashScreen(
-            onNavigateToMain = {
-              startActivity(Intent(this, MainActivity::class.java))
-              finish()
-              overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-            },
-            isInternetAvailable = { isInternetAvailable(it) },
-            checkRootAccess = { checkRootAccess() },
-            fetchUpdateConfig = { fetchUpdateConfig() },
-            isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) },
-        )
+        val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
+        
+        val navigateToMain: () -> Unit = {
+          startActivity(Intent(this, MainActivity::class.java))
+          finish()
+          overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+        
+        if (layoutStyle == "material") {
+          // Material layout uses ExpressiveSplashScreen
+          ExpressiveSplashScreen(
+              onNavigateToMain = navigateToMain,
+              isInternetAvailable = { isInternetAvailable(it) },
+              checkRootAccess = { checkRootAccess() },
+              fetchUpdateConfig = { fetchUpdateConfig() },
+              isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) },
+          )
+        } else {
+          // Legacy layout uses SplashScreenContent
+          SplashScreenContent(onNavigateToMain = navigateToMain)
+        }
       }
     }
   }
