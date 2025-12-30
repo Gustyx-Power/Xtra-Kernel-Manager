@@ -56,6 +56,7 @@ import id.xms.xtrakernelmanager.ui.components.WavyProgressIndicator
 import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import java.util.Locale
 import kotlinx.coroutines.delay
+import id.xms.xtrakernelmanager.ui.screens.home.components.ExpandablePowerFab
 
 /** Material Home Screen - Restored Layout with Dynamic Colors (Material You) */
 @SuppressLint("DefaultLocale")
@@ -88,13 +89,11 @@ fun MaterialHomeScreen(
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
       floatingActionButton = {
-        FloatingActionButton(
-            onClick = { showPowerBottomSheet = true },
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ) {
-          Icon(imageVector = Icons.Rounded.PowerSettingsNew, contentDescription = "Power Menu")
-        }
+        ExpandablePowerFab(
+            onPowerAction = { action ->
+                onPowerAction(action)
+            }
+        )
       },
       content = { paddingValues ->
         Column(
