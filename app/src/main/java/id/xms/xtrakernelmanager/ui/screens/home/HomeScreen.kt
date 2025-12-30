@@ -184,8 +184,8 @@ fun HomeScreen(
 }
 
 /**
- * Legacy Home Content - Original glassmorphic UI Extracted from the original HomeScreen for layout
- * style switching
+ * Legacy Home Content - Playful DevCheck-like UI 
+ * All cards always visible, colorful design, no dropdowns
  */
 @SuppressLint("DefaultLocale")
 @Composable
@@ -200,501 +200,83 @@ private fun LegacyHomeContent(
   val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
   LazyVerticalStaggeredGrid(
-      columns = StaggeredGridCells.Adaptive(minSize = 340.dp),
-      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-      contentPadding = PaddingValues(vertical = 16.dp),
-      horizontalArrangement = Arrangement.spacedBy(16.dp),
-      verticalItemSpacing = 16.dp,
+      columns = StaggeredGridCells.Fixed(2),
+      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), // Tighter horizontal padding
+      contentPadding = PaddingValues(top = 20.dp, bottom = 100.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp), // Compact spacing
+      verticalItemSpacing = 12.dp,
   ) {
-    // Holiday Decoration (emoji row above header)
-    if (currentHolidayDecor != null) {
-      item(span = StaggeredGridItemSpan.FullLine) {
-        HolidayDecorationRow(holiday = currentHolidayDecor)
-      }
-    }
-
-    // Header
+    // Header Section
     item(span = StaggeredGridItemSpan.FullLine) {
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        // Custom PillCard with title and version
-        Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shadowElevation = 1.dp,
-            tonalElevation = 2.dp,
+      Column(modifier = Modifier.padding(bottom = 4.dp)) {
+        // Holiday Ornament if active
+        if (currentHolidayDecor != null) {
+            HolidayDecorationRow(holiday = currentHolidayDecor)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-          Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+          Column {
             Text(
                 text = "Xtra Kernel Manager",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.headlineSmall, 
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary, 
+                fontWeight = FontWeight.SemiBold
             )
           }
-        }
-        FilledTonalIconButton(
-            onClick = onSettingsClick,
-            modifier = Modifier.size(40.dp),
-            colors =
-                IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-        ) {
-          Icon(
-              imageVector = Icons.Rounded.Settings,
-              contentDescription = "Settings",
-              modifier = Modifier.size(20.dp),
-          )
-        }
-      }
-    }
-
-    // --- CPU CARD ---
-    item { CPUInfoCardNoDropdown(cpuInfo = cpuInfo) }
-
-    // --- GPU CARD ---
-    item {
-      InfoCard(
-          title = stringResource(R.string.gpu_information),
-          icon = Icons.Default.Videocam,
-          defaultExpanded = false,
-      ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          // Header GPU
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.Top,
-          ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-              Text(
-                  text = "${gpuInfo.currentFreq} MHz",
-                  style = MaterialTheme.typography.headlineSmall,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.primary,
-              )
-              Text(
-                  text = stringResource(R.string.current_frequency),
-                  style = MaterialTheme.typography.labelSmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-            }
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              InfoChipCompact(
-                  icon = Icons.Default.Bolt,
-                  text = "${stringResource(R.string.max_freq)} ${gpuInfo.maxFreq}",
-              )
-              InfoChipCompact(
-                  icon = Icons.Default.Memory,
-                  text = gpuInfo.vendor.ifBlank { stringResource(R.string.unknown_gpu) },
-              )
-            }
-          }
-
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-          // Frequency Grid
-          if (gpuInfo.availableFreqs.size > 1) {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-              Text(
-                  stringResource(R.string.frequencies),
-                  style = MaterialTheme.typography.labelSmall,
-                  fontWeight = FontWeight.Bold,
-              )
-              gpuInfo.availableFreqs.chunked(4).forEachIndexed { rowIdx, rowFreqs ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                  rowFreqs.forEachIndexed { i, freq ->
-                    FreqItemCompact(
-                        freq = freq,
-                        label = "GPU${rowIdx * 4 + i}",
-                        isActive = freq == gpuInfo.currentFreq,
-                    )
-                  }
-                }
-              }
-            }
-          } else {
-            InfoIconRow(
-                Icons.Default.Bolt,
-                stringResource(R.string.current_now),
-                "${gpuInfo.currentFreq} MHz",
-            )
-          }
-
-          // Detail OpenGL
-          Surface(
-              color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-              shape = RoundedCornerShape(12.dp),
-              modifier = Modifier.fillMaxWidth(),
-          ) {
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-              InfoIconRow(Icons.Default.Dashboard, "Renderer", gpuInfo.renderer)
-              Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                  Icon(
-                      Icons.Default.Code,
-                      null,
-                      modifier = Modifier.size(16.dp),
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-                  Spacer(modifier = Modifier.width(8.dp))
-                  Text(
-                      "OpenGL",
-                      style = MaterialTheme.typography.bodyMedium,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-                }
-                Text(
-                    text = gpuInfo.openglVersion,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(start = 24.dp),
-                )
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // --- BATTERY CARD ---
-    item {
-      InfoCard(
-          title = stringResource(R.string.battery_information),
-          icon = Icons.Default.BatteryChargingFull,
-          defaultExpanded = false,
-      ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.spacedBy(16.dp),
-          ) {
-            BatteryLevelIndicator(level = batteryInfo.level, status = batteryInfo.status)
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-              Text(
-                  text = "${batteryInfo.level}%",
-                  style = MaterialTheme.typography.displaySmall,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.primary,
-              )
-              Row(
-                  horizontalArrangement = Arrangement.spacedBy(8.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-              ) {
-                InfoChipCompact(icon = Icons.Default.Power, text = batteryInfo.status)
-                InfoChipCompact(
-                    icon = Icons.Default.HealthAndSafety,
-                    text =
-                        "${batteryInfo.health} (${String.format(Locale.US, "%.0f", batteryInfo.healthPercent)}%)",
-                )
-              }
-            }
-          }
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            val currentText =
-                if (batteryInfo.currentNow >= 0) {
-                  "+${batteryInfo.currentNow} mA"
-                } else {
-                  "${batteryInfo.currentNow} mA"
-                }
-            BatteryStatItemVertical(
-                Icons.Default.FlashOn,
-                stringResource(R.string.current_now),
-                currentText,
-                Modifier.weight(1f),
-            )
-            BatteryStatItemVertical(
-                Icons.Default.BatteryStd,
-                stringResource(R.string.voltage),
-                "${batteryInfo.voltage} mV",
-                Modifier.weight(1f),
-            )
-          }
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            BatteryStatItemVertical(
-                Icons.Default.Thermostat,
-                "Temperature",
-                "${batteryInfo.temperature}°C",
-                Modifier.weight(1f),
-            )
-            BatteryStatItemVertical(
-                Icons.Default.Refresh,
-                stringResource(R.string.cycle_count),
-                "${batteryInfo.cycleCount}",
-                Modifier.weight(1f),
-            )
-          }
-          Surface(
-              color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-              shape = RoundedCornerShape(12.dp),
-              modifier = Modifier.fillMaxWidth(),
-          ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.Memory,
-                    null,
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.technology),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
-              Text(
-                  batteryInfo.technology,
-                  style = MaterialTheme.typography.bodyMedium,
-                  fontWeight = FontWeight.SemiBold,
-              )
-            }
-          }
-        }
-      }
-    }
-
-    // --- MEMORY & STORAGE CARD ---
-    item {
-      InfoCard(
-          title = stringResource(id = R.string.memory_storage),
-          icon = Icons.Default.Storage,
-          defaultExpanded = false,
-      ) {
-        val totalRamGB = systemInfo.totalRam / (1024f * 1024f * 1024f)
-        val availRamGB = systemInfo.availableRam / (1024f * 1024f * 1024f)
-        val usedRamGB = totalRamGB - availRamGB
-        val ramProgress = if (totalRamGB > 0) (usedRamGB / totalRamGB).coerceIn(0f, 1f) else 0f
-        val totalStorageGB = systemInfo.totalStorage / (1024f * 1024f * 1024f)
-        val availStorageGB = systemInfo.availableStorage / (1024f * 1024f * 1024f)
-        val usedStorageGB = totalStorageGB - availStorageGB
-        val storageProgress =
-            if (totalStorageGB > 0) (usedStorageGB / totalStorageGB).coerceIn(0f, 1f) else 0f
-
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          // RAM
-          LinearUsageItemDetailed(
-              title = "RAM",
-              used = String.format(Locale.US, "%.2f GB", usedRamGB),
-              total = String.format(Locale.US, "%.2f GB", totalRamGB),
-              progress = ramProgress,
-              color = MaterialTheme.colorScheme.primary,
-          )
-
-          // Storage
-          LinearUsageItemDetailed(
-              title = stringResource(R.string.storage),
-              used = String.format(Locale.US, "%.2f GB", usedStorageGB),
-              total = String.format(Locale.US, "%.2f GB", totalStorageGB),
-              progress = storageProgress,
-              color = MaterialTheme.colorScheme.tertiary,
-          )
-
-          // Swap File (show only if exists)
-          if (systemInfo.swapTotal > 0) {
-            val swapGB = systemInfo.swapTotal / (1024f * 1024f * 1024f)
-            Surface(
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-              Row(
-                  modifier = Modifier.padding(12.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.SpaceBetween,
-              ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                  Icon(
-                      imageVector = Icons.Default.SdCard,
-                      contentDescription = null,
-                      modifier = Modifier.size(20.dp),
-                      tint = MaterialTheme.colorScheme.secondary,
-                  )
-                  Text(
-                      text = "Swap File",
-                      style = MaterialTheme.typography.bodyMedium,
-                      fontWeight = FontWeight.Medium,
-                  )
-                }
-                Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(8.dp),
-                ) {
-                  Text(
-                      text = String.format(Locale.US, "%.2f GB", swapGB),
-                      style = MaterialTheme.typography.labelLarge,
-                      fontWeight = FontWeight.Bold,
-                      color = MaterialTheme.colorScheme.onSecondaryContainer,
-                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                  )
-                }
-              }
-            }
-          }
-
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(8.dp),
-          ) {
-            if (systemInfo.zramSize > 0) {
-              MemoryTagChip(
-                  Icons.Default.Memory,
-                  "ZRAM",
-                  String.format(
-                      Locale.US,
-                      "%.2f GB",
-                      systemInfo.zramSize / (1024f * 1024f * 1024f),
+          
+          FilledTonalIconButton(
+              onClick = onSettingsClick,
+              modifier = Modifier.size(44.dp), // Slightly compact
+              colors =
+                  IconButtonDefaults.filledTonalIconButtonColors(
+                      containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                      contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                   ),
-              )
-            }
-            if (systemInfo.swapTotal > 0L) {
-              MemoryTagChip(
-                  Icons.Default.SwapHoriz,
-                  "Swap",
-                  String.format(
-                      Locale.US,
-                      "%.2f GB",
-                      systemInfo.swapTotal / (1024f * 1024f * 1024f),
-                  ),
-              )
-            }
-          }
-        }
-      }
-    }
-
-    // --- SYSTEM INFO CARD  ---
-    item {
-      InfoCard(
-          title = stringResource(R.string.system_information),
-          icon = Icons.Default.PhoneAndroid,
-          defaultExpanded = false,
-      ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = Arrangement.spacedBy(16.dp),
           ) {
             Icon(
-                Icons.Default.Android,
-                null,
-                modifier =
-                    Modifier.size(40.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                        .padding(8.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                imageVector = Icons.Rounded.Settings,
+                contentDescription = "Settings",
+                modifier = Modifier.size(24.dp),
             )
-            Column {
-              Text(
-                  text = systemInfo.deviceModel,
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.Bold,
-              )
-              Text(
-                  text = "Android ${systemInfo.androidVersion} (${systemInfo.abi})",
-                  style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-            }
-          }
-
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                stringResource(R.string.kernel_version),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            InfoChipCompact(
-                icon = Icons.Default.Settings,
-                text = systemInfo.kernelVersion,
-                modifier = Modifier.fillMaxWidth(),
-                isSingleLine = false,
-            )
-
-            // SELinux & Build Type (Split Row)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              Column(
-                  modifier = Modifier.weight(1f),
-                  verticalArrangement = Arrangement.spacedBy(4.dp),
-              ) {
-                Text(
-                    "SELinux",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                InfoChipCompact(
-                    icon = Icons.Default.Security,
-                    text = systemInfo.selinux,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-              }
-
-              Column(
-                  modifier = Modifier.weight(1f),
-                  verticalArrangement = Arrangement.spacedBy(4.dp),
-              ) {
-                Text(
-                    stringResource(R.string.build_type),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                InfoChipCompact(
-                    icon = Icons.Default.Verified,
-                    text = systemInfo.fingerprint.takeLast(12),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-              }
-            }
           }
         }
       }
+    }
+
+    // --- CPU CARD (Full Width) ---
+    item(span = StaggeredGridItemSpan.FullLine) { 
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulCPUCard(cpuInfo = cpuInfo) 
+    }
+
+    // --- GPU CARD (Full Width) ---
+    item(span = StaggeredGridItemSpan.FullLine) { 
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulGPUCard(gpuInfo = gpuInfo) 
+    }
+
+    // --- BATTERY CARD (Full Width) ---
+    item(span = StaggeredGridItemSpan.FullLine) { 
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulBatteryCard(batteryInfo = batteryInfo) 
+    }
+
+    // --- MEMORY & STORAGE CARD (Full Width) ---
+    item(span = StaggeredGridItemSpan.FullLine) { 
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulMemoryCard(systemInfo = systemInfo) 
+    }
+
+    // --- SYSTEM INFO CARD (Full Width) ---
+    item(span = StaggeredGridItemSpan.FullLine) { 
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulSystemCard(systemInfo = systemInfo) 
     }
   }
 }
