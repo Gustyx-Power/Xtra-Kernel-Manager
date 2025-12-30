@@ -9,6 +9,7 @@ import id.xms.xtrakernelmanager.domain.usecase.FunctionalRomUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -123,6 +124,17 @@ class FunctionalRomViewModel(
                 val touchGameModeState = useCase.getTouchGameModeState()
                 val touchActiveModeState = useCase.getTouchActiveModeState()
 
+                // Load UI-only toggle states from preferences
+                val unlockNitsState = preferencesManager.getFunctionalRomUnlockNits().first()
+                val dynamicRefreshState = preferencesManager.getFunctionalRomDynamicRefresh().first()
+                val forceRefreshState = preferencesManager.getFunctionalRomForceRefresh().first()
+                val forceRefreshValue = preferencesManager.getFunctionalRomForceRefreshValue().first()
+                val dcDimmingState = preferencesManager.getFunctionalRomDcDimming().first()
+                val performanceModeState = preferencesManager.getFunctionalRomPerformanceMode().first()
+                val smartChargingState = preferencesManager.getFunctionalRomSmartCharging().first()
+                val chargingLimitEnabledState = preferencesManager.getFunctionalRomChargingLimit().first()
+                val savedChargingLimitValue = preferencesManager.getFunctionalRomChargingLimitValue().first()
+
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
@@ -137,8 +149,10 @@ class FunctionalRomViewModel(
                         // Native states
                         bypassChargingEnabled = bypassChargingState,
                         doubleTapWakeEnabled = dt2wState,
-                        chargingLimitValue = if (chargingLimitValue > 0) chargingLimitValue else 80,
-                        forceRefreshRateValue = currentRefreshRate,
+                        chargingLimitValue = if (savedChargingLimitValue > 0) savedChargingLimitValue else if (chargingLimitValue > 0) chargingLimitValue else 80,
+                        chargingLimitEnabled = chargingLimitEnabledState,
+                        forceRefreshRateValue = if (forceRefreshValue > 0) forceRefreshValue else currentRefreshRate,
+                        forceRefreshRateEnabled = forceRefreshState,
                         // Property-based states
                         touchBoostEnabled = touchBoostState,
                         playIntegrityFixEnabled = playIntegrityFixState,
@@ -147,7 +161,13 @@ class FunctionalRomViewModel(
                         unlimitedPhotosEnabled = unlimitedPhotosState,
                         netflixSpoofEnabled = netflixSpoofState,
                         touchGameModeEnabled = touchGameModeState,
-                        touchActiveModeEnabled = touchActiveModeState
+                        touchActiveModeEnabled = touchActiveModeState,
+                        // UI-only states from preferences
+                        unlockNitsEnabled = unlockNitsState,
+                        dynamicRefreshRateEnabled = dynamicRefreshState,
+                        dcDimmingEnabled = dcDimmingState,
+                        performanceModeEnabled = performanceModeState,
+                        smartChargingEnabled = smartChargingState
                     )
                 }
             } catch (e: Exception) {
@@ -187,6 +207,9 @@ class FunctionalRomViewModel(
 
     fun setChargingLimit(enabled: Boolean) {
         _uiState.update { it.copy(chargingLimitEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomChargingLimit(enabled)
+        }
         if (enabled) {
             applyChargingLimitValue(_uiState.value.chargingLimitValue)
         }
@@ -194,6 +217,9 @@ class FunctionalRomViewModel(
 
     fun setChargingLimitValue(value: Int) {
         _uiState.update { it.copy(chargingLimitValue = value) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomChargingLimitValue(value)
+        }
         if (_uiState.value.chargingLimitEnabled) {
             applyChargingLimitValue(value)
         }
@@ -214,6 +240,7 @@ class FunctionalRomViewModel(
     fun setForceRefreshRate(enabled: Boolean) {
         _uiState.update { it.copy(forceRefreshRateEnabled = enabled) }
         viewModelScope.launch {
+            preferencesManager.setFunctionalRomForceRefresh(enabled)
             if (enabled) {
                 useCase.setForceRefreshRate(_uiState.value.forceRefreshRateValue)
             } else {
@@ -224,8 +251,9 @@ class FunctionalRomViewModel(
 
     fun setForceRefreshRateValue(hz: Int) {
         _uiState.update { it.copy(forceRefreshRateValue = hz) }
-        if (_uiState.value.forceRefreshRateEnabled) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomForceRefreshValue(hz)
+            if (_uiState.value.forceRefreshRateEnabled) {
                 useCase.setForceRefreshRate(hz)
             }
         }
@@ -306,26 +334,41 @@ class FunctionalRomViewModel(
         }
     }
 
-    // ==================== UI-only toggles (no backend yet) ====================
+    // ==================== UI-only toggles (save to preferences) ====================
 
     fun setUnlockNits(enabled: Boolean) {
         _uiState.update { it.copy(unlockNitsEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomUnlockNits(enabled)
+        }
     }
 
     fun setDynamicRefreshRate(enabled: Boolean) {
         _uiState.update { it.copy(dynamicRefreshRateEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomDynamicRefresh(enabled)
+        }
     }
 
     fun setDcDimming(enabled: Boolean) {
         _uiState.update { it.copy(dcDimmingEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomDcDimming(enabled)
+        }
     }
 
     fun setPerformanceMode(enabled: Boolean) {
         _uiState.update { it.copy(performanceModeEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomPerformanceMode(enabled)
+        }
     }
 
     fun setSmartCharging(enabled: Boolean) {
         _uiState.update { it.copy(smartChargingEnabled = enabled) }
+        viewModelScope.launch {
+            preferencesManager.setFunctionalRomSmartCharging(enabled)
+        }
     }
 
     override fun onCleared() {

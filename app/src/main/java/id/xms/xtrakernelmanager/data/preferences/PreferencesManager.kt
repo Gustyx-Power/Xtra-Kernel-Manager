@@ -72,6 +72,18 @@ class PreferencesManager(private val context: Context) {
     private val RAMADAN_SHOWN_YEAR = intPreferencesKey("ramadan_shown_year")
     private val EID_FITR_SHOWN_YEAR = intPreferencesKey("eid_fitr_shown_year")
 
+    // Functional ROM preferences
+    private val FUNCTIONAL_ROM_UNLOCK_NITS = booleanPreferencesKey("functional_rom_unlock_nits")
+    private val FUNCTIONAL_ROM_DYNAMIC_REFRESH = booleanPreferencesKey("functional_rom_dynamic_refresh")
+    private val FUNCTIONAL_ROM_FORCE_REFRESH = booleanPreferencesKey("functional_rom_force_refresh")
+    private val FUNCTIONAL_ROM_FORCE_REFRESH_VALUE = intPreferencesKey("functional_rom_force_refresh_value")
+    private val FUNCTIONAL_ROM_DC_DIMMING = booleanPreferencesKey("functional_rom_dc_dimming")
+    private val FUNCTIONAL_ROM_PERFORMANCE_MODE = booleanPreferencesKey("functional_rom_performance_mode")
+    private val FUNCTIONAL_ROM_SMART_CHARGING = booleanPreferencesKey("functional_rom_smart_charging")
+    private val FUNCTIONAL_ROM_CHARGING_LIMIT = booleanPreferencesKey("functional_rom_charging_limit")
+    private val FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE = intPreferencesKey("functional_rom_charging_limit_value")
+
+
     val themeMode: Flow<Int> = context.dataStore.data.map { prefs ->
         prefs[THEME_MODE] ?: 0
     }
@@ -533,4 +545,105 @@ class PreferencesManager(private val context: Context) {
     fun setString(key: String, value: String) {
         syncPrefs.edit().putString(key, value).apply()
     }
+
+    // ==================== Functional ROM Preferences ====================
+    
+    suspend fun setFunctionalRomUnlockNits(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_UNLOCK_NITS] = enabled
+        }
+    }
+
+    fun getFunctionalRomUnlockNits(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_UNLOCK_NITS] ?: false
+        }
+
+    suspend fun setFunctionalRomDynamicRefresh(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_DYNAMIC_REFRESH] = enabled
+        }
+    }
+
+    fun getFunctionalRomDynamicRefresh(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_DYNAMIC_REFRESH] ?: false
+        }
+
+    suspend fun setFunctionalRomForceRefresh(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_FORCE_REFRESH] = enabled
+        }
+    }
+
+    fun getFunctionalRomForceRefresh(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_FORCE_REFRESH] ?: false
+        }
+
+    suspend fun setFunctionalRomForceRefreshValue(value: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_FORCE_REFRESH_VALUE] = value
+        }
+    }
+
+    fun getFunctionalRomForceRefreshValue(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_FORCE_REFRESH_VALUE] ?: 60
+        }
+
+    suspend fun setFunctionalRomDcDimming(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_DC_DIMMING] = enabled
+        }
+    }
+
+    fun getFunctionalRomDcDimming(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_DC_DIMMING] ?: false
+        }
+
+    suspend fun setFunctionalRomPerformanceMode(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_PERFORMANCE_MODE] = enabled
+        }
+    }
+
+    fun getFunctionalRomPerformanceMode(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_PERFORMANCE_MODE] ?: false
+        }
+
+    suspend fun setFunctionalRomSmartCharging(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_SMART_CHARGING] = enabled
+        }
+    }
+
+    fun getFunctionalRomSmartCharging(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_SMART_CHARGING] ?: false
+        }
+
+    suspend fun setFunctionalRomChargingLimit(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT] = enabled
+        }
+    }
+
+    fun getFunctionalRomChargingLimit(): Flow<Boolean> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT] ?: false
+        }
+
+    suspend fun setFunctionalRomChargingLimitValue(value: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] = value
+        }
+    }
+
+    fun getFunctionalRomChargingLimitValue(): Flow<Int> =
+        context.dataStore.data.map { prefs ->
+            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] ?: 80
+        }
 }
