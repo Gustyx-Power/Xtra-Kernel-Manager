@@ -415,7 +415,32 @@ class KernelRepository {
         val androidVersion = android.os.Build.VERSION.RELEASE
         val abi = android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "unknown"
         val kernelVersion = System.getProperty("os.version") ?: "unknown"
-        val deviceModel = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}"
+        
+        // Brand detection and cleanup
+        val rawManufacturer = android.os.Build.MANUFACTURER
+        val rawModel = android.os.Build.MODEL
+        val rawBrand = android.os.Build.BRAND
+        val rawProduct = android.os.Build.PRODUCT
+        val rawDevice = android.os.Build.DEVICE
+        
+        // Clean up device model - remove redundant "Xiaomi" prefix for POCO/Redmi
+        val cleanedModel = when {
+            rawModel.contains("POCO", ignoreCase = true) -> rawModel
+            rawModel.contains("Redmi", ignoreCase = true) -> rawModel
+            rawManufacturer.equals("OnePlus", ignoreCase = true) -> rawModel
+            else -> "$rawManufacturer $rawModel"
+        }
+        
+        // Determine clean brand name
+        val cleanBrand = when {
+            rawModel.contains("POCO", ignoreCase = true) -> "POCO"
+            rawModel.contains("Redmi", ignoreCase = true) -> "Redmi"
+            rawBrand.equals("OnePlus", ignoreCase = true) || rawManufacturer.equals("OnePlus", ignoreCase = true) -> "OnePlus"
+            rawBrand.equals("Xiaomi", ignoreCase = true) || rawManufacturer.equals("Xiaomi", ignoreCase = true) -> "Xiaomi"
+            else -> rawBrand.ifEmpty { rawManufacturer }
+        }
+        
+        val deviceModel = cleanedModel
         val fingerprint = android.os.Build.FINGERPRINT
         val fingerprintType = if (fingerprint.contains("test-keys")) "test-key" else "release-key"
         val selinux =
@@ -482,6 +507,9 @@ class KernelRepository {
             abi = abi,
             kernelVersion = kernelVersion,
             deviceModel = deviceModel,
+            brand = cleanBrand,
+            product = rawProduct,
+            marketName = rawDevice,
             fingerprint = fingerprintType,
             selinux = selinux,
             totalRam = totalRam * 1024,
