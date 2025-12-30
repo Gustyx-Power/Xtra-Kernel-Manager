@@ -483,13 +483,30 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
             color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
 
-        // Smart Badge: Vendor
+        // Smart Badge: GPU Renderer
         Surface(
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
             shape = RoundedCornerShape(50),
         ) {
+          val gpuBadge = remember(gpuInfo.renderer) {
+            when {
+              gpuInfo.renderer.contains("Adreno", true) -> {
+                // Extract "Adreno 730" from "Adreno (TM) 730"
+                val match = Regex("Adreno.*?(\\d+)").find(gpuInfo.renderer)
+                match?.let { "Adreno ${it.groupValues[1]}" } ?: "Adreno"
+              }
+              gpuInfo.renderer.contains("Mali", true) -> {
+                val match = Regex("Mali[- ]?(G\\d+|T\\d+)?").find(gpuInfo.renderer)
+                match?.value?.trim() ?: "Mali"
+              }
+              gpuInfo.renderer.contains("PowerVR", true) -> "PowerVR"
+              gpuInfo.renderer.contains("NVIDIA", true) -> "NVIDIA"
+              gpuInfo.renderer != "Unknown" -> gpuInfo.renderer.take(12)
+              else -> gpuInfo.vendor.ifEmpty { "GPU" }
+            }
+          }
           Text(
-              text = "ADRENO", // Hardcoded placeholder or derive from renderer
+              text = gpuBadge.uppercase(),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSecondaryContainer,

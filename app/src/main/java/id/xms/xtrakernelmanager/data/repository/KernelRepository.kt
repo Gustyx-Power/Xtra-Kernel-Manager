@@ -318,21 +318,46 @@ class KernelRepository {
                 ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
 
         // Use native for GPU frequency (faster, real-time)
-        val currentFreq =
-            NativeLib.readGpuFreq()
-                ?: RootManager.executeCommand("cat $basePath/gpuclk 2>/dev/null")
-                    .getOrNull()
-                    ?.trim()
-                    ?.toLongOrNull()
-                    ?.div(1000000)
-                    ?.toInt()
-                ?: 0
+        // Native returns 0 if it can't read, so we need to fallback in that case too
+        val nativeFreq = NativeLib.readGpuFreq() ?: 0
+        val currentFreq = if (nativeFreq > 0) {
+            nativeFreq
+        } else {
+            // Fallback to shell commands with multiple paths
+            val freqPaths = listOf(
+                "$basePath/gpuclk",
+                "$basePath/clock_mhz",
+                "/sys/kernel/gpu/gpu_clock",
+                "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq"
+            )
+            var freq = 0
+            for (path in freqPaths) {
+                val rawValue = RootManager.executeCommand("cat $path 2>/dev/null")
+                    .getOrNull()?.trim()?.toLongOrNull() ?: continue
+                // Normalize to MHz (some values are in Hz, some in kHz, some in MHz)
+                freq = when {
+                    rawValue > 1_000_000 -> (rawValue / 1_000_000).toInt()
+                    rawValue > 1_000 -> (rawValue / 1_000).toInt()
+                    else -> rawValue.toInt()
+                }
+                if (freq > 0) break
+            }
+            freq
+        }
 
         val maxFreq = availableFreqs.maxOrNull() ?: 0
         val minFreq = availableFreqs.minOrNull() ?: 0
 
-        // Use native for GPU load (busy percentage)
-        val gpuLoad = NativeLib.readGpuBusy() ?: 0
+        // Use native for GPU load (busy percentage) with fallback
+        val nativeLoad = NativeLib.readGpuBusy() ?: 0
+        val gpuLoad = if (nativeLoad > 0) {
+            nativeLoad
+        } else {
+            // Fallback to shell
+            val busyPct = RootManager.executeCommand("cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage 2>/dev/null")
+                .getOrNull()?.trim()?.split(" ")?.firstOrNull()?.toIntOrNull()
+            busyPct ?: 0
+        }
 
         GPUInfo(
             vendor = vendor,
