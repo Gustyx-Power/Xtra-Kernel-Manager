@@ -205,7 +205,7 @@ fun EsportsActivationAnimation(
     LaunchedEffect(Unit) {
         animationProgress.animateTo(
             targetValue = 1f,
-            animationSpec = tween(4000, easing = FastOutSlowInEasing)
+            animationSpec = tween(5000, easing = FastOutSlowInEasing)
         )
         onAnimationComplete()
     }
