@@ -23,6 +23,13 @@ gradle.properties
 /app/dist/
 /app/release/
 
+# Native libraries (built from Rust)
+app/src/main/jniLibs/
+**/jniLibs/**/*.so
+
+# Rust build artifacts
+app/src/main/rust/xkm_native/target/
+
 # Build scripts with hardcoded credentials (security)
 build-release-with-changelog.bat
 test-telegram.bat

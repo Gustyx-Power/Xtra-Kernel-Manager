@@ -83,7 +83,8 @@
     <!-- Tuning Screen -->
     <string name="tuning_title">Kernel Tuning</string>
     <string name="tuning_requires_root">Root access required</string>
-    <string name="tuning_requires_root_desc">Please grant root access to use kernel tuning features. Make sure your device is rooted with Magisk.</string>
+    <string name="tuning_requires_root_desc">Please grant root access to use kernel tuning features.
+        Make sure your device is rooted with Magisk.</string>
     <string name="tuning_export">Export Config</string>
     <string name="tuning_import">Import Config</string>
     <string name="tuning_apply">Apply Preset</string>
@@ -92,7 +93,8 @@
     <!-- Export Dialog -->
     <string name="tuning_export_title">Export Configuration</string>
     <string name="tuning_export_message">Export current tuning configuration to a file?</string>
-    <string name="tuning_export_description">This will save all CPU, GPU, RAM, thermal settings, and device information.</string>
+    <string name="tuning_export_description">This will save all CPU, GPU, RAM, thermal settings, and
+        device information.</string>
     <string name="tuning_export_success">Configuration exported successfully</string>
     <string name="tuning_export_failed">Failed to export configuration</string>
     <string name="tuning_export_button">Export</string>
@@ -100,7 +102,8 @@
     <!-- Import Dialog -->
     <string name="tuning_import_title">Import Configuration</string>
     <string name="tuning_import_message">Import and apply tuning configuration from a file?</string>
-    <string name="tuning_import_warning">⚠️ This will override all current settings and apply the imported configuration immediately.</string>
+    <string name="tuning_import_warning">⚠️ This will override all current settings and apply the
+        imported configuration immediately.</string>
     <string name="tuning_import_success">Configuration imported and applied successfully</string>
     <string name="tuning_import_button">Import</string>
     <string name="tuning_importing">Importing…</string>
@@ -109,7 +112,8 @@
     <!-- SOC Compatibility Warning -->
     <string name="tuning_soc_warning_title">Device Compatibility Warning</string>
     <string name="tuning_soc_warning_question">Do you want to proceed anyway?</string>
-    <string name="tuning_soc_warning_desc">Applying incompatible configurations may cause system instability, boot loops, or device malfunction.</string>
+    <string name="tuning_soc_warning_desc">Applying incompatible configurations may cause system
+        instability, boot loops, or device malfunction.</string>
     <string name="tuning_apply_with_warning">Configuration applied (with warnings)</string>
     <string name="tuning_apply_anyway">Apply Anyway</string>
 
@@ -118,7 +122,8 @@
 
     <!-- CPU Control -->
     <string name="cpu_control">CPU Control</string>
-    <string name="cpu_control_description">Fine tune your CPU clusters for performance, efficiency, or battery life by controlling frequency, governor, and core status per cluster.</string>
+    <string name="cpu_control_description">Fine tune your CPU clusters for performance, efficiency,
+        or battery life by controlling frequency, governor, and core status per cluster.</string>
     <string name="cpu_no_clusters">No CPU clusters detected</string>
     <string name="cpu_cluster_0">CPU Cluster 0</string>
     <string name="cpu_cluster_1">CPU Cluster 1</string>
@@ -157,7 +162,8 @@
     <string name="gpu_lock">Lock</string>
     <string name="gpu_unlock">Unlock</string>
     <string name="gpu_lock_info">Lock to force GPU to stay at selected frequency</string>
-    <string name="gpu_locked_warning">GPU frequency is locked. This may cause higher power consumption.</string>
+    <string name="gpu_locked_warning">GPU frequency is locked. This may cause higher power
+        consumption.</string>
 
     <!-- GPU Renderer Options -->
     <string name="gpu_renderer_select_title">Select GPU Renderer</string>
@@ -179,12 +185,12 @@
     <string name="gpu_renderer_compatibility_intro">GPU renderer switching depends on ROM support:</string>
     <string name="gpu_fully_supported">✓ Fully Supported:</string>
     <string name="gpu_supported_roms">• Custom ROMs (Pixel Experience, LineageOS)
-• AOSP-based ROMs
-• ROMs with unlocked build.prop</string>
+        • AOSP-based ROMs
+        • ROMs with unlocked build.prop</string>
     <string name="gpu_limited_support">✗ Limited/Not Supported:</string>
     <string name="gpu_unsupported_roms">• Stock ROMs (MIUI, ColorOS, OneUI)
-• SELinux enforcing + locked props
-• Hardcoded renderer in vendor HAL</string>
+        • SELinux enforcing + locked props
+        • Hardcoded renderer in vendor HAL</string>
     <string name="gpu_why_not_work">Why it might not work:</string>
     <string name="gpu_reason_1">ROM hardcodes renderer in vendor HAL</string>
     <string name="gpu_reason_2">SELinux blocks property changes</string>
@@ -201,8 +207,8 @@
     <string name="gpu_new">New:</string>
     <string name="gpu_important">⚠️ Important:</string>
     <string name="gpu_change_warnings">• System reboot required
-• May not work on all ROMs
-• Stock ROMs often lock this setting</string>
+        • May not work on all ROMs
+        • Stock ROMs often lock this setting</string>
     <string name="gpu_check_rom_compatibility">Check ROM Compatibility</string>
     <string name="gpu_apply_changes">Apply Changes</string>
     <string name="gpu_cancel">Cancel</string>
@@ -223,7 +229,8 @@
 
     <!-- MediaTek Warning -->
     <string name="mediatek_device_detected">MediaTek Device Detected</string>
-    <string name="mediatek_gpu_unavailable">GPU control is not available on MediaTek devices due to hardware limitations.</string>
+    <string name="mediatek_gpu_unavailable">GPU control is not available on MediaTek devices due to
+        hardware limitations.</string>
     <string name="mediatek_gpu_notice">GPU control not available on MediaTek devices</string>
 
     <!-- Thermal Control -->
@@ -299,7 +306,8 @@
     <string name="per_app_profile_save_button">Save</string>
     <string name="per_app_profile_cancel">Cancel</string>
     <string name="per_app_profile_usage_required">Usage Access Required</string>
-    <string name="per_app_profile_usage_desc">Grant usage access permission to detect foreground apps</string>
+    <string name="per_app_profile_usage_desc">Grant usage access permission to detect foreground
+        apps</string>
     <string name="per_app_profile_grant_permission">Grant Permission</string>
     <string name="per_app_profile_service_starting">Starting Per-App Profile Service…</string>
     <string name="per_app_profile_service_started">Per-App Profile: Service Started</string>
@@ -316,7 +324,8 @@
     <string name="per_app_profile_refresh_rate_120">120 Hz</string>
     <string name="per_app_profile_refresh_rate_applied">Refresh rate set to %1$d Hz</string>
     <string name="per_app_profile_display_info">Display: %1$d Hz max</string>
-    <string name="per_app_profile_refresh_rate_warning">⚠️ Refresh rate changes depend on ROM compatibility. If it doesn\'t work, try restarting your device.</string>
+    <string name="per_app_profile_refresh_rate_warning">⚠️ Refresh rate changes depend on ROM
+        compatibility. If it doesn\'t work, try restarting your device.</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Miscellaneous</string>
@@ -345,7 +354,8 @@
     <!-- Info Screen -->
     <string name="info_title">About</string>
     <string name="info_tagline">Advanced kernel manager for rooted Android devices</string>
-    <string name="info_description">An open-source Android kernel management application built with Kotlin and Jetpack Compose.</string>
+    <string name="info_description">An open-source Android kernel management application built with
+        Kotlin and Jetpack Compose.</string>
     <string name="info_features">Features</string>
     <string name="info_feature_1">CPU frequency and governor control</string>
     <string name="info_feature_2">GPU renderer and power management</string>
@@ -378,7 +388,7 @@
     <string name="info_role_founder">Founder</string>
     <string name="info_role_contributor">Contributor</string>
     <string name="info_role_tester">Software Tester</string>
-    
+
     <!-- Team Member Names -->
     <string name="team_tester_achmad">Achmad</string>
     <string name="team_tester_hasan">Hasan</string>
@@ -426,12 +436,13 @@
 
     <!-- GPU Renderer Reboot (Legacy - might be unused) -->
     <string name="gpu_renderer_reboot_title">Reboot Required</string>
-    <string name="gpu_renderer_reboot_message">Changing GPU renderer requires a system reboot to take effect. Do you want to reboot now?</string>
+    <string name="gpu_renderer_reboot_message">Changing GPU renderer requires a system reboot to
+        take effect. Do you want to reboot now?</string>
     <string name="gpu_renderer_reboot_confirm">Reboot Now</string>
     <string name="gpu_renderer_reboot_later">Apply Later</string>
     <string name="gpu_renderer_warning">⚠️ Changing renderer requires reboot for permanent change</string>
 
-   <!-- Power Actions -->
+    <!-- Power Actions -->
     <string name="reboot">Reboot</string>
     <string name="power_off">Power Off</string>
     <string name="recovery">Recovery</string>
@@ -446,21 +457,25 @@
     <string name="splash_checking_root">Checking root access…</string>
     <string name="splash_checking_updates">Checking for updates…</string>
     <string name="splash_initializing">Initializing…</string>
-    
+
     <!-- Root Required Dialog -->
     <string name="root_required_title">Root Access Required</string>
-    <string name="root_required_message">Xtra Kernel Manager requires root access to function properly. Please grant root permission through your root manager (Magisk, KernelSU, etc) and try again.</string>
-    <string name="root_required_instructions">• Magisk: Enable superuser for this app\n• KernelSU: Add this app to allow list\n• APatch: Grant root permission</string>
-    
+    <string name="root_required_message">Xtra Kernel Manager requires root access to function
+        properly. Please grant root permission through your root manager (Magisk, KernelSU, etc) and
+        try again.</string>
+    <string name="root_required_instructions">• Magisk: Enable superuser for this app\n• KernelSU:
+        Add this app to allow list\n• APatch: Grant root permission</string>
+
     <!-- Update Dialog -->
     <string name="update_required">Update Required</string>
     <string name="update_new_version">New Version: %1$s</string>
     <string name="update_changelog">Changelog</string>
     <string name="update_now">Update Now</string>
-    
+
     <!-- Offline Lock Dialog -->
     <string name="connection_required">Connection Required</string>
-    <string name="connection_required_message">A pending update was detected previously. You must enable internet connection to update the app before proceeding.</string>
+    <string name="connection_required_message">A pending update was detected previously. You must
+        enable internet connection to update the app before proceeding.</string>
     <string name="retry_connection">Retry Connection</string>
 
 
@@ -481,34 +496,53 @@
     <string name="holiday_newyear_subtitle">Happy New Year!</string>
     <string name="holiday_newyear_button">🚀 Let\'s Go!</string>
     <string name="holiday_from_xkm">– Xtra Kernel Manager –</string>
-    
+
     <!-- Holiday Motivational Messages -->
-    <string name="holiday_christmas_motivation_1">May the love and warmth of Christmas always be with you. Stay strong and spread happiness! ❤️</string>
-    <string name="holiday_christmas_motivation_2">On this blessed day, remember that every challenge is an opportunity to grow. Happy celebrating! 🌟</string>
-    <string name="holiday_christmas_motivation_3">Christmas teaches us about unconditional love. Keep spreading kindness around you! 💫</string>
-    <string name="holiday_christmas_motivation_4">Be grateful for all the blessings this year. Every day is a precious gift! 🎁</string>
-    <string name="holiday_newyear_motivation_1">Year %1$d is a new chapter! Make your dreams come true, face challenges bravely, and never stop growing! 💪</string>
-    <string name="holiday_newyear_motivation_2">Welcome to year %1$d! May this year be full of achievements, health, and happiness. You got this! 🌈</string>
-    <string name="holiday_newyear_motivation_3">New year, new spirit! Make %1$d your best year ever. Small steps lead to big changes! 🚀</string>
-    <string name="holiday_newyear_motivation_4">%1$d is here! Believe in yourself, keep fighting, and celebrate every small progress. You are amazing! ⭐</string>
+    <string name="holiday_christmas_motivation_1">May the love and warmth of Christmas always be
+        with you. Stay strong and spread happiness! ❤️</string>
+    <string name="holiday_christmas_motivation_2">On this blessed day, remember that every challenge
+        is an opportunity to grow. Happy celebrating! 🌟</string>
+    <string name="holiday_christmas_motivation_3">Christmas teaches us about unconditional love.
+        Keep spreading kindness around you! 💫</string>
+    <string name="holiday_christmas_motivation_4">Be grateful for all the blessings this year. Every
+        day is a precious gift! 🎁</string>
+    <string name="holiday_newyear_motivation_1">Year %1$d is a new chapter! Make your dreams come
+        true, face challenges bravely, and never stop growing! 💪</string>
+    <string name="holiday_newyear_motivation_2">Welcome to year %1$d! May this year be full of
+        achievements, health, and happiness. You got this! 🌈</string>
+    <string name="holiday_newyear_motivation_3">New year, new spirit! Make %1$d your best year ever.
+        Small steps lead to big changes! 🚀</string>
+    <string name="holiday_newyear_motivation_4">%1$d is here! Believe in yourself, keep fighting,
+        and celebrate every small progress. You are amazing! ⭐</string>
 
     <!-- Ramadan Celebration -->
     <string name="holiday_ramadan_title">🌙 Ramadan Mubarak! ☪️</string>
     <string name="holiday_ramadan_subtitle">Blessed Ramadan!</string>
     <string name="holiday_ramadan_button">🤲 Alhamdulillah!</string>
-    <string name="holiday_ramadan_motivation_1">May this holy month bring you closer to Allah and fill your heart with peace, patience, and blessings. Ramadan Kareem! 🌙</string>
-    <string name="holiday_ramadan_motivation_2">Welcome to the blessed month of Ramadan! May your fasting be accepted and your prayers answered. Stay strong! 🤲</string>
-    <string name="holiday_ramadan_motivation_3">This Ramadan, let us purify our hearts, strengthen our faith, and spread kindness everywhere. Masha Allah! ✨</string>
-    <string name="holiday_ramadan_motivation_4">Ramadan is a time for reflection, gratitude, and spiritual growth. May Allah bless you throughout this month and beyond! 🕌</string>
+    <string name="holiday_ramadan_motivation_1">May this holy month bring you closer to Allah and
+        fill your heart with peace, patience, and blessings. Ramadan Kareem! 🌙</string>
+    <string name="holiday_ramadan_motivation_2">Welcome to the blessed month of Ramadan! May your
+        fasting be accepted and your prayers answered. Stay strong! 🤲</string>
+    <string name="holiday_ramadan_motivation_3">This Ramadan, let us purify our hearts, strengthen
+        our faith, and spread kindness everywhere. Masha Allah! ✨</string>
+    <string name="holiday_ramadan_motivation_4">Ramadan is a time for reflection, gratitude, and
+        spiritual growth. May Allah bless you throughout this month and beyond! 🕌</string>
 
     <!-- Eid al-Fitr Celebration (Idul Fitri) -->
     <string name="holiday_eid_fitr_title">🎉 Eid Mubarak! 🌙</string>
     <string name="holiday_eid_fitr_subtitle">Happy Eid al-Fitr!</string>
     <string name="holiday_eid_fitr_button">🤲 Taqabbalallahu Minna Wa Minkum!</string>
-    <string name="holiday_eid_fitr_motivation_1">Congratulations on completing Ramadan! May Allah accept all your fasting, prayers, and good deeds. Wishing you joy and blessings on this special day! 🎊</string>
-    <string name="holiday_eid_fitr_motivation_2">Eid Mubarak! After a blessed month of fasting, it\'s time to celebrate! May this Eid bring happiness, peace, and prosperity to you and your family! 🌟</string>
-    <string name="holiday_eid_fitr_motivation_3">The day of victory has arrived! May your heart be filled with joy, your home with love, and your life with blessings. Selamat Hari Raya! 🕌</string>
-    <string name="holiday_eid_fitr_motivation_4">Eid al-Fitr is a celebration of faith, family, and gratitude. May the lessons of Ramadan guide you throughout the year. Minal Aidin Wal Faizin! ✨</string>
+    <string name="holiday_eid_fitr_motivation_1">Congratulations on completing Ramadan! May Allah
+        accept all your fasting, prayers, and good deeds. Wishing you joy and blessings on this
+        special day! 🎊</string>
+    <string name="holiday_eid_fitr_motivation_2">Eid Mubarak! After a blessed month of fasting,
+        it\'s time to celebrate! May this Eid bring happiness, peace, and prosperity to you and your
+        family! 🌟</string>
+    <string name="holiday_eid_fitr_motivation_3">The day of victory has arrived! May your heart be
+        filled with joy, your home with love, and your life with blessings. Selamat Hari Raya! 🕌</string>
+    <string name="holiday_eid_fitr_motivation_4">Eid al-Fitr is a celebration of faith, family, and
+        gratitude. May the lessons of Ramadan guide you throughout the year. Minal Aidin Wal Faizin!
+        ✨</string>
 
     <!-- Game Control Additional Strings -->
     <string name="game_control_no_games">No games added</string>
@@ -582,10 +616,12 @@
     <!-- Play Integrity Settings Screen -->
     <string name="play_integrity_settings_title">Play Integrity Settings</string>
     <string name="play_integrity_fix">Play Integrity Fix</string>
-    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix enabled - passes SafetyNet checks</string>
+    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix enabled - passes SafetyNet
+        checks</string>
     <string name="play_integrity_fix_desc_disabled">Play Integrity Fix disabled</string>
     <string name="spoof_bootloader">Spoof Bootloader Status</string>
-    <string name="spoof_bootloader_desc_enabled">Bootloader spoofed as locked - may pass strong integrity</string>
+    <string name="spoof_bootloader_desc_enabled">Bootloader spoofed as locked - may pass strong
+        integrity</string>
     <string name="spoof_bootloader_desc_disabled">Bootloader spoof disabled</string>
     <string name="auto_update_pif">Auto Update PIF.apk</string>
     <string name="auto_update_pif_desc_enabled">Auto-updates PIF.apk when fingerprint/keybox revoked</string>
@@ -594,13 +630,16 @@
     <string name="game_props_desc_enabled">Game props enabled - unlocks max graphics settings</string>
     <string name="game_props_desc_disabled">Game props disabled</string>
     <string name="per_app_thermals">Per App Thermals</string>
-    <string name="per_app_thermals_desc_enabled">Per-app thermals enabled - automatic thermal profiles</string>
+    <string name="per_app_thermals_desc_enabled">Per-app thermals enabled - automatic thermal
+        profiles</string>
     <string name="per_app_thermals_desc_disabled">Per-app thermals disabled</string>
     <string name="unlimited_photos_backup">Unlimited Google Photos Backup</string>
-    <string name="unlimited_photos_backup_desc_enabled">Unlimited backup enabled - original quality without storage limit</string>
+    <string name="unlimited_photos_backup_desc_enabled">Unlimited backup enabled - original quality
+        without storage limit</string>
     <string name="unlimited_photos_backup_desc_disabled">Unlimited backup disabled</string>
     <string name="netflix_spoof">Netflix Spoof</string>
-    <string name="netflix_spoof_desc_enabled">Netflix spoof enabled - device model spoofed for compatibility</string>
+    <string name="netflix_spoof_desc_enabled">Netflix spoof enabled - device model spoofed for
+        compatibility</string>
     <string name="netflix_spoof_desc_disabled">Netflix spoof disabled</string>
 
     <!-- Xiaomi Touch Settings Screen -->
@@ -651,7 +690,8 @@
 
     <!-- Security Gate -->
     <string name="security_warning_title">Access Restricted</string>
-    <string name="security_warning_message">This device is not registered in the official OOSExgang VIP community. Access to Functional ROM features requires community membership.</string>
+    <string name="security_warning_message">This device is not registered in the official OOSExgang
+        VIP community. Access to Functional ROM features requires community membership.</string>
     <string name="security_warning_button">Understood</string>
 
     <!-- Touch Boost -->
@@ -669,7 +709,7 @@
     <string name="esports_mode_desc">Maximum optimization for gaming</string>
     <string name="mode_monster">MODE MONSTER</string>
     <string name="mode_monster_activated">ACTIVATED</string>
-    
+
     <string name="overlay_grant_dnd">Please grant DND access in Settings</string>
     <string name="overlay_error_settings">Could not open Settings</string>
     <string name="overlay_grant_permission">Please grant overlay permission for Game Overlay</string>
@@ -702,5 +742,41 @@
     <string name="game_tools_clear_ram">Clear\nRAM</string>
     <string name="game_tools_clearing">Clearing…</string>
     <string name="game_control_grant_usage_access">Grant Usage Access Permission</string>
+
+    <!-- Layout Style -->
+    <string name="layout_style">Layout Style</string>
+    <string name="layout_style_desc">Choose between classic glassmorphic or pure Material 3 design</string>
+    <string name="layout_legacy">Legacy</string>
+    <string name="layout_legacy_desc">Glassmorphic design with visual effects</string>
+    <string name="layout_material">Material</string>
+    <string name="layout_material_desc">Pure Material 3 design, clean and simple</string>
+
+    <!-- Setup Wizard -->
+    <string name="setup_welcome">Welcome to XKM</string>
+    <string name="setup_welcome_desc">The ultimate kernel manager for focused performance and deep
+        system control.</string>
+    <string name="setup_get_started">Get Started</string>
+    <string name="setup_permissions_title">Permissions</string>
+    <string name="setup_permissions_desc">We need a few permissions to unleash the full power of
+        your kernel.</string>
+    <string name="setup_root_access">Root Access</string>
+    <string name="setup_root_desc">Required to modify kernel settings.</string>
+    <string name="setup_usage_access">Usage Access</string>
+    <string name="setup_usage_desc">Required to track screen-on time and per-app profiles.</string>
+    <string name="setup_notifications">Notifications</string>
+    <string name="setup_notifications_desc">To notify you about applied profiles.</string>
+    <string name="setup_storage_access">Storage Access</string>
+    <string name="setup_storage_desc">To backup and restore configurations.</string>
+    <string name="setup_grant">Grant</string>
+    <string name="setup_allow">Allow</string>
+    <string name="setup_finish">Start XKM</string>
+    <string name="setup_root_required">Root Access Required</string>
+    <string name="setup_choose_style">Choose Your Style</string>
+    <string name="setup_choose_style_desc">Select the interface design that fits you best.</string>
+    <string name="setup_continue_with">Continue with %1$s</string>
+    <string name="setup_back">Back</string>
+    <string name="setup_select">Select a Style</string>
+    <string name="setup_root_note">By continuing, you acknowledge that this app requires root access
+        and you are responsible for any changes made to your device.</string>
 
 </resources>

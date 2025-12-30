@@ -1,0 +1,58 @@
+use crate::utils;
+
+const KGSL_GPUCLK: &str = "/sys/class/kgsl/kgsl-3d0/gpuclk";
+const KGSL_CLOCK_MHZ: &str = "/sys/class/kgsl/kgsl-3d0/clock_mhz";
+const MALI_GPU_CLOCK: &str = "/sys/kernel/gpu/gpu_clock";
+const MALI_CLOCK: &str = "/sys/devices/platform/mali.0/clock";
+
+#[inline]
+fn read_sysfs(path: &str) -> Option<String> {
+    utils::read_file_libc(path)
+}
+
+fn parse_freq_to_mhz(value: &str) -> Option<i32> {
+    let freq: i64 = value.parse().ok()?;
+
+    if freq <= 0 {
+        None
+    } else if freq > 1_000_000 {
+        Some((freq / 1_000_000) as i32)
+    } else if freq > 1_000 {
+        Some((freq / 1_000) as i32)
+    } else {
+        Some(freq as i32)
+    }
+}
+
+pub fn read_gpu_freq() -> i32 {
+    let paths = [KGSL_GPUCLK, KGSL_CLOCK_MHZ, MALI_GPU_CLOCK, MALI_CLOCK];
+
+    for path in &paths {
+        if let Some(content) = read_sysfs(path)
+            && let Some(freq_mhz) = parse_freq_to_mhz(&content) {
+                return freq_mhz;
+            }
+    }
+
+    0
+}
+
+pub fn read_gpu_busy() -> i32 {
+    if let Some(content) = read_sysfs("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage") {
+        let num_str = content.split_whitespace().next().unwrap_or("0");
+        if let Ok(busy) = num_str.parse::<i32>() {
+            return busy;
+        }
+    }
+
+    if let Some(content) = read_sysfs("/sys/class/kgsl/kgsl-3d0/gpubusy") {
+        let parts: Vec<&str> = content.split_whitespace().collect();
+        if parts.len() >= 2
+            && let (Ok(busy), Ok(total)) = (parts[0].parse::<i64>(), parts[1].parse::<i64>())
+                && total > 0 {
+                    return ((busy * 100) / total) as i32;
+                }
+    }
+
+    0
+}
