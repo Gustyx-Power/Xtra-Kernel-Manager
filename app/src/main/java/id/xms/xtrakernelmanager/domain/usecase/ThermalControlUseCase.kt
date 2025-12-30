@@ -6,6 +6,35 @@ import java.io.InputStreamReader
 
 class ThermalControlUseCase {
 
+  private val sconfigPath = "/sys/class/thermal/thermal_message/sconfig"
+
+  /**
+   * Get current thermal mode from system
+   * Returns the preset name based on sconfig value
+   */
+  suspend fun getCurrentThermalMode(): String {
+    return try {
+      val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat $sconfigPath"))
+      val output = BufferedReader(InputStreamReader(process.inputStream)).readText().trim()
+      process.waitFor()
+      
+      val sconfigValue = output.toIntOrNull() ?: 0
+      
+      // Map sconfig value back to preset name
+      when (sconfigValue) {
+        11, 0 -> "Class 0"       // Default/Class 0
+        2 -> "Extreme"
+        10 -> "Dynamic"
+        8 -> "Incalls"
+        20 -> "Thermal 20"
+        else -> "Class 0"  // Default for unknown values
+      }
+    } catch (e: Exception) {
+      Log.e("ThermalControlUseCase", "Failed to read current thermal mode", e)
+      "Class 0"  // Default on error
+    }
+  }
+
   suspend fun setThermalMode(preset: String, setOnBoot: Boolean): Result<Unit> {
     val index =
         when (preset) {
@@ -17,7 +46,6 @@ class ThermalControlUseCase {
           else -> 0
         }
 
-    val sconfigPath = "/sys/class/thermal/thermal_message/sconfig"
     val logTag = "ThermalControlUseCase"
 
     try {

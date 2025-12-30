@@ -311,8 +311,18 @@ class TuningViewModel(
       _currentIOScheduler.value = preferencesManager.getIOScheduler().first()
       _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
       _currentPerfMode.value = preferencesManager.getPerfMode().first()
-      _currentThermalPreset.value = preferencesManager.getThermalPreset().first()
       _isThermalSetOnBoot.value = preferencesManager.getThermalSetOnBoot().first()
+      
+      // Load thermal preset - prefer system detection, fallback to saved
+      val savedThermal = preferencesManager.getThermalPreset().first()
+      if (savedThermal == "class0" || savedThermal.isEmpty()) {
+        // Detect current thermal mode from system
+        withContext(Dispatchers.IO) {
+          _currentThermalPreset.value = thermalUseCase.getCurrentThermalMode()
+        }
+      } else {
+        _currentThermalPreset.value = savedThermal
+      }
 
       // Load DNS state
       loadDNS()
