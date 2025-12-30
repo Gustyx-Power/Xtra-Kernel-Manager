@@ -17,6 +17,9 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SdStorage
+import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -405,7 +408,7 @@ fun ExpandableRamCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Star, // Placeholder for Memory Icon
+                        imageVector = Icons.Default.Memory,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary
                     )
@@ -470,9 +473,9 @@ fun ExpandableRamCard(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    StatRow(icon = Icons.Default.Star, value = "5.8 GB", label = "Used Memory")
-                    StatRow(icon = Icons.Default.Check, value = "2.2 GB", label = "Available")
-                    StatRow(icon = Icons.Default.Star, value = "1.2 GB", label = "Cached")
+                    StatRow(icon = Icons.Default.Memory, value = "5.8 GB", label = "Used Memory")
+                    StatRow(icon = Icons.Default.CheckCircle, value = "2.2 GB", label = "Available")
+                    StatRow(icon = Icons.Default.Memory, value = "1.2 GB", label = "Cached")
                     StatRow(icon = Icons.Default.KeyboardArrowUp, value = "120 MB", label = "Swap Used")
                 }
             }
@@ -527,7 +530,7 @@ fun ExpandableZramCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Star, // Placeholder for Zip Icon
+                        imageVector = Icons.Default.Memory, // ZRAM Icon
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.secondary
                     )
@@ -547,8 +550,8 @@ fun ExpandableZramCard(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    StatRow(icon = Icons.Default.Star, value = "3.8x", label = "Comp. Ratio")
-                    StatRow(icon = Icons.Default.Check, value = "1.1 GB", label = "Original")
+                    StatRow(icon = Icons.Default.Settings, value = "3.8x", label = "Comp. Ratio")
+                    StatRow(icon = Icons.Default.Memory, value = "1.1 GB", label = "Original")
                     StatRow(icon = Icons.Default.KeyboardArrowDown, value = "300 MB", label = "Compressed")
                     StatRow(icon = Icons.Default.KeyboardArrowUp, value = "${ramConfig.swappiness}%", label = "Swappiness")
                 }
@@ -800,7 +803,7 @@ fun ExpandableSelectionCard(
 
                                 if (isSelected) {
                                     Icon(
-                                        imageVector = Icons.Default.Check,
+                                        imageVector = Icons.Default.RadioButtonChecked,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                                         modifier = Modifier.size(20.dp),
