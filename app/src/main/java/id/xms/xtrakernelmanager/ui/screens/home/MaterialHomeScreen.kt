@@ -53,6 +53,7 @@ import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.DeviceSilhouette
 import id.xms.xtrakernelmanager.ui.components.WavyProgressIndicator
+import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import java.util.Locale
 import kotlinx.coroutines.delay
 
@@ -69,8 +70,11 @@ fun MaterialHomeScreen(
   val context = LocalContext.current
 
   // Bottom Sheet State
-  @OptIn(ExperimentalMaterial3Api::class) val sheetState = rememberModalBottomSheetState()
-  var showBottomSheet by remember { mutableStateOf(false) }
+  @OptIn(ExperimentalMaterial3Api::class) val powerSheetState = rememberModalBottomSheetState()
+  var showPowerBottomSheet by remember { mutableStateOf(false) }
+
+  @OptIn(ExperimentalMaterial3Api::class) val settingsSheetState = rememberModalBottomSheetState()
+  var showSettingsBottomSheet by remember { mutableStateOf(false) }
 
   // Data State
   val cpuInfo by viewModel.cpuInfo.collectAsState()
@@ -85,7 +89,7 @@ fun MaterialHomeScreen(
       containerColor = MaterialTheme.colorScheme.background,
       floatingActionButton = {
         FloatingActionButton(
-            onClick = { showBottomSheet = true },
+            onClick = { showPowerBottomSheet = true },
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
@@ -105,7 +109,9 @@ fun MaterialHomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           // Header
-          StaggeredEntry(delayMillis = 0) { MaterialHeader(onSettingsClick = onSettingsClick) }
+          StaggeredEntry(delayMillis = 0) {
+            MaterialHeader(onSettingsClick = { showSettingsBottomSheet = true })
+          }
 
           // Device Info Card
           StaggeredEntry(delayMillis = 100) { MaterialDeviceCard(systemInfo = systemInfo) }
@@ -159,19 +165,34 @@ fun MaterialHomeScreen(
       },
   )
 
-  // Power Menu Sheet (Same as before)
-  if (showBottomSheet) {
+  // Power Menu Sheet
+  if (showPowerBottomSheet) {
     ModalBottomSheet(
-        onDismissRequest = { showBottomSheet = false },
-        sheetState = sheetState,
+        onDismissRequest = { showPowerBottomSheet = false },
+        sheetState = powerSheetState,
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
       PowerMenuContent(
           onAction = {
-            showBottomSheet = false
+            showPowerBottomSheet = false
             onPowerAction(it)
           }
+      )
+    }
+  }
+
+  // Settings Sheet
+  if (showSettingsBottomSheet) {
+    ModalBottomSheet(
+        onDismissRequest = { showSettingsBottomSheet = false },
+        sheetState = settingsSheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+      SettingsSheet(
+          preferencesManager = preferencesManager,
+          onDismiss = { showSettingsBottomSheet = false },
       )
     }
   }

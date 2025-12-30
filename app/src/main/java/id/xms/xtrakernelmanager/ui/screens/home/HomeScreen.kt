@@ -48,6 +48,7 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import java.io.DataOutputStream
@@ -58,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @SuppressLint("DefaultLocale")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     preferencesManager: PreferencesManager,
@@ -78,6 +80,10 @@ fun HomeScreen(
   // UI State untuk Power Menu
   var showPowerMenu by remember { mutableStateOf(false) }
   var activePowerAction by remember { mutableStateOf<PowerAction?>(null) }
+
+  // UI State untuk Settings Sheet (Legacy)
+  @OptIn(ExperimentalMaterial3Api::class) val settingsSheetState = rememberModalBottomSheetState()
+  var showSettingsBottomSheet by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) { viewModel.loadBatteryInfo(context) }
 
@@ -112,6 +118,20 @@ fun HomeScreen(
     )
   }
 
+  if (showSettingsBottomSheet) {
+    ModalBottomSheet(
+        onDismissRequest = { showSettingsBottomSheet = false },
+        sheetState = settingsSheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+      SettingsSheet(
+          preferencesManager = preferencesManager,
+          onDismiss = { showSettingsBottomSheet = false },
+      )
+    }
+  }
+
   if (layoutStyle == null) {
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
   } else {
@@ -133,13 +153,31 @@ fun HomeScreen(
       }
       else -> {
         // Legacy Home Screen (current glassmorphic UI)
-        LegacyHomeContent(
-            cpuInfo = cpuInfo,
-            gpuInfo = gpuInfo,
-            batteryInfo = batteryInfo,
-            systemInfo = systemInfo,
-            onPowerMenuClick = { showPowerMenu = true },
-        )
+        Scaffold(
+            floatingActionButton = {
+              FloatingActionButton(
+                  onClick = { showPowerMenu = true },
+                  containerColor = MaterialTheme.colorScheme.primaryContainer,
+                  contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                  shape = CircleShape,
+              ) {
+                Icon(
+                    imageVector = Icons.Rounded.PowerSettingsNew,
+                    contentDescription = "Power Menu",
+                )
+              }
+            }
+        ) { paddingValues ->
+          Box(Modifier.padding(paddingValues)) {
+            LegacyHomeContent(
+                cpuInfo = cpuInfo,
+                gpuInfo = gpuInfo,
+                batteryInfo = batteryInfo,
+                systemInfo = systemInfo,
+                onSettingsClick = { showSettingsBottomSheet = true },
+            )
+          }
+        }
       }
     }
   }
@@ -156,7 +194,7 @@ private fun LegacyHomeContent(
     gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo,
     batteryInfo: id.xms.xtrakernelmanager.data.model.BatteryInfo,
     systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo,
-    onPowerMenuClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
   // Holiday Decoration (cached outside grid)
   val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
@@ -204,17 +242,17 @@ private fun LegacyHomeContent(
           }
         }
         FilledTonalIconButton(
-            onClick = onPowerMenuClick,
+            onClick = onSettingsClick,
             modifier = Modifier.size(40.dp),
             colors =
                 IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 ),
         ) {
           Icon(
-              imageVector = Icons.Rounded.PowerSettingsNew,
-              contentDescription = "Power Menu",
+              imageVector = Icons.Rounded.Settings,
+              contentDescription = "Settings",
               modifier = Modifier.size(20.dp),
           )
         }

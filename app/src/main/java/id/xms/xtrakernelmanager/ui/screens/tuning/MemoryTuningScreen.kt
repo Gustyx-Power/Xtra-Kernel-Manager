@@ -12,14 +12,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SdStorage
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.SdStorage
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -388,99 +388,92 @@ fun ExpandableRamCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val containerColor = MaterialTheme.colorScheme.surfaceContainer
-    val shape = RoundedCornerShape(32.dp)
+  val containerColor = MaterialTheme.colorScheme.surfaceContainer
+  val shape = RoundedCornerShape(32.dp)
 
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = containerColor,
-        shape = shape,
-
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Memory,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(
-                    text = "RAM Insight",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = CircleShape
-                ) {
-                    Text(
-                        text = "Healthy",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Main Content Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween 
-            ) {
-                // Left: Wavy Indicator
-                Box(contentAlignment = Alignment.Center) {
-                    WavyCircularProgressIndicator(
-                        progress = 0.75f,
-                        modifier = Modifier.size(150.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        strokeWidth = 16.dp,
-                        amplitude = 3.dp,
-                        frequency = 10,
-                    )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "75%",
-                            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Used",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Right: Stats List
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    StatRow(icon = Icons.Default.Memory, value = "5.8 GB", label = "Used Memory")
-                    StatRow(icon = Icons.Default.CheckCircle, value = "2.2 GB", label = "Available")
-                    StatRow(icon = Icons.Default.Memory, value = "1.2 GB", label = "Cached")
-                    StatRow(icon = Icons.Default.KeyboardArrowUp, value = "120 MB", label = "Swap Used")
-                }
-            }
+  Surface(
+      modifier = modifier.fillMaxWidth(),
+      color = containerColor,
+      shape = shape,
+  ) {
+    Column(modifier = Modifier.padding(20.dp)) {
+      // Header
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier =
+                Modifier.size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+              imageVector = Icons.Default.Memory,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary,
+          )
         }
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = "RAM Insight",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
+          Text(
+              text = "Healthy",
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+              color = MaterialTheme.colorScheme.onPrimaryContainer,
+          )
+        }
+      }
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      // Main Content Row
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
+      ) {
+        // Left: Wavy Indicator
+        Box(contentAlignment = Alignment.Center) {
+          WavyCircularProgressIndicator(
+              progress = 0.75f,
+              modifier = Modifier.size(150.dp),
+              color = MaterialTheme.colorScheme.primary,
+              trackColor = MaterialTheme.colorScheme.surfaceVariant,
+              strokeWidth = 16.dp,
+              amplitude = 3.dp,
+              frequency = 10,
+          )
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "75%",
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "Used",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Right: Stats List
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.weight(1f)) {
+          StatRow(icon = Icons.Default.Memory, value = "5.8 GB", label = "Used Memory")
+          StatRow(icon = Icons.Default.CheckCircle, value = "2.2 GB", label = "Available")
+          StatRow(icon = Icons.Default.Memory, value = "1.2 GB", label = "Cached")
+          StatRow(icon = Icons.Default.KeyboardArrowUp, value = "120 MB", label = "Swap Used")
+        }
+      }
     }
+  }
 }
 
 @Composable
@@ -492,205 +485,211 @@ fun ExpandableZramCard(
     onClick: () -> Unit,
     onConfigChange: (RAMConfig) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    val containerColor = MaterialTheme.colorScheme.surfaceContainer
-    val shape = RoundedCornerShape(32.dp)
+  var expanded by remember { mutableStateOf(false) }
+  val containerColor = MaterialTheme.colorScheme.surfaceContainer
+  val shape = RoundedCornerShape(32.dp)
 
-    Surface(
-        modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
-        color = containerColor,
-        shape = shape,
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    color = if (ramConfig.zramSize > 0) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer,
-                    shape = CircleShape
-                ) {
-                    Text(
-                        text = if (ramConfig.zramSize > 0) "Active" else "Disabled",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = if (ramConfig.zramSize > 0) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = "ZRAM Status",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Memory, // ZRAM Icon
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Main Content Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Left: Stats List
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    StatRow(icon = Icons.Default.Settings, value = "3.8x", label = "Comp. Ratio")
-                    StatRow(icon = Icons.Default.Memory, value = "1.1 GB", label = "Original")
-                    StatRow(icon = Icons.Default.KeyboardArrowDown, value = "300 MB", label = "Compressed")
-                    StatRow(icon = Icons.Default.KeyboardArrowUp, value = "${ramConfig.swappiness}%", label = "Swappiness")
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Right: Wavy Indicator
-                Box(contentAlignment = Alignment.Center) {
-                    WavyCircularProgressIndicator(
-                        progress = 0.40f,
-                        modifier = Modifier.size(150.dp),
-                        color = MaterialTheme.colorScheme.secondary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        strokeWidth = 16.dp,
-                        amplitude = 3.dp,
-                        frequency = 10,
-                    )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "${ramConfig.zramSize / 1024}GB",
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Size",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            // Expanded Configuration
-            // Expanded Configuration
-            if (expanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "Configuration",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-
-                        // ZRAM Size
-                        Column {
-                            Text(
-                                text = "Size: ${if (ramConfig.zramSize == 0) "Disabled" else "${ramConfig.zramSize} MB"}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            WavySlider(
-                                value = ramConfig.zramSize.toFloat(),
-                                onValueChange = { onConfigChange(ramConfig.copy(zramSize = it.toInt())) },
-                                valueRange = 0f..4096f,
-                                steps = 15,
-                            )
-                        }
-
-                        // Swappiness
-                        Column {
-                            Text(
-                                text = "Swappiness: ${ramConfig.swappiness}%",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            WavySlider(
-                                value = ramConfig.swappiness.toFloat(),
-                                onValueChange = { onConfigChange(ramConfig.copy(swappiness = it.toInt())) },
-                                valueRange = 0f..100f,
-                                steps = 19,
-                            )
-                        }
-
-                        // Dirty Ratio
-                        Column {
-                            Text(
-                                text = "Dirty Ratio: ${ramConfig.dirtyRatio}%",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            WavySlider(
-                                value = ramConfig.dirtyRatio.toFloat(),
-                                onValueChange = { onConfigChange(ramConfig.copy(dirtyRatio = it.toInt())) },
-                                valueRange = 0f..100f,
-                                steps = 19,
-                            )
-                        }
-                    }
-                }
-            }
+  Surface(
+      modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
+      color = containerColor,
+      shape = shape,
+  ) {
+    Column(modifier = Modifier.padding(20.dp)) {
+      // Header
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            color =
+                if (ramConfig.zramSize > 0) MaterialTheme.colorScheme.secondaryContainer
+                else MaterialTheme.colorScheme.errorContainer,
+            shape = CircleShape,
+        ) {
+          Text(
+              text = if (ramConfig.zramSize > 0) "Active" else "Disabled",
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+              color =
+                  if (ramConfig.zramSize > 0) MaterialTheme.colorScheme.onSecondaryContainer
+                  else MaterialTheme.colorScheme.onErrorContainer,
+          )
         }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "ZRAM Status",
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Box(
+            modifier =
+                Modifier.size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+              imageVector = Icons.Default.Memory, // ZRAM Icon
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.secondary,
+          )
+        }
+      }
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      // Main Content Row
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
+      ) {
+        // Left: Stats List
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.weight(1f)) {
+          StatRow(icon = Icons.Default.Settings, value = "3.8x", label = "Comp. Ratio")
+          StatRow(icon = Icons.Default.Memory, value = "1.1 GB", label = "Original")
+          StatRow(icon = Icons.Default.KeyboardArrowDown, value = "300 MB", label = "Compressed")
+          StatRow(
+              icon = Icons.Default.KeyboardArrowUp,
+              value = "${ramConfig.swappiness}%",
+              label = "Swappiness",
+          )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        // Right: Wavy Indicator
+        Box(contentAlignment = Alignment.Center) {
+          WavyCircularProgressIndicator(
+              progress = 0.40f,
+              modifier = Modifier.size(150.dp),
+              color = MaterialTheme.colorScheme.secondary,
+              trackColor = MaterialTheme.colorScheme.surfaceVariant,
+              strokeWidth = 16.dp,
+              amplitude = 3.dp,
+              frequency = 10,
+          )
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "${ramConfig.zramSize / 1024}GB",
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "Size",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+      }
+
+      // Expanded Configuration
+      // Expanded Configuration
+      if (expanded) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+          Column(
+              modifier = Modifier.padding(16.dp),
+              verticalArrangement = Arrangement.spacedBy(16.dp),
+          ) {
+            Text(
+                text = "Configuration",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            // ZRAM Size
+            Column {
+              Text(
+                  text =
+                      "Size: ${if (ramConfig.zramSize == 0) "Disabled" else "${ramConfig.zramSize} MB"}",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              WavySlider(
+                  value = ramConfig.zramSize.toFloat(),
+                  onValueChange = { onConfigChange(ramConfig.copy(zramSize = it.toInt())) },
+                  valueRange = 0f..4096f,
+                  steps = 15,
+              )
+            }
+
+            // Swappiness
+            Column {
+              Text(
+                  text = "Swappiness: ${ramConfig.swappiness}%",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              WavySlider(
+                  value = ramConfig.swappiness.toFloat(),
+                  onValueChange = { onConfigChange(ramConfig.copy(swappiness = it.toInt())) },
+                  valueRange = 0f..100f,
+                  steps = 19,
+              )
+            }
+
+            // Dirty Ratio
+            Column {
+              Text(
+                  text = "Dirty Ratio: ${ramConfig.dirtyRatio}%",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              WavySlider(
+                  value = ramConfig.dirtyRatio.toFloat(),
+                  onValueChange = { onConfigChange(ramConfig.copy(dirtyRatio = it.toInt())) },
+                  valueRange = 0f..100f,
+                  steps = 19,
+              )
+            }
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable
 fun StatRow(
-    icon:  androidx.compose.ui.graphics.vector.ImageVector,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
     value: String,
     label: String,
-    tint: Color = MaterialTheme.colorScheme.onSurface
+    tint: Color = MaterialTheme.colorScheme.onSurface,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Box(
+        modifier =
+            Modifier.size(36.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = tint,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        contentAlignment = Alignment.Center,
+    ) {
+      Icon(
+          imageVector = icon,
+          contentDescription = null,
+          tint = tint,
+          modifier = Modifier.size(18.dp),
+      )
     }
+    Spacer(modifier = Modifier.width(12.dp))
+    Column {
+      Text(
+          text = value,
+          style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+          color = MaterialTheme.colorScheme.onSurface,
+      )
+      Text(
+          text = label,
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+  }
 }
 
 @Composable
@@ -703,119 +702,122 @@ fun ExpandableSelectionCard(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
 ) {
-    val containerColor = MaterialTheme.colorScheme.surfaceContainer
-    val shape = RoundedCornerShape(24.dp)
+  val containerColor = MaterialTheme.colorScheme.surfaceContainer
+  val shape = RoundedCornerShape(24.dp)
 
-    Surface(
-        modifier = modifier.fillMaxWidth().animateContentSize().clickable { onExpandedChange(!expanded) },
-        color = containerColor,
-        shape = shape,
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            // Header
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    // Icon
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings, // Settings Icon
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+  Surface(
+      modifier =
+          modifier.fillMaxWidth().animateContentSize().clickable { onExpandedChange(!expanded) },
+      color = containerColor,
+      shape = shape,
+  ) {
+    Column(modifier = Modifier.padding(24.dp)) {
+      // Header
+      Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+          // Icon
+          Box(
+              modifier =
+                  Modifier.size(48.dp)
+                      .clip(RoundedCornerShape(12.dp))
+                      .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+              contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+                imageVector = Icons.Default.Settings, // Settings Icon
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp),
+            )
+          }
 
-                    // Badge
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(12.dp),
-                    ) {
-                        Text(
-                            text = selectedOption,
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        )
-                    }
-                }
+          // Badge
+          Surface(
+              color = MaterialTheme.colorScheme.secondaryContainer,
+              shape = RoundedCornerShape(12.dp),
+          ) {
+            Text(
+                text = selectedOption,
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+          }
+        }
 
-                Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
+        Text(
+            text = title.replace("\n", " "), // Ensure single line if passed with \n
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = "Algorithm",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+
+      // Expanded List
+      if (expanded) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+          Column(
+              verticalArrangement = Arrangement.spacedBy(8.dp),
+              modifier = Modifier.padding(16.dp),
+          ) {
+            options.forEach { option ->
+              val isSelected = option == selectedOption
+              Row(
+                  modifier =
+                      Modifier.fillMaxWidth()
+                          .clip(RoundedCornerShape(12.dp))
+                          .clickable {
+                            onOptionSelected(option)
+                            onExpandedChange(false)
+                          }
+                          .background(
+                              if (isSelected) MaterialTheme.colorScheme.secondaryContainer
+                              else Color.Transparent
+                          )
+                          .padding(vertical = 12.dp, horizontal = 12.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.SpaceBetween,
+              ) {
                 Text(
-                    text = title.replace("\n", " "), // Ensure single line if passed with \n
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    text = option,
+                    style =
+                        MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        ),
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                Text(
-                    text = "Algorithm",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
 
-            // Expanded List
-            if (expanded) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        options.forEach { option ->
-                            val isSelected = option == selectedOption
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
-                                        onOptionSelected(option)
-                                        onExpandedChange(false)
-                                    }
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
-                                    )
-                                    .padding(vertical = 12.dp, horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(
-                                    text = option,
-                                    style = MaterialTheme.typography.bodyLarge.copy(
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                                    ),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-
-                                if (isSelected) {
-                                    Icon(
-                                        imageVector = Icons.Default.RadioButtonChecked,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                        modifier = Modifier.size(20.dp),
-                                    )
-                                }
-                            }
-                        }
-                    }
+                if (isSelected) {
+                  Icon(
+                      imageVector = Icons.Default.RadioButtonChecked,
+                      contentDescription = null,
+                      tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                      modifier = Modifier.size(20.dp),
+                  )
                 }
+              }
             }
+          }
         }
+      }
     }
+  }
 }
 
 @Composable
@@ -827,95 +829,97 @@ fun ExpandableSwapCard(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
 ) {
-    val containerColor = MaterialTheme.colorScheme.surfaceContainer
-    val shape = RoundedCornerShape(24.dp)
+  val containerColor = MaterialTheme.colorScheme.surfaceContainer
+  val shape = RoundedCornerShape(24.dp)
 
-    Surface(
-        modifier = modifier.fillMaxWidth().animateContentSize().clickable { onExpandedChange(!expanded) },
-        color = containerColor,
-        shape = shape,
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            // Header
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    // Icon
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.SdStorage, // Swap Icon
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+  Surface(
+      modifier =
+          modifier.fillMaxWidth().animateContentSize().clickable { onExpandedChange(!expanded) },
+      color = containerColor,
+      shape = shape,
+  ) {
+    Column(modifier = Modifier.padding(24.dp)) {
+      // Header
+      Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+          // Icon
+          Box(
+              modifier =
+                  Modifier.size(48.dp)
+                      .clip(RoundedCornerShape(12.dp))
+                      .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+              contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+                imageVector = Icons.Default.SdStorage, // Swap Icon
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.size(24.dp),
+            )
+          }
 
-                    // Badge
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(12.dp),
-                    ) {
-                        Text(
-                            text = if (ramConfig.swapSize > 0) "${ramConfig.swapSize} MB" else "Disabled",
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = "Partition & File",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            // Expanded Content (Slider)
-            if (expanded) {
-                Spacer(modifier = Modifier.height(24.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Size: ${if (ramConfig.swapSize == 0) "Disabled" else "${ramConfig.swapSize} MB"}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-
-                        WavySlider(
-                            value = ramConfig.swapSize.toFloat(),
-                            onValueChange = { onConfigChange(ramConfig.copy(swapSize = it.toInt())) },
-                            valueRange = 0f..8192f, // 8GB
-                            steps = 31,
-                        )
-                    }
-                }
-            }
+          // Badge
+          Surface(
+              color = MaterialTheme.colorScheme.secondaryContainer,
+              shape = RoundedCornerShape(12.dp),
+          ) {
+            Text(
+                text = if (ramConfig.swapSize > 0) "${ramConfig.swapSize} MB" else "Disabled",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            )
+          }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = "Partition & File",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+
+      // Expanded Content (Slider)
+      if (expanded) {
+        Spacer(modifier = Modifier.height(24.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+          Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text =
+                    "Size: ${if (ramConfig.swapSize == 0) "Disabled" else "${ramConfig.swapSize} MB"}",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+
+            WavySlider(
+                value = ramConfig.swapSize.toFloat(),
+                onValueChange = { onConfigChange(ramConfig.copy(swapSize = it.toInt())) },
+                valueRange = 0f..8192f, // 8GB
+                steps = 31,
+            )
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable
@@ -925,66 +929,66 @@ fun ExpandableIOCard(
     onSchedulerChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    // Mock devices for UI structure
-    val devices = listOf("sda", "sdb", "sdc", "sdd")
+  var expanded by remember { mutableStateOf(false) }
+  // Mock devices for UI structure
+  val devices = listOf("sda", "sdb", "sdc", "sdd")
 
-    val containerColor = MaterialTheme.colorScheme.surfaceContainer
-    val shape = RoundedCornerShape(32.dp)
+  val containerColor = MaterialTheme.colorScheme.surfaceContainer
+  val shape = RoundedCornerShape(32.dp)
 
-    Surface(
-        modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
-        color = containerColor,
-        shape = shape,
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.SdStorage,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(
-                        text = "I/O Scheduler",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                         text = if (expanded) "Tap to collapse" else "Manage disk I/O",
-                         style = MaterialTheme.typography.bodySmall,
-                         color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.weight(1f))
-            }
-
-            if (expanded) {
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    devices.forEach { device ->
-                        DeviceIOSection(
-                            deviceName = device.uppercase(),
-                            currentScheduler = currentScheduler,
-                            availableSchedulers = availableSchedulers,
-                            onSchedulerChange = onSchedulerChange
-                        )
-                    }
-                }
-            }
+  Surface(
+      modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
+      color = containerColor,
+      shape = shape,
+  ) {
+    Column(modifier = Modifier.padding(20.dp)) {
+      // Header
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier =
+                Modifier.size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+              imageVector = Icons.Default.SdStorage,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary,
+          )
         }
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+          Text(
+              text = "I/O Scheduler",
+              style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+              color = MaterialTheme.colorScheme.onSurface,
+          )
+          Text(
+              text = if (expanded) "Tap to collapse" else "Manage disk I/O",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+      }
+
+      if (expanded) {
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+          devices.forEach { device ->
+            DeviceIOSection(
+                deviceName = device.uppercase(),
+                currentScheduler = currentScheduler,
+                availableSchedulers = availableSchedulers,
+                onSchedulerChange = onSchedulerChange,
+            )
+          }
+        }
+      }
     }
+  }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -993,109 +997,113 @@ fun DeviceIOSection(
     deviceName: String,
     currentScheduler: String,
     availableSchedulers: List<String>,
-    onSchedulerChange: (String) -> Unit
+    onSchedulerChange: (String) -> Unit,
 ) {
-    var dropdownExpanded by remember { mutableStateOf(false) }
-    var applyOnBoot by remember { mutableStateOf(false) } // Represents "Set on Boot"
+  var dropdownExpanded by remember { mutableStateOf(false) }
+  var applyOnBoot by remember { mutableStateOf(false) } // Represents "Set on Boot"
 
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = RoundedCornerShape(24.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(if (applyOnBoot) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = deviceName,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                
-                Switch(
-                    checked = applyOnBoot,
-                    onCheckedChange = { applyOnBoot = it },
-                    thumbContent = if (applyOnBoot) {
-                        {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(SwitchDefaults.IconSize),
-                            )
-                        }
-                    } else null,
-                    modifier = Modifier.scale(0.8f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Custom Dropdown
-            Text(
-                text = "Scheduler",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
-            )
-            
-            ExposedDropdownMenuBox(
-                expanded = dropdownExpanded,
-                onExpandedChange = { dropdownExpanded = !dropdownExpanded },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                 OutlinedTextField(
-                    value = currentScheduler,
-                    onValueChange = {},
-                    readOnly = true,
-                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor()
-                )
-
-                ExposedDropdownMenu(
-                    expanded = dropdownExpanded,
-                    onDismissRequest = { dropdownExpanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer)
-                ) {
-                    availableSchedulers.forEach { scheduler ->
-                        DropdownMenuItem(
-                            text = { 
-                                Text(
-                                    text = scheduler,
-                                    fontWeight = if (scheduler == currentScheduler) FontWeight.Bold else FontWeight.Normal
-                                ) 
-                            },
-                             onClick = {
-                                onSchedulerChange(scheduler)
-                                dropdownExpanded = false
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
-                        )
-                    }
-                }
-            }
+  Surface(
+      color = MaterialTheme.colorScheme.surfaceContainerHigh,
+      shape = RoundedCornerShape(24.dp),
+      modifier = Modifier.fillMaxWidth(),
+  ) {
+    Column(modifier = Modifier.padding(16.dp)) {
+      // Header Row
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween,
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Box(
+              modifier =
+                  Modifier.size(10.dp)
+                      .clip(CircleShape)
+                      .background(
+                          if (applyOnBoot) MaterialTheme.colorScheme.primary
+                          else MaterialTheme.colorScheme.outline
+                      )
+          )
+          Spacer(modifier = Modifier.width(12.dp))
+          Text(
+              text = deviceName,
+              style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+              color = MaterialTheme.colorScheme.onSurface,
+          )
         }
+
+        Switch(
+            checked = applyOnBoot,
+            onCheckedChange = { applyOnBoot = it },
+            thumbContent =
+                if (applyOnBoot) {
+                  {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                    )
+                  }
+                } else null,
+            modifier = Modifier.scale(0.8f),
+        )
+      }
+
+      Spacer(modifier = Modifier.height(16.dp))
+
+      // Custom Dropdown
+      Text(
+          text = "Scheduler",
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
+      )
+
+      ExposedDropdownMenuBox(
+          expanded = dropdownExpanded,
+          onExpandedChange = { dropdownExpanded = !dropdownExpanded },
+          modifier = Modifier.fillMaxWidth(),
+      ) {
+        OutlinedTextField(
+            value = currentScheduler,
+            onValueChange = {},
+            readOnly = true,
+            colors =
+                ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = Color.Transparent,
+                ),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
+        )
+
+        ExposedDropdownMenu(
+            expanded = dropdownExpanded,
+            onDismissRequest = { dropdownExpanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainer),
+        ) {
+          availableSchedulers.forEach { scheduler ->
+            DropdownMenuItem(
+                text = {
+                  Text(
+                      text = scheduler,
+                      fontWeight =
+                          if (scheduler == currentScheduler) FontWeight.Bold else FontWeight.Normal,
+                  )
+                },
+                onClick = {
+                  onSchedulerChange(scheduler)
+                  dropdownExpanded = false
+                },
+                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+            )
+          }
+        }
+      }
     }
+  }
 }
 
 @Composable

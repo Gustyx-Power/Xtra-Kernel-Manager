@@ -25,87 +25,89 @@ fun WavyCircularProgressIndicator(
     amplitude: Dp = 4.dp,
     frequency: Int = 12,
 ) {
-    val strokeWidthPx = with(androidx.compose.ui.platform.LocalDensity.current) { strokeWidth.toPx() }
-    val amplitudePx = with(androidx.compose.ui.platform.LocalDensity.current) { amplitude.toPx() }
+  val strokeWidthPx = with(androidx.compose.ui.platform.LocalDensity.current) { strokeWidth.toPx() }
+  val amplitudePx = with(androidx.compose.ui.platform.LocalDensity.current) { amplitude.toPx() }
 
-    // Animate progress using animateFloatAsState
-    val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = tween(
-            durationMillis = 1000,
-            easing = FastOutSlowInEasing,
-        ),
-        label = "progress",
-    )
+  // Animate progress using animateFloatAsState
+  val animatedProgress by
+      animateFloatAsState(
+          targetValue = progress,
+          animationSpec =
+              tween(
+                  durationMillis = 1000,
+                  easing = FastOutSlowInEasing,
+              ),
+          label = "progress",
+      )
 
-    Canvas(modifier = modifier) {
-        val radius = (size.minDimension - strokeWidthPx - amplitudePx * 2) / 2
-        val center = Offset(size.width / 2, size.height / 2)
-        val path = androidx.compose.ui.graphics.Path()
-        val trackPath = androidx.compose.ui.graphics.Path()
+  Canvas(modifier = modifier) {
+    val radius = (size.minDimension - strokeWidthPx - amplitudePx * 2) / 2
+    val center = Offset(size.width / 2, size.height / 2)
+    val path = androidx.compose.ui.graphics.Path()
+    val trackPath = androidx.compose.ui.graphics.Path()
 
-        val startAngle = -90f
-        val sweepAngle = 360f
+    val startAngle = -90f
+    val sweepAngle = 360f
 
-        // Draw Track (Full Circle)
-        for (angle in 0..sweepAngle.toInt()) {
-            val currentAngle = startAngle + angle
-            val rad = Math.toRadians(currentAngle.toDouble())
+    // Draw Track (Full Circle)
+    for (angle in 0..sweepAngle.toInt()) {
+      val currentAngle = startAngle + angle
+      val rad = Math.toRadians(currentAngle.toDouble())
 
-            val wavePhase = Math.toRadians((angle * frequency).toDouble())
-            val r = radius + amplitudePx * kotlin.math.sin(wavePhase)
+      val wavePhase = Math.toRadians((angle * frequency).toDouble())
+      val r = radius + amplitudePx * kotlin.math.sin(wavePhase)
 
-            val x = center.x + r * kotlin.math.cos(rad)
-            val y = center.y + r * kotlin.math.sin(rad)
+      val x = center.x + r * kotlin.math.cos(rad)
+      val y = center.y + r * kotlin.math.sin(rad)
 
-            if (angle == 0) {
-                trackPath.moveTo(x.toFloat(), y.toFloat())
-            } else {
-                trackPath.lineTo(x.toFloat(), y.toFloat())
-            }
-        }
-        
-        drawPath(
-            path = trackPath,
-            color = trackColor,
-            style = Stroke(
+      if (angle == 0) {
+        trackPath.moveTo(x.toFloat(), y.toFloat())
+      } else {
+        trackPath.lineTo(x.toFloat(), y.toFloat())
+      }
+    }
+
+    drawPath(
+        path = trackPath,
+        color = trackColor,
+        style =
+            Stroke(
                 width = strokeWidthPx,
                 cap = StrokeCap.Round,
             ),
-        )
+    )
 
-        // Draw Progress
-        if (animatedProgress > 0f) {
-            val progressSweep = 360f * animatedProgress
-            val step = 1f 
-            
-            for (angle in 0..progressSweep.toInt()) {
-                 val currentAngle = startAngle + angle
-                 val rad = Math.toRadians(currentAngle.toDouble())
+    // Draw Progress
+    if (animatedProgress > 0f) {
+      val progressSweep = 360f * animatedProgress
+      val step = 1f
 
-                 val wavePhase = Math.toRadians((angle * frequency).toDouble())
-                 val r = radius + amplitudePx * kotlin.math.sin(wavePhase)
+      for (angle in 0..progressSweep.toInt()) {
+        val currentAngle = startAngle + angle
+        val rad = Math.toRadians(currentAngle.toDouble())
 
-                 val x = center.x + r * kotlin.math.cos(rad)
-                 val y = center.y + r * kotlin.math.sin(rad)
+        val wavePhase = Math.toRadians((angle * frequency).toDouble())
+        val r = radius + amplitudePx * kotlin.math.sin(wavePhase)
 
-                 if (angle == 0) {
-                     path.moveTo(x.toFloat(), y.toFloat())
-                 } else {
-                     path.lineTo(x.toFloat(), y.toFloat())
-                 }
-            }
+        val x = center.x + r * kotlin.math.cos(rad)
+        val y = center.y + r * kotlin.math.sin(rad)
 
-            drawPath(
-                path = path,
-                color = color,
-                style = Stroke(
-                    width = strokeWidthPx,
-                    cap = StrokeCap.Round,
-                ),
-            )
+        if (angle == 0) {
+          path.moveTo(x.toFloat(), y.toFloat())
+        } else {
+          path.lineTo(x.toFloat(), y.toFloat())
         }
+      }
+
+      drawPath(
+          path = path,
+          color = color,
+          style =
+              Stroke(
+                  width = strokeWidthPx,
+                  cap = StrokeCap.Round,
+              ),
+      )
     }
+  }
 }
-
-
