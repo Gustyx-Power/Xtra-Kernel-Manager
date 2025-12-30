@@ -83,26 +83,11 @@ fun GameControlSection(viewModel: MiscViewModel) {
         hasUsageAccessPermission = hasUsageStatsPermission(context)
       }
     }
-
-    // Check usage access permission (needed to detect foreground app)
-    var hasUsageAccessPermission by remember {
-        mutableStateOf(hasUsageStatsPermission(context))
+    lifecycleOwner.lifecycle.addObserver(observer)
+    onDispose {
+      lifecycleOwner.lifecycle.removeObserver(observer)
     }
-
-    // Refresh permission state when returning from settings
-    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                hasOverlayPermission = Settings.canDrawOverlays(context)
-                hasUsageAccessPermission = hasUsageStatsPermission(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
+  }
 
   // Overlay permission launcher
   val overlayPermissionLauncher =

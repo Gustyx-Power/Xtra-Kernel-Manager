@@ -147,74 +147,64 @@ fun Navigation(preferencesManager: PreferencesManager) {
               items = bottomNavItems,
           )
         }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("home") {
-                HomeScreen(preferencesManager = preferencesManager)
-            }
-            composable("tuning") {
-                TuningScreen(preferencesManager = preferencesManager)
-            }
-            composable("profiles") {
-                val context = LocalContext.current
-                val miscViewModel = remember {
-                    MiscViewModel(
-                        preferencesManager = preferencesManager,
-                        context = context.applicationContext
-                    )
-                }
-                MiscScreen(
-                    viewModel = miscViewModel,
-                    onNavigateToFunctionalRom = {
-                        navController.navigate("functionalrom")
-                    }
-                )
-            }
-
-            composable("functionalrom") {
-                val context = LocalContext.current
-                val functionalRomViewModel = remember {
-                    FunctionalRomViewModel(
-                        preferencesManager = preferencesManager,
-                        context = context.applicationContext
-                    )
-                }
-                FunctionalRomScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onNavigateToPlayIntegrity = {
-                        navController.navigate("playintegritysettings")
-                    },
-                    onNavigateToXiaomiTouch = {
-                        navController.navigate("xiaomitouchsettings")
-                    },
-                    viewModel = functionalRomViewModel
-                )
-            }
-
-            composable("playintegritysettings") {
-                PlayIntegritySettingsScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-            composable("xiaomitouchsettings") {
-                XiaomiTouchSettingsScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
-            }
-
-        composable("info") { InfoScreen() }
       }
+  ) { paddingValues ->
+    NavHost(
+        navController = navController,
+        startDestination = "home",
+        modifier = Modifier.padding(paddingValues)
+    ) {
+      composable("home") {
+        HomeScreen(preferencesManager = preferencesManager)
+      }
+      composable("tuning") {
+        TuningScreen(preferencesManager = preferencesManager)
+      }
+      composable("profiles") {
+        val context = LocalContext.current
+        val miscViewModel = remember {
+          MiscViewModel(
+              preferencesManager = preferencesManager,
+              context = context.applicationContext
+          )
+        }
+        MiscScreen(
+            viewModel = miscViewModel,
+            onNavigateToFunctionalRom = {
+              navController.navigate("functionalrom")
+            }
+        )
+      }
+
+      composable("functionalrom") {
+        val context = LocalContext.current
+        val functionalRomViewModel = remember {
+          FunctionalRomViewModel(
+              preferencesManager = preferencesManager,
+              context = context.applicationContext
+          )
+        }
+        FunctionalRomScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToPlayIntegrity = { navController.navigate("playintegritysettings") },
+            onNavigateToXiaomiTouch = { navController.navigate("xiaomitouchsettings") },
+            viewModel = functionalRomViewModel
+        )
+      }
+
+      composable("playintegritysettings") {
+        PlayIntegritySettingsScreen(
+            onNavigateBack = { navController.popBackStack() }
+        )
+      }
+
+      composable("xiaomitouchsettings") {
+        XiaomiTouchSettingsScreen(
+            onNavigateBack = { navController.popBackStack() }
+        )
+      }
+
+      composable("info") { InfoScreen() }
     }
   }
 }

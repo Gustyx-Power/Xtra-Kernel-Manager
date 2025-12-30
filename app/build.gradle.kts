@@ -28,13 +28,6 @@ android {
     namespace = "id.xms.xtrakernelmanager"
     compileSdk = 36
 
-    @Suppress("UnstableApiUsage")
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
-    }
-
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
         minSdk = 29
