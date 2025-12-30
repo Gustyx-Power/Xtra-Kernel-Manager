@@ -58,6 +58,8 @@ fun PerformancePanel(
     onScreenshot: () -> Unit,
     onToolsClick: () -> Unit,
     onClose: () -> Unit,
+    onTogglePosition: () -> Unit = {},
+    isOverlayOnRight: Boolean = true,
     
     modifier: Modifier = Modifier,
     accentColor: Color = MaterialTheme.colorScheme.primary
@@ -124,8 +126,19 @@ fun PerformancePanel(
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.game_control_title), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
-                IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
-                    Icon(Icons.Default.Close, "Close", tint = Color(0xFF8B949E), modifier = Modifier.size(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Toggle position button
+                    IconButton(onClick = onTogglePosition, modifier = Modifier.size(28.dp)) {
+                        Icon(
+                            if (isOverlayOnRight) Icons.Default.KeyboardArrowLeft else Icons.Default.KeyboardArrowRight,
+                            contentDescription = "Toggle position",
+                            tint = Color(0xFF58A6FF),
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    IconButton(onClick = onClose, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Close, "Close", tint = Color(0xFF8B949E), modifier = Modifier.size(16.dp))
+                    }
                 }
             }
             
