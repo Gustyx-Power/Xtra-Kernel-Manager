@@ -292,211 +292,211 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
       }
     }
 
-      // Export Confirmation Dialog
-      if (showExportDialog) {
-        AlertDialog(
-            onDismissRequest = { showExportDialog = false },
-            icon = {
+    // Export Confirmation Dialog
+    if (showExportDialog) {
+      AlertDialog(
+          onDismissRequest = { showExportDialog = false },
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Upload,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+            )
+          },
+          title = {
+            Text(
+                text = stringResource(R.string.tuning_export_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+          },
+          text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              Text(
+                  text = stringResource(R.string.tuning_export_message),
+                  style = MaterialTheme.typography.bodyMedium,
+              )
+              Text(
+                  text = stringResource(R.string.tuning_export_description),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+          },
+          confirmButton = {
+            FilledTonalButton(
+                onClick = {
+                  showExportDialog = false
+                  scope.launch {
+                    val fileName = viewModel.getExportFileName()
+                    exportLauncher.launch(fileName)
+                  }
+                }
+            ) {
               Icon(
                   imageVector = Icons.Default.Upload,
                   contentDescription = null,
-                  tint = MaterialTheme.colorScheme.primary,
+                  modifier = Modifier.size(18.dp),
               )
-            },
-            title = {
-              Text(
-                  text = stringResource(R.string.tuning_export_title),
-                  style = MaterialTheme.typography.headlineSmall,
-              )
-            },
-            text = {
-              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.tuning_export_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = stringResource(R.string.tuning_export_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-              }
-            },
-            confirmButton = {
-              FilledTonalButton(
-                  onClick = {
-                    showExportDialog = false
-                    scope.launch {
-                      val fileName = viewModel.getExportFileName()
-                      exportLauncher.launch(fileName)
-                    }
-                  }
-              ) {
-                Icon(
-                    imageVector = Icons.Default.Upload,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.tuning_export_button))
-              }
-            },
-            dismissButton = {
-              TextButton(onClick = { showExportDialog = false }) {
-                Text(stringResource(R.string.cancel))
-              }
-            },
-        )
-      }
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(R.string.tuning_export_button))
+            }
+          },
+          dismissButton = {
+            TextButton(onClick = { showExportDialog = false }) {
+              Text(stringResource(R.string.cancel))
+            }
+          },
+      )
+    }
 
-      // Import Confirmation Dialog
-      if (showImportDialog) {
-        AlertDialog(
-            onDismissRequest = { showImportDialog = false },
-            icon = {
+    // Import Confirmation Dialog
+    if (showImportDialog) {
+      AlertDialog(
+          onDismissRequest = { showImportDialog = false },
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Download,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+            )
+          },
+          title = {
+            Text(
+                text = stringResource(R.string.tuning_import_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+          },
+          text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+              Text(
+                  text = stringResource(R.string.tuning_import_message),
+                  style = MaterialTheme.typography.bodyMedium,
+              )
+              Text(
+                  text = stringResource(R.string.tuning_import_warning),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.error,
+              )
+            }
+          },
+          confirmButton = {
+            FilledTonalButton(
+                onClick = {
+                  showImportDialog = false
+                  importLauncher.launch(arrayOf("application/toml", "text/plain", "*/*"))
+                },
+                colors =
+                    ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    ),
+            ) {
               Icon(
                   imageVector = Icons.Default.Download,
                   contentDescription = null,
-                  tint = MaterialTheme.colorScheme.secondary,
+                  modifier = Modifier.size(18.dp),
               )
-            },
-            title = {
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(R.string.tuning_import_button))
+            }
+          },
+          dismissButton = {
+            TextButton(onClick = { showImportDialog = false }) {
+              Text(stringResource(R.string.cancel))
+            }
+          },
+      )
+    }
+
+    // LOADING POPUP saat import
+    if (isImporting) {
+      AlertDialog(
+          onDismissRequest = {},
+          icon = { CircularProgressIndicator() },
+          title = { Text(stringResource(R.string.tuning_importing)) },
+          text = { Text(stringResource(R.string.tuning_applying_config)) },
+          confirmButton = {},
+          dismissButton = {},
+      )
+    }
+
+    // SOC Compatibility Warning Dialog
+    if (showSOCWarning) {
+      AlertDialog(
+          onDismissRequest = {
+            showSOCWarning = false
+            pendingImportConfig = null
+          },
+          icon = {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+            )
+          },
+          title = {
+            Text(
+                text = stringResource(R.string.tuning_soc_warning_title),
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+          },
+          text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+              Text(text = socWarningMessage, style = MaterialTheme.typography.bodyMedium)
+              Divider()
               Text(
-                  text = stringResource(R.string.tuning_import_title),
-                  style = MaterialTheme.typography.headlineSmall,
+                  text = stringResource(R.string.tuning_soc_warning_question),
+                  style = MaterialTheme.typography.bodyMedium,
+                  fontWeight = FontWeight.Bold,
               )
-            },
-            text = {
-              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    text = stringResource(R.string.tuning_import_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(
-                    text = stringResource(R.string.tuning_import_warning),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-              }
-            },
-            confirmButton = {
-              FilledTonalButton(
-                  onClick = {
-                    showImportDialog = false
-                    importLauncher.launch(arrayOf("application/toml", "text/plain", "*/*"))
-                  },
-                  colors =
-                      ButtonDefaults.filledTonalButtonColors(
-                          containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                          contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                      ),
-              ) {
-                Icon(
-                    imageVector = Icons.Default.Download,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.tuning_import_button))
-              }
-            },
-            dismissButton = {
-              TextButton(onClick = { showImportDialog = false }) {
-                Text(stringResource(R.string.cancel))
-              }
-            },
-        )
-      }
-
-      // LOADING POPUP saat import
-      if (isImporting) {
-        AlertDialog(
-            onDismissRequest = {},
-            icon = { CircularProgressIndicator() },
-            title = { Text(stringResource(R.string.tuning_importing)) },
-            text = { Text(stringResource(R.string.tuning_applying_config)) },
-            confirmButton = {},
-            dismissButton = {},
-        )
-      }
-
-      // SOC Compatibility Warning Dialog
-      if (showSOCWarning) {
-        AlertDialog(
-            onDismissRequest = {
-              showSOCWarning = false
-              pendingImportConfig = null
-            },
-            icon = {
+              Text(
+                  text = stringResource(R.string.tuning_soc_warning_desc),
+                  style = MaterialTheme.typography.bodySmall,
+                  color = MaterialTheme.colorScheme.error,
+              )
+            }
+          },
+          confirmButton = {
+            Button(
+                onClick = {
+                  scope.launch {
+                    pendingImportConfig?.let { config ->
+                      viewModel.applyPreset(config)
+                      Toast.makeText(
+                              context,
+                              context.getString(R.string.tuning_apply_with_warning),
+                              Toast.LENGTH_SHORT,
+                          )
+                          .show()
+                    }
+                  }
+                  showSOCWarning = false
+                  pendingImportConfig = null
+                },
+                colors =
+                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+            ) {
               Icon(
                   imageVector = Icons.Default.Warning,
                   contentDescription = null,
-                  tint = MaterialTheme.colorScheme.error,
+                  modifier = Modifier.size(18.dp),
               )
-            },
-            title = {
-              Text(
-                  text = stringResource(R.string.tuning_soc_warning_title),
-                  style = MaterialTheme.typography.headlineSmall,
-                  color = MaterialTheme.colorScheme.error,
-              )
-            },
-            text = {
-              Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(text = socWarningMessage, style = MaterialTheme.typography.bodyMedium)
-                Divider()
-                Text(
-                    text = stringResource(R.string.tuning_soc_warning_question),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = stringResource(R.string.tuning_soc_warning_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-              }
-            },
-            confirmButton = {
-              Button(
-                  onClick = {
-                    scope.launch {
-                      pendingImportConfig?.let { config ->
-                        viewModel.applyPreset(config)
-                        Toast.makeText(
-                                context,
-                                context.getString(R.string.tuning_apply_with_warning),
-                                Toast.LENGTH_SHORT,
-                            )
-                            .show()
-                      }
-                    }
-                    showSOCWarning = false
-                    pendingImportConfig = null
-                  },
-                  colors =
-                      ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-              ) {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.tuning_apply_anyway))
-              }
-            },
-            dismissButton = {
-              TextButton(
-                  onClick = {
-                    showSOCWarning = false
-                    pendingImportConfig = null
-                  }
-              ) {
-                Text(stringResource(R.string.cancel))
-              }
-            },
-        )
-      }
+              Spacer(Modifier.width(8.dp))
+              Text(stringResource(R.string.tuning_apply_anyway))
+            }
+          },
+          dismissButton = {
+            TextButton(
+                onClick = {
+                  showSOCWarning = false
+                  pendingImportConfig = null
+                }
+            ) {
+              Text(stringResource(R.string.cancel))
+            }
+          },
+      )
     }
+  }
 }

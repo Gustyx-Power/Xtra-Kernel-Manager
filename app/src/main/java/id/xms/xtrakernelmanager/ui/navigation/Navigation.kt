@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -24,6 +25,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.CPUTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.utils.Holiday
@@ -185,22 +187,10 @@ fun Navigation(preferencesManager: PreferencesManager) {
               androidx.lifecycle.viewmodel.compose.viewModel<TuningViewModel>(parentEntry)
           CPUTuningScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
         }
-        composable("network_tuning") {
-          val context = LocalContext.current
-          val tuningViewModel: TuningViewModel =
-              viewModel(factory = TuningViewModel.Factory(preferencesManager))
-          NetworkTuningScreen(
-              viewModel = tuningViewModel,
-              navController = navController
-          )
-        }
         composable("memory_tuning") {
           val tuningViewModel: TuningViewModel =
               viewModel(factory = TuningViewModel.Factory(preferencesManager))
-          MemoryTuningScreen(
-              viewModel = tuningViewModel,
-              navController = navController
-          )
+          MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
         }
         composable("profiles") {
           val context = LocalContext.current
@@ -218,4 +208,3 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
 }
-```
