@@ -1,269 +1,364 @@
 use crate::utils;
-use serde::Serialize;
+use once_cell::sync::{Lazy, OnceCell};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
+use std::sync::Mutex;
 
-static PREV_TOTAL: AtomicI64 = AtomicI64::new(0);
-static PREV_IDLE: AtomicI64 = AtomicI64::new(0);
-static LAST_LOAD_TIME: AtomicU64 = AtomicU64::new(0);
-static CACHED_LOAD: AtomicI64 = AtomicI64::new(0); // Store as i64 * 100 for precision
-
-
-#[derive(Serialize, Debug)]
-pub struct ClusterInfo {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CpuCluster {
     pub cluster_number: i32,
     pub cores: Vec<i32>,
     pub min_freq: i32,
     pub max_freq: i32,
-    pub current_min_freq: i32,
-    pub current_max_freq: i32,
     pub governor: String,
-    pub available_governors: Vec<String>,
-    pub policy_path: String,
 }
 
-/// Read sysfs file using shared libc utils.
-#[inline]
-fn read_sysfs(path: &str) -> Option<String> {
-    utils::read_file_libc(path)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CoreInfo {
+    pub core_number: i32,
+    pub online: bool,
+    pub current_freq: i32,
+    pub min_freq: i32,
+    pub max_freq: i32,
 }
 
-/// Read sysfs file and parse to i32.
-#[inline]
-fn read_sysfs_int(path: &str) -> Option<i32> {
-    read_sysfs(path)?.parse().ok()
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CpuLoadInfo {
+    pub total_load: f32,
+    pub per_core_load: Vec<f32>,
 }
 
-/// Read sysfs file and parse to i64.
-#[inline]
-fn read_sysfs_long(path: &str) -> Option<i64> {
-    read_sysfs(path)?.parse().ok()
+struct CpuStats {
+    total_time: Vec<u64>,
+    idle_time: Vec<u64>,
 }
 
-/// Read sysfs file and parse to f32.
-#[inline]
-fn read_sysfs_float(path: &str) -> Option<f32> {
-    read_sysfs(path)?.parse().ok()
-}
+static CPU_STATS: Lazy<Mutex<CpuStats>> = Lazy::new(|| {
+    Mutex::new(CpuStats {
+        total_time: vec![0; 16],
+        idle_time: vec![0; 16],
+    })
+});
 
+static CPU_MODEL: OnceCell<String> = OnceCell::new();
 
-pub fn detect_cpu_clusters() -> Vec<ClusterInfo> {
-    let mut clusters = Vec::new();
-    let mut available_cores = Vec::new();
+/// Detect CPU clusters based on frequency ranges
+pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
+    let mut clusters: HashMap<(i32, i32), Vec<i32>> = HashMap::new();
 
-    for i in 0..16 {
-        let cpu_path = format!("/sys/devices/system/cpu/cpu{}", i);
-        if utils::file_exists(&cpu_path) {
-            available_cores.push(i);
-        }
-    }
-
-    if available_cores.is_empty() {
-        return clusters;
-    }
-
-    let mut core_groups: HashMap<i32, Vec<i32>> = HashMap::new();
-
-    for core in &available_cores {
-        let max_freq_path = format!(
-            "/sys/devices/system/cpu/cpu{}/cpufreq/cpuinfo_max_freq",
-            core
+    for cpu in 0..16 {
+        let policy_path = format!(
+            "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_min_freq",
+            cpu
         );
 
-        if let Some(max_freq) = read_sysfs_int(&max_freq_path)
-            && max_freq > 0 {
-                core_groups
-                    .entry(max_freq)
-                    .or_default()
-                    .push(*core);
+        if !utils::file_exists(&policy_path) {
+            break;
+        }
+
+        let min_freq = utils::read_sysfs_int(&policy_path, 1000).unwrap_or(0) as i32;
+        let max_path = format!(
+            "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_max_freq",
+            cpu
+        );
+        let max_freq = utils::read_sysfs_int(&max_path, 1000).unwrap_or(0) as i32;
+
+        if min_freq > 0 && max_freq > 0 {
+            clusters
+                .entry((min_freq, max_freq))
+                .or_insert_with(Vec::new)
+                .push(cpu);
+        }
+    }
+
+    let mut result: Vec<CpuCluster> = clusters
+        .into_iter()
+        .enumerate()
+        .map(|(idx, ((min, max), cores))| {
+            let first_core = cores[0];
+            let governor_path = format!(
+                "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_governor",
+                first_core
+            );
+            let governor = utils::read_sysfs_cached(&governor_path, 1000)
+                .unwrap_or_else(|| "unknown".to_string());
+
+            CpuCluster {
+                cluster_number: idx as i32,
+                cores,
+                min_freq: min,
+                max_freq: max,
+                governor,
             }
+        })
+        .collect();
+
+    result.sort_by_key(|c| c.min_freq);
+
+    for (idx, cluster) in result.iter_mut().enumerate() {
+        cluster.cluster_number = idx as i32;
     }
 
-    let mut sorted_groups: Vec<_> = core_groups.into_iter().collect();
-    sorted_groups.sort_by_key(|(freq, _)| *freq);
-
-    for (cluster_index, (max_freq, cores_in_group)) in sorted_groups.into_iter().enumerate() {
-        let first_core = cores_in_group[0];
-        let base_path = format!("/sys/devices/system/cpu/cpu{}", first_core);
-
-
-        let min_freq =
-            read_sysfs_int(&format!("{}/cpufreq/cpuinfo_min_freq", base_path)).unwrap_or(0);
-        let current_min =
-            read_sysfs_int(&format!("{}/cpufreq/scaling_min_freq", base_path)).unwrap_or(min_freq);
-        let current_max =
-            read_sysfs_int(&format!("{}/cpufreq/scaling_max_freq", base_path)).unwrap_or(max_freq);
-
-        
-        let governor = read_sysfs(&format!("{}/cpufreq/scaling_governor", base_path))
-            .unwrap_or_else(|| "schedutil".to_string());
-
-        
-        let available_govs = read_sysfs(&format!(
-            "{}/cpufreq/scaling_available_governors",
-            base_path
-        ))
-        .map(|s| s.split_whitespace().map(String::from).collect())
-        .unwrap_or_else(|| {
-            vec![
-                "schedutil".to_string(),
-                "performance".to_string(),
-                "powersave".to_string(),
-            ]
-        });
-
-        let policy_path = format!("/sys/devices/system/cpu/cpufreq/policy{}", first_core);
-
-        clusters.push(ClusterInfo {
-            cluster_number: cluster_index as i32,
-            cores: cores_in_group,
-            min_freq: min_freq / 1000, 
-            max_freq: max_freq / 1000,
-            current_min_freq: current_min / 1000,
-            current_max_freq: current_max / 1000,
-            governor,
-            available_governors: available_govs,
-            policy_path,
-        });
-    }
-
-    clusters
+    result
 }
 
+/// Read comprehensive core data as JSON string
 pub fn read_core_data() -> String {
-    let mut cores_data = Vec::new();
-    
-    for core in 0..16 {
-        let base_path = format!("/sys/devices/system/cpu/cpu{}", core);
-        if !utils::file_exists(&base_path) {
-            continue;
-        }
-        
-        let is_online = if core == 0 {
+    let mut cores = Vec::new();
+
+    for cpu in 0..16 {
+        let online_path = format!("/sys/devices/system/cpu/cpu{}/online", cpu);
+        let freq_path = format!(
+            "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_cur_freq",
+            cpu
+        );
+
+        let online = if cpu == 0 {
             true
         } else {
-            read_sysfs_int(&format!("{}/online", base_path)).unwrap_or(1) == 1
+            utils::read_sysfs_int(&online_path, 100).unwrap_or(0) == 1
         };
-        
-        let (freq, governor) = if is_online {
-            let freq = read_sysfs_int(&format!("{}/cpufreq/scaling_cur_freq", base_path))
-                .unwrap_or(0) / 1000; 
-            let gov = read_sysfs(&format!("{}/cpufreq/scaling_governor", base_path))
-                .unwrap_or_else(|| "unknown".to_string());
-            (freq, gov)
+
+        if !online && !utils::file_exists(&freq_path) {
+            break;
+        }
+
+        let current_freq = if online {
+            utils::read_sysfs_int(&freq_path, 100).unwrap_or(0) as i32
         } else {
-            (0, "offline".to_string())
+            0
         };
-        
-        cores_data.push(format!(
-            r#"{{"core":{},"online":{},"freq":{},"governor":"{}"}}"#,
-            core, is_online, freq, governor
-        ));
+
+        let min_path = format!(
+            "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_min_freq",
+            cpu
+        );
+        let max_path = format!(
+            "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_max_freq",
+            cpu
+        );
+
+        let core = CoreInfo {
+            core_number: cpu,
+            online,
+            current_freq,
+            min_freq: utils::read_sysfs_int(&min_path, 1000).unwrap_or(0) as i32,
+            max_freq: utils::read_sysfs_int(&max_path, 1000).unwrap_or(0) as i32,
+        };
+
+        cores.push(core);
     }
-    
-    format!("[{}]", cores_data.join(","))
+
+    serde_json::to_string(&cores).unwrap_or_else(|_| "[]".to_string())
 }
 
-pub fn read_battery_current() -> i32 {
+/// Read CPU load (total + per-core)
+pub fn read_cpu_load_detailed() -> CpuLoadInfo {
+    let mut per_core_load = Vec::new();
+
+    let mut buf = [0u8; 4096];
+    if let Some(bytes_read) = utils::read_file_libc_buf("/proc/stat", &mut buf) {
+        if let Ok(content) = std::str::from_utf8(&buf[..bytes_read]) {
+            let mut total_load = 0.0f32;
+            let mut cpu_index = 0;
+
+            let mut stats = CPU_STATS.lock().unwrap();
+
+            for line in content.lines() {
+                if line.starts_with("cpu") && !line.starts_with("cpu ") {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+
+                    if parts.len() >= 5 {
+                        let user: u64 = parts[1].parse().unwrap_or(0);
+                        let nice: u64 = parts[2].parse().unwrap_or(0);
+                        let system: u64 = parts[3].parse().unwrap_or(0);
+                        let idle: u64 = parts[4].parse().unwrap_or(0);
+
+                        let total = user + nice + system + idle;
+
+                        let load = if cpu_index < stats.total_time.len() {
+                            let total_diff = total.saturating_sub(stats.total_time[cpu_index]);
+                            let idle_diff = idle.saturating_sub(stats.idle_time[cpu_index]);
+
+                            if total_diff > 0 {
+                                100.0 - (idle_diff as f32 / total_diff as f32 * 100.0)
+                            } else {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        };
+
+                        per_core_load.push(load.max(0.0).min(100.0));
+
+                        if cpu_index < stats.total_time.len() {
+                            stats.total_time[cpu_index] = total;
+                            stats.idle_time[cpu_index] = idle;
+                        } else {
+                            stats.total_time.push(total);
+                            stats.idle_time.push(idle);
+                        }
+
+                        cpu_index += 1;
+                    }
+                }
+            }
+
+            if !per_core_load.is_empty() {
+                total_load = per_core_load.iter().sum::<f32>() / per_core_load.len() as f32;
+            }
+
+            return CpuLoadInfo {
+                total_load,
+                per_core_load,
+            };
+        }
+    }
+
+    CpuLoadInfo {
+        total_load: 0.0,
+        per_core_load: vec![],
+    }
+}
+
+/// Quick total CPU load
+pub fn read_cpu_load() -> f32 {
+    read_cpu_load_detailed().total_load
+}
+
+/// Read per-core temperature
+pub fn read_core_temperature(core: i32) -> f32 {
     let paths = [
-        "/sys/class/power_supply/battery/current_now",
-        "/sys/class/power_supply/bms/current_now",
-        "/sys/class/power_supply/Battery/current_now",
-        "/sys/class/power_supply/main/current_now",
+        format!("/sys/class/hwmon/hwmon1/temp{}_input", core + 1),
+        format!("/sys/devices/virtual/thermal/thermal_zone{}/temp", core),
     ];
 
     for path in &paths {
-        if let Some(value) = read_sysfs_long(path)
-            && value != 0 {
-                return (value / 1000) as i32;
+        if let Some(temp) = utils::read_sysfs_float(path, 500) {
+            let temp_c = if temp > 1000.0 { temp / 1000.0 } else { temp };
+            if temp_c > 0.0 && temp_c < 150.0 {
+                return temp_c;
             }
-    }
-
-    0
-}
-
-pub fn read_cpu_load() -> f32 {
-    let now_ms = utils::now_millis();
-    
-    let last_time = LAST_LOAD_TIME.load(Ordering::Relaxed);
-    
-    // If called within 100ms, return cached value
-    if now_ms > 0 && last_time > 0 && now_ms - last_time < 100 {
-        return CACHED_LOAD.load(Ordering::Relaxed) as f32 / 100.0;
-    }
-    
-    // Read current /proc/stat values
-    let (total, idle) = match read_proc_stat_values() {
-        Some(v) => v,
-        None => return CACHED_LOAD.load(Ordering::Relaxed) as f32 / 100.0,
-    };
-    
-    // Get previous values
-    let prev_total = PREV_TOTAL.load(Ordering::Relaxed);
-    let prev_idle = PREV_IDLE.load(Ordering::Relaxed);
-    
-    // Calculate load if we have previous data
-    let load = if prev_total > 0 {
-        let total_diff = total - prev_total;
-        let idle_diff = idle - prev_idle;
-        
-        if total_diff > 0 {
-            ((total_diff - idle_diff) as f32 / total_diff as f32) * 100.0
-        } else {
-            CACHED_LOAD.load(Ordering::Relaxed) as f32 / 100.0
         }
-    } else {
-        0.0
-    };
-    
-    PREV_TOTAL.store(total, Ordering::Relaxed);
-    PREV_IDLE.store(idle, Ordering::Relaxed);
-    LAST_LOAD_TIME.store(now_ms, Ordering::Relaxed);
-    CACHED_LOAD.store((load * 100.0) as i64, Ordering::Relaxed);
-    
-    load
-}
-
-
-fn read_proc_stat_values() -> Option<(i64, i64)> {
-    let mut buffer = [0u8; 512];
-    let bytes = utils::read_file_libc_buf("/proc/stat", &mut buffer)?;
-    
-    let content = std::str::from_utf8(&buffer[..bytes]).ok()?;
-    let cpu_line = content.lines().find(|line| line.starts_with("cpu "))?;
-    
-    let values: Vec<i64> = cpu_line
-        .split_whitespace()
-        .skip(1)
-        .filter_map(|s| s.parse().ok())
-        .collect();
-    
-    if values.len() < 4 {
-        return None;
-    }
-    
-    // user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice
-    // idle = idle + iowait
-    let idle = values[3] + values.get(4).unwrap_or(&0);
-    let total: i64 = values.iter().sum();
-    
-    Some((total, idle))
-}
-
-pub fn read_cpu_temperature() -> f32 {
-    let thermal_paths = [
-        "/sys/class/thermal/thermal_zone0/temp",
-        "/sys/devices/virtual/thermal/thermal_zone0/temp",
-        "/sys/class/hwmon/hwmon0/temp1_input",
-        "/sys/class/hwmon/hwmon1/temp1_input",
-    ];
-
-    for path in &thermal_paths {
-        if let Some(temp) = read_sysfs_float(path)
-            && temp > 0.0 {
-                return if temp > 1000.0 { temp / 1000.0 } else { temp };
-            }
     }
 
     0.0
+}
+
+/// Get CPU model name
+pub fn get_cpu_model() -> String {
+    CPU_MODEL
+        .get_or_init(|| {
+            let mut buf = [0u8; 2048];
+            if let Some(bytes_read) = utils::read_file_libc_buf("/proc/cpuinfo", &mut buf) {
+                if let Ok(content) = std::str::from_utf8(&buf[..bytes_read]) {
+                    for line in content.lines() {
+                        if line.starts_with("Hardware") {
+                            if let Some(model) = line.split(':').nth(1) {
+                                return model.trim().to_string();
+                            }
+                        }
+                        if line.starts_with("Processor") {
+                            if let Some(model) = line.split(':').nth(1) {
+                                return model.trim().to_string();
+                            }
+                        }
+                    }
+                }
+            }
+            "Unknown".to_string()
+        })
+        .clone()
+}
+
+/// Get available CPU governors
+pub fn get_available_governors(cpu: i32) -> Vec<String> {
+    let path = format!(
+        "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_available_governors",
+        cpu
+    );
+
+    if let Some(content) = utils::read_sysfs_cached(&path, 0) {
+        return content.split_whitespace().map(|s| s.to_string()).collect();
+    }
+
+    vec![]
+}
+
+/// Get current governor for CPU
+pub fn get_current_governor(cpu: i32) -> String {
+    let path = format!(
+        "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_governor",
+        cpu
+    );
+    utils::read_sysfs_cached(&path, 1000).unwrap_or_else(|| "unknown".to_string())
+}
+
+/// Get available CPU frequencies
+pub fn get_available_frequencies(cpu: i32) -> Vec<i32> {
+    let path = format!(
+        "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_available_frequencies",
+        cpu
+    );
+
+    if let Some(content) = utils::read_sysfs_cached(&path, 0) {
+        return content
+            .split_whitespace()
+            .filter_map(|s| s.parse::<i32>().ok())
+            .map(|khz| khz / 1000)
+            .collect();
+    }
+
+    vec![]
+}
+
+/// Get available CPU scaling governors (system-wide)
+pub fn get_system_available_governors() -> Vec<String> {
+    // Try CPU0 first
+    let governors = get_available_governors(0);
+    if !governors.is_empty() {
+        return governors;
+    }
+
+    // Fallback: try other CPUs
+    for cpu in 1..8 {
+        let governors = get_available_governors(cpu);
+        if !governors.is_empty() {
+            return governors;
+        }
+    }
+
+    vec![]
+}
+
+/// Get CPU frequency scaling driver
+pub fn get_cpu_freq_driver() -> String {
+    let path = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_driver";
+    utils::read_sysfs_cached(path, 0).unwrap_or_else(|| "unknown".to_string())
+}
+
+/// Get CPU frequency policy (per-cluster info)
+pub fn get_cpu_policy_info(cpu: i32) -> Option<CpuPolicyInfo> {
+    let base = format!("/sys/devices/system/cpu/cpu{}/cpufreq", cpu);
+
+    if !utils::file_exists(&format!("{}/scaling_governor", base)) {
+        return None;
+    }
+
+    Some(CpuPolicyInfo {
+        cpu,
+        governor: utils::read_sysfs_cached(&format!("{}/scaling_governor", base), 1000)?,
+        min_freq: utils::read_sysfs_int(&format!("{}/scaling_min_freq", base), 1000)? as i32 / 1000,
+        max_freq: utils::read_sysfs_int(&format!("{}/scaling_max_freq", base), 1000)? as i32 / 1000,
+        cur_freq: utils::read_sysfs_int(&format!("{}/scaling_cur_freq", base), 100)? as i32 / 1000,
+    })
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CpuPolicyInfo {
+    pub cpu: i32,
+    pub governor: String,
+    pub min_freq: i32,
+    pub max_freq: i32,
+    pub cur_freq: i32,
 }
