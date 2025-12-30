@@ -45,6 +45,8 @@ fun MaterialTuningDashboard(
     viewModel: TuningViewModel,
     preferencesManager: PreferencesManager? = null,
     onNavigate: (String) -> Unit = {},
+    onExportConfig: () -> Unit = {},
+    onImportConfig: () -> Unit = {},
 ) {
 
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -81,7 +83,7 @@ fun MaterialTuningDashboard(
                       text = { Text("Import Profile") },
                       onClick = {
                         showMenu = false
-                        /* Import Action */
+                        onImportConfig()
                       },
                       leadingIcon = { Icon(Icons.Rounded.FolderOpen, contentDescription = null) },
                   )
@@ -89,7 +91,7 @@ fun MaterialTuningDashboard(
                       text = { Text("Export Profile") },
                       onClick = {
                         showMenu = false
-                        /* Export Action */
+                        onExportConfig()
                       },
                       leadingIcon = { Icon(Icons.Rounded.Save, contentDescription = null) },
                   )

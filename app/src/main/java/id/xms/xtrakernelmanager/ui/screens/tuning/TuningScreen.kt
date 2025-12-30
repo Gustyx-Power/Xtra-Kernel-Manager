@@ -132,14 +132,23 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
     }
   }
 
-  if (layoutStyle != "legacy") {
-    MaterialTuningDashboard(
-        viewModel = viewModel,
-        preferencesManager = preferencesManager,
-        onNavigate = onNavigate,
-    )
-  } else {
-    Box {
+  Box(modifier = Modifier.fillMaxSize()) {
+    if (layoutStyle != "legacy") {
+      MaterialTuningDashboard(
+          viewModel = viewModel,
+          preferencesManager = preferencesManager,
+          onNavigate = onNavigate,
+          onExportConfig = {
+            scope.launch {
+              val fileName = viewModel.getExportFileName()
+              exportLauncher.launch(fileName)
+            }
+          },
+          onImportConfig = {
+            importLauncher.launch(arrayOf("application/toml", "text/plain", "*/*"))
+          },
+      )
+    } else {
       LazyColumn(
           modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
           contentPadding = PaddingValues(vertical = 16.dp),
@@ -281,6 +290,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           }
         }
       }
+    }
 
       // Export Confirmation Dialog
       if (showExportDialog) {
@@ -489,5 +499,4 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
         )
       }
     }
-  }
 }

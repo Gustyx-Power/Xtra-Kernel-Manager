@@ -185,6 +185,23 @@ fun Navigation(preferencesManager: PreferencesManager) {
               androidx.lifecycle.viewmodel.compose.viewModel<TuningViewModel>(parentEntry)
           CPUTuningScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
         }
+        composable("network_tuning") {
+          val context = LocalContext.current
+          val tuningViewModel: TuningViewModel =
+              viewModel(factory = TuningViewModel.Factory(preferencesManager))
+          NetworkTuningScreen(
+              viewModel = tuningViewModel,
+              navController = navController
+          )
+        }
+        composable("memory_tuning") {
+          val tuningViewModel: TuningViewModel =
+              viewModel(factory = TuningViewModel.Factory(preferencesManager))
+          MemoryTuningScreen(
+              viewModel = tuningViewModel,
+              navController = navController
+          )
+        }
         composable("profiles") {
           val context = LocalContext.current
           val miscViewModel = remember {
@@ -201,3 +218,4 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
 }
+```
