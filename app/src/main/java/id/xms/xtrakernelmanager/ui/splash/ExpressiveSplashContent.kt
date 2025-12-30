@@ -37,12 +37,22 @@ fun ExpressiveSplashScreen(
   var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
   var showUpdateDialog by remember { mutableStateOf(false) }
   var showOfflineLockDialog by remember { mutableStateOf(false) }
+  var showNoRootDialog by remember { mutableStateOf(false) }
   var isChecking by remember { mutableStateOf(true) }
   var startExitAnimation by remember { mutableStateOf(false) }
-  var hasRootAccess by remember { mutableStateOf<Boolean?>(null) }
 
   LaunchedEffect(Unit) {
     val minSplashTime = launch { delay(2500) } // Slightly longer for animation to play
+
+    // Check root access first
+    val hasRoot = checkRootAccess()
+    
+    if (!hasRoot) {
+      minSplashTime.join()
+      isChecking = false
+      showNoRootDialog = true
+      return@LaunchedEffect
+    }
 
     val pendingUpdate = UpdatePrefs.getPendingUpdate(context)
 
@@ -132,6 +142,19 @@ fun ExpressiveSplashScreen(
             val intent = (context as ComponentActivity).intent
             context.finish()
             context.startActivity(intent)
+          }
+      )
+    }
+    
+    if (showNoRootDialog) {
+      NoRootDialog(
+          onRetry = {
+            val intent = (context as ComponentActivity).intent
+            context.finish()
+            context.startActivity(intent)
+          },
+          onExit = {
+            (context as ComponentActivity).finish()
           }
       )
     }
