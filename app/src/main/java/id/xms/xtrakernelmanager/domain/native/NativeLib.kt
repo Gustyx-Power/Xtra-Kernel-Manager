@@ -381,7 +381,6 @@ object NativeLib {
     return clusters
   }
 
-
   /** Get system property value (100x faster than shell getprop) */
   fun getSystemProperty(key: String): String? {
     if (!isLoaded) return null
@@ -395,7 +394,6 @@ object NativeLib {
   }
 
   private external fun getSystemPropertyNative(key: String): String
-
 
   /** Get GPU vendor (Qualcomm, ARM, etc.) */
   fun getGpuVendor(): String? {
@@ -422,6 +420,7 @@ object NativeLib {
   }
 
   private external fun getGpuVendorNative(): String
+
   private external fun getGpuModelNative(): String
 
   // ============== NEW: Battery Extended Functions ==============
@@ -463,7 +462,9 @@ object NativeLib {
   }
 
   private external fun readCycleCountNative(): Int
+
   private external fun readBatteryHealthNative(): String
+
   private external fun readBatteryCapacityLevelNative(): Float
 
   // ============== NEW: Memory Extended Functions ==============
@@ -529,8 +530,12 @@ object NativeLib {
   }
 
   private external fun getZramCompressionRatioNative(): Float
+
   private external fun getZramCompressedSizeNative(): Int
+
   private external fun getZramAlgorithmNative(): String
+
   private external fun getSwappinessNative(): Int
+
   private external fun getMemoryPressureNative(): Float
 }

@@ -1683,7 +1683,7 @@ fun WavySlider(
   val primaryColor = MaterialTheme.colorScheme.primary
   val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
   val piFreq = remember(waveFrequency) { PI * waveFrequency }
-  val step = 8f 
+  val step = 8f
   Box(
       modifier =
           modifier

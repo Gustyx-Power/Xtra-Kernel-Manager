@@ -156,8 +156,6 @@ class TuningViewModel(
 
   val availableProfiles = listOf("Performance", "Balance", "Powersave", "Battery")
 
-
-
   fun applyGlobalProfile(profile: String) {
     viewModelScope.launch(Dispatchers.IO) {
       _selectedProfile.value = profile
@@ -173,8 +171,7 @@ class TuningViewModel(
 
       // Apply governor to all CPU clusters
       _cpuClusters.value.forEach { cluster ->
-        val targetGovernor =
-            profileGovernor ?: determineBalanceGovernor(cluster.availableGovernors)
+        val targetGovernor = profileGovernor ?: determineBalanceGovernor(cluster.availableGovernors)
         cpuUseCase.setClusterGovernor(cluster.clusterNumber, targetGovernor)
       }
 
@@ -346,7 +343,7 @@ class TuningViewModel(
       _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
       _currentPerfMode.value = preferencesManager.getPerfMode().first()
       _isThermalSetOnBoot.value = preferencesManager.getThermalSetOnBoot().first()
-      
+
       // Load thermal preset - prefer system detection, fallback to saved
       val savedThermal = preferencesManager.getThermalPreset().first()
       if (savedThermal == "class0" || savedThermal.isEmpty()) {
@@ -861,9 +858,9 @@ class TuningViewModel(
 
     val soc = NativeLib.getSystemProperty("ro.board.platform")?.lowercase() ?: "unknownsoc"
     val codename = NativeLib.getSystemProperty("ro.product.device")?.lowercase() ?: "unknowncode"
-    val model = NativeLib.getSystemProperty("ro.product.model")
-        ?.replace("\\s+".toRegex(), "")
-        ?.uppercase() ?: "UNKNOWN"
+    val model =
+        NativeLib.getSystemProperty("ro.product.model")?.replace("\\s+".toRegex(), "")?.uppercase()
+            ?: "UNKNOWN"
 
     deviceInfoCache = Triple(soc, codename, model)
     return "tuning-$soc-$codename-$model.toml"

@@ -214,39 +214,39 @@ class KernelRepository {
     return 0f
   }
 
-    // Store previous CPU stats for differential calculation
-    private var prevCpuIdle: Long = 0L
-    private var prevCpuTotal: Long = 0L
+  // Store previous CPU stats for differential calculation
+  private var prevCpuIdle: Long = 0L
+  private var prevCpuTotal: Long = 0L
 
-    private suspend fun getCPULoad(): Float {
-        return try {
-            val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return 0f
-            val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
-            val values = cpuLine.split("\\s+".toRegex()).drop(1).mapNotNull { it.toLongOrNull() }
-            if (values.size < 4) return 0f
-            
-            val idle = values[3] + (values.getOrNull(4) ?: 0L) // idle + iowait
-            val total = values.sum()
-            
-            // Calculate differential (delta) load
-            val diffIdle = idle - prevCpuIdle
-            val diffTotal = total - prevCpuTotal
-            
-            // Store current values for next calculation
-            prevCpuIdle = idle
-            prevCpuTotal = total
-            
-            // Return differential CPU load percentage
-            if (diffTotal > 0) {
-                ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat() * 100f).coerceIn(0f, 100f)
-            } else {
-                0f
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "getCPULoad failed: ${e.message}")
-            0f
-        }
+  private suspend fun getCPULoad(): Float {
+    return try {
+      val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return 0f
+      val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
+      val values = cpuLine.split("\\s+".toRegex()).drop(1).mapNotNull { it.toLongOrNull() }
+      if (values.size < 4) return 0f
+
+      val idle = values[3] + (values.getOrNull(4) ?: 0L) // idle + iowait
+      val total = values.sum()
+
+      // Calculate differential (delta) load
+      val diffIdle = idle - prevCpuIdle
+      val diffTotal = total - prevCpuTotal
+
+      // Store current values for next calculation
+      prevCpuIdle = idle
+      prevCpuTotal = total
+
+      // Return differential CPU load percentage
+      if (diffTotal > 0) {
+        ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat() * 100f).coerceIn(0f, 100f)
+      } else {
+        0f
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "getCPULoad failed: ${e.message}")
+      0f
     }
+  }
 
   private suspend fun readProcStatValues(): Pair<Long, Long>? {
     val stat = RootManager.executeCommand("cat /proc/stat").getOrNull() ?: return null
@@ -325,22 +325,24 @@ class KernelRepository {
         // GPU frequency: Native first (fast), shell fallback
         var currentFreq = NativeLib.readGpuFreq() ?: 0
         if (currentFreq == 0) {
-          val freqPaths = listOf(
-              "/sys/class/kgsl/kgsl-3d0/gpuclk",
-              "$basePath/gpuclk",
-              "$basePath/clock_mhz",
-              "/sys/kernel/gpu/gpu_clock",
-              "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq"
-          )
+          val freqPaths =
+              listOf(
+                  "/sys/class/kgsl/kgsl-3d0/gpuclk",
+                  "$basePath/gpuclk",
+                  "$basePath/clock_mhz",
+                  "/sys/kernel/gpu/gpu_clock",
+                  "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq",
+              )
           for (path in freqPaths) {
-              val rawValue = RootManager.executeCommand("cat $path").getOrNull()?.trim()
-              val valueLong = rawValue?.toLongOrNull() ?: continue
-              currentFreq = when {
+            val rawValue = RootManager.executeCommand("cat $path").getOrNull()?.trim()
+            val valueLong = rawValue?.toLongOrNull() ?: continue
+            currentFreq =
+                when {
                   valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
                   valueLong > 1_000 -> (valueLong / 1_000).toInt()
                   else -> valueLong.toInt()
-              }
-              if (currentFreq > 0) break
+                }
+            if (currentFreq > 0) break
           }
         }
 
@@ -348,10 +350,17 @@ class KernelRepository {
         val minFreq = availableFreqs.minOrNull() ?: 0
 
         // GPU load: Native first (fast), shell fallback
-        val gpuLoad = NativeLib.readGpuBusy()
-            ?: RootManager.executeCommand("cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage 2>/dev/null")
-                .getOrNull()?.trim()?.split(" ")?.firstOrNull()?.toIntOrNull()
-            ?: 0
+        val gpuLoad =
+            NativeLib.readGpuBusy()
+                ?: RootManager.executeCommand(
+                        "cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage 2>/dev/null"
+                    )
+                    .getOrNull()
+                    ?.trim()
+                    ?.split(" ")
+                    ?.firstOrNull()
+                    ?.toIntOrNull()
+                ?: 0
 
         GPUInfo(
             vendor = vendor ?: "Unknown",

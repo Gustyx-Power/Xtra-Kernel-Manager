@@ -874,9 +874,8 @@ fun CountdownRebootDialog(action: PowerAction, onCancel: () -> Unit, onFinished:
 // COMPONENTS (Card & Visuals)
 
 /**
- * Modern Material Design 3 CPU Information Card
- * Features: Circular load gauge, temperature badge, core grid visualization
- * No dropdown - all content always visible
+ * Modern Material Design 3 CPU Information Card Features: Circular load gauge, temperature badge,
+ * core grid visualization No dropdown - all content always visible
  */
 @SuppressLint("DefaultLocale")
 @Composable

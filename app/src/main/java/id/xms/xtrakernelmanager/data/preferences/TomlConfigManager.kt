@@ -3,7 +3,6 @@ package id.xms.xtrakernelmanager.data.preferences
 import android.os.Environment
 import android.util.Log
 import id.xms.xtrakernelmanager.data.model.*
-import id.xms.xtrakernelmanager.domain.root.RootManager
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,9 +32,10 @@ class TomlConfigManager {
 
       val hardware = nativeLib.getSystemProperty("ro.hardware") ?: "unknown"
       val platform = nativeLib.getSystemProperty("ro.board.platform") ?: "unknown"
-      val soc = nativeLib.getSystemProperty("ro.hardware.chipname")
-          ?: nativeLib.getSystemProperty("ro.soc.model")
-          ?: "unknown"
+      val soc =
+          nativeLib.getSystemProperty("ro.hardware.chipname")
+              ?: nativeLib.getSystemProperty("ro.soc.model")
+              ?: "unknown"
       val device = nativeLib.getSystemProperty("ro.product.device") ?: "unknown"
       val model = nativeLib.getSystemProperty("ro.product.model") ?: "unknown"
 
