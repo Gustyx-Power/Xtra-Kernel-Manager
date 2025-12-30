@@ -101,6 +101,32 @@ class TuningViewModel(
   val availableTCPCongestion: StateFlow<List<String>>
     get() = _availableTCPCongestion.asStateFlow()
 
+  // ============ MEMORY STATS ============
+
+  private val _currentSwappiness = MutableStateFlow(60)
+  val currentSwappiness: StateFlow<Int>
+    get() = _currentSwappiness.asStateFlow()
+
+  private val _currentDirtyRatio = MutableStateFlow(20)
+  val currentDirtyRatio: StateFlow<Int>
+    get() = _currentDirtyRatio.asStateFlow()
+
+  private val _currentMinFreeMem = MutableStateFlow(8192)
+  val currentMinFreeMem: StateFlow<Int>
+    get() = _currentMinFreeMem.asStateFlow()
+
+  private val _zramStatus = MutableStateFlow(RAMControlUseCase.ZramStatus(false, 0, 0, 0f))
+  val zramStatus: StateFlow<RAMControlUseCase.ZramStatus>
+    get() = _zramStatus.asStateFlow()
+
+  private val _swapFileStatus = MutableStateFlow(RAMControlUseCase.SwapFileStatus(false, 0, 0))
+  val swapFileStatus: StateFlow<RAMControlUseCase.SwapFileStatus>
+    get() = _swapFileStatus.asStateFlow()
+
+  private val _memoryStats = MutableStateFlow(RAMControlUseCase.MemoryStats(0, 0, 0, 0, 0, 0, 0))
+  val memoryStats: StateFlow<RAMControlUseCase.MemoryStats>
+    get() = _memoryStats.asStateFlow()
+
   // Private DNS
   private val _currentDNS = MutableStateFlow("Automatic")
   val currentDNS: StateFlow<String>
@@ -128,26 +154,26 @@ class TuningViewModel(
 
   val availableProfiles = listOf("Performance", "Balance", "Powersave", "Battery")
 
-  // Store device's default governor (captured at init)
-  private var defaultGovernor: String = "schedutil"
+
 
   fun applyGlobalProfile(profile: String) {
     viewModelScope.launch(Dispatchers.IO) {
       _selectedProfile.value = profile
 
-      // Map profile to CPU governor - Balance uses device default
-      val governor =
+      // Map profile to CPU governor
+      val profileGovernor =
           when (profile) {
             "Performance" -> "performance"
-            "Balance" -> defaultGovernor // Use device's original governor
             "Powersave" -> "powersave"
             "Battery" -> "conservative"
-            else -> defaultGovernor
+            else -> null // Balance logic determined per cluster
           }
 
       // Apply governor to all CPU clusters
       _cpuClusters.value.forEach { cluster ->
-        cpuUseCase.setClusterGovernor(cluster.clusterNumber, governor)
+        val targetGovernor =
+            profileGovernor ?: determineBalanceGovernor(cluster.availableGovernors)
+        cpuUseCase.setClusterGovernor(cluster.clusterNumber, targetGovernor)
       }
 
       // Refresh values after applying
@@ -155,11 +181,17 @@ class TuningViewModel(
     }
   }
 
-  // Call this after first cluster detection to capture default governor
-  private fun captureDefaultGovernor() {
-    val firstCluster = _cpuClusters.value.firstOrNull()
-    if (firstCluster != null && firstCluster.governor.isNotEmpty()) {
-      defaultGovernor = firstCluster.governor
+  // Determine best balanced governor from available options
+  private fun determineBalanceGovernor(available: List<String>): String {
+    return when {
+      available.contains("schedutil") -> "schedutil"
+      available.contains("walt") -> "walt" // Qualcomm/Google
+      available.contains("pixutil") -> "pixutil" // Pixel
+      available.contains("interactive") -> "interactive"
+      available.contains("ondemand") -> "ondemand"
+      else ->
+          available.firstOrNull { it != "performance" && it != "powersave" && it != "conservative" }
+              ?: "performance"
     }
   }
 
@@ -447,11 +479,16 @@ class TuningViewModel(
     _clusterStates.value = states
 
     _thermalZones.value = NativeLib.readThermalZones()
+
+    // Update memory stats for realtime monitoring
+    _zramStatus.value = ramUseCase.getZramStatus()
+    _swapFileStatus.value = ramUseCase.getSwapFileStatus()
+    _memoryStats.value = ramUseCase.getMemoryStats()
   }
 
   private suspend fun loadSystemInfo() {
     _cpuClusters.value = cpuUseCase.detectClusters()
-    captureDefaultGovernor() // Save device's default governor for Balance profile
+
     _isMediatek.value = detectMediatek()
 
     if (!_isMediatek.value) {
@@ -477,7 +514,29 @@ class TuningViewModel(
       _currentCompressionAlgorithm.value = currentComp
     }
 
+    // Load current memory settings from system
+    loadMemoryInfo()
+
     refreshCurrentValues()
+  }
+
+  /** Load current memory settings from system */
+  private suspend fun loadMemoryInfo() {
+    _currentSwappiness.value = ramUseCase.getSwappiness()
+    _currentDirtyRatio.value = ramUseCase.getDirtyRatio()
+    _currentMinFreeMem.value = ramUseCase.getMinFreeMem()
+    _zramStatus.value = ramUseCase.getZramStatus()
+    _swapFileStatus.value = ramUseCase.getSwapFileStatus()
+    _memoryStats.value = ramUseCase.getMemoryStats()
+  }
+
+  /** Refresh memory stats (called periodically for real-time updates) */
+  fun refreshMemoryStats() {
+    viewModelScope.launch(Dispatchers.IO) {
+      _zramStatus.value = ramUseCase.getZramStatus()
+      _swapFileStatus.value = ramUseCase.getSwapFileStatus()
+      _memoryStats.value = ramUseCase.getMemoryStats()
+    }
   }
 
   private suspend fun detectMediatek(): Boolean {

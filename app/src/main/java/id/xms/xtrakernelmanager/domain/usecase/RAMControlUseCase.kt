@@ -4,6 +4,125 @@ import id.xms.xtrakernelmanager.domain.root.RootManager
 
 class RAMControlUseCase {
 
+  // ============ GETTERS ============
+
+  /** Get current swappiness value (0-200) */
+  suspend fun getSwappiness(): Int {
+    val result = RootManager.executeCommand("cat /proc/sys/vm/swappiness 2>/dev/null")
+    return result.getOrNull()?.trim()?.toIntOrNull() ?: 60
+  }
+
+  /** Get current dirty_ratio value */
+  suspend fun getDirtyRatio(): Int {
+    val result = RootManager.executeCommand("cat /proc/sys/vm/dirty_ratio 2>/dev/null")
+    return result.getOrNull()?.trim()?.toIntOrNull() ?: 20
+  }
+
+  /** Get current min_free_kbytes value */
+  suspend fun getMinFreeMem(): Int {
+    val result = RootManager.executeCommand("cat /proc/sys/vm/min_free_kbytes 2>/dev/null")
+    return result.getOrNull()?.trim()?.toIntOrNull() ?: 8192
+  }
+
+  /** Get current ZRAM disksize in MB */
+  suspend fun getZramSizeMb(): Int {
+    val result = RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
+    val sizeBytes = result.getOrNull()?.trim()?.toLongOrNull() ?: 0L
+    return (sizeBytes / (1024 * 1024)).toInt()
+  }
+
+  /** Get ZRAM status (active/inactive) and used size */
+  data class ZramStatus(val isActive: Boolean, val usedMb: Int, val totalMb: Int, val compressionRatio: Float)
+
+  suspend fun getZramStatus(): ZramStatus {
+    // Check if zram is active
+    val swapsResult = RootManager.executeCommand("grep -q 'zram0' /proc/swaps && echo active || echo inactive")
+    val isActive = swapsResult.getOrNull()?.trim() == "active"
+    
+    if (!isActive) {
+      return ZramStatus(false, 0, 0, 0f)
+    }
+    
+    // Get ZRAM stats
+    val disksize = RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
+        .getOrNull()?.trim()?.toLongOrNull() ?: 0L
+    val origDataSize = RootManager.executeCommand("cat /sys/block/zram0/orig_data_size 2>/dev/null")
+        .getOrNull()?.trim()?.toLongOrNull() ?: 0L
+    val compDataSize = RootManager.executeCommand("cat /sys/block/zram0/compr_data_size 2>/dev/null")
+        .getOrNull()?.trim()?.toLongOrNull() ?: 1L
+    
+    val totalMb = (disksize / (1024 * 1024)).toInt()
+    val usedMb = (origDataSize / (1024 * 1024)).toInt()
+    val ratio = if (compDataSize > 0) origDataSize.toFloat() / compDataSize.toFloat() else 0f
+    
+    return ZramStatus(true, usedMb, totalMb, ratio)
+  }
+
+  /** Get swap file size in MB */
+  suspend fun getSwapFileSizeMb(): Int {
+    val swapPath = "/data/swap/swapfile"
+    val result = RootManager.executeCommand("stat -c%s $swapPath 2>/dev/null || echo 0")
+    val sizeBytes = result.getOrNull()?.trim()?.toLongOrNull() ?: 0L
+    return (sizeBytes / (1024 * 1024)).toInt()
+  }
+
+  /** Get swap file status */
+  data class SwapFileStatus(val isActive: Boolean, val sizeMb: Int, val usedMb: Int)
+
+  suspend fun getSwapFileStatus(): SwapFileStatus {
+    val swapPath = "/data/swap/swapfile"
+    
+    // Check if swap file is active
+    val swapsResult = RootManager.executeCommand("grep '$swapPath' /proc/swaps 2>/dev/null")
+    val isActive = swapsResult.isSuccess && !swapsResult.getOrNull().isNullOrBlank()
+    
+    if (!isActive) {
+      val sizeMb = getSwapFileSizeMb()
+      return SwapFileStatus(false, sizeMb, 0)
+    }
+    
+    // Parse /proc/swaps for this file
+    val line = swapsResult.getOrNull()?.trim() ?: ""
+    val parts = line.split("\\s+".toRegex())
+    val sizeMb = if (parts.size > 2) (parts[2].toLongOrNull() ?: 0L) / 1024 else 0L
+    val usedMb = if (parts.size > 3) (parts[3].toLongOrNull() ?: 0L) / 1024 else 0L
+    
+    return SwapFileStatus(true, sizeMb.toInt(), usedMb.toInt())
+  }
+
+  /** Get overall memory stats */
+  data class MemoryStats(
+    val totalRamMb: Int,
+    val freeRamMb: Int,
+    val availableRamMb: Int,
+    val bufferedMb: Int,
+    val cachedMb: Int,
+    val totalSwapMb: Int,
+    val freeSwapMb: Int
+  )
+
+  suspend fun getMemoryStats(): MemoryStats {
+    val result = RootManager.executeCommand("cat /proc/meminfo")
+    val meminfo = result.getOrNull() ?: ""
+    
+    fun extractKb(key: String): Long {
+      val regex = "$key:\\s*(\\d+)\\s*kB".toRegex()
+      return regex.find(meminfo)?.groupValues?.get(1)?.toLongOrNull() ?: 0L
+    }
+    
+    return MemoryStats(
+      totalRamMb = (extractKb("MemTotal") / 1024).toInt(),
+      freeRamMb = (extractKb("MemFree") / 1024).toInt(),
+      availableRamMb = (extractKb("MemAvailable") / 1024).toInt(),
+      bufferedMb = (extractKb("Buffers") / 1024).toInt(),
+      cachedMb = (extractKb("Cached") / 1024).toInt(),
+      totalSwapMb = (extractKb("SwapTotal") / 1024).toInt(),
+      freeSwapMb = (extractKb("SwapFree") / 1024).toInt()
+    )
+  }
+
+  // ============ SETTERS ============
+
   suspend fun setSwappiness(value: Int): Result<Unit> {
     return RootManager.writeFile("/proc/sys/vm/swappiness", value.toString())
   }

@@ -317,32 +317,33 @@ class KernelRepository {
                 ?.split(" ")
                 ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
 
-        // Use native for GPU frequency (faster, real-time)
-        // Native returns 0 if it can't read, so we need to fallback in that case too
-        val nativeFreq = NativeLib.readGpuFreq() ?: 0
-        val currentFreq = if (nativeFreq > 0) {
-            nativeFreq
-        } else {
-            // Fallback to shell commands with multiple paths
-            val freqPaths = listOf(
-                "$basePath/gpuclk",
-                "$basePath/clock_mhz",
-                "/sys/kernel/gpu/gpu_clock",
-                "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq"
-            )
-            var freq = 0
-            for (path in freqPaths) {
-                val rawValue = RootManager.executeCommand("cat $path 2>/dev/null")
-                    .getOrNull()?.trim()?.toLongOrNull() ?: continue
-                // Normalize to MHz (some values are in Hz, some in kHz, some in MHz)
-                freq = when {
-                    rawValue > 1_000_000 -> (rawValue / 1_000_000).toInt()
-                    rawValue > 1_000 -> (rawValue / 1_000).toInt()
-                    else -> rawValue.toInt()
-                }
-                if (freq > 0) break
+        // GPU frequency reading
+        val freqPaths = listOf(
+            "/sys/class/kgsl/kgsl-3d0/gpuclk", 
+            "$basePath/gpuclk",
+            "$basePath/clock_mhz",
+            "/sys/kernel/gpu/gpu_clock",
+            "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq"
+        )
+        var currentFreq = 0
+        for (path in freqPaths) {
+            val cmdResult = RootManager.executeCommand("cat $path")
+            val rawValue = cmdResult.getOrNull()?.trim()
+            val valueLong = rawValue?.toLongOrNull() ?: continue
+            
+            currentFreq = when {
+                valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
+                valueLong > 1_000 -> (valueLong / 1_000).toInt()
+                else -> valueLong.toInt()
             }
-            freq
+            if (currentFreq > 0) {
+                 break
+            }
+        }
+        
+        // Final fallback to native
+        if (currentFreq == 0) {
+            currentFreq = NativeLib.readGpuFreq() ?: 0
         }
 
         val maxFreq = availableFreqs.maxOrNull() ?: 0

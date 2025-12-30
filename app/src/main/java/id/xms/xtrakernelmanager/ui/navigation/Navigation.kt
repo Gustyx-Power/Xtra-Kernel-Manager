@@ -121,7 +121,12 @@ fun Navigation(preferencesManager: PreferencesManager) {
   // Collect Setup State
   val isSetupCompleteState by preferencesManager.isSetupComplete.collectAsState(initial = null)
 
-  // Redirect to Home if setup is complete (and we are on setup screen)
+  // Show nothing while checking setup state to confirm start destination
+  if (isSetupCompleteState == null) return
+
+  val startDest = if (isSetupCompleteState == true) "home" else "setup"
+
+  // Redirect to Home if setup is completed while on setup screen
   LaunchedEffect(isSetupCompleteState, currentRoute) {
     if (isSetupCompleteState == true && currentRoute == "setup") {
       navController.navigate("home") { popUpTo("setup") { inclusive = true } }
@@ -131,8 +136,8 @@ fun Navigation(preferencesManager: PreferencesManager) {
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
       bottomBar = {
-        // Hide BottomBar on Setup screen, and while loading
-        if (currentRoute != "setup" && isSetupCompleteState != null) {
+        // Hide BottomBar on Setup screen
+        if (currentRoute != "setup") {
           ModernBottomBar(
               currentRoute = currentRoute,
               onNavigate = { route ->
@@ -151,14 +156,40 @@ fun Navigation(preferencesManager: PreferencesManager) {
   ) { paddingValues ->
     NavHost(
         navController = navController,
-        startDestination = "home",
+        startDestination = startDest,
         modifier = Modifier.padding(paddingValues)
     ) {
+      composable("setup") {
+        SetupScreen(
+            onSetupComplete = { layoutStyle ->
+              scope.launch {
+                preferencesManager.setLayoutStyle(layoutStyle)
+                preferencesManager.setSetupComplete(true)
+              }
+              // Navigation will be handled by LaunchedEffect monitoring isSetupCompleteState
+              // or we can force it here
+              navController.navigate("home") { popUpTo("setup") { inclusive = true } }
+            }
+        )
+      }
       composable("home") {
         HomeScreen(preferencesManager = preferencesManager)
       }
       composable("tuning") {
-        TuningScreen(preferencesManager = preferencesManager)
+        TuningScreen(
+            preferencesManager = preferencesManager,
+            onNavigate = { route -> navController.navigate(route) }
+        )
+      }
+      composable("cpu_tuning") {
+        val factory = TuningViewModel.Factory(preferencesManager)
+        val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+        CPUTuningScreen(viewModel = tuningViewModel, onNavigateBack = { navController.popBackStack() })
+      }
+      composable("memory_tuning") {
+        val factory = TuningViewModel.Factory(preferencesManager)
+        val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+        MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
       }
       composable("profiles") {
         val context = LocalContext.current
