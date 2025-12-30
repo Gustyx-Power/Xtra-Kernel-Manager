@@ -10,5 +10,6 @@ data class GPUInfo(
     val availableFreqs: List<Int> = emptyList(),
     val powerLevel: Int = 0,
     val numPwrLevels: Int = 8,
-    val rendererType: String = "OpenGL"
+    val rendererType: String = "OpenGL",
+    val gpuLoad: Int = 0, // GPU busy percentage (0-100)
 )

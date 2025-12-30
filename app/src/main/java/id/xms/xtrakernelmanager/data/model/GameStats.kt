@@ -6,7 +6,7 @@ data class GameStats(
     val cpuFreq: Int,
     val cpuLoad: Float,
     val gpuLoad: Float,
-    val temperature: Float
+    val temperature: Float,
 )
 
 data class GameSession(
@@ -18,5 +18,5 @@ data class GameSession(
     val averageGpuLoad: Float,
     val averageTemp: Float,
     val minFps: Int,
-    val maxFps: Int
+    val maxFps: Int,
 )

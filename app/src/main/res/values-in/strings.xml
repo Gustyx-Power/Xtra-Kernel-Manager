@@ -83,7 +83,8 @@
     <!-- Tuning Screen -->
     <string name="tuning_title">Pengaturan Kernel</string>
     <string name="tuning_requires_root">Memerlukan akses root</string>
-    <string name="tuning_requires_root_desc">Mohon berikan akses root untuk menggunakan fitur pengaturan kernel. Pastikan perangkat Anda di-root dengan Magisk.</string>
+    <string name="tuning_requires_root_desc">Mohon berikan akses root untuk menggunakan fitur
+        pengaturan kernel. Pastikan perangkat Anda di-root dengan Magisk.</string>
     <string name="tuning_export">Ekspor Konfigurasi</string>
     <string name="tuning_import">Impor Konfigurasi</string>
     <string name="tuning_apply">Terapkan Preset</string>
@@ -92,7 +93,8 @@
     <!-- Export Dialog -->
     <string name="tuning_export_title">Ekspor Konfigurasi</string>
     <string name="tuning_export_message">Ekspor konfigurasi tuning saat ini ke file?</string>
-    <string name="tuning_export_description">Ini akan menyimpan semua pengaturan CPU, GPU, RAM, termal, dan informasi perangkat.</string>
+    <string name="tuning_export_description">Ini akan menyimpan semua pengaturan CPU, GPU, RAM,
+        termal, dan informasi perangkat.</string>
     <string name="tuning_export_success">Konfigurasi berhasil diekspor</string>
     <string name="tuning_export_failed">Gagal mengekspor konfigurasi</string>
     <string name="tuning_export_button">Ekspor</string>
@@ -100,7 +102,8 @@
     <!-- Import Dialog -->
     <string name="tuning_import_title">Impor Konfigurasi</string>
     <string name="tuning_import_message">Impor dan terapkan konfigurasi tuning dari file?</string>
-    <string name="tuning_import_warning">⚠️ Ini akan menimpa semua pengaturan saat ini dan menerapkan konfigurasi yang diimpor secara langsung.</string>
+    <string name="tuning_import_warning">⚠️ Ini akan menimpa semua pengaturan saat ini dan
+        menerapkan konfigurasi yang diimpor secara langsung.</string>
     <string name="tuning_import_success">Konfigurasi berhasil diimpor dan diterapkan</string>
     <string name="tuning_import_button">Impor</string>
     <string name="tuning_importing">Mengimpor…</string>
@@ -109,7 +112,8 @@
     <!-- SOC Compatibility Warning -->
     <string name="tuning_soc_warning_title">Peringatan Kompatibilitas Perangkat</string>
     <string name="tuning_soc_warning_question">Apakah Anda ingin melanjutkan?</string>
-    <string name="tuning_soc_warning_desc">Menerapkan konfigurasi yang tidak kompatibel dapat menyebabkan ketidakstabilan sistem, boot loop, atau kerusakan perangkat.</string>
+    <string name="tuning_soc_warning_desc">Menerapkan konfigurasi yang tidak kompatibel dapat
+        menyebabkan ketidakstabilan sistem, boot loop, atau kerusakan perangkat.</string>
     <string name="tuning_apply_with_warning">Konfigurasi diterapkan (dengan peringatan)</string>
     <string name="tuning_apply_anyway">Tetap Terapkan</string>
 
@@ -118,7 +122,8 @@
 
     <!-- CPU Control -->
     <string name="cpu_control">Kontrol CPU</string>
-    <string name="cpu_control_description">Atur cluster CPU untuk performa, efisiensi, atau hemat daya dengan mengontrol frekuensi, governor, dan status core per cluster.</string>
+    <string name="cpu_control_description">Atur cluster CPU untuk performa, efisiensi, atau hemat
+        daya dengan mengontrol frekuensi, governor, dan status core per cluster.</string>
     <string name="cpu_no_clusters">Tidak ada cluster CPU yang terdeteksi</string>
     <string name="cpu_cluster_0">Klaster CPU 0</string>
     <string name="cpu_cluster_1">Klaster CPU 1</string>
@@ -157,7 +162,8 @@
     <string name="gpu_lock">Kunci</string>
     <string name="gpu_unlock">Buka Kunci</string>
     <string name="gpu_lock_info">Kunci untuk memaksa GPU tetap pada frekuensi yang dipilih</string>
-    <string name="gpu_locked_warning">Frekuensi GPU terkunci. Ini dapat menyebabkan konsumsi daya lebih tinggi.</string>
+    <string name="gpu_locked_warning">Frekuensi GPU terkunci. Ini dapat menyebabkan konsumsi daya
+        lebih tinggi.</string>
 
     <!-- GPU Renderer Options -->
     <string name="gpu_renderer_select_title">Pilih Renderer GPU</string>
@@ -179,12 +185,12 @@
     <string name="gpu_renderer_compatibility_intro">Ganti renderer GPU tergantung dukungan ROM:</string>
     <string name="gpu_fully_supported">✓ Full Support:</string>
     <string name="gpu_supported_roms">• ROM Custom (Pixel Experience, LineageOS)
-• ROM berbasis AOSP
-• ROM dengan build.prop terbuka</string>
+        • ROM berbasis AOSP
+        • ROM dengan build.prop terbuka</string>
     <string name="gpu_limited_support">✗ Terbatas/Gak Support:</string>
     <string name="gpu_unsupported_roms">• ROM Stock (MIUI, ColorOS, OneUI)
-• SELinux enforcing + props terkunci
-• Renderer hardcode di vendor HAL</string>
+        • SELinux enforcing + props terkunci
+        • Renderer hardcode di vendor HAL</string>
     <string name="gpu_why_not_work">Kenapa bisa gak work:</string>
     <string name="gpu_reason_1">ROM hardcode renderer di vendor HAL</string>
     <string name="gpu_reason_2">SELinux blokir perubahan property</string>
@@ -201,8 +207,8 @@
     <string name="gpu_new">Baru:</string>
     <string name="gpu_important">⚠️ Penting:</string>
     <string name="gpu_change_warnings">• Harus reboot sistem
-• Mungkin gak work di semua ROM
-• ROM stock biasanya lock fitur ini</string>
+        • Mungkin gak work di semua ROM
+        • ROM stock biasanya lock fitur ini</string>
     <string name="gpu_check_rom_compatibility">Cek Kompatibilitas ROM</string>
     <string name="gpu_apply_changes">Terapkan Perubahan</string>
     <string name="gpu_cancel">Batal</string>
@@ -223,7 +229,8 @@
 
     <!-- MediaTek Warning -->
     <string name="mediatek_device_detected">Device MediaTek Terdeteksi</string>
-    <string name="mediatek_gpu_unavailable">Kontrol GPU gak tersedia di device MediaTek karena limitasi hardware.</string>
+    <string name="mediatek_gpu_unavailable">Kontrol GPU gak tersedia di device MediaTek karena
+        limitasi hardware.</string>
     <string name="mediatek_gpu_notice">Kontrol GPU tidak tersedia di perangkat MediaTek</string>
 
     <!-- Thermal Control -->
@@ -256,11 +263,13 @@
     <string name="zram_size">Ukuran ZRAM</string>
     <string name="zram_configure">Konfigurasi ZRAM</string>
     <string name="zram_compressed_allocation">Alokasi RAM terkompresi</string>
-    <string name="zram_set_size_desc">Atur ukuran RAM terkompresi. Atur ke 0 untuk menonaktifkan ZRAM.</string>
+    <string name="zram_set_size_desc">Atur ukuran RAM terkompresi. Atur ke 0 untuk menonaktifkan
+        ZRAM.</string>
     <string name="swap_size">Ukuran Swap</string>
     <string name="swap_configure">Konfigurasi File Swap</string>
     <string name="swap_virtual_memory">Memori virtual di penyimpanan</string>
-    <string name="swap_set_size_desc">Atur ukuran file swap (maks 16 GB). Atur ke 0 untuk menonaktifkan swap.</string>
+    <string name="swap_set_size_desc">Atur ukuran file swap (maks 16 GB). Atur ke 0 untuk
+        menonaktifkan swap.</string>
     <string name="dirty_ratio">Dirty Ratio</string>
     <string name="dirty_ratio_percentage">Persentase</string>
     <string name="min_free_memory">Memori Bebas Minimum</string>
@@ -299,7 +308,8 @@
     <string name="per_app_profile_save_button">Simpan</string>
     <string name="per_app_profile_cancel">Batal</string>
     <string name="per_app_profile_usage_required">Akses Penggunaan Diperlukan</string>
-    <string name="per_app_profile_usage_desc">Berikan izin akses penggunaan untuk mendeteksi aplikasi aktif</string>
+    <string name="per_app_profile_usage_desc">Berikan izin akses penggunaan untuk mendeteksi
+        aplikasi aktif</string>
     <string name="per_app_profile_grant_permission">Berikan Izin</string>
     <string name="per_app_profile_service_starting">Memulai Layanan Profil Per-Aplikasi…</string>
     <string name="per_app_profile_service_started">Profil Per-Aplikasi: Layanan Dimulai</string>
@@ -316,7 +326,8 @@
     <string name="per_app_profile_refresh_rate_120">120 Hz</string>
     <string name="per_app_profile_refresh_rate_applied">Refresh rate diatur ke %1$d Hz</string>
     <string name="per_app_profile_display_info">Layar: maks %1$d Hz</string>
-    <string name="per_app_profile_refresh_rate_warning">⚠️ Perubahan refresh rate tergantung kompatibilitas ROM. Jika tidak berhasil, coba mulai ulang perangkat.</string>
+    <string name="per_app_profile_refresh_rate_warning">⚠️ Perubahan refresh rate tergantung
+        kompatibilitas ROM. Jika tidak berhasil, coba mulai ulang perangkat.</string>
 
     <!-- Misc Screen -->
     <string name="misc_title">Fitur Lain</string>
@@ -344,8 +355,10 @@
 
     <!-- Info Screen -->
     <string name="info_title">Tentang Aplikasi</string>
-    <string name="info_tagline">Kernel manager tingkat lanjut untuk perangkat Android yang sudah di-root</string>
-    <string name="info_description">Aplikasi manajemen kernel Android open-source yang dibangun dengan Kotlin dan Jetpack Compose.</string>
+    <string name="info_tagline">Kernel manager tingkat lanjut untuk perangkat Android yang sudah
+        di-root</string>
+    <string name="info_description">Aplikasi manajemen kernel Android open-source yang dibangun
+        dengan Kotlin dan Jetpack Compose.</string>
     <string name="info_features">Fitur</string>
     <string name="info_feature_1">Kontrol frekuensi dan governor CPU</string>
     <string name="info_feature_2">Pengaturan renderer dan daya GPU</string>
@@ -378,7 +391,7 @@
     <string name="info_role_founder">Pendiri</string>
     <string name="info_role_contributor">Kontributor</string>
     <string name="info_role_tester">Penguji Perangkat Lunak</string>
-    
+
     <!-- Team Member Names -->
     <string name="team_tester_achmad">Achmad</string>
     <string name="team_tester_hasan">Hasan</string>
@@ -426,10 +439,12 @@
 
     <!-- GPU Renderer Reboot (Legacy - might be unused) -->
     <string name="gpu_renderer_reboot_title">Diperlukan mulai ulang</string>
-    <string name="gpu_renderer_reboot_message">Mengubah renderer GPU memerlukan restart sistem agar berlaku. Apakah Anda ingin mulai ulang sekarang?</string>
+    <string name="gpu_renderer_reboot_message">Mengubah renderer GPU memerlukan restart sistem agar
+        berlaku. Apakah Anda ingin mulai ulang sekarang?</string>
     <string name="gpu_renderer_reboot_confirm">Mulai ulang sekarang</string>
     <string name="gpu_renderer_reboot_later">Terapkan nanti</string>
-    <string name="gpu_renderer_warning">⚠️ Mengganti renderer memerlukan restart untuk perubahan permanen</string>
+    <string name="gpu_renderer_warning">⚠️ Mengganti renderer memerlukan restart untuk perubahan
+        permanen</string>
 
     <!-- Power Actions -->
     <string name="reboot">Mulai Ulang</string>
@@ -446,21 +461,25 @@
     <string name="splash_checking_root">Memeriksa akses root…</string>
     <string name="splash_checking_updates">Memeriksa pembaruan…</string>
     <string name="splash_initializing">Menginisialisasi…</string>
-    
+
     <!-- Root Required Dialog -->
     <string name="root_required_title">Akses Root Diperlukan</string>
-    <string name="root_required_message">Xtra Kernel Manager memerlukan akses root untuk berfungsi dengan baik. Silakan berikan izin root melalui pengelola root Anda (Magisk, KernelSU, dll) dan coba lagi.</string>
-    <string name="root_required_instructions">• Magisk: Aktifkan superuser untuk aplikasi ini\n• KernelSU: Tambahkan aplikasi ini ke daftar izin\n• APatch: Berikan izin root</string>
-    
+    <string name="root_required_message">Xtra Kernel Manager memerlukan akses root untuk berfungsi
+        dengan baik. Silakan berikan izin root melalui pengelola root Anda (Magisk, KernelSU, dll)
+        dan coba lagi.</string>
+    <string name="root_required_instructions">• Magisk: Aktifkan superuser untuk aplikasi ini\n•
+        KernelSU: Tambahkan aplikasi ini ke daftar izin\n• APatch: Berikan izin root</string>
+
     <!-- Update Dialog -->
     <string name="update_required">Pembaruan Diperlukan</string>
     <string name="update_new_version">Versi Baru: %1$s</string>
     <string name="update_changelog">Catatan Perubahan</string>
     <string name="update_now">Perbarui Sekarang</string>
-    
+
     <!-- Offline Lock Dialog -->
     <string name="connection_required">Koneksi Diperlukan</string>
-    <string name="connection_required_message">Pembaruan tertunda terdeteksi sebelumnya. Anda harus mengaktifkan koneksi internet untuk memperbarui aplikasi sebelum melanjutkan.</string>
+    <string name="connection_required_message">Pembaruan tertunda terdeteksi sebelumnya. Anda harus
+        mengaktifkan koneksi internet untuk memperbarui aplikasi sebelum melanjutkan.</string>
     <string name="retry_connection">Coba Lagi Koneksi</string>
 
     <!-- Holiday Celebration -->
@@ -471,34 +490,52 @@
     <string name="holiday_newyear_subtitle">Selamat Tahun Baru!</string>
     <string name="holiday_newyear_button">🚀 Semangat!</string>
     <string name="holiday_from_xkm">– Xtra Kernel Manager –</string>
-    
+
     <!-- Holiday Motivational Messages -->
-    <string name="holiday_christmas_motivation_1">Semoga kasih dan kehangatan Natal selalu menyertai harimu. Tetap semangat dan berbagi kebahagiaan! ❤️</string>
-    <string name="holiday_christmas_motivation_2">Di hari yang penuh berkah ini, ingatlah bahwa setiap tantangan adalah kesempatan untuk bertumbuh. Selamat merayakan! 🌟</string>
-    <string name="holiday_christmas_motivation_3">Natal mengajarkan kita tentang cinta tanpa syarat. Teruslah menyebarkan kebaikan ke sekitarmu! 💫</string>
-    <string name="holiday_christmas_motivation_4">Bersyukurlah atas semua berkat tahun ini. Setiap hari adalah hadiah yang berharga! 🎁</string>
-    <string name="holiday_newyear_motivation_1">Tahun %1$d adalah lembaran baru! Wujudkan mimpimu, hadapi tantangan dengan berani, dan jangan pernah berhenti berkembang! 💪</string>
-    <string name="holiday_newyear_motivation_2">Selamat datang tahun %1$d! Semoga tahun ini penuh pencapaian, kesehatan, dan kebahagiaan. Kamu pasti bisa! 🌈</string>
-    <string name="holiday_newyear_motivation_3">Tahun baru, semangat baru! Jadikan %1$d sebagai tahun terbaik dalam hidupmu. Langkah kecil membawa perubahan besar! 🚀</string>
-    <string name="holiday_newyear_motivation_4">%1$d sudah di depan mata! Percaya pada dirimu, terus berjuang, dan rayakan setiap kemajuan kecil. Kamu luar biasa! ⭐</string>
+    <string name="holiday_christmas_motivation_1">Semoga kasih dan kehangatan Natal selalu menyertai
+        harimu. Tetap semangat dan berbagi kebahagiaan! ❤️</string>
+    <string name="holiday_christmas_motivation_2">Di hari yang penuh berkah ini, ingatlah bahwa
+        setiap tantangan adalah kesempatan untuk bertumbuh. Selamat merayakan! 🌟</string>
+    <string name="holiday_christmas_motivation_3">Natal mengajarkan kita tentang cinta tanpa syarat.
+        Teruslah menyebarkan kebaikan ke sekitarmu! 💫</string>
+    <string name="holiday_christmas_motivation_4">Bersyukurlah atas semua berkat tahun ini. Setiap
+        hari adalah hadiah yang berharga! 🎁</string>
+    <string name="holiday_newyear_motivation_1">Tahun %1$d adalah lembaran baru! Wujudkan mimpimu,
+        hadapi tantangan dengan berani, dan jangan pernah berhenti berkembang! 💪</string>
+    <string name="holiday_newyear_motivation_2">Selamat datang tahun %1$d! Semoga tahun ini penuh
+        pencapaian, kesehatan, dan kebahagiaan. Kamu pasti bisa! 🌈</string>
+    <string name="holiday_newyear_motivation_3">Tahun baru, semangat baru! Jadikan %1$d sebagai
+        tahun terbaik dalam hidupmu. Langkah kecil membawa perubahan besar! 🚀</string>
+    <string name="holiday_newyear_motivation_4">%1$d sudah di depan mata! Percaya pada dirimu, terus
+        berjuang, dan rayakan setiap kemajuan kecil. Kamu luar biasa! ⭐</string>
 
     <!-- Ramadan Celebration -->
     <string name="holiday_ramadan_title">🌙 Ramadan Mubarak! ☪️</string>
     <string name="holiday_ramadan_subtitle">Selamat Menunaikan Ibadah Puasa!</string>
     <string name="holiday_ramadan_button">🤲 Alhamdulillah!</string>
-    <string name="holiday_ramadan_motivation_1">Semoga bulan suci ini membawamu lebih dekat kepada Allah dan mengisi hatimu dengan kedamaian, kesabaran, dan berkah. Ramadan Kareem! 🌙</string>
-    <string name="holiday_ramadan_motivation_2">Selamat datang bulan Ramadan yang penuh berkah! Semoga puasamu diterima dan doamu dikabulkan. Tetap semangat! 🤲</string>
-    <string name="holiday_ramadan_motivation_3">Di Ramadan ini, mari kita sucikan hati, kuatkan iman, dan sebarkan kebaikan ke mana-mana. Masyaallah! ✨</string>
-    <string name="holiday_ramadan_motivation_4">Ramadan adalah waktu untuk refleksi, rasa syukur, dan pertumbuhan spiritual. Semoga Allah memberkatimu sepanjang bulan ini dan seterusnya! 🕌</string>
+    <string name="holiday_ramadan_motivation_1">Semoga bulan suci ini membawamu lebih dekat kepada
+        Allah dan mengisi hatimu dengan kedamaian, kesabaran, dan berkah. Ramadan Kareem! 🌙</string>
+    <string name="holiday_ramadan_motivation_2">Selamat datang bulan Ramadan yang penuh berkah!
+        Semoga puasamu diterima dan doamu dikabulkan. Tetap semangat! 🤲</string>
+    <string name="holiday_ramadan_motivation_3">Di Ramadan ini, mari kita sucikan hati, kuatkan
+        iman, dan sebarkan kebaikan ke mana-mana. Masyaallah! ✨</string>
+    <string name="holiday_ramadan_motivation_4">Ramadan adalah waktu untuk refleksi, rasa syukur,
+        dan pertumbuhan spiritual. Semoga Allah memberkatimu sepanjang bulan ini dan seterusnya! 🕌</string>
 
     <!-- Eid al-Fitr Celebration (Idul Fitri) -->
     <string name="holiday_eid_fitr_title">🎉 Selamat Hari Raya! 🌙</string>
     <string name="holiday_eid_fitr_subtitle">Selamat Idul Fitri 1446H!</string>
     <string name="holiday_eid_fitr_button">🤲 Taqabbalallahu Minna Wa Minkum!</string>
-    <string name="holiday_eid_fitr_motivation_1">Selamat atas selesainya ibadah puasa Ramadan! Semoga Allah menerima semua amal ibadahmu. Mohon maaf lahir dan batin! 🎊</string>
-    <string name="holiday_eid_fitr_motivation_2">Selamat Hari Raya Idul Fitri! Setelah sebulan penuh berkah, inilah saatnya merayakan! Semoga hari ini membawa kebahagiaan dan keberkahan untuk keluargamu! 🌟</string>
-    <string name="holiday_eid_fitr_motivation_3">Hari kemenangan telah tiba! Semoga hatimu dipenuhi kebahagiaan, rumahmu dengan cinta, dan hidupmu dengan berkah. Minal Aidin Wal Faizin! 🕌</string>
-    <string name="holiday_eid_fitr_motivation_4">Idul Fitri adalah perayaan iman, keluarga, dan rasa syukur. Semoga pelajaran Ramadan terus membimbingmu sepanjang tahun. Taqabbalallahu Minna Wa Minkum! ✨</string>
+    <string name="holiday_eid_fitr_motivation_1">Selamat atas selesainya ibadah puasa Ramadan!
+        Semoga Allah menerima semua amal ibadahmu. Mohon maaf lahir dan batin! 🎊</string>
+    <string name="holiday_eid_fitr_motivation_2">Selamat Hari Raya Idul Fitri! Setelah sebulan penuh
+        berkah, inilah saatnya merayakan! Semoga hari ini membawa kebahagiaan dan keberkahan untuk
+        keluargamu! 🌟</string>
+    <string name="holiday_eid_fitr_motivation_3">Hari kemenangan telah tiba! Semoga hatimu dipenuhi
+        kebahagiaan, rumahmu dengan cinta, dan hidupmu dengan berkah. Minal Aidin Wal Faizin! 🕌</string>
+    <string name="holiday_eid_fitr_motivation_4">Idul Fitri adalah perayaan iman, keluarga, dan rasa
+        syukur. Semoga pelajaran Ramadan terus membimbingmu sepanjang tahun. Taqabbalallahu Minna Wa
+        Minkum! ✨</string>
 
     <!-- Game Control Additional Strings -->
     <string name="game_control_no_games">Belum ada gim ditambahkan</string>
@@ -507,7 +544,8 @@
     <string name="game_control_active_games_plural">%1$d gim aktif</string>
     <string name="game_control_overlay_auto">Overlay akan tampil otomatis</string>
     <string name="game_control_game_apps">Daftar Gim</string>
-    <string name="game_control_toggle_info">Aktifkan untuk menampilkan overlay FPS saat aplikasi dibuka</string>
+    <string name="game_control_toggle_info">Aktifkan untuk menampilkan overlay FPS saat aplikasi
+        dibuka</string>
     <string name="game_control_no_games_yet">Belum ada gim ditambahkan</string>
     <string name="game_control_add_game">Tambah Gim</string>
     <string name="game_control_search_apps">Cari aplikasi</string>
@@ -617,7 +655,7 @@
     <string name="esports_mode_desc">Optimasi maksimal untuk gaming</string>
     <string name="mode_monster">MODE MONSTER</string>
     <string name="mode_monster_activated">DIAKTIFKAN</string>
-    
+
     <string name="overlay_grant_dnd">Mohon berikan akses Jangan Ganggu di Pengaturan</string>
     <string name="overlay_error_settings">Gagal membuka Pengaturan</string>
     <string name="overlay_grant_permission">Mohon berikan izin overlay untuk Game Overlay</string>

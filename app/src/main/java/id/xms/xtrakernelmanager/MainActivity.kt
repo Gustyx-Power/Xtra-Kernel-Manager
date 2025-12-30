@@ -19,55 +19,52 @@ import id.xms.xtrakernelmanager.ui.navigation.Navigation
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 
 class MainActivity : ComponentActivity() {
-    private val preferencesManager by lazy { PreferencesManager(this) }
+  private val preferencesManager by lazy { PreferencesManager(this) }
 
-    companion object {
-        private const val TARGET_DENSITY_DPI = 410
-    }
+  companion object {
+    private const val TARGET_DENSITY_DPI = 410
+  }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
 
-        // Start foreground kernel config service (persistent tuning)
-        startService(Intent(this, KernelConfigService::class.java))
+    // Start foreground kernel config service (persistent tuning)
+    startService(Intent(this, KernelConfigService::class.java))
 
-        setContent {
-            XtraKernelManagerTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Navigation(preferencesManager = preferencesManager)
-                }
-            }
+    setContent {
+      XtraKernelManagerTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+          Navigation(preferencesManager = preferencesManager)
         }
+      }
     }
+  }
 
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(updateDensity(newBase))
-    }
+  override fun attachBaseContext(newBase: Context) {
+    super.attachBaseContext(updateDensity(newBase))
+  }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        updateDensity(this)
-    }
+  override fun onConfigurationChanged(newConfig: Configuration) {
+    super.onConfigurationChanged(newConfig)
+    updateDensity(this)
+  }
 
-    @SuppressLint("DiscouragedApi")
-    @Suppress("DEPRECATION")
-    private fun updateDensity(context: Context): Context {
-        val configuration = Configuration(context.resources.configuration)
-        val displayMetrics = context.resources.displayMetrics
+  @SuppressLint("DiscouragedApi")
+  @Suppress("DEPRECATION")
+  private fun updateDensity(context: Context): Context {
+    val configuration = Configuration(context.resources.configuration)
+    val displayMetrics = context.resources.displayMetrics
 
-        configuration.densityDpi = DisplayMetrics.DENSITY_420
-        displayMetrics.density = TARGET_DENSITY_DPI / 160f
-        displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
+    configuration.densityDpi = DisplayMetrics.DENSITY_420
+    displayMetrics.density = TARGET_DENSITY_DPI / 160f
+    displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
 
-        return context.createConfigurationContext(configuration)
-    }
+    return context.createConfigurationContext(configuration)
+  }
 
-    override fun onDestroy() {
-        stopService(Intent(this, KernelConfigService::class.java))
-        super.onDestroy()
-    }
+  override fun onDestroy() {
+    stopService(Intent(this, KernelConfigService::class.java))
+    super.onDestroy()
+  }
 }

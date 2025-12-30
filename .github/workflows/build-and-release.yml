@@ -131,7 +131,7 @@ jobs:
 
       - name: Notify Build Start
         id: notify_start
-        if: inputs.upload_telegram == true
+        if: ${{ inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -273,7 +273,7 @@ jobs:
           fi
 
       - name: Notify Build Complete
-        if: inputs.upload_telegram == true
+        if: ${{ inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -308,11 +308,23 @@ jobs:
             "$COMMIT_URL" \
             "$WORKFLOW_URL")
           
-          curl -s -F chat_id="$CHAT_ID" \
+          echo "Uploading APK: $APK_FILE"
+          echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
+          
+          RESPONSE=$(curl -sS -F chat_id="$CHAT_ID" \
             -F document=@"$APK_FILE" \
             -F parse_mode="HTML" \
             --form-string "caption=$CAPTION" \
-            "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument"
+            "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument")
+          
+          echo "Telegram Response: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "APK uploaded successfully!"
+          else
+            echo "Failed to upload APK!"
+            echo "$RESPONSE"
+          fi
           
           # Delete start message
           if [ -n "$START_MESSAGE_ID" ]; then
@@ -322,7 +334,7 @@ jobs:
           fi
 
       - name: Cleanup on Failure
-        if: failure() && inputs.upload_telegram == true
+        if: ${{ failure() && inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

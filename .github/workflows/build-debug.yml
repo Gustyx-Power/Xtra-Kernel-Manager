@@ -33,7 +33,7 @@ jobs:
 
       - name: Notify Build Start
         id: notify_start
-        if: inputs.upload_telegram == true
+        if: ${{ inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -92,10 +92,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build Rust Native Library (Debug)
+      - name: Build Rust Native Library
         run: |
           cd app/src/main/rust/xkm_native
-          cargo ndk -t arm64-v8a -o ../../jniLibs build
+          cargo ndk -t arm64-v8a -o ../../jniLibs build --release
 
       - name: Verify Native Library
         run: |
@@ -138,7 +138,7 @@ jobs:
           fi
 
       - name: Notify Build Complete
-        if: inputs.upload_telegram == true
+        if: ${{ inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -163,11 +163,23 @@ jobs:
             "$COMMIT_URL" \
             "$WORKFLOW_URL")
           
-          curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument" \
-            -F chat_id="$CHAT_ID" \
+          echo "Uploading APK: $APK_FILE"
+          echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
+          
+          RESPONSE=$(curl -sS -F chat_id="$CHAT_ID" \
             -F document=@"$APK_FILE" \
             -F parse_mode="HTML" \
-            --form-string "caption=$CAPTION"
+            --form-string "caption=$CAPTION" \
+            "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument")
+          
+          echo "Telegram Response: $RESPONSE"
+          
+          if echo "$RESPONSE" | grep -q '"ok":true'; then
+            echo "APK uploaded successfully!"
+          else
+            echo "Failed to upload APK!"
+            echo "$RESPONSE"
+          fi
           
           # Delete start message
           if [ -n "$START_MESSAGE_ID" ]; then
@@ -177,7 +189,7 @@ jobs:
           fi
 
       - name: Cleanup on Failure
-        if: failure() && inputs.upload_telegram == true
+        if: ${{ failure() && inputs.upload_telegram != false }}
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -189,10 +201,3 @@ jobs:
               -d message_id="$START_MESSAGE_ID"
           fi
 
-      - name: Upload APK Artifact
-        if: success()
-        uses: actions/upload-artifact@v6
-        with:
-          name: XKM-Debug-APK
-          path: app/dist/*.apk
-          retention-days: 7
