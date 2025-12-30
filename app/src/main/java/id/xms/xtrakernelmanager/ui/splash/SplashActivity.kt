@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -139,13 +140,24 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
   var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
   var showUpdateDialog by remember { mutableStateOf(false) }
   var showOfflineLockDialog by remember { mutableStateOf(false) }
+  var showNoRootDialog by remember { mutableStateOf(false) }
   var isChecking by remember { mutableStateOf(true) }
   var checkingStatus by remember { mutableStateOf(context.getString(R.string.splash_initializing)) }
   var startExitAnimation by remember { mutableStateOf(false) }
-  var hasRootAccess by remember { mutableStateOf<Boolean?>(null) }
 
   LaunchedEffect(Unit) {
     val minSplashTime = launch { delay(2000) }
+
+    // Check root access first
+    checkingStatus = context.getString(R.string.splash_initializing)
+    val hasRoot = checkRootAccess()
+    
+    if (!hasRoot) {
+      minSplashTime.join()
+      isChecking = false
+      showNoRootDialog = true
+      return@LaunchedEffect
+    }
 
     checkingStatus = context.getString(R.string.splash_checking_updates)
 
@@ -336,6 +348,19 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
             val intent = (context as ComponentActivity).intent
             context.finish()
             context.startActivity(intent)
+          }
+      )
+    }
+    
+    if (showNoRootDialog) {
+      NoRootDialog(
+          onRetry = {
+            val intent = (context as ComponentActivity).intent
+            context.finish()
+            context.startActivity(intent)
+          },
+          onExit = {
+            (context as ComponentActivity).finish()
           }
       )
     }
@@ -634,6 +659,73 @@ fun OfflineLockDialog(onRetry: () -> Unit) {
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
         ) {
           Text(stringResource(R.string.retry_connection))
+        }
+      }
+    }
+  }
+}
+
+@Composable
+fun NoRootDialog(onRetry: () -> Unit, onExit: () -> Unit) {
+  Dialog(
+      onDismissRequest = {},
+      properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+  ) {
+    Card(
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Column(
+          modifier = Modifier.padding(24.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Icon(
+            Icons.Rounded.Warning,
+            null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.root_required_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.root_required_message),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.root_required_instructions),
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          OutlinedButton(
+              onClick = onExit,
+              modifier = Modifier.weight(1f),
+          ) {
+            Text("Exit")
+          }
+          Button(
+              onClick = onRetry,
+              modifier = Modifier.weight(1f),
+              colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+          ) {
+            Text("Retry")
+          }
         }
       }
     }
