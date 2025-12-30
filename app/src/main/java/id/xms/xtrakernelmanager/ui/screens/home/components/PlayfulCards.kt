@@ -21,6 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CPUInfo
 import java.util.Locale
@@ -657,23 +660,44 @@ fun PlayfulSystemCard(systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                // 1. Device Header (Clean & Prominent)
+                // 1. Device Header with Brand Logo
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                     Surface(
+                    // Brand-specific logo
+                    val brandLogoRes = when {
+                        systemInfo.brand.equals("OnePlus", ignoreCase = true) -> R.drawable.oneplus_logo
+                        systemInfo.brand.equals("POCO", ignoreCase = true) -> R.drawable.poco_logo
+                        systemInfo.brand.equals("Redmi", ignoreCase = true) -> R.drawable.redmi_logo
+                        systemInfo.brand.equals("Xiaomi", ignoreCase = true) -> R.drawable.mi_logo
+                        else -> null
+                    }
+                    
+                    Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
                         modifier = Modifier.size(56.dp)
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                             Icon(
-                                Icons.Default.PhoneAndroid,
-                                null,
-                                modifier = Modifier.size(28.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            if (brandLogoRes != null) {
+                                Image(
+                                    painter = painterResource(id = brandLogoRes),
+                                    contentDescription = "${systemInfo.brand} Logo",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.PhoneAndroid,
+                                    null,
+                                    modifier = Modifier.size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                     Column {
