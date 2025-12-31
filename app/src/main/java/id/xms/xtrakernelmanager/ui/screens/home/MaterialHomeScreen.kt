@@ -339,14 +339,17 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
         }
       }
 
-      // Device Silhouette
+      // Device Silhouette with Wallpaper
       Box(
           modifier =
               Modifier.align(Alignment.BottomEnd)
                   .padding(end = 24.dp)
                   .offset(y = 12.dp) // Raised up to show more phone
       ) {
-        DeviceSilhouette(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f))
+        DeviceSilhouette(
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f),
+            showWallpaper = true
+        )
       }
     }
   }
