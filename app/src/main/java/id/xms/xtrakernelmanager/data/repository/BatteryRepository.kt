@@ -73,11 +73,14 @@ class BatteryRepository {
                   ?.toIntOrNull()
                   ?.div(1000) ?: 0
 
+          // Cycle count: Native first (fast), shell fallback
           cachedCycleCount =
-              RootManager.readFile("/sys/class/power_supply/battery/cycle_count")
-                  .getOrNull()
-                  ?.trim()
-                  ?.toIntOrNull() ?: 0
+              id.xms.xtrakernelmanager.domain.native.NativeLib.readCycleCount()
+                  ?: RootManager.readFile("/sys/class/power_supply/battery/cycle_count")
+                      .getOrNull()
+                      ?.trim()
+                      ?.toIntOrNull()
+                  ?: 0
         }
 
         // Current: Try fast NativeLib first, Fallback to RootManager

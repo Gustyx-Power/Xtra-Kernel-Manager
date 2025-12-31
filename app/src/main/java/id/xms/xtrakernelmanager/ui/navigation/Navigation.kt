@@ -1,6 +1,5 @@
 package id.xms.xtrakernelmanager.ui.navigation
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,6 +18,10 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.BottomNavItem
 import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
 import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
@@ -28,10 +31,6 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
-import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
-import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -152,12 +151,12 @@ fun Navigation(preferencesManager: PreferencesManager) {
               items = bottomNavItems,
           )
         }
-      }
+      },
   ) { paddingValues ->
     NavHost(
         navController = navController,
         startDestination = startDest,
-        modifier = Modifier.padding(paddingValues)
+        modifier = Modifier.padding(paddingValues),
     ) {
       composable("setup") {
         SetupScreen(
@@ -172,19 +171,20 @@ fun Navigation(preferencesManager: PreferencesManager) {
             }
         )
       }
-      composable("home") {
-        HomeScreen(preferencesManager = preferencesManager)
-      }
+      composable("home") { HomeScreen(preferencesManager = preferencesManager) }
       composable("tuning") {
         TuningScreen(
             preferencesManager = preferencesManager,
-            onNavigate = { route -> navController.navigate(route) }
+            onNavigate = { route -> navController.navigate(route) },
         )
       }
       composable("cpu_tuning") {
         val factory = TuningViewModel.Factory(preferencesManager)
         val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-        CPUTuningScreen(viewModel = tuningViewModel, onNavigateBack = { navController.popBackStack() })
+        CPUTuningScreen(
+            viewModel = tuningViewModel,
+            onNavigateBack = { navController.popBackStack() },
+        )
       }
       composable("memory_tuning") {
         val factory = TuningViewModel.Factory(preferencesManager)
@@ -196,14 +196,12 @@ fun Navigation(preferencesManager: PreferencesManager) {
         val miscViewModel = remember {
           MiscViewModel(
               preferencesManager = preferencesManager,
-              context = context.applicationContext
+              context = context.applicationContext,
           )
         }
         MiscScreen(
             viewModel = miscViewModel,
-            onNavigateToFunctionalRom = {
-              navController.navigate("functionalrom")
-            }
+            onNavigateToFunctionalRom = { navController.navigate("functionalrom") },
         )
       }
 
@@ -212,27 +210,23 @@ fun Navigation(preferencesManager: PreferencesManager) {
         val functionalRomViewModel = remember {
           FunctionalRomViewModel(
               preferencesManager = preferencesManager,
-              context = context.applicationContext
+              context = context.applicationContext,
           )
         }
         FunctionalRomScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToPlayIntegrity = { navController.navigate("playintegritysettings") },
             onNavigateToXiaomiTouch = { navController.navigate("xiaomitouchsettings") },
-            viewModel = functionalRomViewModel
+            viewModel = functionalRomViewModel,
         )
       }
 
       composable("playintegritysettings") {
-        PlayIntegritySettingsScreen(
-            onNavigateBack = { navController.popBackStack() }
-        )
+        PlayIntegritySettingsScreen(onNavigateBack = { navController.popBackStack() })
       }
 
       composable("xiaomitouchsettings") {
-        XiaomiTouchSettingsScreen(
-            onNavigateBack = { navController.popBackStack() }
-        )
+        XiaomiTouchSettingsScreen(onNavigateBack = { navController.popBackStack() })
       }
 
       composable("info") { InfoScreen() }

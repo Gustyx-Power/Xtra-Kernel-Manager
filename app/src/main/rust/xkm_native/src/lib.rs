@@ -4,8 +4,8 @@ mod memory;
 mod power;
 mod utils;
 
-use jni::objects::JClass;
-use jni::sys::{jfloat, jint, jstring};
+use jni::objects::{JClass, JString};
+use jni::sys::{jboolean, jfloat, jint, jlong, jstring};
 use jni::JNIEnv;
 
 // Helper: Safe JString creation
@@ -281,4 +281,14 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
     _class: JClass,
 ) -> jstring {
     create_jstring_safe(&env, memory::read_meminfo_detailed())
+}
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getSystemPropertyNative(
+    mut env: JNIEnv,
+    _class: JClass,
+    key: JString,
+) -> jstring {
+    let key_str: String = env.get_string(&key).map(|s| s.into()).unwrap_or_default();
+    let value = utils::get_system_property(&key_str).unwrap_or_default();
+    create_jstring_safe(&env, value)
 }
