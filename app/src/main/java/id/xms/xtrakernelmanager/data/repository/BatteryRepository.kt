@@ -60,7 +60,7 @@ class BatteryRepository {
         // Cache capacity values (slow to read via Root, changes rarely)
         if (cachedTotalCapacity == 0 || cachedCurrentCapacity == 0) {
           // Native first: Try using NativeLib for capacity (reads charge_full_design and charge_full internally)
-          val nativeCapacityLevel = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCapacityLevel()s
+          val nativeCapacityLevel = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCapacityLevel()
           if (nativeCapacityLevel != null && nativeCapacityLevel > 0f) {
             cachedTotalCapacity =
                 RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
