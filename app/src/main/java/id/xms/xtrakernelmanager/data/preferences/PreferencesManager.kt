@@ -64,6 +64,17 @@ class PreferencesManager(private val context: Context) {
   private val GAME_CONTROL_DND_ENABLED = booleanPreferencesKey("game_control_dnd_enabled")
   private val GAME_CONTROL_HIDE_NOTIF = booleanPreferencesKey("game_control_hide_notif")
 
+  // Functional ROM preferences
+  private val FUNCTIONAL_ROM_UNLOCK_NITS = booleanPreferencesKey("functional_rom_unlock_nits")
+  private val FUNCTIONAL_ROM_DYNAMIC_REFRESH = booleanPreferencesKey("functional_rom_dynamic_refresh")
+  private val FUNCTIONAL_ROM_FORCE_REFRESH = booleanPreferencesKey("functional_rom_force_refresh")
+  private val FUNCTIONAL_ROM_FORCE_REFRESH_VALUE = intPreferencesKey("functional_rom_force_refresh_value")
+  private val FUNCTIONAL_ROM_DC_DIMMING = booleanPreferencesKey("functional_rom_dc_dimming")
+  private val FUNCTIONAL_ROM_PERFORMANCE_MODE = booleanPreferencesKey("functional_rom_performance_mode")
+  private val FUNCTIONAL_ROM_SMART_CHARGING = booleanPreferencesKey("functional_rom_smart_charging")
+  private val FUNCTIONAL_ROM_CHARGING_LIMIT = booleanPreferencesKey("functional_rom_charging_limit")
+  private val FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE = intPreferencesKey("functional_rom_charging_limit_value")
+
   // Per-App Profile preferences
   private val APP_PROFILES = stringPreferencesKey("app_profiles")
   private val PER_APP_PROFILE_ENABLED = booleanPreferencesKey("per_app_profile_enabled")
