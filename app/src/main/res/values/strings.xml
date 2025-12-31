@@ -395,6 +395,10 @@
     <string name="team_tester_reffan">Reffan Lintang M</string>
     <string name="team_tester_wil">WiL</string>
     <string name="team_tester_shadow_monarch">Shadow Monarch</string>
+    <string name="team_tester_azhar">Azhar Muhamad N</string>
+    <string name="team_tester_juni">Juni Santoso</string>
+    <string name="team_tester_sleep">Tukang Tidur</string>
+    <string name="team_contributor_rio">Rio (Hyonies)</string>
 
     <!-- Theme Settings -->
     <string name="theme_settings">Theme Settings</string>
