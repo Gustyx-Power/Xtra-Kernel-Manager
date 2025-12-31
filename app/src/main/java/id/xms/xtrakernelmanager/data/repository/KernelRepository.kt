@@ -261,48 +261,53 @@ class KernelRepository {
 
   suspend fun getGPUInfo(): GPUInfo =
       withContext(Dispatchers.IO) {
-        val glesRaw =
-            RootManager.executeCommand("dumpsys SurfaceFlinger | grep GLES").getOrNull()?.trim()
-                ?: ""
-        var openglVersion = "Unknown"
-        var renderer = "Unknown"
-        var vendor = "Unknown"
+        // Try native GPU vendor/model first (fast path)
+        var vendor = NativeLib.getGpuVendor()
+        var renderer = NativeLib.getGpuModel()
 
-        if (glesRaw.contains("GLES:")) {
-          val clean = glesRaw.substringAfter("GLES:").trim()
-          val parts = clean.split(",").map { it.trim() }
-          openglVersion =
-              parts.firstOrNull { it.contains("OpenGL", ignoreCase = true) } ?: "Unknown"
-          renderer =
-              parts.firstOrNull {
-                Regex("adreno|mali|powervr|nvidia", RegexOption.IGNORE_CASE).containsMatchIn(it)
-              } ?: (parts.getOrNull(1) ?: "Unknown")
-          vendor =
-              parts.firstOrNull {
-                Regex("qualcomm|arm|nvidia|imagination", RegexOption.IGNORE_CASE)
-                    .containsMatchIn(it)
-              }
-                  ?: when {
-                    renderer.contains("Adreno", true) -> "Qualcomm"
-                    renderer.contains("Mali", true) -> "ARM"
-                    renderer.contains("PowerVR", true) -> "Imagination"
-                    renderer.contains("NVIDIA", true) -> "NVIDIA"
-                    else -> {
-                      val soc =
-                          RootManager.executeCommand("getprop ro.hardware")
-                              .getOrNull()
-                              ?.trim()
-                              ?.lowercase() ?: ""
-                      when {
-                        soc.contains("qcom") -> "Qualcomm"
-                        soc.contains("mt") -> "ARM"
-                        soc.contains("powervr") -> "Imagination"
-                        soc.contains("exynos") -> "ARM"
-                        soc.contains("nvidia") -> "NVIDIA"
-                        else -> "Unknown"
-                      }
-                    }
+        // Fallback to dumpsys if native returns null
+        var openglVersion = "Unknown"
+        if (vendor == null || renderer == null) {
+          val glesRaw =
+              RootManager.executeCommand("dumpsys SurfaceFlinger | grep GLES").getOrNull()?.trim()
+                  ?: ""
+          if (glesRaw.contains("GLES:")) {
+            val clean = glesRaw.substringAfter("GLES:").trim()
+            val parts = clean.split(",").map { it.trim() }
+            openglVersion =
+                parts.firstOrNull { it.contains("OpenGL", ignoreCase = true) } ?: "Unknown"
+            if (renderer == null) {
+              renderer =
+                  parts.firstOrNull {
+                    Regex("adreno|mali|powervr|nvidia", RegexOption.IGNORE_CASE).containsMatchIn(it)
+                  } ?: (parts.getOrNull(1) ?: "Unknown")
+            }
+            if (vendor == null) {
+              vendor =
+                  parts.firstOrNull {
+                    Regex("qualcomm|arm|nvidia|imagination", RegexOption.IGNORE_CASE)
+                        .containsMatchIn(it)
                   }
+                      ?: when {
+                        renderer?.contains("Adreno", true) == true -> "Qualcomm"
+                        renderer?.contains("Mali", true) == true -> "ARM"
+                        renderer?.contains("PowerVR", true) == true -> "Imagination"
+                        renderer?.contains("NVIDIA", true) == true -> "NVIDIA"
+                        else -> {
+                          // Use native getprop (100x faster)
+                          val soc = NativeLib.getSystemProperty("ro.hardware")?.lowercase() ?: ""
+                          when {
+                            soc.contains("qcom") -> "Qualcomm"
+                            soc.contains("mt") -> "ARM"
+                            soc.contains("powervr") -> "Imagination"
+                            soc.contains("exynos") -> "ARM"
+                            soc.contains("nvidia") -> "NVIDIA"
+                            else -> "Unknown"
+                          }
+                        }
+                      }
+            }
+          }
         }
 
         val basePath =
@@ -317,52 +322,40 @@ class KernelRepository {
                 ?.split(" ")
                 ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
 
-        // GPU frequency reading
-        val freqPaths = listOf(
-            "/sys/class/kgsl/kgsl-3d0/gpuclk", 
-            "$basePath/gpuclk",
-            "$basePath/clock_mhz",
-            "/sys/kernel/gpu/gpu_clock",
-            "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq"
-        )
-        var currentFreq = 0
-        for (path in freqPaths) {
-            val cmdResult = RootManager.executeCommand("cat $path")
-            val rawValue = cmdResult.getOrNull()?.trim()
-            val valueLong = rawValue?.toLongOrNull() ?: continue
-            
-            currentFreq = when {
-                valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
-                valueLong > 1_000 -> (valueLong / 1_000).toInt()
-                else -> valueLong.toInt()
-            }
-            if (currentFreq > 0) {
-                 break
-            }
-        }
-        
-        // Final fallback to native
+        // GPU frequency: Native first (fast), shell fallback
+        var currentFreq = NativeLib.readGpuFreq() ?: 0
         if (currentFreq == 0) {
-            currentFreq = NativeLib.readGpuFreq() ?: 0
+          val freqPaths = listOf(
+              "/sys/class/kgsl/kgsl-3d0/gpuclk",
+              "$basePath/gpuclk",
+              "$basePath/clock_mhz",
+              "/sys/kernel/gpu/gpu_clock",
+              "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq"
+          )
+          for (path in freqPaths) {
+              val rawValue = RootManager.executeCommand("cat $path").getOrNull()?.trim()
+              val valueLong = rawValue?.toLongOrNull() ?: continue
+              currentFreq = when {
+                  valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
+                  valueLong > 1_000 -> (valueLong / 1_000).toInt()
+                  else -> valueLong.toInt()
+              }
+              if (currentFreq > 0) break
+          }
         }
 
         val maxFreq = availableFreqs.maxOrNull() ?: 0
         val minFreq = availableFreqs.minOrNull() ?: 0
 
-        // Use native for GPU load (busy percentage) with fallback
-        val nativeLoad = NativeLib.readGpuBusy() ?: 0
-        val gpuLoad = if (nativeLoad > 0) {
-            nativeLoad
-        } else {
-            // Fallback to shell
-            val busyPct = RootManager.executeCommand("cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage 2>/dev/null")
+        // GPU load: Native first (fast), shell fallback
+        val gpuLoad = NativeLib.readGpuBusy()
+            ?: RootManager.executeCommand("cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage 2>/dev/null")
                 .getOrNull()?.trim()?.split(" ")?.firstOrNull()?.toIntOrNull()
-            busyPct ?: 0
-        }
+            ?: 0
 
         GPUInfo(
-            vendor = vendor,
-            renderer = renderer,
+            vendor = vendor ?: "Unknown",
+            renderer = renderer ?: "Unknown",
             openglVersion = openglVersion,
             currentFreq = currentFreq,
             minFreq = minFreq,

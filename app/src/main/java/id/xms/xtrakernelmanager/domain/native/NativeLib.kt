@@ -380,4 +380,157 @@ object NativeLib {
 
     return clusters
   }
+
+
+  /** Get system property value (100x faster than shell getprop) */
+  fun getSystemProperty(key: String): String? {
+    if (!isLoaded) return null
+    return try {
+      val value = getSystemPropertyNative(key)
+      if (value.isNotEmpty()) value else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getSystemProperty failed: ${e.message}")
+      null
+    }
+  }
+
+  private external fun getSystemPropertyNative(key: String): String
+
+
+  /** Get GPU vendor (Qualcomm, ARM, etc.) */
+  fun getGpuVendor(): String? {
+    if (!isLoaded) return null
+    return try {
+      val vendor = getGpuVendorNative()
+      if (vendor.isNotEmpty() && vendor != "Unknown") vendor else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getGpuVendor failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Get GPU model (Adreno 725, Mali-G710, etc.) */
+  fun getGpuModel(): String? {
+    if (!isLoaded) return null
+    return try {
+      val model = getGpuModelNative()
+      if (model.isNotEmpty() && model != "Unknown") model else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getGpuModel failed: ${e.message}")
+      null
+    }
+  }
+
+  private external fun getGpuVendorNative(): String
+  private external fun getGpuModelNative(): String
+
+  // ============== NEW: Battery Extended Functions ==============
+
+  /** Read battery cycle count */
+  fun readCycleCount(): Int? {
+    if (!isLoaded) return null
+    return try {
+      val count = readCycleCountNative()
+      if (count >= 0) count else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native readCycleCount failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Read battery health status string */
+  fun readBatteryHealth(): String? {
+    if (!isLoaded) return null
+    return try {
+      val health = readBatteryHealthNative()
+      if (health.isNotEmpty()) health else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native readBatteryHealth failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Read battery capacity level (current/design ratio as percentage) */
+  fun readBatteryCapacityLevel(): Float? {
+    if (!isLoaded) return null
+    return try {
+      val level = readBatteryCapacityLevelNative()
+      if (level > 0f) level else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native readBatteryCapacityLevel failed: ${e.message}")
+      null
+    }
+  }
+
+  private external fun readCycleCountNative(): Int
+  private external fun readBatteryHealthNative(): String
+  private external fun readBatteryCapacityLevelNative(): Float
+
+  // ============== NEW: Memory Extended Functions ==============
+
+  /** Get ZRAM compression ratio (e.g., 2.87x) */
+  fun getZramCompressionRatio(): Float? {
+    if (!isLoaded) return null
+    return try {
+      val ratio = getZramCompressionRatioNative()
+      if (ratio > 0f) ratio else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getZramCompressionRatio failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Get ZRAM compressed size in bytes */
+  fun getZramCompressedSize(): Long? {
+    if (!isLoaded) return null
+    return try {
+      val size = getZramCompressedSizeNative()
+      if (size > 0) size.toLong() else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getZramCompressedSize failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Get current ZRAM algorithm (lz4, lzo, zstd, etc.) */
+  fun getZramAlgorithm(): String? {
+    if (!isLoaded) return null
+    return try {
+      val algo = getZramAlgorithmNative()
+      if (algo.isNotEmpty()) algo else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getZramAlgorithm failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Get swappiness value (0-200) */
+  fun getSwappiness(): Int? {
+    if (!isLoaded) return null
+    return try {
+      val value = getSwappinessNative()
+      if (value >= 0) value else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getSwappiness failed: ${e.message}")
+      null
+    }
+  }
+
+  /** Get memory pressure (0.0-1.0) */
+  fun getMemoryPressure(): Float? {
+    if (!isLoaded) return null
+    return try {
+      val pressure = getMemoryPressureNative()
+      if (pressure >= 0f) pressure else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getMemoryPressure failed: ${e.message}")
+      null
+    }
+  }
+
+  private external fun getZramCompressionRatioNative(): Float
+  private external fun getZramCompressedSizeNative(): Int
+  private external fun getZramAlgorithmNative(): String
+  private external fun getSwappinessNative(): Int
+  private external fun getMemoryPressureNative(): Float
 }

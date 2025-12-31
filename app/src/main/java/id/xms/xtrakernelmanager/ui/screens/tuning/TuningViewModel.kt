@@ -33,6 +33,8 @@ class TuningViewModel(
     private val overlayUseCase: id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase =
         id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase(),
     private val tomlManager: TomlConfigManager = TomlConfigManager(),
+    private val kernelRepository: id.xms.xtrakernelmanager.data.repository.KernelRepository =
+        id.xms.xtrakernelmanager.data.repository.KernelRepository(),
 ) : ViewModel() {
 
   class Factory(private val preferencesManager: PreferencesManager) : ViewModelProvider.Factory {
@@ -279,7 +281,7 @@ class TuningViewModel(
 
   fun loadHostname() {
     viewModelScope.launch(Dispatchers.IO) {
-      val hostname = RootManager.executeCommand("getprop net.hostname").getOrNull()?.trim() ?: ""
+      val hostname = NativeLib.getSystemProperty("net.hostname") ?: ""
       _currentHostname.value = hostname
     }
   }
@@ -391,16 +393,18 @@ class TuningViewModel(
 
     if (_isRootAvailable.value) {
       loadSystemInfo()
+      // Show UI now (clusters/GPU loaded), CPU load will update when ready
+      _isLoading.value = false
       refreshCurrentValues()
       startNetworkMonitoring()
+    } else {
+      _isLoading.value = false
     }
-
-    _isLoading.value = false
   }
 
   private suspend fun startAutoRefresh() {
     while (true) {
-      delay(5000) // Optimized: 5 seconds instead of 2
+      delay(5000) // 5 seconds refresh interval
       if (_isRootAvailable.value && !_isLoading.value && _isRefreshEnabled.value) {
         refreshDynamicValues() // Only refresh dynamic data
       }
@@ -437,7 +441,10 @@ class TuningViewModel(
     }
     _clusterStates.value = states
 
-    // Only load static data once
+    // Load thermal zones first (fast native call)
+    _thermalZones.value = NativeLib.readThermalZones()
+
+    // Load static data once (IO schedulers, TCP congestion)
     if (!staticDataLoaded) {
       val currentIO = getCurrentIOScheduler()
       if (currentIO.isNotEmpty()) {
@@ -450,6 +457,11 @@ class TuningViewModel(
       }
       staticDataLoaded = true
     }
+
+    // Load CPU load/temp (can be slow, but UI is already visible)
+    val cpuInfo = kernelRepository.getCPUInfo()
+    _cpuLoad.value = cpuInfo.totalLoad
+    _cpuTemperature.value = cpuInfo.temperature
   }
 
   // Lightweight refresh - only dynamic data (called every 5s)
@@ -464,8 +476,8 @@ class TuningViewModel(
     // Update temperature
     _cpuTemperature.value = overlayUseCase.getTemperature()
 
-    // Update CPU load via JNI
-    _cpuLoad.value = NativeLib.readCpuLoad() ?: 0f
+    // Update CPU load - use KernelRepository like MaterialHomeScreen (proper delta calc)
+    _cpuLoad.value = kernelRepository.getCPUInfo().totalLoad
 
     val states = mutableMapOf<Int, ClusterUIState>()
     updatedClusters.forEach { cluster ->
@@ -540,9 +552,8 @@ class TuningViewModel(
   }
 
   private suspend fun detectMediatek(): Boolean {
-    val hwPlatform =
-        RootManager.executeCommand("getprop ro.hardware").getOrNull()?.lowercase() ?: ""
-    val soc = RootManager.executeCommand("getprop ro.board.platform").getOrNull()?.lowercase() ?: ""
+    val hwPlatform = NativeLib.getSystemProperty("ro.hardware")?.lowercase() ?: ""
+    val soc = NativeLib.getSystemProperty("ro.board.platform")?.lowercase() ?: ""
 
     return hwPlatform.contains("mt") ||
         soc.contains("mt") ||
@@ -848,18 +859,11 @@ class TuningViewModel(
       return "tuning-$soc-$codename-$model.toml"
     }
 
-    val soc =
-        RootManager.executeCommand("getprop ro.board.platform").getOrNull()?.trim()?.lowercase()
-            ?: "unknownsoc"
-    val codename =
-        RootManager.executeCommand("getprop ro.product.device").getOrNull()?.trim()?.lowercase()
-            ?: "unknowncode"
-    val model =
-        RootManager.executeCommand("getprop ro.product.model")
-            .getOrNull()
-            ?.trim()
-            ?.replace("\\s+".toRegex(), "")
-            ?.uppercase() ?: "UNKNOWN"
+    val soc = NativeLib.getSystemProperty("ro.board.platform")?.lowercase() ?: "unknownsoc"
+    val codename = NativeLib.getSystemProperty("ro.product.device")?.lowercase() ?: "unknowncode"
+    val model = NativeLib.getSystemProperty("ro.product.model")
+        ?.replace("\\s+".toRegex(), "")
+        ?.uppercase() ?: "UNKNOWN"
 
     deviceInfoCache = Triple(soc, codename, model)
     return "tuning-$soc-$codename-$model.toml"
