@@ -3,7 +3,6 @@ package id.xms.xtrakernelmanager.data.preferences
 import android.os.Environment
 import android.util.Log
 import id.xms.xtrakernelmanager.data.model.*
-import id.xms.xtrakernelmanager.domain.root.RootManager
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,18 +27,17 @@ class TomlConfigManager {
 
   private suspend fun getCurrentSOCInfo(): SOCInfo {
     return withContext(Dispatchers.IO) {
-      val hardware =
-          RootManager.executeCommand("getprop ro.hardware").getOrNull()?.trim() ?: "unknown"
-      val platform =
-          RootManager.executeCommand("getprop ro.board.platform").getOrNull()?.trim() ?: "unknown"
+      // Use native getprop (100x faster than shell)
+      val nativeLib = id.xms.xtrakernelmanager.domain.native.NativeLib
+
+      val hardware = nativeLib.getSystemProperty("ro.hardware") ?: "unknown"
+      val platform = nativeLib.getSystemProperty("ro.board.platform") ?: "unknown"
       val soc =
-          RootManager.executeCommand("getprop ro.hardware.chipname").getOrNull()?.trim()
-              ?: RootManager.executeCommand("getprop ro.soc.model").getOrNull()?.trim()
+          nativeLib.getSystemProperty("ro.hardware.chipname")
+              ?: nativeLib.getSystemProperty("ro.soc.model")
               ?: "unknown"
-      val device =
-          RootManager.executeCommand("getprop ro.product.device").getOrNull()?.trim() ?: "unknown"
-      val model =
-          RootManager.executeCommand("getprop ro.product.model").getOrNull()?.trim() ?: "unknown"
+      val device = nativeLib.getSystemProperty("ro.product.device") ?: "unknown"
+      val model = nativeLib.getSystemProperty("ro.product.model") ?: "unknown"
 
       SOCInfo(hardware = hardware, platform = platform, soc = soc, device = device, model = model)
     }

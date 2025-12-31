@@ -148,13 +148,11 @@ pub fn read_cycle_count() -> i32 {
 
     for path in &paths {
         if let Some(cycles) = utils::read_sysfs_int(path, 1000) {
-            if cycles > 0 {
-                return cycles as i32;
-            }
+            return cycles as i32;
         }
     }
 
-    0
+    -1
 }
 
 /// Read battery health status

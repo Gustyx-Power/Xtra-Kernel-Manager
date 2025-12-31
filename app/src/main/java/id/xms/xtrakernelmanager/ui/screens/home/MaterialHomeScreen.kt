@@ -53,10 +53,10 @@ import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.DeviceSilhouette
 import id.xms.xtrakernelmanager.ui.components.WavyProgressIndicator
+import id.xms.xtrakernelmanager.ui.screens.home.components.ExpandablePowerFab
 import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import java.util.Locale
 import kotlinx.coroutines.delay
-import id.xms.xtrakernelmanager.ui.screens.home.components.ExpandablePowerFab
 
 /** Material Home Screen - Restored Layout with Dynamic Colors (Material You) */
 @SuppressLint("DefaultLocale")
@@ -89,11 +89,7 @@ fun MaterialHomeScreen(
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
       floatingActionButton = {
-        ExpandablePowerFab(
-            onPowerAction = { action ->
-                onPowerAction(action)
-            }
-        )
+        ExpandablePowerFab(onPowerAction = { action -> onPowerAction(action) })
       },
       content = { paddingValues ->
         Column(
@@ -488,23 +484,24 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
             shape = RoundedCornerShape(50),
         ) {
-          val gpuBadge = remember(gpuInfo.renderer) {
-            when {
-              gpuInfo.renderer.contains("Adreno", true) -> {
-                // Extract "Adreno 730" from "Adreno (TM) 730"
-                val match = Regex("Adreno.*?(\\d+)").find(gpuInfo.renderer)
-                match?.let { "Adreno ${it.groupValues[1]}" } ?: "Adreno"
+          val gpuBadge =
+              remember(gpuInfo.renderer) {
+                when {
+                  gpuInfo.renderer.contains("Adreno", true) -> {
+                    // Extract "Adreno 730" from "Adreno (TM) 730"
+                    val match = Regex("Adreno.*?(\\d+)").find(gpuInfo.renderer)
+                    match?.let { "Adreno ${it.groupValues[1]}" } ?: "Adreno"
+                  }
+                  gpuInfo.renderer.contains("Mali", true) -> {
+                    val match = Regex("Mali[- ]?(G\\d+|T\\d+)?").find(gpuInfo.renderer)
+                    match?.value?.trim() ?: "Mali"
+                  }
+                  gpuInfo.renderer.contains("PowerVR", true) -> "PowerVR"
+                  gpuInfo.renderer.contains("NVIDIA", true) -> "NVIDIA"
+                  gpuInfo.renderer != "Unknown" -> gpuInfo.renderer.take(12)
+                  else -> gpuInfo.vendor.ifEmpty { "GPU" }
+                }
               }
-              gpuInfo.renderer.contains("Mali", true) -> {
-                val match = Regex("Mali[- ]?(G\\d+|T\\d+)?").find(gpuInfo.renderer)
-                match?.value?.trim() ?: "Mali"
-              }
-              gpuInfo.renderer.contains("PowerVR", true) -> "PowerVR"
-              gpuInfo.renderer.contains("NVIDIA", true) -> "NVIDIA"
-              gpuInfo.renderer != "Unknown" -> gpuInfo.renderer.take(12)
-              else -> gpuInfo.vendor.ifEmpty { "GPU" }
-            }
-          }
           Text(
               text = gpuBadge.uppercase(),
               style = MaterialTheme.typography.labelSmall,

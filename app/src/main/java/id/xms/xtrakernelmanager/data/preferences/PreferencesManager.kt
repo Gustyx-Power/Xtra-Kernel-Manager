@@ -100,6 +100,7 @@ class PreferencesManager(private val context: Context) {
   private val RAMADAN_SHOWN_YEAR = intPreferencesKey("ramadan_shown_year")
   private val EID_FITR_SHOWN_YEAR = intPreferencesKey("eid_fitr_shown_year")
 
+
   val themeMode: Flow<Int> = context.dataStore.data.map { prefs -> prefs[THEME_MODE] ?: 0 }
 
   val setOnBoot: Flow<Boolean> = context.dataStore.data.map { prefs -> prefs[SET_ON_BOOT] ?: false }
@@ -302,299 +303,209 @@ class PreferencesManager(private val context: Context) {
     context.dataStore.edit { prefs -> prefs[EID_FITR_SHOWN_YEAR] = year }
   }
 
-    fun getEidFitrShownYear(): Flow<Int> =
-        context.dataStore.data.map { prefs ->
-            prefs[EID_FITR_SHOWN_YEAR] ?: 0
+  fun getEidFitrShownYear(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[EID_FITR_SHOWN_YEAR] ?: 0 }
+
+  // ==================== Quick Apps Preferences ====================
+  private val QUICK_APPS = stringPreferencesKey("quick_apps")
+
+  // Game Tools preferences
+  private val ESPORTS_MODE_ENABLED = booleanPreferencesKey("esports_mode_enabled")
+  private val TOUCH_GUARD_ENABLED = booleanPreferencesKey("touch_guard_enabled")
+  private val AUTO_REJECT_CALLS_ENABLED = booleanPreferencesKey("auto_reject_calls_enabled")
+  private val LOCK_BRIGHTNESS_ENABLED = booleanPreferencesKey("lock_brightness_enabled")
+  private val QUICK_APPS_INITIALIZED = booleanPreferencesKey("quick_apps_initialized")
+
+  /** Get quick apps package names as JSON array string */
+  fun getQuickApps(): Flow<List<String>> =
+      context.dataStore.data.map { prefs ->
+        val jsonString = prefs[QUICK_APPS] ?: "[]"
+        try {
+          val jsonArray = org.json.JSONArray(jsonString)
+          (0 until jsonArray.length()).map { jsonArray.getString(it) }
+        } catch (e: Exception) {
+          emptyList()
         }
+      }
 
-    // ==================== Quick Apps Preferences ====================
-    private val QUICK_APPS = stringPreferencesKey("quick_apps")
+  /** Set quick apps list */
+  suspend fun setQuickApps(apps: List<String>) {
+    val jsonArray = org.json.JSONArray(apps)
+    context.dataStore.edit { prefs -> prefs[QUICK_APPS] = jsonArray.toString() }
+  }
 
-    // Game Tools preferences
-    private val ESPORTS_MODE_ENABLED = booleanPreferencesKey("esports_mode_enabled")
-    private val TOUCH_GUARD_ENABLED = booleanPreferencesKey("touch_guard_enabled")
-    private val AUTO_REJECT_CALLS_ENABLED = booleanPreferencesKey("auto_reject_calls_enabled")
-    private val LOCK_BRIGHTNESS_ENABLED = booleanPreferencesKey("lock_brightness_enabled")
-    private val QUICK_APPS_INITIALIZED = booleanPreferencesKey("quick_apps_initialized")
-
-    /**
-     * Get quick apps package names as JSON array string
-     */
-    fun getQuickApps(): Flow<List<String>> =
-        context.dataStore.data.map { prefs ->
-            val jsonString = prefs[QUICK_APPS] ?: "[]"
-            try {
-                val jsonArray = org.json.JSONArray(jsonString)
-                (0 until jsonArray.length()).map { jsonArray.getString(it) }
-            } catch (e: Exception) {
-                emptyList()
-            }
+  /** Add a quick app */
+  suspend fun addQuickApp(packageName: String) {
+    context.dataStore.edit { prefs ->
+      val currentJson = prefs[QUICK_APPS] ?: "[]"
+      try {
+        val jsonArray = org.json.JSONArray(currentJson)
+        // Check if already exists
+        val exists = (0 until jsonArray.length()).any { jsonArray.getString(it) == packageName }
+        if (!exists) {
+          jsonArray.put(packageName)
+          prefs[QUICK_APPS] = jsonArray.toString()
         }
-
-    /**
-     * Set quick apps list
-     */
-    suspend fun setQuickApps(apps: List<String>) {
-        val jsonArray = org.json.JSONArray(apps)
-        context.dataStore.edit { prefs ->
-            prefs[QUICK_APPS] = jsonArray.toString()
-        }
+      } catch (e: Exception) {
+        val newArray = org.json.JSONArray()
+        newArray.put(packageName)
+        prefs[QUICK_APPS] = newArray.toString()
+      }
     }
+  }
 
-    /**
-     * Add a quick app
-     */
-    suspend fun addQuickApp(packageName: String) {
-        context.dataStore.edit { prefs ->
-            val currentJson = prefs[QUICK_APPS] ?: "[]"
-            try {
-                val jsonArray = org.json.JSONArray(currentJson)
-                // Check if already exists
-                val exists = (0 until jsonArray.length()).any {
-                    jsonArray.getString(it) == packageName
-                }
-                if (!exists) {
-                    jsonArray.put(packageName)
-                    prefs[QUICK_APPS] = jsonArray.toString()
-                }
-            } catch (e: Exception) {
-                val newArray = org.json.JSONArray()
-                newArray.put(packageName)
-                prefs[QUICK_APPS] = newArray.toString()
-            }
+  /** Remove a quick app */
+  suspend fun removeQuickApp(packageName: String) {
+    context.dataStore.edit { prefs ->
+      val currentJson = prefs[QUICK_APPS] ?: "[]"
+      try {
+        val jsonArray = org.json.JSONArray(currentJson)
+        val newArray = org.json.JSONArray()
+        for (i in 0 until jsonArray.length()) {
+          val pkg = jsonArray.getString(i)
+          if (pkg != packageName) {
+            newArray.put(pkg)
+          }
         }
+        prefs[QUICK_APPS] = newArray.toString()
+      } catch (e: Exception) {
+        // Ignore
+      }
     }
+  }
 
-    /**
-     * Remove a quick app
-     */
-    suspend fun removeQuickApp(packageName: String) {
-        context.dataStore.edit { prefs ->
-            val currentJson = prefs[QUICK_APPS] ?: "[]"
-            try {
-                val jsonArray = org.json.JSONArray(currentJson)
-                val newArray = org.json.JSONArray()
-                for (i in 0 until jsonArray.length()) {
-                    val pkg = jsonArray.getString(i)
-                    if (pkg != packageName) {
-                        newArray.put(pkg)
-                    }
-                }
-                prefs[QUICK_APPS] = newArray.toString()
-            } catch (e: Exception) {
-                // Ignore
-            }
-        }
-    }
+  /** Check if quick apps have been initialized */
+  fun isQuickAppsInitialized(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[QUICK_APPS_INITIALIZED] ?: false }
 
-    /**
-     * Check if quick apps have been initialized
-     */
-    fun isQuickAppsInitialized(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[QUICK_APPS_INITIALIZED] ?: false
-        }
+  /** Set quick apps initialized flag */
+  suspend fun setQuickAppsInitialized(initialized: Boolean) {
+    context.dataStore.edit { prefs -> prefs[QUICK_APPS_INITIALIZED] = initialized }
+  }
 
-    /**
-     * Set quick apps initialized flag
-     */
-    suspend fun setQuickAppsInitialized(initialized: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[QUICK_APPS_INITIALIZED] = initialized
-        }
-    }
+  // ==================== Game Tools Preferences ====================
 
-    // ==================== Game Tools Preferences ====================
+  /** Esports Mode - Maximum optimization for gaming */
+  suspend fun setEsportsMode(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[ESPORTS_MODE_ENABLED] = enabled }
+  }
 
-    /**
-     * Esports Mode - Maximum optimization for gaming
-     */
-    suspend fun setEsportsMode(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[ESPORTS_MODE_ENABLED] = enabled
-        }
-    }
+  fun isEsportsModeEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[ESPORTS_MODE_ENABLED] ?: false }
 
-    fun isEsportsModeEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[ESPORTS_MODE_ENABLED] ?: false
-        }
+  /** Touch Guard - Prevent accidental touches */
+  suspend fun setTouchGuard(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[TOUCH_GUARD_ENABLED] = enabled }
+  }
 
-    /**
-     * Touch Guard - Prevent accidental touches
-     */
-    suspend fun setTouchGuard(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[TOUCH_GUARD_ENABLED] = enabled
-        }
-    }
+  fun isTouchGuardEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[TOUCH_GUARD_ENABLED] ?: false }
 
-    fun isTouchGuardEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[TOUCH_GUARD_ENABLED] ?: false
-        }
+  /** Auto Reject Calls during gaming */
+  suspend fun setAutoRejectCalls(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[AUTO_REJECT_CALLS_ENABLED] = enabled }
+  }
 
-    /**
-     * Auto Reject Calls during gaming
-     */
-    suspend fun setAutoRejectCalls(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[AUTO_REJECT_CALLS_ENABLED] = enabled
-        }
-    }
+  fun isAutoRejectCallsEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[AUTO_REJECT_CALLS_ENABLED] ?: false }
 
-    fun isAutoRejectCallsEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[AUTO_REJECT_CALLS_ENABLED] ?: false
-        }
+  /** Lock Brightness during gaming */
+  suspend fun setLockBrightness(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[LOCK_BRIGHTNESS_ENABLED] = enabled }
+  }
 
-    /**
-     * Lock Brightness during gaming
-     */
-    suspend fun setLockBrightness(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[LOCK_BRIGHTNESS_ENABLED] = enabled
-        }
-    }
+  fun isLockBrightnessEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[LOCK_BRIGHTNESS_ENABLED] ?: false }
 
-    fun isLockBrightnessEnabled(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[LOCK_BRIGHTNESS_ENABLED] ?: false
-        }
+  // ==================== SYNC PREFERENCES ====================
+  // Using SharedPreferences for simple synchronous access
 
-    // ==================== SYNC PREFERENCES ====================
-    // Using SharedPreferences for simple synchronous access
+  private val syncPrefs by lazy {
+    context.getSharedPreferences("xkm_sync_prefs", Context.MODE_PRIVATE)
+  }
 
-    private val syncPrefs by lazy {
-        context.getSharedPreferences("xkm_sync_prefs", Context.MODE_PRIVATE)
-    }
+  /** Get boolean value synchronously */
+  fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+    return syncPrefs.getBoolean(key, defaultValue)
+  }
 
-    /**
-     * Get boolean value synchronously
-     */
-    fun getBoolean(key: String, defaultValue: Boolean): Boolean {
-        return syncPrefs.getBoolean(key, defaultValue)
-    }
+  /** Set boolean value synchronously */
+  fun setBoolean(key: String, value: Boolean) {
+    syncPrefs.edit().putBoolean(key, value).apply()
+  }
 
-    /**
-     * Set boolean value synchronously
-     */
-    fun setBoolean(key: String, value: Boolean) {
-        syncPrefs.edit().putBoolean(key, value).apply()
-    }
+  /** Get string value synchronously */
+  fun getString(key: String, defaultValue: String): String {
+    return syncPrefs.getString(key, defaultValue) ?: defaultValue
+  }
 
-    /**
-     * Get string value synchronously
-     */
-    fun getString(key: String, defaultValue: String): String {
-        return syncPrefs.getString(key, defaultValue) ?: defaultValue
-    }
+  /** Set string value synchronously */
+  fun setString(key: String, value: String) {
+    syncPrefs.edit().putString(key, value).apply()
+  }
 
-    /**
-     * Set string value synchronously
-     */
-    fun setString(key: String, value: String) {
-        syncPrefs.edit().putString(key, value).apply()
-    }
+  // ==================== Functional ROM Preferences ====================
 
-    // ==================== Functional ROM Preferences ====================
-    
-    suspend fun setFunctionalRomUnlockNits(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_UNLOCK_NITS] = enabled
-        }
-    }
+  suspend fun setFunctionalRomUnlockNits(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_UNLOCK_NITS] = enabled }
+  }
 
-    fun getFunctionalRomUnlockNits(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_UNLOCK_NITS] ?: false
-        }
+  fun getFunctionalRomUnlockNits(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_UNLOCK_NITS] ?: false }
 
-    suspend fun setFunctionalRomDynamicRefresh(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_DYNAMIC_REFRESH] = enabled
-        }
-    }
+  suspend fun setFunctionalRomDynamicRefresh(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_DYNAMIC_REFRESH] = enabled }
+  }
 
-    fun getFunctionalRomDynamicRefresh(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_DYNAMIC_REFRESH] ?: false
-        }
+  fun getFunctionalRomDynamicRefresh(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_DYNAMIC_REFRESH] ?: false }
 
-    suspend fun setFunctionalRomForceRefresh(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_FORCE_REFRESH] = enabled
-        }
-    }
+  suspend fun setFunctionalRomForceRefresh(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_FORCE_REFRESH] = enabled }
+  }
 
-    fun getFunctionalRomForceRefresh(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_FORCE_REFRESH] ?: false
-        }
+  fun getFunctionalRomForceRefresh(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_FORCE_REFRESH] ?: false }
 
-    suspend fun setFunctionalRomForceRefreshValue(value: Int) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_FORCE_REFRESH_VALUE] = value
-        }
-    }
+  suspend fun setFunctionalRomForceRefreshValue(value: Int) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_FORCE_REFRESH_VALUE] = value }
+  }
 
-    fun getFunctionalRomForceRefreshValue(): Flow<Int> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_FORCE_REFRESH_VALUE] ?: 60
-        }
+  fun getFunctionalRomForceRefreshValue(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_FORCE_REFRESH_VALUE] ?: 60 }
 
-    suspend fun setFunctionalRomDcDimming(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_DC_DIMMING] = enabled
-        }
-    }
+  suspend fun setFunctionalRomDcDimming(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_DC_DIMMING] = enabled }
+  }
 
-    fun getFunctionalRomDcDimming(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_DC_DIMMING] ?: false
-        }
+  fun getFunctionalRomDcDimming(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_DC_DIMMING] ?: false }
 
-    suspend fun setFunctionalRomPerformanceMode(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_PERFORMANCE_MODE] = enabled
-        }
-    }
+  suspend fun setFunctionalRomPerformanceMode(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_PERFORMANCE_MODE] = enabled }
+  }
 
-    fun getFunctionalRomPerformanceMode(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_PERFORMANCE_MODE] ?: false
-        }
+  fun getFunctionalRomPerformanceMode(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_PERFORMANCE_MODE] ?: false }
 
-    suspend fun setFunctionalRomSmartCharging(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_SMART_CHARGING] = enabled
-        }
-    }
+  suspend fun setFunctionalRomSmartCharging(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_SMART_CHARGING] = enabled }
+  }
 
-    fun getFunctionalRomSmartCharging(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_SMART_CHARGING] ?: false
-        }
+  fun getFunctionalRomSmartCharging(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_SMART_CHARGING] ?: false }
 
-    suspend fun setFunctionalRomChargingLimit(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT] = enabled
-        }
-    }
+  suspend fun setFunctionalRomChargingLimit(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_CHARGING_LIMIT] = enabled }
+  }
 
-    fun getFunctionalRomChargingLimit(): Flow<Boolean> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT] ?: false
-        }
+  fun getFunctionalRomChargingLimit(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_CHARGING_LIMIT] ?: false }
 
-    suspend fun setFunctionalRomChargingLimitValue(value: Int) {
-        context.dataStore.edit { prefs ->
-            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] = value
-        }
-    }
+  suspend fun setFunctionalRomChargingLimitValue(value: Int) {
+    context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] = value }
+  }
 
-    fun getFunctionalRomChargingLimitValue(): Flow<Int> =
-        context.dataStore.data.map { prefs ->
-            prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] ?: 80
-        }
+  fun getFunctionalRomChargingLimitValue(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] ?: 80 }
 }

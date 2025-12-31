@@ -41,132 +41,123 @@ import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.screens.home.PowerAction
 
 @Composable
-fun ExpandablePowerFab(
-    onPowerAction: (PowerAction) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val rotation by animateFloatAsState(
-        targetValue = if (expanded) 45f else 0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "fab_rotation"
-    )
+fun ExpandablePowerFab(onPowerAction: (PowerAction) -> Unit) {
+  var expanded by remember { mutableStateOf(false) }
+  val rotation by
+      animateFloatAsState(
+          targetValue = if (expanded) 45f else 0f,
+          animationSpec = tween(durationMillis = 300),
+          label = "fab_rotation",
+      )
 
-    Column(
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+  Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    // Expanded Menu Items
+    AnimatedVisibility(
+        visible = expanded,
+        enter = fadeIn() + slideInVertically { it / 2 },
+        exit = fadeOut() + slideOutVertically { it / 2 },
     ) {
-        // Expanded Menu Items
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn() + slideInVertically { it / 2 },
-            exit = fadeOut() + slideOutVertically { it / 2 }
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                // Recovery
-                FabMenuItem(
-                    text = "Recovery",
-                    icon = Icons.Rounded.SettingsBackupRestore,
-                    onClick = { 
-                        expanded = false
-                        onPowerAction(PowerAction.Recovery)
-                    },
-                    delay = 150
-                )
-                
-                // System UI
-                FabMenuItem(
-                    text = "System UI",
-                    icon = Icons.Rounded.Refresh,
-                    onClick = { 
-                        expanded = false
-                        onPowerAction(PowerAction.SystemUI)
-                    },
-                    delay = 100
-                )
+      Column(
+          verticalArrangement = Arrangement.spacedBy(12.dp),
+          horizontalAlignment = Alignment.End,
+      ) {
+        // Recovery
+        FabMenuItem(
+            text = "Recovery",
+            icon = Icons.Rounded.SettingsBackupRestore,
+            onClick = {
+              expanded = false
+              onPowerAction(PowerAction.Recovery)
+            },
+            delay = 150,
+        )
 
-                FabMenuItem(
-                    text = "Power Off",
-                    icon = Icons.Rounded.PowerSettingsNew,
-                    onClick = { 
-                        expanded = false
-                        onPowerAction(PowerAction.PowerOff)
-                    },
-                    delay = 50
-                )
+        // System UI
+        FabMenuItem(
+            text = "System UI",
+            icon = Icons.Rounded.Refresh,
+            onClick = {
+              expanded = false
+              onPowerAction(PowerAction.SystemUI)
+            },
+            delay = 100,
+        )
 
-                // Reboot
-                FabMenuItem(
-                    text = "Reboot",
-                    icon = Icons.Rounded.RestartAlt,
-                    onClick = { 
-                        expanded = false
-                        onPowerAction(PowerAction.Reboot)
-                    },
-                    delay = 0
-                )
-            }
-        }
+        FabMenuItem(
+            text = "Power Off",
+            icon = Icons.Rounded.PowerSettingsNew,
+            onClick = {
+              expanded = false
+              onPowerAction(PowerAction.PowerOff)
+            },
+            delay = 50,
+        )
 
-        // Main FAB
-        FloatingActionButton(
-            onClick = { expanded = !expanded },
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.PowerSettingsNew,
-                contentDescription = "Power Menu",
-                modifier = Modifier.rotate(rotation)
-            )
-        }
+        // Reboot
+        FabMenuItem(
+            text = "Reboot",
+            icon = Icons.Rounded.RestartAlt,
+            onClick = {
+              expanded = false
+              onPowerAction(PowerAction.Reboot)
+            },
+            delay = 0,
+        )
+      }
     }
+
+    // Main FAB
+    FloatingActionButton(
+        onClick = { expanded = !expanded },
+        containerColor = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp),
+        shape = CircleShape,
+    ) {
+      Icon(
+          imageVector = Icons.Rounded.PowerSettingsNew,
+          contentDescription = "Power Menu",
+          modifier = Modifier.rotate(rotation),
+      )
+    }
+  }
 }
 
 @Composable
-private fun FabMenuItem(
-    text: String,
-    icon: ImageVector,
-    onClick: () -> Unit,
-    delay: Int
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.clickable { onClick() }
+private fun FabMenuItem(text: String, icon: ImageVector, onClick: () -> Unit, delay: Int) {
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      modifier = Modifier.clickable { onClick() },
+  ) {
+    // Label
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = CircleShape,
+        shadowElevation = 2.dp,
     ) {
-        // Label
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = CircleShape,
-            shadowElevation = 2.dp
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-        }
+      Text(
+          text = text,
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onSurface,
+          modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+      )
+    }
 
-        // Mini FAB
-        Box(
-            modifier = Modifier
-                .size(48.dp)
+    // Mini FAB
+    Box(
+        modifier =
+            Modifier.size(48.dp)
                 .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
                 .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-        }
+        contentAlignment = Alignment.Center,
+    ) {
+      Icon(
+          imageVector = icon,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onSecondaryContainer,
+      )
     }
+  }
 }
