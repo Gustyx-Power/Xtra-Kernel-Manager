@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import id.xms.xtrakernelmanager.data.model.RAMConfig
+import id.xms.xtrakernelmanager.domain.usecase.RAMControlUseCase
 import id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator
 import id.xms.xtrakernelmanager.ui.components.WavySlider
 
@@ -44,6 +45,11 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
   val currentIOScheduler by viewModel.currentIOScheduler.collectAsState()
   val availableAlgorithms by viewModel.availableCompressionAlgorithms.collectAsState()
   val currentAlgorithm by viewModel.currentCompressionAlgorithm.collectAsState()
+  
+  // Real Memory Data
+  val memoryStats by viewModel.memoryStats.collectAsState()
+  val zramStatus by viewModel.zramStatus.collectAsState()
+  val swapFileStatus by viewModel.swapFileStatus.collectAsState()
 
   // Dialog States
   var showRamDialog by remember { mutableStateOf(false) }
@@ -73,7 +79,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       // 1. RAM Card (Virtual Memory)
-      ExpandableRamCard(text = "Ram", ramConfig = ramConfig, onClick = {})
+      ExpandableRamCard(text = "Ram", ramConfig = ramConfig, memoryStats = memoryStats, onClick = {})
 
       // 2. Split Row: Compression Level (Left) | Swap (Right)
       var compressionExpanded by remember { mutableStateOf(false) }
@@ -88,7 +94,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
           ExpandableSelectionCard(
               title = "Comp.\nLevel",
               options = availableAlgorithms,
-              selectedOption = currentAlgorithm,
+              selectedOption = ramConfig.compressionAlgorithm,  // Use ramConfig for immediate feedback
               onOptionSelected = {
                 val newConfig = ramConfig.copy(compressionAlgorithm = it)
                 viewModel.setRAMParameters(newConfig)
@@ -116,6 +122,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
       ExpandableZramCard(
           text = "Zram",
           ramConfig = ramConfig,
+          zramStatus = zramStatus,
           isSelected = true,
           onClick = { /* No-op, expanded handles config */ },
           onConfigChange = { viewModel.setRAMParameters(it) },
@@ -385,9 +392,27 @@ fun VirtualMemoryDialog(
 fun ExpandableRamCard(
     text: String,
     ramConfig: RAMConfig,
+    memoryStats: RAMControlUseCase.MemoryStats,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+  // Calculate real values from memoryStats
+  val totalRamGb = memoryStats.totalRamMb / 1024f
+  val usedRamMb = memoryStats.totalRamMb - memoryStats.availableRamMb
+  val usedRamGb = usedRamMb / 1024f
+  val availableRamGb = memoryStats.availableRamMb / 1024f
+  val cachedRamGb = memoryStats.cachedMb / 1024f
+  val swapUsedMb = memoryStats.totalSwapMb - memoryStats.freeSwapMb
+  val usagePercent = if (memoryStats.totalRamMb > 0) usedRamMb.toFloat() / memoryStats.totalRamMb else 0f
+  
+  // Health status based on usage
+  val healthStatus = when {
+    usagePercent < 0.5f -> "Healthy"
+    usagePercent < 0.75f -> "Moderate"
+    usagePercent < 0.9f -> "High"
+    else -> "Critical"
+  }
+  
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
   val shape = RoundedCornerShape(32.dp)
 
@@ -421,7 +446,7 @@ fun ExpandableRamCard(
         Spacer(modifier = Modifier.weight(1f))
         Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = CircleShape) {
           Text(
-              text = "Healthy",
+              text = healthStatus,
               modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
               style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
               color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -440,7 +465,7 @@ fun ExpandableRamCard(
         // Left: Wavy Indicator
         Box(contentAlignment = Alignment.Center) {
           WavyCircularProgressIndicator(
-              progress = 0.75f,
+              progress = usagePercent.coerceIn(0f, 1f),
               modifier = Modifier.size(150.dp),
               color = MaterialTheme.colorScheme.primary,
               trackColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -450,7 +475,7 @@ fun ExpandableRamCard(
           )
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "75%",
+                text = "${(usagePercent * 100).toInt()}%",
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -466,10 +491,10 @@ fun ExpandableRamCard(
 
         // Right: Stats List
         Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.weight(1f)) {
-          StatRow(icon = Icons.Default.Memory, value = "5.8 GB", label = "Used Memory")
-          StatRow(icon = Icons.Default.CheckCircle, value = "2.2 GB", label = "Available")
-          StatRow(icon = Icons.Default.Memory, value = "1.2 GB", label = "Cached")
-          StatRow(icon = Icons.Default.KeyboardArrowUp, value = "120 MB", label = "Swap Used")
+          StatRow(icon = Icons.Default.Memory, value = "%.1f GB".format(usedRamGb), label = "Used Memory")
+          StatRow(icon = Icons.Default.CheckCircle, value = "%.1f GB".format(availableRamGb), label = "Available")
+          StatRow(icon = Icons.Default.Memory, value = "%.1f GB".format(cachedRamGb), label = "Cached")
+          StatRow(icon = Icons.Default.KeyboardArrowUp, value = "$swapUsedMb MB", label = "Swap Used")
         }
       }
     }
@@ -480,12 +505,19 @@ fun ExpandableRamCard(
 fun ExpandableZramCard(
     text: String,
     ramConfig: RAMConfig,
+    zramStatus: RAMControlUseCase.ZramStatus,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     onClick: () -> Unit,
     onConfigChange: (RAMConfig) -> Unit,
 ) {
   var expanded by remember { mutableStateOf(false) }
+  
+  // Local state for sliders (prevents stuttering)
+  var localZramSize by remember(ramConfig.zramSize) { mutableFloatStateOf(ramConfig.zramSize.toFloat()) }
+  var localSwappiness by remember(ramConfig.swappiness) { mutableFloatStateOf(ramConfig.swappiness.toFloat()) }
+  var localDirtyRatio by remember(ramConfig.dirtyRatio) { mutableFloatStateOf(ramConfig.dirtyRatio.toFloat()) }
+  
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
   val shape = RoundedCornerShape(32.dp)
 
@@ -499,16 +531,16 @@ fun ExpandableZramCard(
       Row(verticalAlignment = Alignment.CenterVertically) {
         Surface(
             color =
-                if (ramConfig.zramSize > 0) MaterialTheme.colorScheme.secondaryContainer
+                if (zramStatus.isActive) MaterialTheme.colorScheme.secondaryContainer
                 else MaterialTheme.colorScheme.errorContainer,
             shape = CircleShape,
         ) {
           Text(
-              text = if (ramConfig.zramSize > 0) "Active" else "Disabled",
+              text = if (zramStatus.isActive) "Active" else "Disabled",
               modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
               style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
               color =
-                  if (ramConfig.zramSize > 0) MaterialTheme.colorScheme.onSecondaryContainer
+                  if (zramStatus.isActive) MaterialTheme.colorScheme.onSecondaryContainer
                   else MaterialTheme.colorScheme.onErrorContainer,
           )
         }
@@ -544,9 +576,10 @@ fun ExpandableZramCard(
       ) {
         // Left: Stats List
         Column(verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.weight(1f)) {
-          StatRow(icon = Icons.Default.Settings, value = "3.8x", label = "Comp. Ratio")
-          StatRow(icon = Icons.Default.Memory, value = "1.1 GB", label = "Original")
-          StatRow(icon = Icons.Default.KeyboardArrowDown, value = "300 MB", label = "Compressed")
+          StatRow(icon = Icons.Default.Settings, value = "%.1fx".format(zramStatus.compressionRatio), label = "Comp. Ratio")
+          StatRow(icon = Icons.Default.Memory, value = "${zramStatus.usedMb} MB", label = "Original")
+          val compressedMb = if (zramStatus.compressionRatio > 0) (zramStatus.usedMb / zramStatus.compressionRatio).toInt() else 0
+          StatRow(icon = Icons.Default.KeyboardArrowDown, value = "$compressedMb MB", label = "Compressed")
           StatRow(
               icon = Icons.Default.KeyboardArrowUp,
               value = "${ramConfig.swappiness}%",
@@ -556,10 +589,11 @@ fun ExpandableZramCard(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // Right: Wavy Indicator
         Box(contentAlignment = Alignment.Center) {
+          val configuredSizeMb = ramConfig.zramSize
+          val zramUsagePercent = if (configuredSizeMb > 0) zramStatus.usedMb.toFloat() / configuredSizeMb else 0f
           WavyCircularProgressIndicator(
-              progress = 0.40f,
+              progress = zramUsagePercent.coerceIn(0f, 1f),
               modifier = Modifier.size(150.dp),
               color = MaterialTheme.colorScheme.secondary,
               trackColor = MaterialTheme.colorScheme.surfaceVariant,
@@ -568,8 +602,10 @@ fun ExpandableZramCard(
               frequency = 10,
           )
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Show configured size from ramConfig
+            val sizeText = if (configuredSizeMb >= 1024) "${configuredSizeMb / 1024}GB" else "${configuredSizeMb}MB"
             Text(
-                text = "${ramConfig.zramSize / 1024}GB",
+                text = sizeText,
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -582,7 +618,6 @@ fun ExpandableZramCard(
         }
       }
 
-      // Expanded Configuration
       // Expanded Configuration
       if (expanded) {
         Spacer(modifier = Modifier.height(16.dp))
@@ -606,13 +641,14 @@ fun ExpandableZramCard(
             Column {
               Text(
                   text =
-                      "Size: ${if (ramConfig.zramSize == 0) "Disabled" else "${ramConfig.zramSize} MB"}",
+                      "Size: ${if (localZramSize.toInt() == 0) "Disabled" else "${localZramSize.toInt()} MB"}",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurface,
               )
               WavySlider(
-                  value = ramConfig.zramSize.toFloat(),
-                  onValueChange = { onConfigChange(ramConfig.copy(zramSize = it.toInt())) },
+                  value = localZramSize,
+                  onValueChange = { localZramSize = it },
+                  onValueChangeFinished = { onConfigChange(ramConfig.copy(zramSize = localZramSize.toInt())) },
                   valueRange = 0f..4096f,
                   steps = 15,
               )
@@ -621,13 +657,14 @@ fun ExpandableZramCard(
             // Swappiness
             Column {
               Text(
-                  text = "Swappiness: ${ramConfig.swappiness}%",
+                  text = "Swappiness: ${localSwappiness.toInt()}%",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurface,
               )
               WavySlider(
-                  value = ramConfig.swappiness.toFloat(),
-                  onValueChange = { onConfigChange(ramConfig.copy(swappiness = it.toInt())) },
+                  value = localSwappiness,
+                  onValueChange = { localSwappiness = it },
+                  onValueChangeFinished = { onConfigChange(ramConfig.copy(swappiness = localSwappiness.toInt())) },
                   valueRange = 0f..100f,
                   steps = 19,
               )
@@ -636,13 +673,14 @@ fun ExpandableZramCard(
             // Dirty Ratio
             Column {
               Text(
-                  text = "Dirty Ratio: ${ramConfig.dirtyRatio}%",
+                  text = "Dirty Ratio: ${localDirtyRatio.toInt()}%",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurface,
               )
               WavySlider(
-                  value = ramConfig.dirtyRatio.toFloat(),
-                  onValueChange = { onConfigChange(ramConfig.copy(dirtyRatio = it.toInt())) },
+                  value = localDirtyRatio,
+                  onValueChange = { localDirtyRatio = it },
+                  onValueChangeFinished = { onConfigChange(ramConfig.copy(dirtyRatio = localDirtyRatio.toInt())) },
                   valueRange = 0f..100f,
                   steps = 19,
               )
@@ -829,6 +867,9 @@ fun ExpandableSwapCard(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
 ) {
+  // Local state for slider (prevents stuttering)
+  var localSwapSize by remember(ramConfig.swapSize) { mutableFloatStateOf(ramConfig.swapSize.toFloat()) }
+  
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
   val shape = RoundedCornerShape(24.dp)
 
@@ -904,14 +945,15 @@ fun ExpandableSwapCard(
           Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text =
-                    "Size: ${if (ramConfig.swapSize == 0) "Disabled" else "${ramConfig.swapSize} MB"}",
+                    "Size: ${if (localSwapSize.toInt() == 0) "Disabled" else "${localSwapSize.toInt()} MB"}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
             WavySlider(
-                value = ramConfig.swapSize.toFloat(),
-                onValueChange = { onConfigChange(ramConfig.copy(swapSize = it.toInt())) },
+                value = localSwapSize,
+                onValueChange = { localSwapSize = it },
+                onValueChangeFinished = { onConfigChange(ramConfig.copy(swapSize = localSwapSize.toInt())) },
                 valueRange = 0f..8192f, // 8GB
                 steps = 31,
             )

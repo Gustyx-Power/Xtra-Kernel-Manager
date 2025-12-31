@@ -799,6 +799,9 @@ class TuningViewModel(
       ramUseCase.setSwapFileSizeMb(config.swapSize)
       preferencesManager.setRamConfig(config)
       _currentCompressionAlgorithm.value = config.compressionAlgorithm
+      _zramStatus.value = ramUseCase.getZramStatus()
+      _swapFileStatus.value = ramUseCase.getSwapFileStatus()
+      _memoryStats.value = ramUseCase.getMemoryStats()
     }
   }
 

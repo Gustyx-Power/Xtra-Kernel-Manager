@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.domain.usecase
 
+import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 
 class RAMControlUseCase {
@@ -26,6 +27,10 @@ class RAMControlUseCase {
 
   /** Get current ZRAM disksize in MB */
   suspend fun getZramSizeMb(): Int {
+    val nativeSize = NativeLib.readZramSize()
+    if (nativeSize != null && nativeSize > 0) {
+      return (nativeSize / (1024 * 1024)).toInt()
+    }
     val result = RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
     val sizeBytes = result.getOrNull()?.trim()?.toLongOrNull() ?: 0L
     return (sizeBytes / (1024 * 1024)).toInt()
@@ -40,7 +45,21 @@ class RAMControlUseCase {
   )
 
   suspend fun getZramStatus(): ZramStatus {
-    // Check if zram is active
+    // Try native first (FAST: ~7µs per read)
+    val nativeTotalBytes = NativeLib.readZramSize()
+    val nativeRatio = NativeLib.getZramCompressionRatio()
+    val nativeCompressedBytes = NativeLib.getZramCompressedSize()
+    
+    if (nativeTotalBytes != null && nativeTotalBytes > 0) {
+      val totalMb = (nativeTotalBytes / (1024 * 1024)).toInt()
+      val ratio = nativeRatio ?: 0f
+      // Calculate original data size from compressed size and ratio
+      val compressedMb = ((nativeCompressedBytes ?: 0).toLong() / (1024 * 1024)).toInt()
+      val usedMb = if (ratio > 0) (compressedMb * ratio).toInt() else 0
+      return ZramStatus(isActive = true, usedMb = usedMb, totalMb = totalMb, compressionRatio = ratio)
+    }
+
+    // Fallback to shell (SLOW)
     val swapsResult =
         RootManager.executeCommand("grep -q 'zram0' /proc/swaps && echo active || echo inactive")
     val isActive = swapsResult.getOrNull()?.trim() == "active"
@@ -49,7 +68,6 @@ class RAMControlUseCase {
       return ZramStatus(false, 0, 0, 0f)
     }
 
-    // Get ZRAM stats
     val disksize =
         RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
             .getOrNull()
