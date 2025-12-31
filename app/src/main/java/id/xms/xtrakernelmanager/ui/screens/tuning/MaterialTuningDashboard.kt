@@ -1682,7 +1682,8 @@ fun WavySlider(
 ) {
   val primaryColor = MaterialTheme.colorScheme.primary
   val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
-
+  val piFreq = remember(waveFrequency) { PI * waveFrequency }
+  val step = 8f 
   Box(
       modifier =
           modifier
@@ -1696,6 +1697,7 @@ fun WavySlider(
               }
               .pointerInput(Unit) {
                 detectDragGestures { change, _ ->
+                  change.consume()
                   val newValue = (change.position.x / size.width).coerceIn(0f, 1f)
                   onValueChange(newValue)
                 }
@@ -1706,17 +1708,19 @@ fun WavySlider(
       val height = size.height
       val centerY = height / 2
 
-      // Build the full wave path
+      // Build the full wave path with optimized step
       val path = Path()
       path.moveTo(0f, centerY)
 
-      val step = 5f
-      var x = 0f
+      var x = step
       while (x <= width) {
-        val y = centerY + sin((x / width) * (PI * waveFrequency)) * waveAmplitude
+        val normalizedX = x / width
+        val y = centerY + sin(normalizedX * piFreq) * waveAmplitude
         path.lineTo(x, y.toFloat())
         x += step
       }
+      // Ensure we reach the end
+      path.lineTo(width, centerY + (sin(piFreq) * waveAmplitude).toFloat())
 
       // Draw inactive track (full wave)
       drawPath(
@@ -1726,18 +1730,21 @@ fun WavySlider(
       )
 
       // Draw active track (clipped wave)
-      drawContext.canvas.save()
-      drawContext.canvas.clipRect(0f, 0f, width * value, height)
-      drawPath(
-          path = path,
-          color = primaryColor,
-          style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
-      )
-      drawContext.canvas.restore()
+      val activeEndX = width * value
+      if (activeEndX > 0f) {
+        drawContext.canvas.save()
+        drawContext.canvas.clipRect(0f, 0f, activeEndX, height)
+        drawPath(
+            path = path,
+            color = primaryColor,
+            style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+        )
+        drawContext.canvas.restore()
+      }
 
-      // Draw thumb
-      val thumbX = width * value
-      val thumbY = centerY + sin((thumbX / width) * (PI * waveFrequency)) * waveAmplitude
+      // Draw thumb - use cached sin value
+      val thumbX = activeEndX
+      val thumbY = centerY + sin((thumbX / width) * piFreq) * waveAmplitude
       drawCircle(
           color = primaryColor,
           radius = strokeWidth,
