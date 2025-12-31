@@ -28,23 +28,17 @@ android {
     namespace = "id.xms.xtrakernelmanager"
     compileSdk = 36
 
-    @Suppress("UnstableApiUsage")
-    java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
-    }
-
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.4-Debug-Ci8-W1"
+        versionName = "2.4-Dev" // dev  = debug release = stable version
 
-        // Build date in format YYYY.MM.dd
+        // Build Parsing
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
         buildConfigField("String", "BUILD_DATE", "\"$buildDate\"")
+        buildConfigField("long", "BUILD_TIMESTAMP", "${System.currentTimeMillis()}L")
 
         vectorDrawables {
             useSupportLibrary = true
@@ -88,8 +82,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         lint.disable.add("NullSafeMutableLiveData")
     }
 
@@ -117,13 +111,13 @@ android {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
 dependencies {
     // Core Android
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.12.2")
     implementation("androidx.core:core-splashscreen:1.2.0")
@@ -132,18 +126,19 @@ dependencies {
 
 
     // Compose BOM
-    val composeBom = platform("androidx.compose:compose-bom:2024.11.00")
+    val composeBom = platform("androidx.compose:compose-bom:2025.12.01")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3:1.3.1")
+    implementation("androidx.compose.material3:material3:1.4.0")
+    implementation("androidx.graphics:graphics-shapes:1.1.0")
     
     // Material 3 Expressive
     implementation("androidx.compose.material:material-icons-extended")
 
     // Navigation
-    implementation("androidx.navigation:navigation-compose:2.8.4")
+    implementation("androidx.navigation:navigation-compose:2.9.6")
 
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")

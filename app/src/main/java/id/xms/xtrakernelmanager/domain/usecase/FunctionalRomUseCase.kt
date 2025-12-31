@@ -35,7 +35,19 @@ class FunctionalRomUseCase {
                 "/sys/class/touch/touch_dev/gesture_wakeup",
                 "/sys/devices/virtual/touch/touch_dev/enable_dt2w",
                 "/sys/android_touch/doubletap2wake",
-                "/proc/tp_gesture"
+                "/proc/tp_gesture",
+                // Additional paths for more devices
+                "/sys/class/sec/tsp/dt2w_enable",
+                "/sys/devices/soc/78b7000.i2c/i2c-3/3-0020/input/input0/wake_gesture",
+                "/sys/devices/soc/78b7000.i2c/i2c-3/3-0038/wake_gesture",
+                "/sys/devices/platform/soc/1c2c000.i2c/i2c-3/3-0038/wake_gesture",
+                "/sys/devices/platform/soc/*/i2c-*/3-0038/wake_gesture",
+                "/proc/touchpanel/wake_gesture",
+                "/sys/devices/virtual/touch/touch_dev/dt2w",
+                "/sys/class/touchscreen/touchscreen/gesture/double_tap",
+                "/sys/devices/soc/*/fts_ts/dt2w_enable",
+                "/sys/bus/i2c/devices/*/wake_gesture",
+                "/sys/devices/platform/soc/*/fts_ts/wake_gesture"
             )
             
             val CHARGING_LIMIT_PATHS = listOf(
@@ -85,7 +97,22 @@ class FunctionalRomUseCase {
      * Find available DT2W node path
      */
     suspend fun findDt2wNode(): String? = withContext(Dispatchers.IO) {
-        KernelNodes.DT2W_PATHS.find { RootManager.fileExists(it) }
+        Log.d(TAG, "Searching for DT2W node...")
+        for (path in KernelNodes.DT2W_PATHS) {
+            // Skip wildcard paths as fileExists doesn't support them directly
+            if (path.contains("*")) {
+                Log.d(TAG, "Skipping wildcard path: $path")
+                continue
+            }
+            val exists = RootManager.fileExists(path)
+            Log.d(TAG, "DT2W path check: $path -> exists=$exists")
+            if (exists) {
+                Log.d(TAG, "DT2W node found: $path")
+                return@withContext path
+            }
+        }
+        Log.w(TAG, "No DT2W node found on this device")
+        null
     }
 
     /**

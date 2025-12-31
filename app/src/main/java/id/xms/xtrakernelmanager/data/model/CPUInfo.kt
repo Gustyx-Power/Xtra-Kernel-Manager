@@ -4,7 +4,7 @@ data class CPUInfo(
     val cores: List<CoreInfo> = emptyList(),
     val clusters: List<ClusterInfo> = emptyList(),
     val temperature: Float = 0f,
-    val totalLoad: Float = 0f
+    val totalLoad: Float = 0f,
 )
 
 data class CoreInfo(
@@ -14,7 +14,7 @@ data class CoreInfo(
     val maxFreq: Int,
     val governor: String,
     val isOnline: Boolean,
-    val cluster: Int
+    val cluster: Int,
 )
 
 data class ClusterInfo(
@@ -26,5 +26,5 @@ data class ClusterInfo(
     val currentMaxFreq: Int,
     val governor: String,
     val availableGovernors: List<String>,
-    val policyPath: String
+    val policyPath: String,
 )

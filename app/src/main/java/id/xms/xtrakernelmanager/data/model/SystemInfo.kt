@@ -5,13 +5,17 @@ data class SystemInfo(
     val abi: String = "",
     val kernelVersion: String = "",
     val deviceModel: String = "",
+    val brand: String = "",
+    val product: String = "",
+    val marketName: String = "",
     val fingerprint: String = "",
     val selinux: String = "",
     val thermalMode: String = "Not Set",
     val totalRam: Long = 0,
     val swapTotal: Long = 0,
+    val swapFree: Long = 0,
     val availableRam: Long = 0,
     val zramSize: Long = 0,
     val totalStorage: Long = 0,
-    val availableStorage: Long = 0
+    val availableStorage: Long = 0,
 )

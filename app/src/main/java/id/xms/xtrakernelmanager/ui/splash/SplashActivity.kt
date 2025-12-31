@@ -46,867 +46,985 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.view.WindowCompat
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.MainActivity
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
+import kotlin.coroutines.resume
+import kotlin.math.max
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.coroutines.resume
-import kotlin.math.max
 
 // --- PREFERENCES MANAGER (Untuk menyimpan info update) ---
 object UpdatePrefs {
-    private const val PREF_NAME = "update_prefs"
-    private const val KEY_PENDING_VERSION = "pending_version"
-    private const val KEY_UPDATE_URL = "update_url"
-    private const val KEY_CHANGELOG = "update_changelog"
+  private const val PREF_NAME = "update_prefs"
+  private const val KEY_PENDING_VERSION = "pending_version"
+  private const val KEY_UPDATE_URL = "update_url"
+  private const val KEY_CHANGELOG = "update_changelog"
 
-    fun savePendingUpdate(context: Context, version: String, url: String, changelog: String) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().apply {
-            putString(KEY_PENDING_VERSION, version)
-            putString(KEY_UPDATE_URL, url)
-            putString(KEY_CHANGELOG, changelog)
-            apply()
-        }
+  fun savePendingUpdate(context: Context, version: String, url: String, changelog: String) {
+    context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().apply {
+      putString(KEY_PENDING_VERSION, version)
+      putString(KEY_UPDATE_URL, url)
+      putString(KEY_CHANGELOG, changelog)
+      apply()
     }
+  }
 
-    fun getPendingUpdate(context: Context): UpdateConfig? {
-        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        val version = prefs.getString(KEY_PENDING_VERSION, null) ?: return null
-        val url = prefs.getString(KEY_UPDATE_URL, "") ?: ""
-        val changelog = prefs.getString(KEY_CHANGELOG, "") ?: ""
-        return UpdateConfig(version, changelog, url, force = true) // Diasumsikan force jika tersimpan
-    }
+  fun getPendingUpdate(context: Context): UpdateConfig? {
+    val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    val version = prefs.getString(KEY_PENDING_VERSION, null) ?: return null
+    val url = prefs.getString(KEY_UPDATE_URL, "") ?: ""
+    val changelog = prefs.getString(KEY_CHANGELOG, "") ?: ""
+    return UpdateConfig(version, changelog, url, force = true) // Diasumsikan force jika tersimpan
+  }
 
-    fun clear(context: Context) {
-        context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply()
-    }
+  fun clear(context: Context) {
+    context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit().clear().apply()
+  }
 }
 
 data class UpdateConfig(
     val version: String = "",
     val changelog: String = "",
     val url: String = "",
-    val force: Boolean = false
+    val force: Boolean = false,
 )
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    enableEdgeToEdge()
+    WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        setContent {
-            XtraKernelManagerTheme {
-                SplashScreenContent(
-                    onNavigateToMain = {
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                    }
-                )
-            }
+    setContent {
+      XtraKernelManagerTheme {
+        val context = LocalContext.current
+        val prefsManager = remember { PreferencesManager(context) }
+        val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
+        
+        val navigateToMain: () -> Unit = {
+          startActivity(Intent(this, MainActivity::class.java))
+          finish()
+          overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
+        
+        if (layoutStyle == "material") {
+          // Material layout uses ExpressiveSplashScreen
+          ExpressiveSplashScreen(
+              onNavigateToMain = navigateToMain,
+              isInternetAvailable = { isInternetAvailable(it) },
+              checkRootAccess = { checkRootAccess() },
+              fetchUpdateConfig = { fetchUpdateConfig() },
+              isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) },
+          )
+        } else {
+          // Legacy layout uses SplashScreenContent
+          SplashScreenContent(onNavigateToMain = navigateToMain)
+        }
+      }
     }
+  }
 }
 
 @Composable
 fun SplashScreenContent(onNavigateToMain: () -> Unit) {
-    val context = LocalContext.current
+  val context = LocalContext.current
 
-    var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
-    var showUpdateDialog by remember { mutableStateOf(false) }
-    var showOfflineLockDialog by remember { mutableStateOf(false) }
-    var showRootRequiredDialog by remember { mutableStateOf(false) }
-    var isChecking by remember { mutableStateOf(true) }
-    var checkingStatus by remember { mutableStateOf(context.getString(R.string.splash_initializing)) }
-    var startExitAnimation by remember { mutableStateOf(false) }
-    var hasRootAccess by remember { mutableStateOf<Boolean?>(null) }
+  var updateConfig by remember { mutableStateOf<UpdateConfig?>(null) }
+  var showUpdateDialog by remember { mutableStateOf(false) }
+  var showOfflineLockDialog by remember { mutableStateOf(false) }
+  var showNoRootDialog by remember { mutableStateOf(false) }
+  var isChecking by remember { mutableStateOf(true) }
+  var checkingStatus by remember { mutableStateOf(context.getString(R.string.splash_initializing)) }
+  var startExitAnimation by remember { mutableStateOf(false) }
 
-    // --- ROOT CHECK & MAIN LOGIC ---
-    LaunchedEffect(Unit) {
-        val minSplashTime = launch { delay(2000) }
+  LaunchedEffect(Unit) {
+    val minSplashTime = launch { delay(2000) }
 
-        // Check root access first
-        checkingStatus = context.getString(R.string.splash_checking_root)
-        hasRootAccess = checkRootAccess()
-        
-        if (hasRootAccess != true) {
-            minSplashTime.join()
-            isChecking = false
-            showRootRequiredDialog = true
-            return@LaunchedEffect
-        }
-
-        checkingStatus = context.getString(R.string.splash_checking_updates)
-
-        // 1. CEK DATA LOKAL DULU: Apakah ada hutang update?
-        val pendingUpdate = UpdatePrefs.getPendingUpdate(context)
-        
-        if (pendingUpdate != null && isUpdateAvailable(BuildConfig.VERSION_NAME, pendingUpdate.version)) {
-            if (isInternetAvailable(context)) {
-                minSplashTime.join()
-                updateConfig = pendingUpdate
-                isChecking = false
-                showUpdateDialog = true
-                
-                val freshConfig = withTimeoutOrNull(3000L) { fetchUpdateConfig() }
-                if (freshConfig != null) {
-                    // Update info dialog dengan data terbaru
-                    updateConfig = freshConfig
-                    // Update penyimpanan lokal
-                    UpdatePrefs.savePendingUpdate(context, freshConfig.version, freshConfig.url, freshConfig.changelog)
-                }
-            } else {
-                minSplashTime.join()
-                isChecking = false
-                showOfflineLockDialog = true
-            }
-        } else {
-            if (pendingUpdate != null) {
-                UpdatePrefs.clear(context)
-            }
-
-            // 2. PROSES NORMAL: Cek Firebase baru
-            if (isInternetAvailable(context)) {
-                try {
-                    val config = withTimeoutOrNull(5000L) { fetchUpdateConfig() }
-                    minSplashTime.join()
-
-                    if (config != null && isUpdateAvailable(BuildConfig.VERSION_NAME, config.version)) {
-                        // Update Ditemukan!
-                        UpdatePrefs.savePendingUpdate(context, config.version, config.url, config.changelog)
-                        
-                        updateConfig = config
-                        isChecking = false
-                        showUpdateDialog = true
-                    } else {
-                        isChecking = false
-                        startExitAnimation = true
-                    }
-                } catch (e: Exception) {
-                    minSplashTime.join()
-                    isChecking = false
-                    startExitAnimation = true
-                }
-            } else {
-                minSplashTime.join()
-                isChecking = false
-                startExitAnimation = true
-            }
-        }
+    // Check root access first
+    checkingStatus = context.getString(R.string.splash_initializing)
+    val hasRoot = checkRootAccess()
+    
+    if (!hasRoot) {
+      minSplashTime.join()
+      isChecking = false
+      showNoRootDialog = true
+      return@LaunchedEffect
     }
 
-    if (startExitAnimation) {
-        LaunchedEffect(Unit) {
-            delay(500)
-            onNavigateToMain()
-        }
-    }
+    checkingStatus = context.getString(R.string.splash_checking_updates)
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceContainerLowest))),
-        contentAlignment = Alignment.Center
+    val pendingUpdate = UpdatePrefs.getPendingUpdate(context)
+
+    if (
+        pendingUpdate != null && isUpdateAvailable(BuildConfig.VERSION_NAME, pendingUpdate.version)
     ) {
-        BackgroundCircles()
+      if (isInternetAvailable(context)) {
+        minSplashTime.join()
+        updateConfig = pendingUpdate
+        isChecking = false
+        showUpdateDialog = true
 
-        AnimatedVisibility(
-            visible = !startExitAnimation,
-            enter = fadeIn(),
-            exit = fadeOut() + scaleOut(targetScale = 1.5f)
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                // Logo with glow effect
-                Box(
-                    modifier = Modifier
-                        .size(140.dp)
-                        .clip(RoundedCornerShape(36.dp))
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                    MaterialTheme.colorScheme.surfaceContainerHigh
-                                )
-                            )
-                        )
-                        .border(
-                            2.dp,
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                            ),
-                            RoundedCornerShape(36.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_a),
-                        contentDescription = "Logo",
-                        modifier = Modifier.size(90.dp).scale(1.2f)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // App name and version in chip style
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shadowElevation = 2.dp,
-                    tonalElevation = 4.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Xtra Kernel Manager",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Text(
-                            text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(48.dp))
-                
-                if (isChecking) {
-                    ModernLoader()
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = checkingStatus,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+        val freshConfig = withTimeoutOrNull(3000L) { fetchUpdateConfig() }
+        if (freshConfig != null) {
+          // Update info dialog dengan data terbaru
+          updateConfig = freshConfig
+          // Update penyimpanan lokal
+          UpdatePrefs.savePendingUpdate(
+              context,
+              freshConfig.version,
+              freshConfig.url,
+              freshConfig.changelog,
+          )
         }
+      } else {
+        minSplashTime.join()
+        isChecking = false
+        showOfflineLockDialog = true
+      }
+    } else {
+      if (pendingUpdate != null) {
+        UpdatePrefs.clear(context)
+      }
 
-        if (showUpdateDialog && updateConfig != null) {
-            ForceUpdateDialog(
-                config = updateConfig!!,
-                onUpdateClick = {
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateConfig!!.url))
-                        context.startActivity(intent)
-                    } catch (e: Exception) { Log.e("OTA", "Browser error", e) }
-                }
-            )
-        }
+      if (isInternetAvailable(context)) {
+        try {
+          val config = withTimeoutOrNull(5000L) { fetchUpdateConfig() }
+          minSplashTime.join()
 
-        if (showOfflineLockDialog) {
-            OfflineLockDialog(
-                onRetry = {
-                    val intent = (context as ComponentActivity).intent
-                    context.finish()
-                    context.startActivity(intent)
-                }
-            )
-        }
+          if (config != null && isUpdateAvailable(BuildConfig.VERSION_NAME, config.version)) {
+            UpdatePrefs.savePendingUpdate(context, config.version, config.url, config.changelog)
 
-        if (showRootRequiredDialog) {
-            RootRequiredDialog(
-                onDismiss = {
-                    // Exit the app
-                    (context as ComponentActivity).finishAffinity()
-                }
-            )
+            updateConfig = config
+            isChecking = false
+            showUpdateDialog = true
+          } else {
+            isChecking = false
+            startExitAnimation = true
+          }
+        } catch (e: Exception) {
+          minSplashTime.join()
+          isChecking = false
+          startExitAnimation = true
         }
+      } else {
+        minSplashTime.join()
+        isChecking = false
+        startExitAnimation = true
+      }
     }
+  }
+
+  if (startExitAnimation) {
+    LaunchedEffect(Unit) {
+      delay(500)
+      onNavigateToMain()
+    }
+  }
+
+  Box(
+      modifier =
+          Modifier.fillMaxSize()
+              .background(
+                  Brush.verticalGradient(
+                      listOf(
+                          MaterialTheme.colorScheme.surface,
+                          MaterialTheme.colorScheme.surfaceContainerLowest,
+                      )
+                  )
+              ),
+      contentAlignment = Alignment.Center,
+  ) {
+    BackgroundCircles()
+
+    AnimatedVisibility(
+        visible = !startExitAnimation,
+        enter = fadeIn(),
+        exit = fadeOut() + scaleOut(targetScale = 1.5f),
+    ) {
+      Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Center,
+      ) {
+        // Logo with glow effect
+        Box(
+            modifier =
+                Modifier.size(140.dp)
+                    .clip(RoundedCornerShape(36.dp))
+                    .background(
+                        Brush.radialGradient(
+                            colors =
+                                listOf(
+                                    MaterialTheme.colorScheme.primaryContainer,
+                                    MaterialTheme.colorScheme.surfaceContainerHigh,
+                                )
+                        )
+                    )
+                    .border(
+                        2.dp,
+                        Brush.linearGradient(
+                            colors =
+                                listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                )
+                        ),
+                        RoundedCornerShape(36.dp),
+                    ),
+            contentAlignment = Alignment.Center,
+        ) {
+          Image(
+              painter = painterResource(id = R.drawable.logo_a),
+              contentDescription = "Logo",
+              modifier = Modifier.size(90.dp).scale(1.2f),
+          )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // App name and version in chip style
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            shadowElevation = 2.dp,
+            tonalElevation = 4.dp,
+        ) {
+          Column(
+              modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+              horizontalAlignment = Alignment.CenterHorizontally,
+          ) {
+            Text(
+                text = "Xtra Kernel Manager",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(
+                text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        if (isChecking) {
+          ModernLoader()
+          Spacer(modifier = Modifier.height(16.dp))
+          Text(
+              text = checkingStatus,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.primary,
+          )
+        }
+      }
+    }
+
+    if (showUpdateDialog && updateConfig != null) {
+      ForceUpdateDialog(
+          config = updateConfig!!,
+          onUpdateClick = {
+            try {
+              val intent = Intent(Intent.ACTION_VIEW, Uri.parse(updateConfig!!.url))
+              context.startActivity(intent)
+            } catch (e: Exception) {
+              Log.e("OTA", "Browser error", e)
+            }
+          },
+      )
+    }
+
+    if (showOfflineLockDialog) {
+      OfflineLockDialog(
+          onRetry = {
+            val intent = (context as ComponentActivity).intent
+            context.finish()
+            context.startActivity(intent)
+          }
+      )
+    }
+    
+    if (showNoRootDialog) {
+      NoRootDialog(
+          onRetry = {
+            val intent = (context as ComponentActivity).intent
+            context.finish()
+            context.startActivity(intent)
+          },
+          onExit = {
+            (context as ComponentActivity).finish()
+          }
+      )
+    }
+  }
 }
 
 /**
- * Check if the device has root access using libsu
- * This is more compatible with Magisk 28+ than Runtime.exec
+ * Check if the device has root access using libsu This is more compatible with Magisk 28+ than
+ * Runtime.exec
  */
-private suspend fun checkRootAccess(): Boolean = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-    try {
+private suspend fun checkRootAccess(): Boolean =
+    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+      try {
         // Use libsu Shell which properly handles Magisk 28+ root requests
         val shell = com.topjohnwu.superuser.Shell.getShell()
         val isRoot = shell.isRoot
         Log.d("RootCheck", "Root check via libsu: $isRoot")
         isRoot
-    } catch (e: Exception) {
+      } catch (e: Exception) {
         Log.e("RootCheck", "Root check failed: ${e.message}")
         false
+      }
     }
-}
 
 // --- HELPERS ---
 
 fun isInternetAvailable(context: Context): Boolean {
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val network = connectivityManager.activeNetwork ?: return false
-    val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-    return when {
-        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-        activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
-        else -> false
-    }
+  val connectivityManager =
+      context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+  val network = connectivityManager.activeNetwork ?: return false
+  val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+  return when {
+    activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+    activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+    activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+    else -> false
+  }
 }
 
 suspend fun fetchUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { continuation ->
-    val database = FirebaseDatabase.getInstance("https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app")
-    val myRef = database.getReference("update")
-    val listener = object : ValueEventListener {
+  val database =
+      FirebaseDatabase.getInstance(
+          "https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app"
+      )
+  val myRef = database.getReference("update")
+  val listener =
+      object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            try {
-                val versionRaw = snapshot.child("version").value
-                val version = versionRaw?.toString() ?: ""
-                val changelog = snapshot.child("changelog").getValue(String::class.java) ?: ""
-                val url = snapshot.child("url").getValue(String::class.java) ?: ""
-                val force = snapshot.child("force").getValue(Boolean::class.java) ?: false
-                if (continuation.isActive) continuation.resume(UpdateConfig(version, changelog, url, force))
-            } catch (e: Exception) { if (continuation.isActive) continuation.resume(null) }
+          try {
+            val versionRaw = snapshot.child("version").value
+            val version = versionRaw?.toString() ?: ""
+            val changelog = snapshot.child("changelog").getValue(String::class.java) ?: ""
+            val url = snapshot.child("url").getValue(String::class.java) ?: ""
+            val force = snapshot.child("force").getValue(Boolean::class.java) ?: false
+            if (continuation.isActive)
+                continuation.resume(UpdateConfig(version, changelog, url, force))
+          } catch (e: Exception) {
+            if (continuation.isActive) continuation.resume(null)
+          }
         }
-        override fun onCancelled(error: DatabaseError) { if (continuation.isActive) continuation.resume(null) }
-    }
-    myRef.addListenerForSingleValueEvent(listener)
-    continuation.invokeOnCancellation { myRef.removeEventListener(listener) }
+
+        override fun onCancelled(error: DatabaseError) {
+          if (continuation.isActive) continuation.resume(null)
+        }
+      }
+  myRef.addListenerForSingleValueEvent(listener)
+  continuation.invokeOnCancellation { myRef.removeEventListener(listener) }
 }
 
 fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
-    return try {
-        Log.d("OTA", "Comparing versions: current=$currentVersion, remote=$remoteVersion")
-        
-        // Parse base version (sebelum tanda -)
-        val currentBase = currentVersion.substringBefore("-").trim()
-        val remoteBase = remoteVersion.substringBefore("-").trim()
+  return try {
+    Log.d("OTA", "Comparing versions: current=$currentVersion, remote=$remoteVersion")
 
-        // Parse suffix (setelah tanda -)
-        val currentSuffix = if (currentVersion.contains("-")) currentVersion.substringAfter("-").trim() else ""
-        val remoteSuffix = if (remoteVersion.contains("-")) remoteVersion.substringAfter("-").trim() else ""
+    // Parse base version (sebelum tanda -)
+    val currentBase = currentVersion.substringBefore("-").trim()
+    val remoteBase = remoteVersion.substringBefore("-").trim()
 
-        // Bersihkan dan bandingkan base version (2.0, 2.1, dll)
-        val cleanCurrent = currentBase.replace(Regex("[^0-9.]"), "")
-        val cleanRemote = remoteBase.replace(Regex("[^0-9.]"), "")
-        val cParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
-        val rParts = cleanRemote.split(".").map { it.toIntOrNull() ?: 0 }
-        val length = max(cParts.size, rParts.size)
+    // Parse suffix (setelah tanda -)
+    val currentSuffix =
+        if (currentVersion.contains("-")) currentVersion.substringAfter("-").trim() else ""
+    val remoteSuffix =
+        if (remoteVersion.contains("-")) remoteVersion.substringAfter("-").trim() else ""
 
-        // Bandingkan base version
-        for (i in 0 until length) {
-            val c = cParts.getOrElse(i) { 0 }
-            val r = rParts.getOrElse(i) { 0 }
-            if (r > c) {
-                Log.d("OTA", "Remote base version is higher: $r > $c")
-                return true  // Remote lebih tinggi (2.1 > 2.0)
-            }
-            if (r < c) {
-                Log.d("OTA", "Current base version is higher: $c > $r")
-                return false // Current lebih tinggi (2.1 > 2.0)
-            }
-        }
+    // Bersihkan dan bandingkan base version (2.0, 2.1, dll)
+    val cleanCurrent = currentBase.replace(Regex("[^0-9.]"), "")
+    val cleanRemote = remoteBase.replace(Regex("[^0-9.]"), "")
+    val cParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
+    val rParts = cleanRemote.split(".").map { it.toIntOrNull() ?: 0 }
+    val length = max(cParts.size, rParts.size)
 
-        // Jika base version sama, bandingkan suffix
-        Log.d("OTA", "Base versions equal, comparing suffixes: current='$currentSuffix', remote='$remoteSuffix'")
-        
-        // Get priorities for both suffixes
-        val currentPriority = getSuffixPriority(currentSuffix)
-        val remotePriority = getSuffixPriority(remoteSuffix)
-        
-        Log.d("OTA", "Suffix priorities: current=$currentPriority, remote=$remotePriority")
-        
-        // Hanya update available jika remote priority lebih tinggi
-        val result = remotePriority > currentPriority
-        Log.d("OTA", "Update available: $result")
-        result
-    } catch (e: Exception) {
-        Log.e("OTA", "Error comparing versions: $currentVersion vs $remoteVersion", e)
-        false
+    // Bandingkan base version
+    for (i in 0 until length) {
+      val c = cParts.getOrElse(i) { 0 }
+      val r = rParts.getOrElse(i) { 0 }
+      if (r > c) {
+        Log.d("OTA", "Remote base version is higher: $r > $c")
+        return true // Remote lebih tinggi (2.1 > 2.0)
+      }
+      if (r < c) {
+        Log.d("OTA", "Current base version is higher: $c > $r")
+        return false // Current lebih tinggi (2.1 > 2.0)
+      }
     }
+
+    // Jika base version sama, bandingkan suffix
+    Log.d(
+        "OTA",
+        "Base versions equal, comparing suffixes: current='$currentSuffix', remote='$remoteSuffix'",
+    )
+
+    // Get priorities for both suffixes
+    val currentPriority = getSuffixPriority(currentSuffix)
+    val remotePriority = getSuffixPriority(remoteSuffix)
+
+    Log.d("OTA", "Suffix priorities: current=$currentPriority, remote=$remotePriority")
+
+    // Hanya update available jika remote priority lebih tinggi
+    val result = remotePriority > currentPriority
+    Log.d("OTA", "Update available: $result")
+    result
+  } catch (e: Exception) {
+    Log.e("OTA", "Error comparing versions: $currentVersion vs $remoteVersion", e)
+    false
+  }
 }
 
 /**
- * Mendapatkan priority suffix untuk perbandingan versi.
- * Urutan prioritas: (tanpa suffix/stable) < Alpha < Beta < RC < Release
- * Semakin tinggi angka = semakin baru/stabil
+ * Mendapatkan priority suffix untuk perbandingan versi. Urutan prioritas: (tanpa suffix/stable) <
+ * Alpha < Beta < RC < Release Semakin tinggi angka = semakin baru/stabil
  */
 fun getSuffixPriority(suffix: String): Int {
-    if (suffix.isEmpty()) return 50 // Versi tanpa suffix (2.0) = stable release
-    
-    val lowerSuffix = suffix.lowercase()
-    
-    return when {
-        lowerSuffix.startsWith("release") -> 100  // Release adalah yang tertinggi
-        lowerSuffix.startsWith("stable") -> 90   // Stable setara release
-        lowerSuffix.startsWith("rc") -> {
-            // RC dengan nomor: RC1 = 40, RC2 = 41, dst
-            val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
-            40 + num
-        }
-        lowerSuffix.startsWith("beta") -> {
-            // Beta dengan nomor: Beta1 = 20, Beta2 = 21, dst
-            val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
-            20 + num
-        }
-        lowerSuffix.startsWith("alpha") -> {
-            // Alpha dengan nomor: Alpha1 = 10, Alpha2 = 11, dst
-            val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
-            10 + num
-        }
-        else -> 0 // Unknown suffix = lowest priority
+  if (suffix.isEmpty()) return 50 // Versi tanpa suffix (2.0) = stable release
+
+  val lowerSuffix = suffix.lowercase()
+
+  return when {
+    lowerSuffix.startsWith("release") -> 100 // Release adalah yang tertinggi
+    lowerSuffix.startsWith("stable") -> 90 // Stable setara release
+    lowerSuffix.startsWith("rc") -> {
+      // RC dengan nomor: RC1 = 40, RC2 = 41, dst
+      val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
+      40 + num
     }
+    lowerSuffix.startsWith("beta") -> {
+      // Beta dengan nomor: Beta1 = 20, Beta2 = 21, dst
+      val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
+      20 + num
+    }
+    lowerSuffix.startsWith("alpha") -> {
+      // Alpha dengan nomor: Alpha1 = 10, Alpha2 = 11, dst
+      val num = Regex("[0-9]+").find(suffix)?.value?.toIntOrNull() ?: 0
+      10 + num
+    }
+    else -> 0 // Unknown suffix = lowest priority
+  }
 }
 
 /**
  * Membandingkan suffix versi (Beta1, Beta2, RC1, Alpha1, Release, dll)
+ *
  * @return true jika remote suffix lebih baru dari current suffix
  * @deprecated Use getSuffixPriority instead for more accurate comparison
  */
 fun compareSuffix(currentSuffix: String, remoteSuffix: String): Boolean {
-    return getSuffixPriority(remoteSuffix) > getSuffixPriority(currentSuffix)
+  return getSuffixPriority(remoteSuffix) > getSuffixPriority(currentSuffix)
 }
 
 // --- UI COMPONENTS ---
 
 @Composable
 fun ForceUpdateDialog(config: UpdateConfig, onUpdateClick: () -> Unit) {
-    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
-        Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), elevation = CardDefaults.cardElevation(8.dp), modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(modifier = Modifier.size(72.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Rounded.CloudDownload, null, modifier = Modifier.size(36.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(stringResource(R.string.update_required), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text(stringResource(R.string.update_new_version, config.version), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp)).padding(16.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Rounded.SystemUpdate, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.secondary)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.update_changelog), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(config.changelog, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(onClick = onUpdateClick, modifier = Modifier.fillMaxWidth().height(50.dp), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)) {
-                    Text(stringResource(R.string.update_now))
-                }
-            }
+  Dialog(
+      onDismissRequest = {},
+      properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+  ) {
+    Card(
+        shape = RoundedCornerShape(28.dp),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+        elevation = CardDefaults.cardElevation(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Column(
+          modifier = Modifier.padding(24.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Box(
+            modifier =
+                Modifier.size(72.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+              Icons.Rounded.CloudDownload,
+              null,
+              modifier = Modifier.size(36.dp),
+              tint = MaterialTheme.colorScheme.onPrimaryContainer,
+          )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.update_required),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            stringResource(R.string.update_new_version, config.version),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(16.dp))
+                    .padding(16.dp)
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Rounded.SystemUpdate,
+                null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.secondary,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                stringResource(R.string.update_changelog),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+          }
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(
+              config.changelog,
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onUpdateClick,
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors =
+                ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        ) {
+          Text(stringResource(R.string.update_now))
+        }
+      }
     }
+  }
 }
 
 @Composable
 fun OfflineLockDialog(onRetry: () -> Unit) {
-    Dialog(onDismissRequest = {}, properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
-        Card(shape = RoundedCornerShape(28.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer), modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Rounded.WifiOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(stringResource(R.string.connection_required), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onErrorContainer)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.connection_required_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(onClick = onRetry, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                    Text(stringResource(R.string.retry_connection))
-                }
-            }
+  Dialog(
+      onDismissRequest = {},
+      properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+  ) {
+    Card(
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+      Column(
+          modifier = Modifier.padding(24.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Icon(
+            Icons.Rounded.WifiOff,
+            null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.connection_required),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.connection_required_message),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onRetry,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+        ) {
+          Text(stringResource(R.string.retry_connection))
         }
+      }
     }
+  }
 }
 
 @Composable
-fun RootRequiredDialog(onDismiss: () -> Unit) {
-    Dialog(
-        onDismissRequest = {},
-        properties = DialogProperties(
-            dismissOnBackPress = false,
-            dismissOnClickOutside = false
-        )
+fun NoRootDialog(onRetry: () -> Unit, onExit: () -> Unit) {
+  Dialog(
+      onDismissRequest = {},
+      properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
+  ) {
+    Card(
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Card(
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-            ),
-            elevation = CardDefaults.cardElevation(8.dp),
-            modifier = Modifier.fillMaxWidth()
+      Column(
+          modifier = Modifier.padding(24.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+      ) {
+        Icon(
+            Icons.Rounded.Warning,
+            null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.root_required_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            stringResource(R.string.root_required_message),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.root_required_instructions),
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Start,
+            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Warning Icon
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .background(
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Warning,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Text(
-                    text = stringResource(R.string.root_required_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Text(
-                    text = stringResource(R.string.root_required_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Surface(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = stringResource(R.string.root_required_instructions),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        text = stringResource(android.R.string.ok),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
+          OutlinedButton(
+              onClick = onExit,
+              modifier = Modifier.weight(1f),
+          ) {
+            Text("Exit")
+          }
+          Button(
+              onClick = onRetry,
+              modifier = Modifier.weight(1f),
+              colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+          ) {
+            Text("Retry")
+          }
         }
+      }
     }
+  }
 }
 
 @Composable
 fun ModernLoader() {
-    val infiniteTransition = rememberInfiniteTransition(label = "loader")
-    
-    // Main rotation
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = 0f, 
-        targetValue = 360f, 
-        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)), 
-        label = "rotation"
-    )
-    
-    // Secondary rotation (opposite direction)
-    val rotation2 by infiniteTransition.animateFloat(
-        initialValue = 360f, 
-        targetValue = 0f, 
-        animationSpec = infiniteRepeatable(tween(1800, easing = LinearEasing)), 
-        label = "rotation2"
-    )
-    
-    // Pulse animation for glow effect
-    val pulse by infiniteTransition.animateFloat(
-        initialValue = 0.6f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
-    
-    // Scale breathing effect
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale"
-    )
-    
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val tertiaryColor = MaterialTheme.colorScheme.tertiary
-    
-    Box(
-        modifier = Modifier.size(64.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        // Outer glow ring
-        Canvas(
-            modifier = Modifier
-                .size(64.dp)
-                .scale(scale)
-        ) {
-            drawArc(
-                brush = Brush.sweepGradient(
-                    listOf(
-                        Color.Transparent,
-                        primaryColor.copy(alpha = 0.2f * pulse),
-                        primaryColor.copy(alpha = 0.4f * pulse),
-                        Color.Transparent
-                    )
-                ),
-                startAngle = rotation2,
-                sweepAngle = 270f,
-                useCenter = false,
-                style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
-            )
-        }
-        
-        // Middle ring
-        Canvas(modifier = Modifier.size(52.dp)) {
-            drawArc(
-                brush = Brush.sweepGradient(
-                    listOf(
-                        Color.Transparent,
-                        secondaryColor.copy(alpha = 0.3f),
-                        secondaryColor.copy(alpha = 0.7f),
-                        Color.Transparent
-                    )
-                ),
-                startAngle = rotation2 + 45f,
-                sweepAngle = 180f,
-                useCenter = false,
-                style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round)
-            )
-        }
-        
-        // Inner spinning ring (main)
-        Canvas(modifier = Modifier.size(40.dp)) {
-            drawArc(
-                brush = Brush.sweepGradient(
-                    listOf(
-                        Color.Transparent,
-                        Color.Transparent,
-                        primaryColor.copy(alpha = 0.8f),
-                        primaryColor
-                    )
-                ),
-                startAngle = rotation,
-                sweepAngle = 240f,
-                useCenter = false,
-                style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round)
-            )
-        }
-        
-        // Center dot with pulse
-        Canvas(modifier = Modifier.size(12.dp)) {
-            drawCircle(
-                color = tertiaryColor.copy(alpha = pulse),
-                radius = size.minDimension / 2
-            )
-        }
+  val infiniteTransition = rememberInfiniteTransition(label = "loader")
+
+  // Main rotation
+  val rotation by
+      infiniteTransition.animateFloat(
+          initialValue = 0f,
+          targetValue = 360f,
+          animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)),
+          label = "rotation",
+      )
+
+  // Secondary rotation (opposite direction)
+  val rotation2 by
+      infiniteTransition.animateFloat(
+          initialValue = 360f,
+          targetValue = 0f,
+          animationSpec = infiniteRepeatable(tween(1800, easing = LinearEasing)),
+          label = "rotation2",
+      )
+
+  // Pulse animation for glow effect
+  val pulse by
+      infiniteTransition.animateFloat(
+          initialValue = 0.6f,
+          targetValue = 1f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(800, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "pulse",
+      )
+
+  // Scale breathing effect
+  val scale by
+      infiniteTransition.animateFloat(
+          initialValue = 0.95f,
+          targetValue = 1.05f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(1000, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "scale",
+      )
+
+  val primaryColor = MaterialTheme.colorScheme.primary
+  val secondaryColor = MaterialTheme.colorScheme.secondary
+  val tertiaryColor = MaterialTheme.colorScheme.tertiary
+
+  Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+    // Outer glow ring
+    Canvas(modifier = Modifier.size(64.dp).scale(scale)) {
+      drawArc(
+          brush =
+              Brush.sweepGradient(
+                  listOf(
+                      Color.Transparent,
+                      primaryColor.copy(alpha = 0.2f * pulse),
+                      primaryColor.copy(alpha = 0.4f * pulse),
+                      Color.Transparent,
+                  )
+              ),
+          startAngle = rotation2,
+          sweepAngle = 270f,
+          useCenter = false,
+          style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round),
+      )
     }
+
+    // Middle ring
+    Canvas(modifier = Modifier.size(52.dp)) {
+      drawArc(
+          brush =
+              Brush.sweepGradient(
+                  listOf(
+                      Color.Transparent,
+                      secondaryColor.copy(alpha = 0.3f),
+                      secondaryColor.copy(alpha = 0.7f),
+                      Color.Transparent,
+                  )
+              ),
+          startAngle = rotation2 + 45f,
+          sweepAngle = 180f,
+          useCenter = false,
+          style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round),
+      )
+    }
+
+    // Inner spinning ring (main)
+    Canvas(modifier = Modifier.size(40.dp)) {
+      drawArc(
+          brush =
+              Brush.sweepGradient(
+                  listOf(
+                      Color.Transparent,
+                      Color.Transparent,
+                      primaryColor.copy(alpha = 0.8f),
+                      primaryColor,
+                  )
+              ),
+          startAngle = rotation,
+          sweepAngle = 240f,
+          useCenter = false,
+          style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round),
+      )
+    }
+
+    // Center dot with pulse
+    Canvas(modifier = Modifier.size(12.dp)) {
+      drawCircle(color = tertiaryColor.copy(alpha = pulse), radius = size.minDimension / 2)
+    }
+  }
 }
 
 @Composable
 fun BackgroundCircles() {
-    val infiniteTransition = rememberInfiniteTransition(label = "bg_circles")
-    
-    // Floating animation for top-right circle
-    val offsetY1 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 30f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY1"
-    )
-    
-    val offsetX1 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -20f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetX1"
-    )
-    
-    // Floating animation for bottom-left circle
-    val offsetY2 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -25f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY2"
-    )
-    
-    val offsetX2 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 20f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetX2"
-    )
-    
-    // Scale breathing for circles
-    val scale1 by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale1"
-    )
-    
-    val scale2 by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.15f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "scale2"
-    )
-    
-    // Alpha pulsing
-    val alpha1 by infiniteTransition.animateFloat(
-        initialValue = 0.25f,
-        targetValue = 0.4f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2500, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha1"
-    )
-    
-    val alpha2 by infiniteTransition.animateFloat(
-        initialValue = 0.08f,
-        targetValue = 0.18f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alpha2"
-    )
-    
-    // Third floating circle
-    val offsetY3 by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 40f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(5000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "offsetY3"
-    )
-    
-    val primaryColor = MaterialTheme.colorScheme.primaryContainer
-    val secondaryColor = MaterialTheme.colorScheme.secondaryContainer
-    val tertiaryColor = MaterialTheme.colorScheme.tertiaryContainer
-    
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        // Top-right large circle with gradient
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    primaryColor.copy(alpha = alpha1),
-                    primaryColor.copy(alpha = alpha1 * 0.5f),
-                    Color.Transparent
-                ),
-                center = androidx.compose.ui.geometry.Offset(
-                    size.width + offsetX1,
-                    offsetY1
-                ),
-                radius = size.width * 0.6f * scale1
-            ),
-            center = androidx.compose.ui.geometry.Offset(
-                size.width + offsetX1,
-                offsetY1
-            ),
-            radius = size.width * 0.6f * scale1
-        )
-        
-        // Bottom-left circle
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    secondaryColor.copy(alpha = alpha2),
-                    secondaryColor.copy(alpha = alpha2 * 0.3f),
-                    Color.Transparent
-                ),
-                center = androidx.compose.ui.geometry.Offset(
-                    offsetX2,
-                    size.height + offsetY2
-                ),
-                radius = size.width * 0.45f * scale2
-            ),
-            center = androidx.compose.ui.geometry.Offset(
-                offsetX2,
-                size.height + offsetY2
-            ),
-            radius = size.width * 0.45f * scale2
-        )
-        
-        // Center-right floating orb
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(
-                    tertiaryColor.copy(alpha = 0.15f),
-                    tertiaryColor.copy(alpha = 0.05f),
-                    Color.Transparent
-                ),
-                center = androidx.compose.ui.geometry.Offset(
-                    size.width * 0.8f,
-                    size.height * 0.4f + offsetY3
-                ),
-                radius = size.width * 0.25f
-            ),
-            center = androidx.compose.ui.geometry.Offset(
-                size.width * 0.8f,
-                size.height * 0.4f + offsetY3
-            ),
-            radius = size.width * 0.25f
-        )
-    }
-}
+  val infiniteTransition = rememberInfiniteTransition(label = "bg_circles")
 
+  // Floating animation for top-right circle
+  val offsetY1 by
+      infiniteTransition.animateFloat(
+          initialValue = 0f,
+          targetValue = 30f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(3000, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "offsetY1",
+      )
+
+  val offsetX1 by
+      infiniteTransition.animateFloat(
+          initialValue = 0f,
+          targetValue = -20f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(4000, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "offsetX1",
+      )
+
+  // Floating animation for bottom-left circle
+  val offsetY2 by
+      infiniteTransition.animateFloat(
+          initialValue = 0f,
+          targetValue = -25f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(3500, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "offsetY2",
+      )
+
+  val offsetX2 by
+      infiniteTransition.animateFloat(
+          initialValue = 0f,
+          targetValue = 20f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(2800, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "offsetX2",
+      )
+
+  // Scale breathing for circles
+  val scale1 by
+      infiniteTransition.animateFloat(
+          initialValue = 1f,
+          targetValue = 1.1f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(4000, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "scale1",
+      )
+
+  val scale2 by
+      infiniteTransition.animateFloat(
+          initialValue = 1f,
+          targetValue = 1.15f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(3200, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "scale2",
+      )
+
+  // Alpha pulsing
+  val alpha1 by
+      infiniteTransition.animateFloat(
+          initialValue = 0.25f,
+          targetValue = 0.4f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(2500, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "alpha1",
+      )
+
+  val alpha2 by
+      infiniteTransition.animateFloat(
+          initialValue = 0.08f,
+          targetValue = 0.18f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(3000, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "alpha2",
+      )
+
+  // Third floating circle
+  val offsetY3 by
+      infiniteTransition.animateFloat(
+          initialValue = 0f,
+          targetValue = 40f,
+          animationSpec =
+              infiniteRepeatable(
+                  animation = tween(5000, easing = FastOutSlowInEasing),
+                  repeatMode = RepeatMode.Reverse,
+              ),
+          label = "offsetY3",
+      )
+
+  val primaryColor = MaterialTheme.colorScheme.primaryContainer
+  val secondaryColor = MaterialTheme.colorScheme.secondaryContainer
+  val tertiaryColor = MaterialTheme.colorScheme.tertiaryContainer
+
+  Canvas(modifier = Modifier.fillMaxSize()) {
+    // Top-right large circle with gradient
+    drawCircle(
+        brush =
+            Brush.radialGradient(
+                colors =
+                    listOf(
+                        primaryColor.copy(alpha = alpha1),
+                        primaryColor.copy(alpha = alpha1 * 0.5f),
+                        Color.Transparent,
+                    ),
+                center = androidx.compose.ui.geometry.Offset(size.width + offsetX1, offsetY1),
+                radius = size.width * 0.6f * scale1,
+            ),
+        center = androidx.compose.ui.geometry.Offset(size.width + offsetX1, offsetY1),
+        radius = size.width * 0.6f * scale1,
+    )
+
+    // Bottom-left circle
+    drawCircle(
+        brush =
+            Brush.radialGradient(
+                colors =
+                    listOf(
+                        secondaryColor.copy(alpha = alpha2),
+                        secondaryColor.copy(alpha = alpha2 * 0.3f),
+                        Color.Transparent,
+                    ),
+                center = androidx.compose.ui.geometry.Offset(offsetX2, size.height + offsetY2),
+                radius = size.width * 0.45f * scale2,
+            ),
+        center = androidx.compose.ui.geometry.Offset(offsetX2, size.height + offsetY2),
+        radius = size.width * 0.45f * scale2,
+    )
+
+    // Center-right floating orb
+    drawCircle(
+        brush =
+            Brush.radialGradient(
+                colors =
+                    listOf(
+                        tertiaryColor.copy(alpha = 0.15f),
+                        tertiaryColor.copy(alpha = 0.05f),
+                        Color.Transparent,
+                    ),
+                center =
+                    androidx.compose.ui.geometry.Offset(
+                        size.width * 0.8f,
+                        size.height * 0.4f + offsetY3,
+                    ),
+                radius = size.width * 0.25f,
+            ),
+        center =
+            androidx.compose.ui.geometry.Offset(size.width * 0.8f, size.height * 0.4f + offsetY3),
+        radius = size.width * 0.25f,
+    )
+  }
+}

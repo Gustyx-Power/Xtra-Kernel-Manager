@@ -5,7 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -28,127 +27,124 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
-data class BottomNavItem(
-    val route: String,
-    val icon: ImageVector,
-    val label: Int
-)
+data class BottomNavItem(val route: String, val icon: ImageVector, val label: Int)
 
 @Composable
 fun ModernBottomBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit,
     items: List<BottomNavItem>,
-    isVisible: Boolean = true
+    isVisible: Boolean = true,
 ) {
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = slideInVertically { it },
-        exit = slideOutVertically { it }
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
+  AnimatedVisibility(
+      visible = isVisible,
+      enter = slideInVertically { it },
+      exit = slideOutVertically { it },
+  ) {
+    Surface(
+        modifier =
+            Modifier.fillMaxWidth()
                 .shadow(
                     elevation = 16.dp,
                     shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 ),
-            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            tonalElevation = 8.dp
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .navigationBarsPadding()
-                    .height(56.dp), // Tinggi standar modern
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                items.forEach { item ->
-                    val selected = currentRoute == item.route
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 8.dp,
+    ) {
+      Row(
+          modifier =
+              Modifier.fillMaxWidth()
+                  .padding(horizontal = 16.dp, vertical = 12.dp)
+                  .navigationBarsPadding()
+                  .height(56.dp), // Tinggi standar modern
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        items.forEach { item ->
+          val selected = currentRoute == item.route
 
-                    PillNavItem(
-                        item = item,
-                        isSelected = selected,
-                        onClick = { onNavigate(item.route) }
-                    )
-                }
-            }
+          PillNavItem(item = item, isSelected = selected, onClick = { onNavigate(item.route) })
         }
+      }
     }
+  }
 }
 
 @Composable
-private fun PillNavItem(
-    item: BottomNavItem,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val haptic = LocalHapticFeedback.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val animationSpec = spring<Color>(
-        dampingRatio = Spring.DampingRatioNoBouncy,
-        stiffness = Spring.StiffnessMediumLow
-    )
+private fun PillNavItem(item: BottomNavItem, isSelected: Boolean, onClick: () -> Unit) {
+  val haptic = LocalHapticFeedback.current
+  val interactionSource = remember { MutableInteractionSource() }
+  val animationSpec =
+      spring<Color>(
+          dampingRatio = Spring.DampingRatioNoBouncy,
+          stiffness = Spring.StiffnessMediumLow,
+      )
 
-    val backgroundColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
-        animationSpec = animationSpec,
-        label = "bg"
-    )
+  val backgroundColor by
+      animateColorAsState(
+          targetValue =
+              if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+          animationSpec = animationSpec,
+          label = "bg",
+      )
 
-    val contentColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-        animationSpec = animationSpec,
-        label = "content"
-    )
+  val contentColor by
+      animateColorAsState(
+          targetValue =
+              if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+              else MaterialTheme.colorScheme.onSurfaceVariant,
+          animationSpec = animationSpec,
+          label = "content",
+      )
 
-    Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = {
-                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+  Box(
+      modifier =
+          Modifier.clip(CircleShape)
+              .background(backgroundColor)
+              .clickable(
+                  interactionSource = interactionSource,
+                  indication = null,
+                  onClick = {
+                    haptic.performHapticFeedback(
+                        androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove
+                    )
                     onClick()
-                }
-            )
-            .animateContentSize(
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioNoBouncy,
-                    stiffness = Spring.StiffnessMediumLow
-                )
-            )
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        contentAlignment = Alignment.Center
+                  },
+              )
+              .animateContentSize(
+                  animationSpec =
+                      spring(
+                          dampingRatio = Spring.DampingRatioNoBouncy,
+                          stiffness = Spring.StiffnessMediumLow,
+                      )
+              )
+              .padding(horizontal = 16.dp, vertical = 10.dp),
+      contentAlignment = Alignment.Center,
+  ) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = stringResource(item.label),
-                tint = contentColor,
-                modifier = Modifier.size(22.dp)
-            )
+      Icon(
+          imageVector = item.icon,
+          contentDescription = stringResource(item.label),
+          tint = contentColor,
+          modifier = Modifier.size(22.dp),
+      )
 
-            // Teks Label
-            if (isSelected) {
-                Text(
-                    text = stringResource(item.label),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
+      // Teks Label
+      if (isSelected) {
+        Text(
+            text = stringResource(item.label),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+      }
     }
+  }
 }
