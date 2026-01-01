@@ -43,6 +43,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
   val ramConfig by viewModel.preferencesManager.getRamConfig().collectAsState(initial = RAMConfig())
   val availableIOSchedulers by viewModel.availableIOSchedulers.collectAsState()
   val currentIOScheduler by viewModel.currentIOScheduler.collectAsState()
+  val blockDeviceStates by viewModel.blockDeviceStates.collectAsState()
   val availableAlgorithms by viewModel.availableCompressionAlgorithms.collectAsState()
   val currentAlgorithm by viewModel.currentCompressionAlgorithm.collectAsState()
 
@@ -89,11 +90,12 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
       // 2. Split Row: Compression Level (Left) | Swap (Right)
       var compressionExpanded by remember { mutableStateOf(false) }
       var swapExpanded by remember { mutableStateOf(false) }
-      
+
       // Local state for immediate UI feedback (synced with ramConfig)
-      var localCompressionAlgorithm by remember(ramConfig.compressionAlgorithm) { 
-        mutableStateOf(ramConfig.compressionAlgorithm) 
-      }
+      var localCompressionAlgorithm by
+          remember(ramConfig.compressionAlgorithm) {
+            mutableStateOf(ramConfig.compressionAlgorithm)
+          }
 
       Row(
           modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
@@ -140,10 +142,12 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
       )
 
       // 5. I/O Card
+      // 5. I/O Card
       ExpandableIOCard(
-          currentScheduler = currentIOScheduler,
-          availableSchedulers = availableIOSchedulers,
-          onSchedulerChange = { viewModel.setIOScheduler(it) },
+          blockDeviceStates = blockDeviceStates,
+          onDeviceSchedulerChange = { device, scheduler ->
+            viewModel.setDeviceIOScheduler(device, scheduler)
+          },
       )
     }
 
@@ -1021,14 +1025,11 @@ fun ExpandableSwapCard(
 
 @Composable
 fun ExpandableIOCard(
-    currentScheduler: String,
-    availableSchedulers: List<String>,
-    onSchedulerChange: (String) -> Unit,
+    blockDeviceStates: List<TuningViewModel.BlockDeviceState>,
+    onDeviceSchedulerChange: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
   var expanded by remember { mutableStateOf(false) }
-  // Mock devices for UI structure
-  val devices = listOf("sda", "sdb", "sdc", "sdd")
 
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
   val shape = RoundedCornerShape(32.dp)
@@ -1074,13 +1075,24 @@ fun ExpandableIOCard(
         Spacer(modifier = Modifier.height(24.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          devices.forEach { device ->
-            DeviceIOSection(
-                deviceName = device.uppercase(),
-                currentScheduler = currentScheduler,
-                availableSchedulers = availableSchedulers,
-                onSchedulerChange = onSchedulerChange,
+          if (blockDeviceStates.isEmpty()) {
+            Text(
+                text = "No detected block devices with scheduler support",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 24.dp),
             )
+          } else {
+            blockDeviceStates.forEach { state ->
+              DeviceIOSection(
+                  deviceName = state.name.uppercase(),
+                  currentScheduler = state.currentScheduler,
+                  availableSchedulers = state.availableSchedulers,
+                  onSchedulerChange = { scheduler ->
+                    onDeviceSchedulerChange(state.name, scheduler)
+                  },
+              )
+            }
           }
         }
       }
