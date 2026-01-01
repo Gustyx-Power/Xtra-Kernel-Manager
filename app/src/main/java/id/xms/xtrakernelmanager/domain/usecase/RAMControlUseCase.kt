@@ -5,6 +5,18 @@ import id.xms.xtrakernelmanager.domain.root.RootManager
 
 class RAMControlUseCase {
 
+  companion object {
+    @Volatile private var cachedZramStatus: ZramStatus? = null
+    @Volatile private var zramStatusCacheTime: Long = 0L
+    private const val ZRAM_CACHE_TTL_MS = 10000L // 10 seconds cache
+
+    /** Force refresh cache on next call */
+    fun invalidateZramCache() {
+      cachedZramStatus = null
+      zramStatusCacheTime = 0L
+    }
+  }
+
   // ============ GETTERS ============
 
   /** Get current swappiness value (0-200) */
@@ -39,56 +51,89 @@ class RAMControlUseCase {
   /** Get ZRAM status (active/inactive) and used size */
   data class ZramStatus(
       val isActive: Boolean,
-      val usedMb: Int,
-      val totalMb: Int,
+      val usedMb: Int, // Original data size (uncompressed) in MB
+      val compressedMb: Int, // Compressed data size in MB
+      val totalMb: Int, // Total ZRAM disk size in MB
       val compressionRatio: Float,
   )
 
+  fun getZramStatusCached(): ZramStatus? = cachedZramStatus
+
   suspend fun getZramStatus(): ZramStatus {
-    // Try native first (FAST: ~7µs per read)
+    val now = System.currentTimeMillis()
+    cachedZramStatus?.let { cached ->
+      if (now - zramStatusCacheTime < ZRAM_CACHE_TTL_MS) {
+        return cached
+      }
+    }
+
     val nativeTotalBytes = NativeLib.readZramSize()
     val nativeRatio = NativeLib.getZramCompressionRatio()
+    val nativeOrigDataBytes = NativeLib.getZramOrigDataSize()
     val nativeCompressedBytes = NativeLib.getZramCompressedSize()
-    
+
     if (nativeTotalBytes != null && nativeTotalBytes > 0) {
       val totalMb = (nativeTotalBytes / (1024 * 1024)).toInt()
       val ratio = nativeRatio ?: 0f
-      // Calculate original data size from compressed size and ratio
-      val compressedMb = ((nativeCompressedBytes ?: 0).toLong() / (1024 * 1024)).toInt()
-      val usedMb = if (ratio > 0) (compressedMb * ratio).toInt() else 0
-      return ZramStatus(isActive = true, usedMb = usedMb, totalMb = totalMb, compressionRatio = ratio)
+      // Use orig_data_size directly - this is the uncompressed data stored in ZRAM
+      val usedMb = ((nativeOrigDataBytes ?: 0L) / (1024 * 1024)).toInt()
+      val compressedMb = ((nativeCompressedBytes ?: 0L) / (1024 * 1024)).toInt()
+      val status =
+          ZramStatus(
+              isActive = true,
+              usedMb = usedMb,
+              compressedMb = compressedMb,
+              totalMb = totalMb,
+              compressionRatio = ratio,
+          )
+      // Cache result
+      cachedZramStatus = status
+      zramStatusCacheTime = now
+      return status
     }
 
-    // Fallback to shell (SLOW)
-    val swapsResult =
-        RootManager.executeCommand("grep -q 'zram0' /proc/swaps && echo active || echo inactive")
-    val isActive = swapsResult.getOrNull()?.trim() == "active"
+    val combinedResult =
+        RootManager.executeCommand(
+                "grep -q 'zram0' /proc/swaps && echo 'ACTIVE' && cat /sys/block/zram0/disksize && cat /sys/block/zram0/mm_stat || echo 'INACTIVE'"
+            )
+            .getOrNull()
+            ?.trim()
 
-    if (!isActive) {
-      return ZramStatus(false, 0, 0, 0f)
+    if (
+        combinedResult == null ||
+            combinedResult.startsWith("INACTIVE") ||
+            !combinedResult.startsWith("ACTIVE")
+    ) {
+      val status = ZramStatus(false, 0, 0, 0, 0f)
+      cachedZramStatus = status
+      zramStatusCacheTime = now
+      return status
     }
 
-    val disksize =
-        RootManager.executeCommand("cat /sys/block/zram0/disksize 2>/dev/null")
-            .getOrNull()
-            ?.trim()
-            ?.toLongOrNull() ?: 0L
-    val origDataSize =
-        RootManager.executeCommand("cat /sys/block/zram0/orig_data_size 2>/dev/null")
-            .getOrNull()
-            ?.trim()
-            ?.toLongOrNull() ?: 0L
-    val compDataSize =
-        RootManager.executeCommand("cat /sys/block/zram0/compr_data_size 2>/dev/null")
-            .getOrNull()
-            ?.trim()
-            ?.toLongOrNull() ?: 1L
+    // Parse combined output: "ACTIVE\n<disksize>\n<mm_stat>"
+    val lines = combinedResult.lines()
+    if (lines.size < 3) {
+      val status = ZramStatus(false, 0, 0, 0, 0f)
+      cachedZramStatus = status
+      zramStatusCacheTime = now
+      return status
+    }
+
+    val disksize = lines[1].trim().toLongOrNull() ?: 0L
+    val mmStatParts = lines[2].trim().split("\\s+".toRegex())
+
+    val origDataSize = if (mmStatParts.isNotEmpty()) mmStatParts[0].toLongOrNull() ?: 0L else 0L
+    val compDataSize = if (mmStatParts.size >= 2) mmStatParts[1].toLongOrNull() ?: 0L else 0L
 
     val totalMb = (disksize / (1024 * 1024)).toInt()
     val usedMb = (origDataSize / (1024 * 1024)).toInt()
+    val compressedMb = (compDataSize / (1024 * 1024)).toInt()
     val ratio = if (compDataSize > 0) origDataSize.toFloat() / compDataSize.toFloat() else 0f
 
-    return ZramStatus(true, usedMb, totalMb, ratio)
+    val status = ZramStatus(true, usedMb, compressedMb, totalMb, ratio)
+    cachedZramStatus = status
+    zramStatusCacheTime = now
+    return status
   }
 
   /** Get swap file size in MB */
@@ -153,8 +198,6 @@ class RAMControlUseCase {
         freeSwapMb = (extractKb("SwapFree") / 1024).toInt(),
     )
   }
-
-  // ============ SETTERS ============
 
   suspend fun setSwappiness(value: Int): Result<Unit> {
     return RootManager.writeFile("/proc/sys/vm/swappiness", value.toString())

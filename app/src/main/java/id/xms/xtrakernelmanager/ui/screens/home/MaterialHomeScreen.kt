@@ -348,7 +348,7 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
       ) {
         DeviceSilhouette(
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f),
-            showWallpaper = true
+            showWallpaper = true,
         )
       }
     }

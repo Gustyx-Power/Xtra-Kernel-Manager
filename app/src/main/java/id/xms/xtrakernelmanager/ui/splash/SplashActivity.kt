@@ -108,13 +108,13 @@ class SplashActivity : ComponentActivity() {
         val context = LocalContext.current
         val prefsManager = remember { PreferencesManager(context) }
         val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
-        
+
         val navigateToMain: () -> Unit = {
           startActivity(Intent(this, MainActivity::class.java))
           finish()
           overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
-        
+
         if (layoutStyle == "material") {
           // Material layout uses ExpressiveSplashScreen
           ExpressiveSplashScreen(
@@ -151,7 +151,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
     // Check root access first
     checkingStatus = context.getString(R.string.splash_initializing)
     val hasRoot = checkRootAccess()
-    
+
     if (!hasRoot) {
       minSplashTime.join()
       isChecking = false
@@ -351,7 +351,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
           }
       )
     }
-    
+
     if (showNoRootDialog) {
       NoRootDialog(
           onRetry = {
@@ -359,9 +359,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
             context.finish()
             context.startActivity(intent)
           },
-          onExit = {
-            (context as ComponentActivity).finish()
-          }
+          onExit = { (context as ComponentActivity).finish() },
       )
     }
   }
@@ -722,7 +720,8 @@ fun NoRootDialog(onRetry: () -> Unit, onExit: () -> Unit) {
           Button(
               onClick = onRetry,
               modifier = Modifier.weight(1f),
-              colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+              colors =
+                  ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
           ) {
             Text("Retry")
           }

@@ -184,8 +184,8 @@ fun HomeScreen(
 }
 
 /**
- * Legacy Home Content - Playful DevCheck-like UI 
- * All cards always visible, colorful design, no dropdowns
+ * Legacy Home Content - Playful DevCheck-like UI All cards always visible, colorful design, no
+ * dropdowns
  */
 @SuppressLint("DefaultLocale")
 @Composable
@@ -211,10 +211,10 @@ private fun LegacyHomeContent(
       Column(modifier = Modifier.padding(bottom = 4.dp)) {
         // Holiday Ornament if active
         if (currentHolidayDecor != null) {
-            HolidayDecorationRow(holiday = currentHolidayDecor)
-            Spacer(modifier = Modifier.height(12.dp))
+          HolidayDecorationRow(holiday = currentHolidayDecor)
+          Spacer(modifier = Modifier.height(12.dp))
         }
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -223,18 +223,18 @@ private fun LegacyHomeContent(
           Column {
             Text(
                 text = "Xtra Kernel Manager",
-                style = MaterialTheme.typography.headlineSmall, 
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary, 
-                fontWeight = FontWeight.SemiBold
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
             )
           }
-          
+
           FilledTonalIconButton(
               onClick = onSettingsClick,
               modifier = Modifier.size(44.dp), // Slightly compact
@@ -255,28 +255,30 @@ private fun LegacyHomeContent(
     }
 
     // --- CPU CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) { 
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulCPUCard(cpuInfo = cpuInfo) 
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulCPUCard(cpuInfo = cpuInfo)
     }
 
     // --- GPU CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) { 
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulGPUCard(gpuInfo = gpuInfo) 
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulGPUCard(gpuInfo = gpuInfo)
     }
 
     // --- BATTERY CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) { 
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulBatteryCard(batteryInfo = batteryInfo) 
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulBatteryCard(
+          batteryInfo = batteryInfo
+      )
     }
 
     // --- MEMORY & STORAGE CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) { 
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulMemoryCard(systemInfo = systemInfo) 
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulMemoryCard(systemInfo = systemInfo)
     }
 
     // --- SYSTEM INFO CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) { 
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulSystemCard(systemInfo = systemInfo) 
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulSystemCard(systemInfo = systemInfo)
     }
   }
 }

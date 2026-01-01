@@ -181,8 +181,8 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
 pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readZramSizeNative(
     _env: JNIEnv,
     _class: JClass,
-) -> jint {
-    (memory::read_zram_size() / 1024) as jint
+) -> jlong {
+    memory::read_zram_size()
 }
 
 #[unsafe(no_mangle)]
@@ -255,8 +255,16 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_get
 pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getZramCompressedSizeNative(
     _env: JNIEnv,
     _class: JClass,
-) -> jint {
-    memory::get_zram_compressed_size() as jint
+) -> jlong {
+    memory::get_zram_compressed_size()
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getZramOrigDataSizeNative(
+    _env: JNIEnv,
+    _class: JClass,
+) -> jlong {
+    memory::get_zram_orig_data_size()
 }
 
 #[unsafe(no_mangle)]

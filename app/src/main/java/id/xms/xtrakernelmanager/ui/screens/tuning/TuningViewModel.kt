@@ -117,7 +117,11 @@ class TuningViewModel(
   val currentMinFreeMem: StateFlow<Int>
     get() = _currentMinFreeMem.asStateFlow()
 
-  private val _zramStatus = MutableStateFlow(RAMControlUseCase.ZramStatus(false, 0, 0, 0f))
+  // Initialize with cached value if available (instant UI response)
+  private val _zramStatus =
+      MutableStateFlow(
+          ramUseCase.getZramStatusCached() ?: RAMControlUseCase.ZramStatus(false, 0, 0, 0, 0f)
+      )
   val zramStatus: StateFlow<RAMControlUseCase.ZramStatus>
     get() = _zramStatus.asStateFlow()
 
@@ -792,13 +796,19 @@ class TuningViewModel(
 
   fun setRAMParameters(config: RAMConfig) {
     viewModelScope.launch(Dispatchers.IO) {
+      // Save to preferences FIRST for immediate UI feedback
+      preferencesManager.setRamConfig(config)
+      _currentCompressionAlgorithm.value = config.compressionAlgorithm
+      
+      // Then apply to system (these operations can take time)
       ramUseCase.setSwappiness(config.swappiness)
       ramUseCase.setZRAMSize(config.zramSize.toLong() * 1024L * 1024L, config.compressionAlgorithm)
       ramUseCase.setDirtyRatio(config.dirtyRatio)
       ramUseCase.setMinFreeMem(config.minFreeMem)
       ramUseCase.setSwapFileSizeMb(config.swapSize)
-      preferencesManager.setRamConfig(config)
-      _currentCompressionAlgorithm.value = config.compressionAlgorithm
+      
+      // Refresh status after operations complete
+      RAMControlUseCase.invalidateZramCache()
       _zramStatus.value = ramUseCase.getZramStatus()
       _swapFileStatus.value = ramUseCase.getSwapFileStatus()
       _memoryStats.value = ramUseCase.getMemoryStats()
