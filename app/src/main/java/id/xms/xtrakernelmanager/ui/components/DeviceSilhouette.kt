@@ -75,10 +75,26 @@ fun DeviceSilhouette(
   }
   
   var wallpaperBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
+  val context = androidx.compose.ui.platform.LocalContext.current
   
   LaunchedEffect(showWallpaper) {
     if (showWallpaper) {
-      wallpaperBitmap = withContext(Dispatchers.IO) { loadWallpaperWithRoot() }
+      // Try to load system wallpaper
+      val systemWallpaper = withContext(Dispatchers.IO) { loadWallpaperWithRoot() }
+      
+      wallpaperBitmap = if (systemWallpaper != null) {
+        systemWallpaper
+      } else {
+        // Fallback to xms.jpeg drawable
+        withContext(Dispatchers.IO) {
+          try {
+            val options = BitmapFactory.Options().apply { inSampleSize = 2 }
+            BitmapFactory.decodeResource(context.resources, id.xms.xtrakernelmanager.R.drawable.xms, options)?.asImageBitmap()
+          } catch (e: Exception) {
+            null
+          }
+        }
+      }
     }
   }
   
