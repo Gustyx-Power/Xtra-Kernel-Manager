@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens
 
 @Composable
 fun GlassmorphicCard(
@@ -22,7 +23,8 @@ fun GlassmorphicCard(
     enabled: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-  val shape = RoundedCornerShape(24.dp)
+  val dimens = rememberResponsiveDimens()
+  val shape = RoundedCornerShape(dimens.cornerRadiusMedium)
   val isDark = isSystemInDarkTheme()
 
   val containerColor =
@@ -54,7 +56,10 @@ fun GlassmorphicCard(
         elevation = elevation,
         border = BorderStroke(1.dp, borderColor),
     ) {
-      Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(
+          modifier = Modifier.padding(dimens.cardPadding),
+          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+      ) {
         content()
       }
     }
@@ -66,7 +71,10 @@ fun GlassmorphicCard(
         elevation = elevation,
         border = BorderStroke(1.dp, borderColor),
     ) {
-      Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(
+          modifier = Modifier.padding(dimens.cardPadding),
+          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+      ) {
         content()
       }
     }

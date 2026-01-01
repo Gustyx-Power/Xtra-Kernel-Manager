@@ -202,15 +202,17 @@ fun FunctionalRomScreen(
     }
     item {
       ToggleFeatureCard(
-          title = stringResource(R.string.performance_mode),
-          description =
-              if (uiState.performanceModeEnabled)
-                  stringResource(R.string.performance_mode_desc_enabled)
-              else stringResource(R.string.performance_mode_desc_disabled),
-          icon = Icons.Default.RocketLaunch,
-          checked = uiState.performanceModeEnabled,
-          onCheckedChange = { viewModel.setPerformanceMode(it) },
-          enabled = uiState.isVipCommunity,
+          title = stringResource(R.string.fix_dt2w),
+          description = when {
+              uiState.fixDt2wInstalling -> stringResource(R.string.fix_dt2w_installing)
+              uiState.fixDt2wStep == 0 -> stringResource(R.string.fix_dt2w_complete)
+              uiState.fixDt2wStep == 2 -> stringResource(R.string.fix_dt2w_step2)
+              else -> stringResource(R.string.fix_dt2w_step1)
+          },
+          icon = Icons.Default.TouchApp,
+          checked = uiState.fixDt2wStep == 0, // ON when both modules installed
+          onCheckedChange = { viewModel.setFixDt2w(it) },
+          enabled = uiState.isVipCommunity && !uiState.fixDt2wInstalling,
       )
     }
 
@@ -374,6 +376,103 @@ fun FunctionalRomScreen(
         },
         confirmButton = {
           TextButton(onClick = { showChargingLimitDialog = false }) {
+            Text(stringResource(R.string.cancel))
+          }
+        },
+    )
+  }
+
+  // Fix DT2W Installation Dialog
+  if (uiState.showFixDt2wDialog) {
+    AlertDialog(
+        onDismissRequest = { viewModel.dismissFixDt2wDialog() },
+        icon = {
+          Icon(
+              imageVector = Icons.Default.TouchApp,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary,
+          )
+        },
+        title = {
+          Text(
+              text = if (uiState.fixDt2wStep == 1) 
+                  stringResource(R.string.fix_dt2w_dialog_step1_title)
+              else 
+                  stringResource(R.string.fix_dt2w_dialog_step2_title),
+              style = MaterialTheme.typography.titleLarge,
+          )
+        },
+        text = {
+          Column {
+            Text(
+                text = if (uiState.fixDt2wStep == 1)
+                    stringResource(R.string.fix_dt2w_dialog_step1_message)
+                else
+                    stringResource(R.string.fix_dt2w_dialog_step2_message),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.fix_dt2w_dialog_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+          }
+        },
+        confirmButton = {
+          TextButton(onClick = { viewModel.confirmFixDt2wInstall() }) {
+            Text(stringResource(R.string.fix_dt2w_dialog_confirm))
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { viewModel.dismissFixDt2wDialog() }) {
+            Text(stringResource(R.string.cancel))
+          }
+        },
+    )
+  }
+
+  // Fix DT2W Uninstall Dialog
+  if (uiState.showFixDt2wUninstallDialog) {
+    AlertDialog(
+        onDismissRequest = { viewModel.dismissFixDt2wUninstallDialog() },
+        icon = {
+          Icon(
+              imageVector = Icons.Default.Delete,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.error,
+          )
+        },
+        title = {
+          Text(
+              text = stringResource(R.string.fix_dt2w_uninstall_title),
+              style = MaterialTheme.typography.titleLarge,
+          )
+        },
+        text = {
+          Column {
+            Text(
+                text = stringResource(R.string.fix_dt2w_uninstall_message),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.fix_dt2w_dialog_warning),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+          }
+        },
+        confirmButton = {
+          TextButton(onClick = { viewModel.confirmFixDt2wUninstall() }) {
+            Text(
+                text = stringResource(R.string.fix_dt2w_uninstall_confirm),
+                color = MaterialTheme.colorScheme.error,
+            )
+          }
+        },
+        dismissButton = {
+          TextButton(onClick = { viewModel.dismissFixDt2wUninstallDialog() }) {
             Text(stringResource(R.string.cancel))
           }
         },

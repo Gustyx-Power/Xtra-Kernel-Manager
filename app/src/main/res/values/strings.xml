@@ -394,7 +394,11 @@
     <string name="team_tester_hasan">Hasan</string>
     <string name="team_tester_reffan">Reffan Lintang M</string>
     <string name="team_tester_wil">WiL</string>
-    <string name="team_tester_shadow_monarch">Shadow Monarch</string>
+    <string name="team_tester_shadow_monarch">Muttahir</string>
+    <string name="team_tester_azhar">Azhar Muhamad N</string>
+    <string name="team_tester_juni">Juni Santoso</string>
+    <string name="team_tester_sleep">Adi</string>
+    <string name="team_contributor_rio">Rio (Hyonies)</string>
 
     <!-- Theme Settings -->
     <string name="theme_settings">Theme Settings</string>
@@ -601,11 +605,25 @@
     <string name="dc_dimming_desc_enabled">DC dimming enabled</string>
     <string name="dc_dimming_desc_disabled">DC dimming disabled</string>
 
-    <!-- System Category -->
     <string name="category_system">System</string>
-    <string name="performance_mode">Performance mode</string>
-    <string name="performance_mode_desc_enabled">Performance mode enabled</string>
-    <string name="performance_mode_desc_disabled">Performance mode disabled</string>
+    <string name="fix_dt2w">Fix Double Tap to Wake</string>
+    <string name="fix_dt2w_step1">Step 1: Install OverlayFS module</string>
+    <string name="fix_dt2w_step2">Step 2: Install Fix DT2W module</string>
+    <string name="fix_dt2w_complete">DT2W fix installed ✓</string>
+    <string name="fix_dt2w_installing">Installing module… Device will reboot</string>
+    
+    <!-- Fix DT2W Dialog -->
+    <string name="fix_dt2w_dialog_step1_title">Install OverlayFS</string>
+    <string name="fix_dt2w_dialog_step1_message">First, you need to install the OverlayFS module. This is required for the DT2W fix to work.\n\nAfter installation, your device will automatically reboot. Then return here to install the DT2W fix.</string>
+    <string name="fix_dt2w_dialog_step2_title">Install Fix DT2W</string>
+    <string name="fix_dt2w_dialog_step2_message">Now install the Fix DT2W module. This will enable Double Tap to Wake functionality.\n\nAfter installation, your device will automatically reboot.</string>
+    <string name="fix_dt2w_dialog_warning">⚠️ Device will reboot automatically</string>
+    <string name="fix_dt2w_dialog_confirm">Install &amp; Reboot</string>
+    
+    <!-- Fix DT2W Uninstall Dialog -->
+    <string name="fix_dt2w_uninstall_title">Uninstall Fix DT2W?</string>
+    <string name="fix_dt2w_uninstall_message">This will remove both Fix DT2W and OverlayFS modules.\n\nYour device will reboot automatically to apply changes.</string>
+    <string name="fix_dt2w_uninstall_confirm">Uninstall &amp; Reboot</string>
 
     <!-- Charging Category -->
     <string name="category_charging">Charging</string>

@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass
+import id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens
 
 data class BottomNavItem(val route: String, val icon: ImageVector, val label: Int)
 
@@ -36,6 +38,9 @@ fun ModernBottomBar(
     items: List<BottomNavItem>,
     isVisible: Boolean = true,
 ) {
+  val dimens = rememberResponsiveDimens()
+  val cornerRadius = dimens.cornerRadiusMedium
+
   AnimatedVisibility(
       visible = isVisible,
       enter = slideInVertically { it },
@@ -46,19 +51,19 @@ fun ModernBottomBar(
             Modifier.fillMaxWidth()
                 .shadow(
                     elevation = 16.dp,
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
                     spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                 ),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 8.dp,
     ) {
       Row(
           modifier =
               Modifier.fillMaxWidth()
-                  .padding(horizontal = 16.dp, vertical = 12.dp)
+                  .padding(horizontal = dimens.cardPadding, vertical = dimens.spacingSmall)
                   .navigationBarsPadding()
-                  .height(56.dp), // Tinggi standar modern
+                  .height(if (dimens.screenSizeClass == ScreenSizeClass.COMPACT) 48.dp else 56.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -74,6 +79,7 @@ fun ModernBottomBar(
 
 @Composable
 private fun PillNavItem(item: BottomNavItem, isSelected: Boolean, onClick: () -> Unit) {
+  val dimens = rememberResponsiveDimens()
   val haptic = LocalHapticFeedback.current
   val interactionSource = remember { MutableInteractionSource() }
   val animationSpec =
@@ -120,21 +126,20 @@ private fun PillNavItem(item: BottomNavItem, isSelected: Boolean, onClick: () ->
                           stiffness = Spring.StiffnessMediumLow,
                       )
               )
-              .padding(horizontal = 16.dp, vertical = 10.dp),
+              .padding(horizontal = dimens.cardPaddingSmall, vertical = dimens.spacingSmall),
       contentAlignment = Alignment.Center,
   ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
     ) {
       Icon(
           imageVector = item.icon,
           contentDescription = stringResource(item.label),
           tint = contentColor,
-          modifier = Modifier.size(22.dp),
+          modifier = Modifier.size(dimens.iconSizeMedium),
       )
 
-      // Teks Label
       if (isSelected) {
         Text(
             text = stringResource(item.label),

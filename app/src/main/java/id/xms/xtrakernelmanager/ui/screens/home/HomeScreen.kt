@@ -196,23 +196,26 @@ private fun LegacyHomeContent(
     systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo,
     onSettingsClick: () -> Unit,
 ) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   // Holiday Decoration (cached outside grid)
   val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
   LazyVerticalStaggeredGrid(
       columns = StaggeredGridCells.Fixed(2),
-      modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp), // Tighter horizontal padding
-      contentPadding = PaddingValues(top = 20.dp, bottom = 100.dp),
-      horizontalArrangement = Arrangement.spacedBy(12.dp), // Compact spacing
-      verticalItemSpacing = 12.dp,
+      modifier = Modifier.fillMaxSize().padding(horizontal = dimens.screenHorizontalPadding),
+      contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 80.dp),
+      horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
+      verticalItemSpacing = dimens.spacingMedium,
   ) {
     // Header Section
     item(span = StaggeredGridItemSpan.FullLine) {
-      Column(modifier = Modifier.padding(bottom = 4.dp)) {
+      Column(modifier = Modifier.padding(bottom = dimens.spacingTiny)) {
         // Holiday Ornament if active
         if (currentHolidayDecor != null) {
-          HolidayDecorationRow(holiday = currentHolidayDecor)
-          Spacer(modifier = Modifier.height(12.dp))
+            HolidayDecorationRow(holiday = currentHolidayDecor)
+            Spacer(modifier = Modifier.height(dimens.spacingMedium))
         }
 
         Row(
@@ -223,21 +226,21 @@ private fun LegacyHomeContent(
           Column {
             Text(
                 text = "Xtra Kernel Manager",
-                style = MaterialTheme.typography.headlineSmall,
+                style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary, 
+                fontWeight = FontWeight.SemiBold
             )
           }
 
           FilledTonalIconButton(
               onClick = onSettingsClick,
-              modifier = Modifier.size(44.dp), // Slightly compact
+              modifier = Modifier.size(if (isCompact) 36.dp else 44.dp),
               colors =
                   IconButtonDefaults.filledTonalIconButtonColors(
                       containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -247,7 +250,7 @@ private fun LegacyHomeContent(
             Icon(
                 imageVector = Icons.Rounded.Settings,
                 contentDescription = "Settings",
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(dimens.iconSizeMedium),
             )
           }
         }

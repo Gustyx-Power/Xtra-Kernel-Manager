@@ -69,6 +69,7 @@ fun MaterialHomeScreen(
     onSettingsClick: () -> Unit = {},
 ) {
   val context = LocalContext.current
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
 
   // Bottom Sheet State
   @OptIn(ExperimentalMaterial3Api::class) val powerSheetState = rememberModalBottomSheetState()
@@ -96,12 +97,10 @@ fun MaterialHomeScreen(
             modifier =
                 Modifier.fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp)
+                    .padding(horizontal = dimens.screenHorizontalPadding)
                     .padding(paddingValues)
-                    .padding(
-                        vertical = 24.dp
-                    ), // Added vertical padding here since contentPadding is gone
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                    .padding(vertical = dimens.screenHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
         ) {
           // Header
           StaggeredEntry(delayMillis = 0) {
@@ -114,12 +113,12 @@ fun MaterialHomeScreen(
           // CPU & GPU Tiles Row
           StaggeredEntry(delayMillis = 200) {
             Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), // Force equal height
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
             ) {
               MaterialStatTile(
                   modifier = Modifier.weight(1f).fillMaxHeight(),
-                  icon = Icons.Rounded.Memory, // Chip icon
+                  icon = Icons.Rounded.Memory,
                   label = "Load",
                   value = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
                   subValue = "${cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0} MHz",
@@ -155,7 +154,7 @@ fun MaterialHomeScreen(
           StaggeredEntry(delayMillis = 700) { MaterialAppInfoSection() }
 
           // Bottom Spacing
-          Spacer(modifier = Modifier.height(80.dp))
+          Spacer(modifier = Modifier.height(dimens.spacingLarge * 4))
         }
       },
   )
@@ -195,6 +194,9 @@ fun MaterialHomeScreen(
 
 @Composable
 fun MaterialHeader(onSettingsClick: () -> Unit) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   val view = androidx.compose.ui.platform.LocalView.current
   var isShortTitle by remember { mutableStateOf(false) }
   var clickCount by remember { mutableIntStateOf(0) }
@@ -208,7 +210,7 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
 
   Row(
       modifier =
-          Modifier.fillMaxWidth().padding(vertical = 12.dp).clickable(
+          Modifier.fillMaxWidth().padding(vertical = dimens.spacingSmall).clickable(
               interactionSource = remember { MutableInteractionSource() },
               indication = null,
           ) {
@@ -237,9 +239,12 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
     ) { short ->
       Text(
           text = if (short) "XKM" else "Xtra Kernel Manager",
-          style =
-              if (short) MaterialTheme.typography.displayMedium
-              else MaterialTheme.typography.headlineSmall,
+          style = when {
+            short && isCompact -> MaterialTheme.typography.headlineMedium
+            short -> MaterialTheme.typography.displayMedium
+            isCompact -> MaterialTheme.typography.titleMedium
+            else -> MaterialTheme.typography.headlineSmall
+          },
           fontWeight = FontWeight.ExtraBold,
           color = MaterialTheme.colorScheme.onBackground,
       )
@@ -247,12 +252,15 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
 
     IconButton(
         onClick = onSettingsClick,
-        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+        modifier = Modifier
+            .size(if (isCompact) 36.dp else 48.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
     ) {
       Icon(
           imageVector = Icons.Rounded.Settings,
           contentDescription = "Settings",
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.size(dimens.iconSizeMedium)
       )
     }
   }
@@ -260,13 +268,19 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
 
 @Composable
 fun MaterialDeviceCard(systemInfo: SystemInfo) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusLarge),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
-      Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      Column(
+          modifier = Modifier.padding(dimens.cardPadding),
+          verticalArrangement = Arrangement.spacedBy(dimens.spacingTiny)
+      ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -274,31 +288,27 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
         ) {
           Text(
               text = android.os.Build.MANUFACTURER.uppercase(),
-              style = MaterialTheme.typography.labelMedium,
+              style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
               color = MaterialTheme.colorScheme.primary,
               letterSpacing = 2.sp,
               fontWeight = FontWeight.Bold,
           )
 
-          // Smart Badge: Board/SoC
           Surface(
-              color =
-                  MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                      alpha = 0.1f
-                  ), // Tonal on primary
-              shape = RoundedCornerShape(50), // Fully rounded pill
+              color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+              shape = RoundedCornerShape(50),
           ) {
             Text(
                 text = android.os.Build.BOARD.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
             )
           }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimens.spacingSmall))
 
         Text(
             text =
@@ -306,26 +316,26 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                     .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
                     .trim()
                     .ifBlank { "Unknown Model" },
-            style = MaterialTheme.typography.headlineMedium,
+            style = if (isCompact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
 
         Text(
             text = android.os.Build.DEVICE.ifBlank { "Unknown" },
-            style = MaterialTheme.typography.titleMedium,
+            style = if (isCompact) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
             fontWeight = FontWeight.Medium,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(dimens.spacingMedium))
 
         Surface(
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f),
-            shape = RoundedCornerShape(16.dp),
-            modifier =
-                Modifier.fillMaxWidth()
-                    .padding(end = 100.dp), // Increased padding to shift left away from silhouette
+            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = if (isCompact) 70.dp else 100.dp),
         ) {
           Text(
               text = systemInfo.kernelVersion.ifBlank { "Unknown" },
@@ -334,21 +344,20 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
               fontFamily = FontFamily.Monospace,
               maxLines = 1,
               overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-              modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+              modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
           )
         }
       }
 
-      // Device Silhouette with Wallpaper
       Box(
           modifier =
               Modifier.align(Alignment.BottomEnd)
-                  .padding(end = 24.dp)
-                  .offset(y = 12.dp) // Raised up to show more phone
+                  .padding(end = dimens.cardPadding)
+                  .offset(y = if (isCompact) 8.dp else 12.dp)
       ) {
         DeviceSilhouette(
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.08f),
-            showWallpaper = true,
+            showWallpaper = true
         )
       }
     }
@@ -363,11 +372,14 @@ fun MaterialStatTile(
     value: String,
     subValue: String,
     color: Color,
-    badgeText: String? = null, // Optional badge (e.g., "CPU", "GPU")
+    badgeText: String? = null,
 ) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   Card(
       modifier = modifier.animateContentSize(),
-      shape = RoundedCornerShape(24.dp), // "Kotak tapi membulat" (Squarish but rounded)
+      shape = RoundedCornerShape(dimens.cornerRadiusMedium),
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
@@ -377,11 +389,11 @@ fun MaterialStatTile(
         modifier =
             Modifier.fillMaxSize()
                 .padding(
-                    start = 16.dp,
-                    end = 16.dp,
-                    bottom = 16.dp,
-                    top = 12.dp,
-                ), // Lift header slightly
+                    start = dimens.cardPadding,
+                    end = dimens.cardPadding,
+                    bottom = dimens.cardPadding,
+                    top = dimens.cardPaddingSmall,
+                ),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
       Row(
@@ -390,21 +402,20 @@ fun MaterialStatTile(
           verticalAlignment = Alignment.Top,
       ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
             color = color.copy(alpha = 0.1f),
-            modifier = Modifier.size(36.dp),
+            modifier = Modifier.size(if (isCompact) 28.dp else 36.dp),
         ) {
           Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = color,
-                modifier = Modifier.size(18.dp), // Slightly smaller icon
+                modifier = Modifier.size(dimens.iconSizeSmall),
             )
           }
         }
 
-        // Optional Smart Badge
         if (badgeText != null) {
           Surface(
               color = color.copy(alpha = 0.1f),
@@ -415,19 +426,19 @@ fun MaterialStatTile(
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = color,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
             )
           }
         }
       }
 
-      Spacer(modifier = Modifier.height(8.dp))
+      Spacer(modifier = Modifier.height(dimens.spacingSmall))
 
       Column(verticalArrangement = Arrangement.spacedBy((-2).dp)) {
         Text(
             text = label,
             style =
-                MaterialTheme.typography.labelMedium.copy(
+                (if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium).copy(
                     platformStyle = PlatformTextStyle(includeFontPadding = false)
                 ),
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
@@ -436,7 +447,7 @@ fun MaterialStatTile(
         Text(
             text = value,
             style =
-                MaterialTheme.typography.headlineMedium.copy(
+                (if (isCompact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium).copy(
                     platformStyle = PlatformTextStyle(includeFontPadding = false),
                     lineHeightStyle =
                         LineHeightStyle(
@@ -446,7 +457,7 @@ fun MaterialStatTile(
                 ),
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
-            lineHeight = 32.sp, // Tight line height for headlineMedium (usually 36)
+            lineHeight = if (isCompact) 26.sp else 32.sp,
         )
         Text(
             text = subValue,
@@ -463,13 +474,16 @@ fun MaterialStatTile(
 
 @Composable
 fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusLarge),
       colors =
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
   ) {
-    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(modifier = Modifier.padding(dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(dimens.spacingMedium)) {
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
@@ -477,12 +491,11 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
       ) {
         Text(
             text = "GPU",
-            style = MaterialTheme.typography.titleMedium,
+            style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
 
-        // Smart Badge: GPU Renderer
         Surface(
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
             shape = RoundedCornerShape(50),
@@ -491,7 +504,6 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
               remember(gpuInfo.renderer) {
                 when {
                   gpuInfo.renderer.contains("Adreno", true) -> {
-                    // Extract "Adreno 730" from "Adreno (TM) 730"
                     val match = Regex("Adreno.*?(\\d+)").find(gpuInfo.renderer)
                     match?.let { "Adreno ${it.groupValues[1]}" } ?: "Adreno"
                   }
@@ -510,7 +522,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSecondaryContainer,
-              modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+              modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
           )
         }
       }
@@ -518,7 +530,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
       Column {
         Text(
             text = "${gpuInfo.currentFreq} MHz",
-            style = MaterialTheme.typography.displaySmall, // Expressive Typography
+            style = if (isCompact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
@@ -530,19 +542,18 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
       }
 
       Row(
-          modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), // Ensure equal height
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+          horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
       ) {
-        // Inner Card 1: Load
         Surface(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
         ) {
-          Column(modifier = Modifier.padding(16.dp)) {
+          Column(modifier = Modifier.padding(dimens.cardPaddingSmall)) {
             Text(
                 text = "${gpuInfo.gpuLoad}%",
-                style = MaterialTheme.typography.titleLarge,
+                style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -554,16 +565,15 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
           }
         }
 
-        // Inner Card 2: GPU Name
         Surface(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
         ) {
-          Column(modifier = Modifier.padding(16.dp)) {
+          Column(modifier = Modifier.padding(dimens.cardPaddingSmall)) {
             Text(
                 text = gpuInfo.renderer,
-                style = MaterialTheme.typography.titleMedium,
+                style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
@@ -584,16 +594,18 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
 
 @Composable
 fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusLarge),
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer,
           ),
   ) {
-    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-      // Header
+    Column(modifier = Modifier.padding(dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)) {
       Row(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.SpaceBetween,
@@ -601,14 +613,14 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
       ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
         ) {
           Box(
               modifier =
-                  Modifier.size(36.dp)
+                  Modifier.size(if (isCompact) 28.dp else 36.dp)
                       .background(
                           MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                          RoundedCornerShape(12.dp),
+                          RoundedCornerShape(dimens.cornerRadiusSmall),
                       ),
               contentAlignment = Alignment.Center,
           ) {
@@ -616,18 +628,17 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
                 imageVector = Icons.Rounded.BatteryChargingFull,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(dimens.iconSizeSmall),
             )
           }
           Text(
               text = "Battery",
-              style = MaterialTheme.typography.titleMedium,
+              style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSurface,
           )
         }
 
-        // Smart Badge: Technology
         Surface(
             color = MaterialTheme.colorScheme.tertiaryContainer,
             shape = RoundedCornerShape(50),
@@ -637,66 +648,69 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onTertiaryContainer,
-              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
           )
         }
       }
 
       Row(
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(24.dp),
+          horizontalArrangement = Arrangement.spacedBy(dimens.spacingLarge),
       ) {
         BatterySilhouette(
             level = batteryInfo.level / 100f,
             isCharging = batteryInfo.status.contains("Charging", ignoreCase = true),
             color = MaterialTheme.colorScheme.primary,
+            isCompact = isCompact,
         )
 
         Column {
           Text(
               text = "${batteryInfo.level}%",
-              style = MaterialTheme.typography.displayMedium,
+              style = if (isCompact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayMedium,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.primary,
               lineHeight = 1.em,
           )
-          Spacer(modifier = Modifier.height(8.dp))
-          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            BatteryStatusChip(text = batteryInfo.status)
+          Spacer(modifier = Modifier.height(dimens.spacingSmall))
+          Row(horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall)) {
+            BatteryStatusChip(text = batteryInfo.status, isCompact = isCompact)
             BatteryStatusChip(
-                text = "Health ${String.format(Locale.US, "%.0f", batteryInfo.healthPercent)}%"
+                text = "Health ${String.format(Locale.US, "%.0f", batteryInfo.healthPercent)}%",
+                isCompact = isCompact
             )
           }
         }
       }
 
-      // Stats Grid (2x2) - 4 Individual Cards
       Column(
           modifier = Modifier.fillMaxWidth(),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
+          verticalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
       ) {
-        // Row 1
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium)) {
           val currentText =
               if (batteryInfo.currentNow >= 0) "+${batteryInfo.currentNow} mA"
               else "${batteryInfo.currentNow} mA"
-          BatteryStatBox(label = "Current", value = currentText, modifier = Modifier.weight(1f))
+          BatteryStatBox(label = "Current", value = currentText, modifier = Modifier.weight(1f), isCompact = isCompact)
           BatteryStatBox(
               label = "Voltage",
               value = "${batteryInfo.voltage} mV",
               modifier = Modifier.weight(1f),
+              isCompact = isCompact,
           )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium)) {
           BatteryStatBox(
               label = "Temperature",
               value = "${batteryInfo.temperature}°C",
               modifier = Modifier.weight(1f),
+              isCompact = isCompact,
           )
           BatteryStatBox(
               label = "Cycle Count",
               value = "${batteryInfo.cycleCount}",
               modifier = Modifier.weight(1f),
+              isCompact = isCompact,
           )
         }
       }
@@ -705,73 +719,75 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
 }
 
 @Composable
-fun BatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
+fun BatterySilhouette(level: Float, isCharging: Boolean, color: Color, isCompact: Boolean = false) {
+  val bodyWidth = if (isCompact) 36.dp else 50.dp
+  val bodyHeight = if (isCompact) 58.dp else 80.dp
+  val capWidth = if (isCompact) 14.dp else 20.dp
+  val cornerRadius = if (isCompact) 8.dp else 12.dp
+  
   Column(
       horizontalAlignment = Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(2.dp), // Gap between cap and body
+      verticalArrangement = Arrangement.spacedBy(2.dp),
   ) {
-    // Battery Cap (Nub)
     Box(
         modifier =
-            Modifier.size(20.dp, 4.dp)
+            Modifier.size(capWidth, 4.dp)
                 .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(2.dp))
     )
 
-    // Main Body
     Box(
         modifier =
-            Modifier.size(50.dp, 80.dp)
-                .border(4.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
-                .padding(4.dp),
+            Modifier.size(bodyWidth, bodyHeight)
+                .border(if (isCompact) 3.dp else 4.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(cornerRadius))
+                .padding(if (isCompact) 3.dp else 4.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
       Box(
           modifier =
               Modifier.fillMaxWidth()
                   .fillMaxHeight(level)
-                  .background(color, RoundedCornerShape(6.dp))
+                  .background(color, RoundedCornerShape(if (isCompact) 4.dp else 6.dp))
       )
     }
   }
 }
 
 @Composable
-fun BatteryStatusChip(text: String) {
-  Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp)) {
+fun BatteryStatusChip(text: String, isCompact: Boolean = false) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(dimens.cornerRadiusSmall)) {
     Text(
         text = text,
-        style = MaterialTheme.typography.labelMedium,
+        style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+        modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
     )
   }
 }
 
 @Composable
-fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier) {
+fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier, isCompact: Boolean = false) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
   Card(
       modifier = modifier,
-      shape = RoundedCornerShape(16.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusSmall),
       colors =
           CardDefaults.cardColors(
-              containerColor =
-                  MaterialTheme.colorScheme.background.copy(alpha = 0.6f) // Higher contrast
+              containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.6f)
           ),
   ) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = dimens.cardPaddingSmall, horizontal = dimens.spacingSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-      // Dot removed for cleaner look
-
       Text(
           text = value,
-          style = MaterialTheme.typography.titleMedium,
+          style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.onSecondaryContainer,
       )
-      Spacer(modifier = Modifier.height(4.dp))
+      Spacer(modifier = Modifier.height(dimens.spacingTiny))
       Text(
           text = label,
           style = MaterialTheme.typography.labelSmall,
@@ -783,21 +799,23 @@ fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier) 
 
 @Composable
 fun MaterialMemoryCard(systemInfo: SystemInfo) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusLarge),
       colors =
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
   ) {
-    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-      // Header
+    Column(modifier = Modifier.padding(dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier =
-                Modifier.size(36.dp)
+                Modifier.size(if (isCompact) 28.dp else 36.dp)
                     .background(
                         MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                        RoundedCornerShape(12.dp),
+                        RoundedCornerShape(dimens.cornerRadiusSmall),
                     ),
             contentAlignment = Alignment.Center,
         ) {
@@ -805,24 +823,23 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
               imageVector = Icons.Rounded.Storage,
               contentDescription = null,
               tint = MaterialTheme.colorScheme.primary,
-              modifier = Modifier.size(20.dp),
+              modifier = Modifier.size(dimens.iconSizeSmall),
           )
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(dimens.spacingSmall))
         Text(
             text = "Memory",
-            style = MaterialTheme.typography.titleMedium,
+            style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
       }
 
-      // RAM Section
       val ramUsed = (systemInfo.totalRam - systemInfo.availableRam)
       val ramTotal = systemInfo.totalRam
       val ramProgress = if (ramTotal > 0) ramUsed.toFloat() / ramTotal.toFloat() else 0f
 
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -830,38 +847,36 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
         ) {
           Text(
               text = "RAM",
-              style = MaterialTheme.typography.labelLarge,
+              style = if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSecondaryContainer,
           )
           Text(
               text = "${formatFileSize(ramUsed)} / ${formatFileSize(ramTotal)}",
-              style = MaterialTheme.typography.bodyMedium,
+              style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
           )
         }
 
         WavyProgressIndicator(
             progress = ramProgress,
-            modifier = Modifier.fillMaxWidth().height(16.dp), // Height for the wave
+            modifier = Modifier.fillMaxWidth().height(if (isCompact) 10.dp else 16.dp),
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-            strokeWidth = 4.dp,
-            amplitude = 4.dp,
+            strokeWidth = if (isCompact) 3.dp else 4.dp,
+            amplitude = if (isCompact) 3.dp else 4.dp,
         )
       }
 
-      // ZRAM / Swap Section (Show if Swap OR ZRAM exists)
       val showZram = systemInfo.swapTotal > 0 || systemInfo.zramSize > 0
 
       if (showZram) {
-        // Prefer Swap stats if available, otherwise fallback to ZRAM capacity with 0 usage
         val swapTotal = if (systemInfo.swapTotal > 0) systemInfo.swapTotal else systemInfo.zramSize
         val swapUsed =
             if (systemInfo.swapTotal > 0) (systemInfo.swapTotal - systemInfo.swapFree) else 0L
         val swapProgress = if (swapTotal > 0) swapUsed.toFloat() / swapTotal.toFloat() else 0f
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)) {
           Row(
               modifier = Modifier.fillMaxWidth(),
               horizontalArrangement = Arrangement.SpaceBetween,
@@ -869,35 +884,34 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
           ) {
             Text(
                 text = if (systemInfo.zramSize > 0) "ZRAM" else "Swap",
-                style = MaterialTheme.typography.labelLarge,
+                style = if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
             )
             Text(
                 text = "${formatFileSize(swapUsed)} / ${formatFileSize(swapTotal)}",
-                style = MaterialTheme.typography.bodyMedium,
+                style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
             )
           }
 
           WavyProgressIndicator(
               progress = swapProgress,
-              modifier = Modifier.fillMaxWidth().height(16.dp),
+              modifier = Modifier.fillMaxWidth().height(if (isCompact) 10.dp else 16.dp),
               color = MaterialTheme.colorScheme.tertiary,
               trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-              strokeWidth = 4.dp,
-              amplitude = 4.dp,
+              strokeWidth = if (isCompact) 3.dp else 4.dp,
+              amplitude = if (isCompact) 3.dp else 4.dp,
           )
         }
       }
 
-      // Internal Storage Section
       val storageUsed = (systemInfo.totalStorage - systemInfo.availableStorage)
       val storageTotal = systemInfo.totalStorage
       val storageProgress =
           if (storageTotal > 0) storageUsed.toFloat() / storageTotal.toFloat() else 0f
 
-      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+      Column(verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -905,24 +919,24 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
         ) {
           Text(
               text = "Internal Storage",
-              style = MaterialTheme.typography.labelLarge,
+              style = if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSecondaryContainer,
           )
           Text(
               text = "${formatFileSize(storageUsed)} / ${formatFileSize(storageTotal)}",
-              style = MaterialTheme.typography.bodyMedium,
+              style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
           )
         }
 
         WavyProgressIndicator(
             progress = storageProgress,
-            modifier = Modifier.fillMaxWidth().height(16.dp),
+            modifier = Modifier.fillMaxWidth().height(if (isCompact) 10.dp else 16.dp),
             color = MaterialTheme.colorScheme.secondary,
             trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-            strokeWidth = 4.dp,
-            amplitude = 4.dp,
+            strokeWidth = if (isCompact) 3.dp else 4.dp,
+            amplitude = if (isCompact) 3.dp else 4.dp,
         )
       }
     }
@@ -1020,7 +1034,9 @@ fun MaterialPowerInsightCard(
     powerInfo: id.xms.xtrakernelmanager.data.model.PowerInfo,
     batteryInfo: BatteryInfo,
 ) {
-  // Determine badge text and color based on charging status
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   val (badgeText, badgeColor) =
       if (powerInfo.isCharging) {
         "Charging" to MaterialTheme.colorScheme.primaryContainer
@@ -1036,30 +1052,28 @@ fun MaterialPowerInsightCard(
 
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusLarge),
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
           ),
   ) {
-    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-      // Header
+    Column(modifier = Modifier.padding(dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)) {
       Row(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.SpaceBetween,
           modifier = Modifier.fillMaxWidth(),
       ) {
-        // Icon + Title Group
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
         ) {
           Box(
               modifier =
-                  Modifier.size(36.dp)
+                  Modifier.size(if (isCompact) 28.dp else 36.dp)
                       .background(
                           MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                          RoundedCornerShape(12.dp),
+                          RoundedCornerShape(dimens.cornerRadiusSmall),
                       ),
               contentAlignment = Alignment.Center,
           ) {
@@ -1067,18 +1081,17 @@ fun MaterialPowerInsightCard(
                 imageVector = Icons.Rounded.AccessTime,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(dimens.iconSizeSmall),
             )
           }
           Text(
               text = "Power Insight",
-              style = MaterialTheme.typography.titleMedium,
+              style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSecondaryContainer,
           )
         }
 
-        // Badge (Pushed to Right)
         Surface(
             color = badgeColor,
             shape = RoundedCornerShape(50),
@@ -1088,70 +1101,73 @@ fun MaterialPowerInsightCard(
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
               color = badgeTextColor,
-              modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+              modifier = Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
           )
         }
       }
 
-      // Content: Circle + Stats
       Row(
           modifier = Modifier.fillMaxWidth(),
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(24.dp),
+          horizontalArrangement = Arrangement.spacedBy(dimens.spacingLarge),
       ) {
-        // SOT Circular Indicator
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(150.dp)) {
-          // Background Track
+        val circleSize = if (isCompact) 100.dp else 150.dp
+        val strokeWidth = if (isCompact) 10.dp else 16.dp
+        val amplitude = if (isCompact) 2.dp else 3.dp
+        
+        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(circleSize)) {
           WavyCircularProgressIndicator(
               progress = 1f,
               modifier = Modifier.fillMaxSize(),
               color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-              strokeWidth = 16.dp,
-              amplitude = 3.dp,
+              strokeWidth = strokeWidth,
+              amplitude = amplitude,
               frequency = 10,
           )
 
-          // Progress (based on 8 hour SOT goal)
           WavyCircularProgressIndicator(
               progress = batteryInfo.level / 100f,
               modifier = Modifier.fillMaxSize(),
               color = MaterialTheme.colorScheme.primary,
-              strokeWidth = 16.dp,
-              amplitude = 3.dp,
+              strokeWidth = strokeWidth,
+              amplitude = amplitude,
               frequency = 10,
           )
 
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = powerInfo.formatScreenOnTime(),
-                style = MaterialTheme.typography.titleLarge,
+                style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary,
             )
           }
         }
 
-        // Stats Column
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
+        Column(verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall), modifier = Modifier.weight(1f)) {
           PowerInsightItem(
               label = "Screen On",
               value = powerInfo.formatScreenOnTime(),
               icon = Icons.Rounded.LightMode,
+              isCompact = isCompact,
           )
           PowerInsightItem(
               label = "Screen Off",
               value = powerInfo.formatScreenOffTime(),
               icon = Icons.Rounded.ScreenLockPortrait,
+              isCompact = isCompact,
           )
           PowerInsightItem(
               label = "Deep Sleep",
               value = powerInfo.formatDeepSleepTime(),
               icon = Icons.Rounded.Bedtime,
+              isCompact = isCompact,
           )
           PowerInsightItem(
               label = "Drain Rate",
               value = String.format("-%.1f%%/h", powerInfo.activeDrainRate),
               icon = Icons.Rounded.BatteryAlert,
+              isCompact = isCompact,
           )
         }
       }
@@ -1226,14 +1242,15 @@ fun WavyCircularProgressIndicator(
 }
 
 @Composable
-fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
+fun PowerInsightItem(label: String, value: String, icon: ImageVector, isCompact: Boolean = false) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
   Row(
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
   ) {
     Box(
         modifier =
-            Modifier.size(32.dp)
+            Modifier.size(if (isCompact) 24.dp else 32.dp)
                 .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f), CircleShape),
         contentAlignment = Alignment.Center,
     ) {
@@ -1241,13 +1258,13 @@ fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
           imageVector = icon,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.size(16.dp),
+          modifier = Modifier.size(if (isCompact) 12.dp else 16.dp),
       )
     }
     Column {
       Text(
           text = value,
-          style = MaterialTheme.typography.titleSmall,
+          style = if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.onSecondaryContainer,
       )
@@ -1262,35 +1279,34 @@ fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
 
 @Composable
 fun MaterialAppInfoSection() {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = RoundedCornerShape(dimens.cornerRadiusLarge),
       colors =
           CardDefaults.cardColors(
               containerColor =
-                  MaterialTheme.colorScheme.surfaceVariant.copy(
-                      alpha = 0.5f
-                  ) // Slightly distinct background
+                  MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
           ),
   ) {
-    Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
-      // Top Row: Maintainer & Release
+    Column(modifier = Modifier.padding(dimens.cardPadding), verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)) {
       Row(
-          modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max), // Ensure equal height
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
+          modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+          horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
       ) {
-        // Maintainer Card
         Card(
-            modifier = Modifier.weight(1f).fillMaxHeight(), // Fill available height
-            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            shape = RoundedCornerShape(dimens.cornerRadiusMedium),
             colors =
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                 ),
         ) {
           Column(
-              modifier = Modifier.padding(16.dp).fillMaxSize(), // Fill column to distribute space
-              verticalArrangement = Arrangement.SpaceBetween, // Push content to edges
+              modifier = Modifier.padding(dimens.cardPaddingSmall).fillMaxSize(),
+              verticalArrangement = Arrangement.SpaceBetween,
           ) {
             // Avatar & Badge
             Row(
@@ -1388,18 +1404,17 @@ fun MaterialAppInfoSection() {
           }
         }
 
-        // Release Card
         Card(
-            modifier = Modifier.weight(1f).fillMaxHeight(), // Fill available height
-            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            shape = RoundedCornerShape(dimens.cornerRadiusMedium),
             colors =
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                 ),
         ) {
           Column(
-              modifier = Modifier.padding(16.dp).fillMaxSize(), // Fill column
-              verticalArrangement = Arrangement.SpaceBetween, // Distribute vertical space
+              modifier = Modifier.padding(dimens.cardPaddingSmall).fillMaxSize(),
+              verticalArrangement = Arrangement.SpaceBetween,
           ) {
             val fullVersion = BuildConfig.VERSION_NAME
             val isDebug = fullVersion.contains("Dev", ignoreCase = true)
@@ -1495,18 +1510,17 @@ fun MaterialAppInfoSection() {
         }
       }
 
-      // Project Info Card
       Card(
           modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(24.dp),
+          shape = RoundedCornerShape(dimens.cornerRadiusMedium),
           colors =
               CardDefaults.cardColors(
                   containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
               ),
       ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(dimens.cardPaddingSmall),
+            verticalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
         ) {
           Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
@@ -1528,46 +1542,45 @@ fun MaterialAppInfoSection() {
 
           Row(
               modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
+              horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
           ) {
-            // GitHub Button
             val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
             OutlinedButton(
                 onClick = { uriHandler.openUri("https://github.com/Xtra-Manager-Software") },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f).height(if (isCompact) 36.dp else 40.dp),
+                shape = RoundedCornerShape(dimens.cornerRadiusSmall),
                 border =
                     androidx.compose.foundation.BorderStroke(
                         1.dp,
                         MaterialTheme.colorScheme.outlineVariant,
                     ),
+                contentPadding = PaddingValues(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
             ) {
-              // Custom GitHub Icon
               Icon(
                   imageVector = GithubIcon,
                   contentDescription = null,
-                  modifier = Modifier.size(18.dp),
+                  modifier = Modifier.size(if (isCompact) 14.dp else 18.dp),
                   tint = MaterialTheme.colorScheme.onSurface,
               )
-              Spacer(modifier = Modifier.width(8.dp))
+              Spacer(modifier = Modifier.width(dimens.spacingTiny))
               Text(
                   "GitHub",
                   color = MaterialTheme.colorScheme.onSurface,
-                  style = MaterialTheme.typography.labelLarge,
+                  style = if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
               )
             }
 
-            // Credits Button
             FilledTonalButton(
                 onClick = {
                   uriHandler.openUri("https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager")
                 },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f).height(if (isCompact) 36.dp else 40.dp),
+                shape = RoundedCornerShape(dimens.cornerRadiusSmall),
+                contentPadding = PaddingValues(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
             ) {
-              Icon(Icons.Rounded.Info, null, modifier = Modifier.size(18.dp))
-              Spacer(modifier = Modifier.width(8.dp))
-              Text("Credit", style = MaterialTheme.typography.labelLarge)
+              Icon(Icons.Rounded.Info, null, modifier = Modifier.size(if (isCompact) 14.dp else 18.dp))
+              Spacer(modifier = Modifier.width(dimens.spacingTiny))
+              Text("Credit", style = if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge)
             }
           }
         }
