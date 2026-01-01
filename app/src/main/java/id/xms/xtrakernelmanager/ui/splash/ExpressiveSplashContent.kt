@@ -46,7 +46,7 @@ fun ExpressiveSplashScreen(
 
     // Check root access first
     val hasRoot = checkRootAccess()
-    
+
     if (!hasRoot) {
       minSplashTime.join()
       isChecking = false
@@ -145,7 +145,7 @@ fun ExpressiveSplashScreen(
           }
       )
     }
-    
+
     if (showNoRootDialog) {
       NoRootDialog(
           onRetry = {
@@ -153,9 +153,7 @@ fun ExpressiveSplashScreen(
             context.finish()
             context.startActivity(intent)
           },
-          onExit = {
-            (context as ComponentActivity).finish()
-          }
+          onExit = { (context as ComponentActivity).finish() },
       )
     }
   }

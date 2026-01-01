@@ -66,14 +66,18 @@ class PreferencesManager(private val context: Context) {
 
   // Functional ROM preferences
   private val FUNCTIONAL_ROM_UNLOCK_NITS = booleanPreferencesKey("functional_rom_unlock_nits")
-  private val FUNCTIONAL_ROM_DYNAMIC_REFRESH = booleanPreferencesKey("functional_rom_dynamic_refresh")
+  private val FUNCTIONAL_ROM_DYNAMIC_REFRESH =
+      booleanPreferencesKey("functional_rom_dynamic_refresh")
   private val FUNCTIONAL_ROM_FORCE_REFRESH = booleanPreferencesKey("functional_rom_force_refresh")
-  private val FUNCTIONAL_ROM_FORCE_REFRESH_VALUE = intPreferencesKey("functional_rom_force_refresh_value")
+  private val FUNCTIONAL_ROM_FORCE_REFRESH_VALUE =
+      intPreferencesKey("functional_rom_force_refresh_value")
   private val FUNCTIONAL_ROM_DC_DIMMING = booleanPreferencesKey("functional_rom_dc_dimming")
-  private val FUNCTIONAL_ROM_PERFORMANCE_MODE = booleanPreferencesKey("functional_rom_performance_mode")
+  private val FUNCTIONAL_ROM_PERFORMANCE_MODE =
+      booleanPreferencesKey("functional_rom_performance_mode")
   private val FUNCTIONAL_ROM_SMART_CHARGING = booleanPreferencesKey("functional_rom_smart_charging")
   private val FUNCTIONAL_ROM_CHARGING_LIMIT = booleanPreferencesKey("functional_rom_charging_limit")
-  private val FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE = intPreferencesKey("functional_rom_charging_limit_value")
+  private val FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE =
+      intPreferencesKey("functional_rom_charging_limit_value")
 
   // Per-App Profile preferences
   private val APP_PROFILES = stringPreferencesKey("app_profiles")
@@ -99,7 +103,6 @@ class PreferencesManager(private val context: Context) {
   private val NEW_YEAR_SHOWN_YEAR = intPreferencesKey("new_year_shown_year")
   private val RAMADAN_SHOWN_YEAR = intPreferencesKey("ramadan_shown_year")
   private val EID_FITR_SHOWN_YEAR = intPreferencesKey("eid_fitr_shown_year")
-
 
   val themeMode: Flow<Int> = context.dataStore.data.map { prefs -> prefs[THEME_MODE] ?: 0 }
 

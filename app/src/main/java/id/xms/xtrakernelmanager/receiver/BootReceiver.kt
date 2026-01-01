@@ -9,6 +9,7 @@ import android.os.Looper
 import android.util.Log
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.domain.usecase.RAMControlUseCase
 import id.xms.xtrakernelmanager.service.AppProfileService
 import id.xms.xtrakernelmanager.service.BatteryInfoService
 import id.xms.xtrakernelmanager.service.GameMonitorService
@@ -42,8 +43,8 @@ class BootReceiver : BroadcastReceiver() {
           // Start GameMonitorService if there are enabled games
           startGameMonitorServiceIfEnabled(context)
 
-          // Activate swap file
-          activateSwapFile()
+          // Apply RAM configuration (ZRAM, Swap, VM params)
+          applyRamConfigOnBoot(context)
         } finally {
           pendingResult.finish()
         }
@@ -215,6 +216,39 @@ class BootReceiver : BroadcastReceiver() {
       Log.w(TAG, "ForegroundService not allowed for GameMonitorService: ${e.message}")
     } catch (e: Exception) {
       Log.e(TAG, "Failed to start GameMonitorService: ${e.message}")
+    }
+  }
+
+  private suspend fun applyRamConfigOnBoot(context: Context) {
+    try {
+      val preferencesManager = PreferencesManager(context)
+      val config = preferencesManager.getRamConfig().first()
+      val ramUseCase = RAMControlUseCase()
+
+      Log.d(TAG, "Applying RAM config on boot...")
+
+      // Apply VM parameters
+      if (config.swappiness > 0) ramUseCase.setSwappiness(config.swappiness)
+      if (config.dirtyRatio > 0) ramUseCase.setDirtyRatio(config.dirtyRatio)
+      if (config.minFreeMem > 0) ramUseCase.setMinFreeMem(config.minFreeMem)
+
+      // Apply ZRAM
+      if (config.zramSize > 0) {
+        Log.d(TAG, "Setting ZRAM size: ${config.zramSize} MB")
+        // TODO: Save/Load compression algorithm from prefs
+        ramUseCase.setZRAMSize(config.zramSize.toLong() * 1024L * 1024L)
+      }
+
+      // Apply Swap File
+      if (config.swapSize > 0) {
+        ramUseCase.setSwapFileSizeMb(config.swapSize) { Log.d(TAG, "Swap: $it") }
+      } else {
+        // Fallback: Activate existing swap if not managed by XKM size pref
+        activateSwapFile()
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to apply RAM config: ${e.message}")
+      activateSwapFile() // Ultimate fallback
     }
   }
 

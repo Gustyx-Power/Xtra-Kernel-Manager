@@ -486,7 +486,7 @@ object NativeLib {
     if (!isLoaded) return null
     return try {
       val size = getZramCompressedSizeNative()
-      if (size > 0) size.toLong() else null
+      if (size > 0) size else null
     } catch (e: Exception) {
       Log.e(TAG, "Native getZramCompressedSize failed: ${e.message}")
       null
@@ -531,11 +531,25 @@ object NativeLib {
 
   private external fun getZramCompressionRatioNative(): Float
 
-  private external fun getZramCompressedSizeNative(): Int
+  private external fun getZramCompressedSizeNative(): Long
+
+  private external fun getZramOrigDataSizeNative(): Long
 
   private external fun getZramAlgorithmNative(): String
 
   private external fun getSwappinessNative(): Int
 
   private external fun getMemoryPressureNative(): Float
+
+  /** Get ZRAM original data size in bytes (uncompressed data stored in ZRAM) */
+  fun getZramOrigDataSize(): Long? {
+    if (!isLoaded) return null
+    return try {
+      val size = getZramOrigDataSizeNative()
+      if (size > 0) size else null
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getZramOrigDataSize failed: ${e.message}")
+      null
+    }
+  }
 }
