@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.ui.theme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -10,19 +11,26 @@ import androidx.compose.ui.unit.TextUnit
 
 /**
  * Responsive Dimensions System for XKM
- * Automatically adjusts UI dimensions based on screen size
+ * Uses screen width in dp AND density to properly scale UI
+ * 
+ * Detection based on actual screen width:
+ * - COMPACT: <= 392dp (covers 720p/HD phones with high density)
+ * - MEDIUM: 393dp - 600dp (standard 1080p/FHD phones)  
+ * - EXPANDED: > 600dp (tablets, foldables)
  */
 
 enum class ScreenSizeClass {
-    COMPACT,   // < 360dp (720p phones, small devices)
-    MEDIUM,    // 360dp - 600dp (standard phones)
-    EXPANDED   // > 600dp (tablets, foldables)
+    COMPACT,   // Small phones, 720p, high density devices
+    MEDIUM,    // Standard phones 1080p
+    EXPANDED   // Tablets, foldables
 }
 
 data class ResponsiveDimens(
     val screenSizeClass: ScreenSizeClass,
+    val screenWidthDp: Int,
+    val scaleFactor: Float,
     
-    // Padding
+    // Padding - scaled based on screen width
     val screenHorizontalPadding: Dp,
     val cardPadding: Dp,
     val cardPaddingSmall: Dp,
@@ -55,111 +63,142 @@ data class ResponsiveDimens(
     val fontScale: Float,
 )
 
-// Compact: 720p phones, small screens (< 360dp)
-private val CompactDimens = ResponsiveDimens(
-    screenSizeClass = ScreenSizeClass.COMPACT,
-    
-    screenHorizontalPadding = 12.dp,
-    cardPadding = 12.dp,
-    cardPaddingSmall = 8.dp,
-    itemPadding = 8.dp,
-    
-    spacingLarge = 12.dp,
-    spacingMedium = 8.dp,
-    spacingSmall = 4.dp,
-    spacingTiny = 2.dp,
-    
-    cornerRadiusLarge = 16.dp,
-    cornerRadiusMedium = 12.dp,
-    cornerRadiusSmall = 8.dp,
-    
-    iconSizeLarge = 20.dp,
-    iconSizeMedium = 18.dp,
-    iconSizeSmall = 14.dp,
-    
-    buttonHeight = 40.dp,
-    chipHeight = 28.dp,
-    avatarSizeLarge = 56.dp,
-    avatarSizeMedium = 40.dp,
-    avatarSizeSmall = 28.dp,
-    
-    fontScale = 0.9f,
-)
-
-// Medium: Standard phones (360dp - 600dp)
-private val MediumDimens = ResponsiveDimens(
-    screenSizeClass = ScreenSizeClass.MEDIUM,
-    
-    screenHorizontalPadding = 16.dp,
-    cardPadding = 16.dp,
-    cardPaddingSmall = 12.dp,
-    itemPadding = 12.dp,
-    
-    spacingLarge = 16.dp,
-    spacingMedium = 12.dp,
-    spacingSmall = 8.dp,
-    spacingTiny = 4.dp,
-    
-    cornerRadiusLarge = 24.dp,
-    cornerRadiusMedium = 16.dp,
-    cornerRadiusSmall = 12.dp,
-    
-    iconSizeLarge = 24.dp,
-    iconSizeMedium = 20.dp,
-    iconSizeSmall = 16.dp,
-    
-    buttonHeight = 48.dp,
-    chipHeight = 32.dp,
-    avatarSizeLarge = 72.dp,
-    avatarSizeMedium = 48.dp,
-    avatarSizeSmall = 32.dp,
-    
-    fontScale = 1.0f,
-)
-
-// Expanded: Tablets, foldables (> 600dp)
-private val ExpandedDimens = ResponsiveDimens(
-    screenSizeClass = ScreenSizeClass.EXPANDED,
-    
-    screenHorizontalPadding = 24.dp,
-    cardPadding = 24.dp,
-    cardPaddingSmall = 16.dp,
-    itemPadding = 16.dp,
-    
-    spacingLarge = 24.dp,
-    spacingMedium = 16.dp,
-    spacingSmall = 12.dp,
-    spacingTiny = 8.dp,
-    
-    cornerRadiusLarge = 32.dp,
-    cornerRadiusMedium = 24.dp,
-    cornerRadiusSmall = 16.dp,
-    
-    iconSizeLarge = 28.dp,
-    iconSizeMedium = 24.dp,
-    iconSizeSmall = 20.dp,
-    
-    buttonHeight = 56.dp,
-    chipHeight = 36.dp,
-    avatarSizeLarge = 80.dp,
-    avatarSizeMedium = 56.dp,
-    avatarSizeSmall = 40.dp,
-    
-    fontScale = 1.0f,
-)
-
 @Composable
 fun rememberResponsiveDimens(): ResponsiveDimens {
     val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
     val screenWidthDp = configuration.screenWidthDp
+    val screenHeightDp = configuration.screenHeightDp
+    val densityDpi = configuration.densityDpi
     
-    return remember(screenWidthDp) {
-        when {
-            screenWidthDp < 360 -> CompactDimens
-            screenWidthDp < 600 -> MediumDimens
-            else -> ExpandedDimens
+    return remember(screenWidthDp, densityDpi) {
+        // Calculate scale factor based on screen width
+        // Reference: 400dp = 1.0f scale (typical modern phone)
+        val scaleFactor = (screenWidthDp / 400f).coerceIn(0.7f, 1.3f)
+        
+        // Determine screen class
+        val screenClass = when {
+            screenWidthDp <= 392 -> ScreenSizeClass.COMPACT
+            screenWidthDp <= 600 -> ScreenSizeClass.MEDIUM
+            else -> ScreenSizeClass.EXPANDED
         }
+        
+        // Create dimensions scaled by factor
+        createScaledDimens(screenClass, screenWidthDp, scaleFactor)
     }
+}
+
+private fun createScaledDimens(
+    screenClass: ScreenSizeClass,
+    screenWidthDp: Int,
+    scaleFactor: Float
+): ResponsiveDimens {
+    // Base values that will be scaled
+    return when (screenClass) {
+        ScreenSizeClass.COMPACT -> ResponsiveDimens(
+            screenSizeClass = screenClass,
+            screenWidthDp = screenWidthDp,
+            scaleFactor = scaleFactor,
+            
+            // Very tight padding for small screens
+            screenHorizontalPadding = (10f * scaleFactor).dp,
+            cardPadding = (10f * scaleFactor).dp,
+            cardPaddingSmall = (6f * scaleFactor).dp,
+            itemPadding = (6f * scaleFactor).dp,
+            
+            spacingLarge = (10f * scaleFactor).dp,
+            spacingMedium = (6f * scaleFactor).dp,
+            spacingSmall = (4f * scaleFactor).dp,
+            spacingTiny = (2f * scaleFactor).dp,
+            
+            cornerRadiusLarge = (14f * scaleFactor).dp,
+            cornerRadiusMedium = (10f * scaleFactor).dp,
+            cornerRadiusSmall = (6f * scaleFactor).dp,
+            
+            iconSizeLarge = (18f * scaleFactor).dp,
+            iconSizeMedium = (16f * scaleFactor).dp,
+            iconSizeSmall = (12f * scaleFactor).dp,
+            
+            buttonHeight = (36f * scaleFactor).dp,
+            chipHeight = (24f * scaleFactor).dp,
+            avatarSizeLarge = (48f * scaleFactor).dp,
+            avatarSizeMedium = (36f * scaleFactor).dp,
+            avatarSizeSmall = (24f * scaleFactor).dp,
+            
+            fontScale = 0.85f * scaleFactor,
+        )
+        
+        ScreenSizeClass.MEDIUM -> ResponsiveDimens(
+            screenSizeClass = screenClass,
+            screenWidthDp = screenWidthDp,
+            scaleFactor = scaleFactor,
+            
+            screenHorizontalPadding = (16f * scaleFactor).dp,
+            cardPadding = (14f * scaleFactor).dp,
+            cardPaddingSmall = (10f * scaleFactor).dp,
+            itemPadding = (10f * scaleFactor).dp,
+            
+            spacingLarge = (14f * scaleFactor).dp,
+            spacingMedium = (10f * scaleFactor).dp,
+            spacingSmall = (6f * scaleFactor).dp,
+            spacingTiny = (3f * scaleFactor).dp,
+            
+            cornerRadiusLarge = (20f * scaleFactor).dp,
+            cornerRadiusMedium = (14f * scaleFactor).dp,
+            cornerRadiusSmall = (10f * scaleFactor).dp,
+            
+            iconSizeLarge = (22f * scaleFactor).dp,
+            iconSizeMedium = (18f * scaleFactor).dp,
+            iconSizeSmall = (14f * scaleFactor).dp,
+            
+            buttonHeight = (44f * scaleFactor).dp,
+            chipHeight = (28f * scaleFactor).dp,
+            avatarSizeLarge = (64f * scaleFactor).dp,
+            avatarSizeMedium = (44f * scaleFactor).dp,
+            avatarSizeSmall = (28f * scaleFactor).dp,
+            
+            fontScale = 0.95f * scaleFactor,
+        )
+        
+        ScreenSizeClass.EXPANDED -> ResponsiveDimens(
+            screenSizeClass = screenClass,
+            screenWidthDp = screenWidthDp,
+            scaleFactor = scaleFactor,
+            
+            screenHorizontalPadding = (24f * scaleFactor).dp,
+            cardPadding = (20f * scaleFactor).dp,
+            cardPaddingSmall = (14f * scaleFactor).dp,
+            itemPadding = (14f * scaleFactor).dp,
+            
+            spacingLarge = (20f * scaleFactor).dp,
+            spacingMedium = (14f * scaleFactor).dp,
+            spacingSmall = (10f * scaleFactor).dp,
+            spacingTiny = (6f * scaleFactor).dp,
+            
+            cornerRadiusLarge = (28f * scaleFactor).dp,
+            cornerRadiusMedium = (20f * scaleFactor).dp,
+            cornerRadiusSmall = (14f * scaleFactor).dp,
+            
+            iconSizeLarge = (26f * scaleFactor).dp,
+            iconSizeMedium = (22f * scaleFactor).dp,
+            iconSizeSmall = (18f * scaleFactor).dp,
+            
+            buttonHeight = (52f * scaleFactor).dp,
+            chipHeight = (34f * scaleFactor).dp,
+            avatarSizeLarge = (76f * scaleFactor).dp,
+            avatarSizeMedium = (52f * scaleFactor).dp,
+            avatarSizeSmall = (36f * scaleFactor).dp,
+            
+            fontScale = 1.0f,
+        )
+    }
+}
+
+// Extension to calculate percentage of screen width
+@Composable
+fun screenWidthFraction(fraction: Float): Dp {
+    val configuration = LocalConfiguration.current
+    return (configuration.screenWidthDp * fraction).dp
 }
 
 // Extension functions for scaled font sizes
