@@ -24,6 +24,22 @@ import id.xms.xtrakernelmanager.ui.screens.misc.section.GameControlSection
 
 @Composable
 fun MiscScreen(viewModel: MiscViewModel, onNavigateToFunctionalRom: () -> Unit = {}) {
+  // Collect Layout Style Preference
+  val layoutStyle by viewModel.layoutStyle.collectAsState()
+
+  // Switch between designs
+  if (layoutStyle == "material") {
+    MaterialMiscScreen(
+        viewModel = viewModel,
+        onNavigate = { route -> if (route == "functional_rom") onNavigateToFunctionalRom() },
+    )
+  } else {
+    LegacyMiscScreen(viewModel, onNavigateToFunctionalRom)
+  }
+}
+
+@Composable
+fun LegacyMiscScreen(viewModel: MiscViewModel, onNavigateToFunctionalRom: () -> Unit = {}) {
   // Security gate state
   var isVipCommunity by remember { mutableStateOf<Boolean?>(null) }
   var showSecurityWarning by remember { mutableStateOf(false) }
