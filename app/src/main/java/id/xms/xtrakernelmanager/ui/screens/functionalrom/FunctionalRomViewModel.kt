@@ -25,6 +25,8 @@ data class FunctionalRomUiState(
     val chargingLimitNodePath: String? = null,
     val dt2wAvailable: Boolean = false,
     val dt2wNodePath: String? = null,
+    val maxBrightnessAvailable: Boolean = false,
+    val maxBrightnessNodePath: String? = null,
 
     // Native Feature States
     val bypassChargingEnabled: Boolean = false,
@@ -53,8 +55,14 @@ data class FunctionalRomUiState(
     val dynamicRefreshRateEnabled: Boolean = false,
     val dcDimmingEnabled: Boolean = false,
 
-    // System Features
-    val performanceModeEnabled: Boolean = false,
+    // System Features - Fix DT2W 2-step installation
+    val fixDt2wEnabled: Boolean = false,
+    val fixDt2wInstalling: Boolean = false,
+    val overlayfsInstalled: Boolean = false,
+    val fixDt2wModuleInstalled: Boolean = false,
+    val showFixDt2wDialog: Boolean = false,
+    val showFixDt2wUninstallDialog: Boolean = false,
+    val fixDt2wStep: Int = 0, // 0 = complete, 1 = need overlayfs, 2 = need fix_dt2w
     val smartChargingEnabled: Boolean = false,
 )
 
@@ -90,10 +98,11 @@ class FunctionalRomViewModel(
         val bypassChargingNode = useCase.findBypassChargingNode()
         val chargingLimitNode = useCase.findChargingLimitNode()
         val dt2wNode = useCase.findDt2wNode()
+        val maxBrightnessNode = useCase.findMaxBrightnessNode()
 
         Log.d(
             TAG,
-            "Detected nodes - Bypass: $bypassChargingNode, Limit: $chargingLimitNode, DT2W: $dt2wNode",
+            "Detected nodes - Bypass: $bypassChargingNode, Limit: $chargingLimitNode, DT2W: $dt2wNode, MaxBrightness: $maxBrightnessNode",
         )
 
         // 3. Sync current states from system
@@ -119,12 +128,21 @@ class FunctionalRomViewModel(
         val touchActiveModeState = useCase.getTouchActiveModeState()
 
         // Load UI-only toggle states from preferences
-        val unlockNitsState = preferencesManager.getFunctionalRomUnlockNits().first()
+        val savedUnlockNitsState = preferencesManager.getFunctionalRomUnlockNits().first()
+        // If max brightness node is available, sync from device; otherwise use saved preference
+        val unlockNitsState = maxBrightnessNode?.let { useCase.isUnlockNitsEnabled(it) } ?: savedUnlockNitsState
         val dynamicRefreshState = preferencesManager.getFunctionalRomDynamicRefresh().first()
         val forceRefreshState = preferencesManager.getFunctionalRomForceRefresh().first()
         val forceRefreshValue = preferencesManager.getFunctionalRomForceRefreshValue().first()
         val dcDimmingState = preferencesManager.getFunctionalRomDcDimming().first()
-        val performanceModeState = preferencesManager.getFunctionalRomPerformanceMode().first()
+        // 2-step Fix DT2W: check each module separately
+        val overlayfsInstalled = useCase.isOverlayfsInstalled()
+        val fixDt2wModuleInstalled = useCase.isFixDt2wModuleInstalled()
+        val fixDt2wStep = when {
+          fixDt2wModuleInstalled -> 0 // Complete
+          overlayfsInstalled -> 2 // Step 2: need fix_dt2w
+          else -> 1 // Step 1: need overlayfs
+        }
         val smartChargingState = preferencesManager.getFunctionalRomSmartCharging().first()
         val chargingLimitEnabledState = preferencesManager.getFunctionalRomChargingLimit().first()
         val savedChargingLimitValue =
@@ -141,6 +159,8 @@ class FunctionalRomViewModel(
               chargingLimitNodePath = chargingLimitNode,
               dt2wAvailable = dt2wNode != null,
               dt2wNodePath = dt2wNode,
+              maxBrightnessAvailable = maxBrightnessNode != null,
+              maxBrightnessNodePath = maxBrightnessNode,
               // Native states
               bypassChargingEnabled = bypassChargingState,
               doubleTapWakeEnabled = dt2wState,
@@ -164,7 +184,10 @@ class FunctionalRomViewModel(
               unlockNitsEnabled = unlockNitsState,
               dynamicRefreshRateEnabled = dynamicRefreshState,
               dcDimmingEnabled = dcDimmingState,
-              performanceModeEnabled = performanceModeState,
+              overlayfsInstalled = overlayfsInstalled,
+              fixDt2wModuleInstalled = fixDt2wModuleInstalled,
+              fixDt2wEnabled = fixDt2wModuleInstalled,
+              fixDt2wStep = fixDt2wStep,
               smartChargingEnabled = smartChargingState,
           )
         }
@@ -331,8 +354,27 @@ class FunctionalRomViewModel(
   // ==================== UI-only toggles (save to preferences) ====================
 
   fun setUnlockNits(enabled: Boolean) {
+    // Update UI state immediately so toggle responds
     _uiState.update { it.copy(unlockNitsEnabled = enabled) }
-    viewModelScope.launch { preferencesManager.setFunctionalRomUnlockNits(enabled) }
+    
+    val nodePath = _uiState.value.maxBrightnessNodePath
+    viewModelScope.launch {
+      // Save preference
+      preferencesManager.setFunctionalRomUnlockNits(enabled)
+      
+      // Try to apply to kernel if node is available
+      if (nodePath != null) {
+        val result = useCase.setUnlockNits(enabled, nodePath)
+        if (result.isSuccess) {
+          Log.d(TAG, "Unlock nits set to: $enabled (${if (enabled) "1000 nits" else "500 nits"})")
+        } else {
+          Log.e(TAG, "Failed to write unlock nits to kernel: ${result.exceptionOrNull()?.message}")
+          // UI state already updated, user can continue
+        }
+      } else {
+        Log.w(TAG, "Max brightness node not available, only saving preference")
+      }
+    }
   }
 
   fun setDynamicRefreshRate(enabled: Boolean) {
@@ -345,9 +387,138 @@ class FunctionalRomViewModel(
     viewModelScope.launch { preferencesManager.setFunctionalRomDcDimming(enabled) }
   }
 
-  fun setPerformanceMode(enabled: Boolean) {
-    _uiState.update { it.copy(performanceModeEnabled = enabled) }
-    viewModelScope.launch { preferencesManager.setFunctionalRomPerformanceMode(enabled) }
+  // ==================== Fix DT2W 2-Step Installation ====================
+
+  /** Show dialog when toggle is tapped */
+  fun onFixDt2wToggle() {
+    val step = _uiState.value.fixDt2wStep
+    if (step == 0) {
+      Log.d(TAG, "Fix DT2W already complete")
+      return
+    }
+    // Show dialog for current step
+    _uiState.update { it.copy(showFixDt2wDialog = true) }
+  }
+
+  /** Dismiss dialog */
+  fun dismissFixDt2wDialog() {
+    _uiState.update { it.copy(showFixDt2wDialog = false) }
+  }
+
+  /** Confirm and proceed with installation */
+  fun confirmFixDt2wInstall() {
+    _uiState.update { it.copy(showFixDt2wDialog = false, fixDt2wInstalling = true) }
+    
+    val currentStep = _uiState.value.fixDt2wStep
+    
+    viewModelScope.launch {
+      try {
+        val cacheDir = context.cacheDir
+        
+        if (currentStep == 1) {
+          // Step 1: Install overlayfs
+          Log.d(TAG, "Step 1: Installing meta-overlayfs...")
+          
+          val metaOverlayfsFile = java.io.File(cacheDir, FunctionalRomUseCase.Companion.ModuleConstants.META_OVERLAYFS_ASSET)
+          context.assets.open(FunctionalRomUseCase.Companion.ModuleConstants.META_OVERLAYFS_ASSET).use { input ->
+            metaOverlayfsFile.outputStream().use { output ->
+              input.copyTo(output)
+            }
+          }
+          
+          val result = useCase.installOverlayfsModule(metaOverlayfsFile.absolutePath)
+          metaOverlayfsFile.delete()
+          
+          if (result.isSuccess) {
+            Log.d(TAG, "Overlayfs installed, rebooting...")
+            _uiState.update { it.copy(fixDt2wInstalling = false, overlayfsInstalled = true, fixDt2wStep = 2) }
+            useCase.rebootForModules()
+          } else {
+            Log.e(TAG, "Failed to install overlayfs")
+            _uiState.update { it.copy(fixDt2wInstalling = false) }
+          }
+          
+        } else if (currentStep == 2) {
+          // Step 2: Install fix_dt2w
+          Log.d(TAG, "Step 2: Installing fix_dt2w...")
+          
+          val fixDt2wFile = java.io.File(cacheDir, FunctionalRomUseCase.Companion.ModuleConstants.FIX_DT2W_ASSET)
+          context.assets.open(FunctionalRomUseCase.Companion.ModuleConstants.FIX_DT2W_ASSET).use { input ->
+            fixDt2wFile.outputStream().use { output ->
+              input.copyTo(output)
+            }
+          }
+          
+          val result = useCase.installFixDt2wModule(fixDt2wFile.absolutePath)
+          fixDt2wFile.delete()
+          
+          if (result.isSuccess) {
+            Log.d(TAG, "Fix DT2W installed, rebooting...")
+            _uiState.update { it.copy(fixDt2wInstalling = false, fixDt2wModuleInstalled = true, fixDt2wEnabled = true, fixDt2wStep = 0) }
+            useCase.rebootForModules()
+          } else {
+            Log.e(TAG, "Failed to install fix_dt2w")
+            _uiState.update { it.copy(fixDt2wInstalling = false) }
+          }
+        }
+        
+      } catch (e: Exception) {
+        Log.e(TAG, "Error during installation: ${e.message}", e)
+        _uiState.update { it.copy(fixDt2wInstalling = false) }
+      }
+    }
+  }
+
+  // Wrapper function for toggle - handles both install and uninstall
+  fun setFixDt2w(enabled: Boolean) {
+    if (enabled) {
+      // Installing - show install dialog
+      onFixDt2wToggle()
+    } else {
+      // Uninstalling - show uninstall dialog if modules are installed
+      if (_uiState.value.fixDt2wStep == 0) {
+        _uiState.update { it.copy(showFixDt2wUninstallDialog = true) }
+      }
+    }
+  }
+
+  /** Dismiss uninstall dialog */
+  fun dismissFixDt2wUninstallDialog() {
+    _uiState.update { it.copy(showFixDt2wUninstallDialog = false) }
+  }
+
+  /** Confirm and proceed with module removal */
+  fun confirmFixDt2wUninstall() {
+    _uiState.update { it.copy(showFixDt2wUninstallDialog = false, fixDt2wInstalling = true) }
+    
+    viewModelScope.launch {
+      try {
+        Log.d(TAG, "Removing Fix DT2W modules...")
+        
+        val result = useCase.removeFixDt2wModules()
+        
+        if (result.isSuccess) {
+          Log.d(TAG, "Modules removed, rebooting...")
+          _uiState.update { 
+            it.copy(
+              fixDt2wInstalling = false, 
+              fixDt2wEnabled = false,
+              fixDt2wModuleInstalled = false,
+              overlayfsInstalled = false,
+              fixDt2wStep = 1
+            ) 
+          }
+          useCase.rebootForModules()
+        } else {
+          Log.e(TAG, "Failed to remove modules")
+          _uiState.update { it.copy(fixDt2wInstalling = false) }
+        }
+        
+      } catch (e: Exception) {
+        Log.e(TAG, "Error during uninstall: ${e.message}", e)
+        _uiState.update { it.copy(fixDt2wInstalling = false) }
+      }
+    }
   }
 
   fun setSmartCharging(enabled: Boolean) {

@@ -65,4 +65,56 @@ object RootManager {
       withContext(Dispatchers.IO) {
         executeCommand("cat $path 2>/dev/null").getOrNull()?.trim() ?: ""
       }
+
+  /** Install a KernelSU module from file path */
+  suspend fun installKernelSuModule(modulePath: String): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Installing KernelSU module: $modulePath")
+        // KernelSU uses ksud to install modules
+        val result = executeCommand("ksud module install $modulePath")
+        if (result.isSuccess) {
+          Log.d(TAG, "Module installed successfully")
+          Result.success(Unit)
+        } else {
+          // Fallback: try magisk module install
+          Log.d(TAG, "ksud failed, trying magisk install")
+          val magiskResult = executeCommand("magisk --install-module $modulePath")
+          if (magiskResult.isSuccess) {
+            Log.d(TAG, "Module installed via magisk")
+            Result.success(Unit)
+          } else {
+            Result.failure(Exception("Failed to install module"))
+          }
+        }
+      }
+
+  /** Check if a KernelSU/Magisk module is installed */
+  suspend fun isModuleInstalled(moduleId: String): Boolean =
+      withContext(Dispatchers.IO) {
+        // Check KernelSU modules
+        val ksuCheck = Shell.cmd("test -d /data/adb/modules/$moduleId && echo exists").exec()
+        ksuCheck.out.firstOrNull() == "exists"
+      }
+
+  /** Reboot the device */
+  suspend fun rebootDevice(): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Rebooting device...")
+        executeCommand("reboot").map { Unit }
+      }
+
+  /** Remove a KernelSU/Magisk module by deleting its folder */
+  suspend fun removeModule(moduleId: String): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Removing module: $moduleId")
+        val modulePath = "/data/adb/modules/$moduleId"
+        val result = executeCommand("rm -rf $modulePath")
+        if (result.isSuccess) {
+          Log.d(TAG, "Module removed successfully: $moduleId")
+          Result.success(Unit)
+        } else {
+          Log.e(TAG, "Failed to remove module: $moduleId")
+          Result.failure(Exception("Failed to remove module"))
+        }
+      }
 }
