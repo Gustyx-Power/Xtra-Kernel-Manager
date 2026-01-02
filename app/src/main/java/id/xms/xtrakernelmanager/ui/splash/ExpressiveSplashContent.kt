@@ -164,6 +164,9 @@ fun ExpressiveSplashScreen(
  * =========================== */
 @Composable
 fun ShapeMorphingLoader(modifier: Modifier = Modifier, sizeDp: Int = 96) {
+  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  val actualSize = if (isCompact) 72 else sizeDp
   // 1. Endless Rotation & Breathing (Independent)
   val infinite = rememberInfiniteTransition(label = "loader_effects")
 
@@ -227,7 +230,7 @@ fun ShapeMorphingLoader(modifier: Modifier = Modifier, sizeDp: Int = 96) {
   // FIX: Extract color access outside of Canvas draw scope
   val primaryColor = MaterialTheme.colorScheme.primary
 
-  Canvas(modifier = modifier.size(sizeDp.dp).scale(scale)) {
+  Canvas(modifier = modifier.size(actualSize.dp).scale(scale)) {
     val cx = size.width / 2
     val cy = size.height / 2
     val R = size.minDimension / 2

@@ -28,7 +28,7 @@ fun PlayfulInfoCard(
     icon: ImageVector,
     accentColor: Color,
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     val dimens = rememberResponsiveDimens()
     val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
@@ -88,21 +88,12 @@ fun PlayfulInfoCard(
             // Content - always visible
             content()
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-      }
-
-      // Content - always visible
-      content()
     }
-  }
 }
 
-/** Stat Chip - Material You styled */
+/**
+ * Stat Chip - Material You styled
+ */
 @Composable
 fun StatChip(
     label: String,
@@ -134,7 +125,6 @@ fun StatChip(
             )
         }
     }
-  }
 }
 
 /**
@@ -147,7 +137,7 @@ fun ProgressBarWithLabel(
     usedText: String,
     totalText: String,
     color: Color,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val dimens = rememberResponsiveDimens()
     val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
@@ -188,18 +178,7 @@ fun ProgressBarWithLabel(
             color = color,
             trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
         )
-      }
     }
-    LinearProgressIndicator(
-        progress = { progress.coerceIn(0f, 1f) },
-        modifier =
-            Modifier.fillMaxWidth()
-                .height(10.dp) // Slightly thicker
-                .clip(RoundedCornerShape(5.dp)),
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    )
-  }
 }
 
 /**
@@ -211,7 +190,7 @@ fun CoreFreqItem(
     frequency: Int,
     isOnline: Boolean,
     isHot: Boolean,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val dimens = rememberResponsiveDimens()
     val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
@@ -220,14 +199,13 @@ fun CoreFreqItem(
         !isOnline -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
         isHot -> MaterialTheme.colorScheme.primaryContainer
         else -> MaterialTheme.colorScheme.surfaceContainerHigh
-      }
-
-  val textColor =
-      when {
+    }
+    
+    val textColor = when {
         !isOnline -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         isHot -> MaterialTheme.colorScheme.onPrimaryContainer
         else -> MaterialTheme.colorScheme.onSurface
-      }
+    }
 
     Surface(
         modifier = modifier,
@@ -251,17 +229,18 @@ fun CoreFreqItem(
             )
         }
     }
-  }
 }
 
-/** Mini stat item with icon - Material You styled */
+/**
+ * Mini stat item with icon - Material You styled
+ */
 @Composable
 fun MiniStatItem(
     icon: ImageVector,
     label: String,
     value: String,
     color: Color = MaterialTheme.colorScheme.primary,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val dimens = rememberResponsiveDimens()
     val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
@@ -299,5 +278,4 @@ fun MiniStatItem(
             )
         }
     }
-  }
 }
