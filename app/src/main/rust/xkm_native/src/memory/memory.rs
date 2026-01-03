@@ -248,9 +248,14 @@ pub fn get_zram_compression_ratio() -> f32 {
     read_zram_stats().compression_ratio
 }
 
-/// Get ZRAM compressed size in KB
+/// Get ZRAM compressed size in bytes
 pub fn get_zram_compressed_size() -> i64 {
-    read_zram_stats().compr_data_size / 1024
+    read_zram_stats().compr_data_size
+}
+
+/// Get ZRAM original data size in bytes (uncompressed data stored in ZRAM)
+pub fn get_zram_orig_data_size() -> i64 {
+    read_zram_stats().orig_data_size
 }
 
 /// Get ZRAM algorithm (alias)

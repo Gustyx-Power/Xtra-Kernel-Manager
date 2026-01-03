@@ -108,13 +108,13 @@ class SplashActivity : ComponentActivity() {
         val context = LocalContext.current
         val prefsManager = remember { PreferencesManager(context) }
         val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
-        
+
         val navigateToMain: () -> Unit = {
           startActivity(Intent(this, MainActivity::class.java))
           finish()
           overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
-        
+
         if (layoutStyle == "material") {
           // Material layout uses ExpressiveSplashScreen
           ExpressiveSplashScreen(
@@ -151,7 +151,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
     // Check root access first
     checkingStatus = context.getString(R.string.splash_initializing)
     val hasRoot = checkRootAccess()
-    
+
     if (!hasRoot) {
       minSplashTime.join()
       isChecking = false
@@ -249,6 +249,13 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
         enter = fadeIn(),
         exit = fadeOut() + scaleOut(targetScale = 1.5f),
     ) {
+      val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
+      val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+      
+      val logoSize = if (isCompact) 100.dp else 140.dp
+      val logoImageSize = if (isCompact) 65.dp else 90.dp
+      val logoCornerRadius = if (isCompact) 24.dp else 36.dp
+      
       Column(
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.Center,
@@ -256,8 +263,8 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
         // Logo with glow effect
         Box(
             modifier =
-                Modifier.size(140.dp)
-                    .clip(RoundedCornerShape(36.dp))
+                Modifier.size(logoSize)
+                    .clip(RoundedCornerShape(logoCornerRadius))
                     .background(
                         Brush.radialGradient(
                             colors =
@@ -276,49 +283,49 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
                                     MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                 )
                         ),
-                        RoundedCornerShape(36.dp),
+                        RoundedCornerShape(logoCornerRadius),
                     ),
             contentAlignment = Alignment.Center,
         ) {
           Image(
               painter = painterResource(id = R.drawable.logo_a),
               contentDescription = "Logo",
-              modifier = Modifier.size(90.dp).scale(1.2f),
+              modifier = Modifier.size(logoImageSize).scale(1.2f),
           )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(dimens.spacingLarge))
 
         // App name and version in chip style
         Surface(
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(if (isCompact) 14.dp else 20.dp),
             color = MaterialTheme.colorScheme.primaryContainer,
             shadowElevation = 2.dp,
             tonalElevation = 4.dp,
         ) {
           Column(
-              modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+              modifier = Modifier.padding(horizontal = dimens.cardPadding, vertical = dimens.spacingSmall),
               horizontalAlignment = Alignment.CenterHorizontally,
           ) {
             Text(
                 text = "Xtra Kernel Manager",
-                style = MaterialTheme.typography.titleLarge,
+                style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             Text(
                 text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
-                style = MaterialTheme.typography.labelMedium,
+                style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
             )
           }
         }
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(dimens.spacingLarge * 2))
 
         if (isChecking) {
-          ModernLoader()
-          Spacer(modifier = Modifier.height(16.dp))
+          ModernLoader(isCompact = isCompact)
+          Spacer(modifier = Modifier.height(dimens.spacingMedium))
           Text(
               text = checkingStatus,
               style = MaterialTheme.typography.bodySmall,
@@ -351,7 +358,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
           }
       )
     }
-    
+
     if (showNoRootDialog) {
       NoRootDialog(
           onRetry = {
@@ -359,9 +366,7 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
             context.finish()
             context.startActivity(intent)
           },
-          onExit = {
-            (context as ComponentActivity).finish()
-          }
+          onExit = { (context as ComponentActivity).finish() },
       )
     }
   }
@@ -722,7 +727,8 @@ fun NoRootDialog(onRetry: () -> Unit, onExit: () -> Unit) {
           Button(
               onClick = onRetry,
               modifier = Modifier.weight(1f),
-              colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+              colors =
+                  ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
           ) {
             Text("Retry")
           }
@@ -733,7 +739,7 @@ fun NoRootDialog(onRetry: () -> Unit, onExit: () -> Unit) {
 }
 
 @Composable
-fun ModernLoader() {
+fun ModernLoader(isCompact: Boolean = false) {
   val infiniteTransition = rememberInfiniteTransition(label = "loader")
 
   // Main rotation
@@ -783,10 +789,20 @@ fun ModernLoader() {
   val primaryColor = MaterialTheme.colorScheme.primary
   val secondaryColor = MaterialTheme.colorScheme.secondary
   val tertiaryColor = MaterialTheme.colorScheme.tertiary
+  
+  // Responsive sizes
+  val boxSize = if (isCompact) 48.dp else 64.dp
+  val outerRingSize = if (isCompact) 48.dp else 64.dp
+  val middleRingSize = if (isCompact) 40.dp else 52.dp
+  val innerRingSize = if (isCompact) 30.dp else 40.dp
+  val centerDotSize = if (isCompact) 9.dp else 12.dp
+  val outerStroke = if (isCompact) 6.dp else 8.dp
+  val middleStroke = if (isCompact) 3.dp else 4.dp
+  val innerStroke = if (isCompact) 4.dp else 5.dp
 
-  Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+  Box(modifier = Modifier.size(boxSize), contentAlignment = Alignment.Center) {
     // Outer glow ring
-    Canvas(modifier = Modifier.size(64.dp).scale(scale)) {
+    Canvas(modifier = Modifier.size(outerRingSize).scale(scale)) {
       drawArc(
           brush =
               Brush.sweepGradient(
@@ -800,12 +816,12 @@ fun ModernLoader() {
           startAngle = rotation2,
           sweepAngle = 270f,
           useCenter = false,
-          style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round),
+          style = Stroke(width = outerStroke.toPx(), cap = StrokeCap.Round),
       )
     }
 
     // Middle ring
-    Canvas(modifier = Modifier.size(52.dp)) {
+    Canvas(modifier = Modifier.size(middleRingSize)) {
       drawArc(
           brush =
               Brush.sweepGradient(
@@ -819,12 +835,12 @@ fun ModernLoader() {
           startAngle = rotation2 + 45f,
           sweepAngle = 180f,
           useCenter = false,
-          style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round),
+          style = Stroke(width = middleStroke.toPx(), cap = StrokeCap.Round),
       )
     }
 
     // Inner spinning ring (main)
-    Canvas(modifier = Modifier.size(40.dp)) {
+    Canvas(modifier = Modifier.size(innerRingSize)) {
       drawArc(
           brush =
               Brush.sweepGradient(
@@ -838,12 +854,12 @@ fun ModernLoader() {
           startAngle = rotation,
           sweepAngle = 240f,
           useCenter = false,
-          style = Stroke(width = 5.dp.toPx(), cap = StrokeCap.Round),
+          style = Stroke(width = innerStroke.toPx(), cap = StrokeCap.Round),
       )
     }
 
     // Center dot with pulse
-    Canvas(modifier = Modifier.size(12.dp)) {
+    Canvas(modifier = Modifier.size(centerDotSize)) {
       drawCircle(color = tertiaryColor.copy(alpha = pulse), radius = size.minDimension / 2)
     }
   }

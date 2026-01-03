@@ -59,19 +59,40 @@ class BatteryRepository {
 
         // Cache capacity values (slow to read via Root, changes rarely)
         if (cachedTotalCapacity == 0 || cachedCurrentCapacity == 0) {
-          cachedTotalCapacity =
-              RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
-                  .getOrNull()
-                  ?.trim()
-                  ?.toIntOrNull()
-                  ?.div(1000) ?: 0
+          // Native first: Try using NativeLib for capacity (reads charge_full_design and
+          // charge_full internally)
+          val nativeCapacityLevel =
+              id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCapacityLevel()
+          if (nativeCapacityLevel != null && nativeCapacityLevel > 0f) {
+            cachedTotalCapacity =
+                RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
+                    .getOrNull()
+                    ?.trim()
+                    ?.toIntOrNull()
+                    ?.div(1000) ?: 0
 
-          cachedCurrentCapacity =
-              RootManager.readFile("/sys/class/power_supply/battery/charge_full")
-                  .getOrNull()
-                  ?.trim()
-                  ?.toIntOrNull()
-                  ?.div(1000) ?: 0
+            cachedCurrentCapacity =
+                RootManager.readFile("/sys/class/power_supply/battery/charge_full")
+                    .getOrNull()
+                    ?.trim()
+                    ?.toIntOrNull()
+                    ?.div(1000) ?: 0
+          } else {
+            // Fallback: Shell-only reads
+            cachedTotalCapacity =
+                RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
+                    .getOrNull()
+                    ?.trim()
+                    ?.toIntOrNull()
+                    ?.div(1000) ?: 0
+
+            cachedCurrentCapacity =
+                RootManager.readFile("/sys/class/power_supply/battery/charge_full")
+                    .getOrNull()
+                    ?.trim()
+                    ?.toIntOrNull()
+                    ?.div(1000) ?: 0
+          }
 
           // Cycle count: Native first (fast), shell fallback
           cachedCycleCount =

@@ -47,9 +47,19 @@ class TuningViewModel(
     }
   }
 
+  data class BlockDeviceState(
+      val name: String,
+      val currentScheduler: String,
+      val availableSchedulers: List<String>,
+  )
+
   private val _isRootAvailable = MutableStateFlow(false)
   val isRootAvailable: StateFlow<Boolean>
     get() = _isRootAvailable.asStateFlow()
+
+  private val _blockDeviceStates = MutableStateFlow<List<BlockDeviceState>>(emptyList())
+  val blockDeviceStates: StateFlow<List<BlockDeviceState>>
+    get() = _blockDeviceStates.asStateFlow()
 
   private val _isLoading = MutableStateFlow(true)
   val isLoading: StateFlow<Boolean>
@@ -117,7 +127,11 @@ class TuningViewModel(
   val currentMinFreeMem: StateFlow<Int>
     get() = _currentMinFreeMem.asStateFlow()
 
-  private val _zramStatus = MutableStateFlow(RAMControlUseCase.ZramStatus(false, 0, 0, 0f))
+  // Initialize with cached value if available (instant UI response)
+  private val _zramStatus =
+      MutableStateFlow(
+          ramUseCase.getZramStatusCached() ?: RAMControlUseCase.ZramStatus(false, 0, 0, 0, 0f)
+      )
   val zramStatus: StateFlow<RAMControlUseCase.ZramStatus>
     get() = _zramStatus.asStateFlow()
 
@@ -504,14 +518,7 @@ class TuningViewModel(
       _gpuInfo.value = gpuUseCase.getGPUInfo()
     }
 
-    _availableIOSchedulers.value = getAvailableIOSchedulers()
-    _availableTCPCongestion.value = getAvailableTCPCongestion()
-    _availableCompressionAlgorithms.value = ramUseCase.getAvailableCompressionAlgorithms()
-
-    val currentIO = getCurrentIOScheduler()
-    if (currentIO.isNotEmpty()) {
-      _currentIOScheduler.value = currentIO
-    }
+    loadBlockDeviceStates()
 
     val currentTCP = getCurrentTCPCongestion()
     if (currentTCP.isNotEmpty()) {
@@ -558,12 +565,45 @@ class TuningViewModel(
         soc.contains("mediatek")
   }
 
-  private suspend fun getAvailableIOSchedulers(): List<String> {
-    val schedulers =
-        RootManager.executeCommand("cat /sys/block/sda/queue/scheduler 2>/dev/null").getOrNull()
-            ?: return emptyList()
-    return schedulers.replace("[", "").replace("]", "").split("\\s+".toRegex()).filter {
-      it.isNotBlank()
+  private suspend fun loadBlockDeviceStates() {
+    val devices = listOf("sda", "sdb", "sdc", "sdd", "sde", "sdf", "mmcblk0", "dm-0")
+    val states = mutableListOf<BlockDeviceState>()
+    for (device in devices) {
+      val output =
+          RootManager.executeCommand("cat /sys/block/$device/queue/scheduler 2>/dev/null")
+              .getOrNull()
+      if (!output.isNullOrBlank()) {
+        val match = Regex("\\[(.*?)]").find(output)
+        var current = match?.groupValues?.get(1) ?: ""
+        val available =
+            output.replace("[", "").replace("]", "").split("\\s+".toRegex()).filter {
+              it.isNotBlank()
+            }
+
+        // Fix: If current is empty but only 1 option exists (e.g. "none"), assume it's active
+        if (current.isEmpty() && available.size == 1) {
+          current = available.first()
+        }
+
+        if (available.isNotEmpty()) {
+          states.add(BlockDeviceState(device, current, available))
+        }
+      }
+    }
+    _blockDeviceStates.value = states
+
+    // Sync legacy flows
+    val sda = states.find { it.name == "sda" } ?: states.firstOrNull()
+    if (sda != null) {
+      _availableIOSchedulers.value = sda.availableSchedulers
+      _currentIOScheduler.value = sda.currentScheduler
+    }
+  }
+
+  fun setDeviceIOScheduler(device: String, scheduler: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+      RootManager.executeCommand("echo $scheduler > /sys/block/$device/queue/scheduler")
+      loadBlockDeviceStates()
     }
   }
 
@@ -577,21 +617,26 @@ class TuningViewModel(
   }
 
   private suspend fun getCurrentIOScheduler(): String {
-    val output =
-        RootManager.executeCommand("cat /sys/block/sda/queue/scheduler 2>/dev/null").getOrNull()
-    Log.d("TuningViewModel", "IO Scheduler raw output: $output")
-
-    if (output.isNullOrEmpty()) {
-      val saved = preferencesManager.getIOScheduler().first()
-      Log.d("TuningViewModel", "IO Scheduler from prefs (fallback): $saved")
-      return saved
+    // Try multiple block devices
+    val blockDevices = listOf("sda", "sdb", "sdc", "sdd", "sde", "sdf", "mmcblk0", "dm-0")
+    for (device in blockDevices) {
+      val output =
+          RootManager.executeCommand("cat /sys/block/$device/queue/scheduler 2>/dev/null")
+              .getOrNull()
+      if (!output.isNullOrBlank()) {
+        val match = Regex("\\[(.*?)]").find(output)
+        val result = match?.groupValues?.get(1) ?: ""
+        if (result.isNotEmpty()) {
+          Log.d("TuningViewModel", "IO Scheduler from $device: $result")
+          return result
+        }
+      }
     }
 
-    val match = Regex("\\[(.*?)]").find(output)
-    val result = match?.groupValues?.get(1) ?: ""
-    Log.d("TuningViewModel", "IO Scheduler parsed: $result")
-
-    return result.ifEmpty { preferencesManager.getIOScheduler().first() }
+    // Fallback to saved preference
+    val saved = preferencesManager.getIOScheduler().first()
+    Log.d("TuningViewModel", "IO Scheduler from prefs (fallback): $saved")
+    return saved
   }
 
   private suspend fun getCurrentTCPCongestion(): String {
@@ -676,7 +721,12 @@ class TuningViewModel(
 
     val ioScheduler = preferencesManager.getIOScheduler().first()
     if (ioScheduler.isNotBlank()) {
-      RootManager.executeCommand("echo $ioScheduler > /sys/block/sda/queue/scheduler")
+      // Apply to all block devices
+      listOf("sda", "sdb", "sdc", "sdd", "sde", "sdf", "mmcblk0", "dm-0").forEach { device ->
+        RootManager.executeCommand(
+            "echo $ioScheduler > /sys/block/$device/queue/scheduler 2>/dev/null"
+        )
+      }
     }
 
     val tcpCongestion = preferencesManager.getTCPCongestion().first()
@@ -753,10 +803,21 @@ class TuningViewModel(
 
       _currentIOScheduler.value = scheduler
 
-      val result = RootManager.executeCommand("echo $scheduler > /sys/block/sda/queue/scheduler")
-      Log.d("TuningViewModel", "IO Scheduler command result: ${result.isSuccess}")
+      // Apply to all available block devices
+      val blockDevices = listOf("sda", "sdb", "sdc", "sdd", "sde", "sdf", "mmcblk0", "dm-0")
+      var anySuccess = false
+      for (device in blockDevices) {
+        val result =
+            RootManager.executeCommand(
+                "echo $scheduler > /sys/block/$device/queue/scheduler 2>/dev/null"
+            )
+        if (result.isSuccess) {
+          Log.d("TuningViewModel", "IO Scheduler set for $device")
+          anySuccess = true
+        }
+      }
 
-      if (result.isSuccess) {
+      if (anySuccess) {
         preferencesManager.setIOScheduler(scheduler)
         delay(200)
         val verified = getCurrentIOScheduler()
@@ -792,13 +853,22 @@ class TuningViewModel(
 
   fun setRAMParameters(config: RAMConfig) {
     viewModelScope.launch(Dispatchers.IO) {
+      // Save to preferences FIRST for immediate UI feedback
+      preferencesManager.setRamConfig(config)
+      _currentCompressionAlgorithm.value = config.compressionAlgorithm
+
+      // Then apply to system (these operations can take time)
       ramUseCase.setSwappiness(config.swappiness)
       ramUseCase.setZRAMSize(config.zramSize.toLong() * 1024L * 1024L, config.compressionAlgorithm)
       ramUseCase.setDirtyRatio(config.dirtyRatio)
       ramUseCase.setMinFreeMem(config.minFreeMem)
       ramUseCase.setSwapFileSizeMb(config.swapSize)
-      preferencesManager.setRamConfig(config)
-      _currentCompressionAlgorithm.value = config.compressionAlgorithm
+
+      // Refresh status after operations complete
+      RAMControlUseCase.invalidateZramCache()
+      _zramStatus.value = ramUseCase.getZramStatus()
+      _swapFileStatus.value = ramUseCase.getSwapFileStatus()
+      _memoryStats.value = ramUseCase.getMemoryStats()
     }
   }
 
