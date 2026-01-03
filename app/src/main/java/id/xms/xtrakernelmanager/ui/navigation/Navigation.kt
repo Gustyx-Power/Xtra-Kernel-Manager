@@ -229,7 +229,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         XiaomiTouchSettingsScreen(onNavigateBack = { navController.popBackStack() })
       }
 
-      composable("info") { InfoScreen() }
+      composable("info") { InfoScreen(preferencesManager) }
     }
   }
 }
