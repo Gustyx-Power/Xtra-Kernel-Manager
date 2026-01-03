@@ -41,7 +41,17 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import kotlinx.coroutines.delay
 
 @Composable
-fun InfoScreen() {
+fun InfoScreen(preferencesManager: id.xms.xtrakernelmanager.data.preferences.PreferencesManager) {
+  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
+  if (layoutStyle == "material") {
+    MaterialAboutScreen()
+  } else {
+    LegacyInfoScreen()
+  }
+}
+
+@Composable
+private fun LegacyInfoScreen() {
   val uriHandler = LocalUriHandler.current
   val sourceUrl = stringResource(R.string.info_source_code_url)
   val plingUrl = stringResource(R.string.info_pling_url)

@@ -20,12 +20,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MiscViewModel(
-    private val preferencesManager: PreferencesManager,
+    val preferencesManager: PreferencesManager,
     private val context: Context,
 ) : ViewModel() {
 
   private val batteryRepository = BatteryRepository()
   private val gameControlUseCase = GameControlUseCase(context)
+
+  // -- Network & Connectivity State --
+  private val _currentHostname = MutableStateFlow("")
+  val currentHostname: StateFlow<String> = _currentHostname.asStateFlow()
+
+  private val _networkStatus = MutableStateFlow("Unknown")
+  val networkStatus: StateFlow<String> = _networkStatus.asStateFlow()
 
   private val _isRootAvailable = MutableStateFlow(false)
   val isRootAvailable: StateFlow<Boolean> = _isRootAvailable.asStateFlow()
@@ -82,7 +89,46 @@ class MiscViewModel(
 
   init {
     checkRoot()
+    checkRoot()
     loadCurrentPerformanceMode()
+    loadNetworkInfo()
+  }
+
+  private fun loadNetworkInfo() {
+    viewModelScope.launch {
+      // Hostname
+      val hostname =
+          RootManager.executeCommand("getprop net.hostname").getOrNull()?.trim()
+              ?: Settings.Global.getString(context.contentResolver, "device_name")
+              ?: "Android"
+      _currentHostname.value = hostname
+
+      // Network Status (Simple check)
+      val cm =
+          context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+      val activeNetwork = cm.activeNetwork
+      val caps = cm.getNetworkCapabilities(activeNetwork)
+      val status =
+          when {
+            caps?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) == true ->
+                "Connected (Wi-Fi)"
+            caps?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) == true ->
+                "Connected (Mobile)"
+            caps?.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) == true ->
+                "Connected (Ethernet)"
+            else -> "Disconnected"
+          }
+      _networkStatus.value = status
+    }
+  }
+
+  fun setHostname(name: String) {
+    viewModelScope.launch {
+      if (name.isNotBlank()) {
+        RootManager.executeCommand("setprop net.hostname $name")
+        _currentHostname.value = name
+      }
+    }
   }
 
   private fun checkRoot() {
