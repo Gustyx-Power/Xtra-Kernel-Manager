@@ -137,7 +137,7 @@ dependencies {
     // Material 3 Expressive
     implementation("androidx.compose.material:material-icons-extended")
     // Simple Icons (Brands)
-    implementation("br.com.devsrsouza.compose.icons:simple-icons:1.1.0")
+    implementation("br.com.devsrsouza.compose.icons:simple-icons:1.1.1")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.9.6")
