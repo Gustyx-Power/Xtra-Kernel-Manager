@@ -27,8 +27,6 @@ class MiscViewModel(
   private val batteryRepository = BatteryRepository()
   private val gameControlUseCase = GameControlUseCase(context)
 
-
-
   private val _isRootAvailable = MutableStateFlow(false)
   val isRootAvailable: StateFlow<Boolean> = _isRootAvailable.asStateFlow()
 
@@ -100,8 +98,6 @@ class MiscViewModel(
     loadCurrentPerformanceMode()
   }
 
-
-
   private fun checkRoot() {
     viewModelScope.launch {
       _isRootAvailable.value = RootManager.isRootAvailable()
@@ -110,14 +106,14 @@ class MiscViewModel(
   }
 
   fun loadBatteryInfo(context: Context) {
-    viewModelScope.launch { 
-        _batteryInfo.value = batteryRepository.getBatteryInfo(context)
-        
-        // Populate placeholders (Simulated for design)
-        _screenOnTime.value = "13h 17m"
-        _screenOffTime.value = "10h 27m"
-        _deepSleepTime.value = "4h 36m"
-        _drainRate.value = "-0.0%/h"
+    viewModelScope.launch {
+      _batteryInfo.value = batteryRepository.getBatteryInfo(context)
+
+      // Populate placeholders (Simulated for design)
+      _screenOnTime.value = "13h 17m"
+      _screenOffTime.value = "10h 27m"
+      _deepSleepTime.value = "4h 36m"
+      _drainRate.value = "-0.0%/h"
     }
   }
 

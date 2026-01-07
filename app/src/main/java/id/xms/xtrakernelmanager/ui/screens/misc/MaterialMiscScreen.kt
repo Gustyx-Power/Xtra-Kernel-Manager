@@ -33,6 +33,25 @@ import org.json.JSONArray
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
+  var showBatteryDetail by remember { mutableStateOf(false) }
+
+  if (showBatteryDetail) {
+    MaterialBatteryScreen(onBack = { showBatteryDetail = false })
+  } else {
+    MaterialMiscScreenContent(
+        viewModel,
+        onNavigate,
+        onBatteryDetailClick = { showBatteryDetail = true },
+    )
+  }
+}
+
+@Composable
+fun MaterialMiscScreenContent(
+    viewModel: MiscViewModel,
+    onNavigate: (String) -> Unit,
+    onBatteryDetailClick: () -> Unit,
+) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
   val isRooted by viewModel.isRootAvailable.collectAsState()
@@ -60,7 +79,9 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
     ) {
       // 1. Power Insight Card
       item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 0) { PowerInsightCard(viewModel, batteryInfo) }
+        StaggeredEntry(delayMillis = 0) {
+          PowerInsightCard(viewModel, batteryInfo, onClick = onBatteryDetailClick)
+        }
       }
 
       // 2. Display & Color (Left) - Hide if Game Space is Expanded
@@ -104,16 +125,12 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
         }
       }
 
-
-
       // 5. Functional ROM (Conditional)
       item(span = StaggeredGridItemSpan.FullLine) {
         StaggeredEntry(delayMillis = 400) { FunctionalRomCard(viewModel) }
       }
     }
   }
-
-
 }
 
 @Composable
@@ -136,13 +153,11 @@ fun MaterialMiscHeader() {
           color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
       )
     }
-
-
   }
 }
 
 @Composable
-fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo) {
+fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick: () -> Unit) {
   val screenOnTime by viewModel.screenOnTime.collectAsState()
   val screenOffTime by viewModel.screenOffTime.collectAsState()
   val deepSleepTime by viewModel.deepSleepTime.collectAsState()
@@ -151,7 +166,11 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo) {
   Card(
       modifier = Modifier.fillMaxWidth().height(220.dp),
       shape = RoundedCornerShape(32.dp),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer), // Dynamic background
+      colors =
+          CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.surfaceContainer
+          ), // Dynamic background
+      onClick = onClick,
   ) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
       // Header
@@ -165,7 +184,13 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo) {
               Icons.Rounded.Schedule, // Clock icon
               contentDescription = null,
               tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-              modifier = Modifier.size(24.dp).background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), RoundedCornerShape(8.dp)).padding(4.dp)
+              modifier =
+                  Modifier.size(24.dp)
+                      .background(
+                          MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                          RoundedCornerShape(8.dp),
+                      )
+                      .padding(4.dp),
           )
           Spacer(modifier = Modifier.width(12.dp))
           Text(
@@ -175,21 +200,26 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo) {
               color = MaterialTheme.colorScheme.onSurface,
           )
         }
-        
+
         // Charging Status Badge
-        val isPluggedIn = batteryInfo.status.contains("Charging", ignoreCase = true) || 
-                          batteryInfo.status.contains("Full", ignoreCase = true)
+        val isPluggedIn =
+            batteryInfo.status.contains("Charging", ignoreCase = true) ||
+                batteryInfo.status.contains("Full", ignoreCase = true)
         Surface(
-            color = if (isPluggedIn) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+            color =
+                if (isPluggedIn) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.secondaryContainer,
             shape = RoundedCornerShape(50),
         ) {
-            Text(
-                text = if (isPluggedIn) "Plugged In" else "Unplugged",
-                style = MaterialTheme.typography.labelMedium,
-                color = if (isPluggedIn) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-            )
+          Text(
+              text = if (isPluggedIn) "Plugged In" else "Unplugged",
+              style = MaterialTheme.typography.labelMedium,
+              color =
+                  if (isPluggedIn) MaterialTheme.colorScheme.onPrimaryContainer
+                  else MaterialTheme.colorScheme.onSecondaryContainer,
+              fontWeight = FontWeight.Bold,
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+          )
         }
       }
 
@@ -201,46 +231,46 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo) {
       ) {
         // Left: Wavy Progress
         Box(contentAlignment = Alignment.Center) {
-            id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
-                progress = 0.75f, // Placeholder progress
-                modifier = Modifier.size(120.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                strokeWidth = 14.dp,
-                amplitude = 4.dp,
-                frequency = 10
-            )
-            Text(
-                text = screenOnTime,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+          id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
+              progress = 0.75f, // Placeholder progress
+              modifier = Modifier.size(120.dp),
+              color = MaterialTheme.colorScheme.primary,
+              trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+              strokeWidth = 14.dp,
+              amplitude = 4.dp,
+              frequency = 10,
+          )
+          Text(
+              text = screenOnTime,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface,
+          )
         }
 
         // Right: Stats List
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.Start
+            horizontalAlignment = Alignment.Start,
         ) {
-            PowerStatItem(
-                icon = Icons.Rounded.WbSunny, 
-                value = screenOnTime, 
-                label = "Screen On",
-                iconTint = MaterialTheme.colorScheme.primary
-            )
-            PowerStatItem(
-                icon = Icons.Rounded.Smartphone, 
-                value = screenOffTime, 
-                label = "Screen Off",
-                iconTint = MaterialTheme.colorScheme.primary
-            )
-            PowerStatItem(
-                icon = Icons.Rounded.NightsStay, 
-                value = deepSleepTime, 
-                label = "Deep Sleep",
-                iconTint = MaterialTheme.colorScheme.primary
-            )
+          PowerStatItem(
+              icon = Icons.Rounded.WbSunny,
+              value = screenOnTime,
+              label = "Screen On",
+              iconTint = MaterialTheme.colorScheme.primary,
+          )
+          PowerStatItem(
+              icon = Icons.Rounded.Smartphone,
+              value = screenOffTime,
+              label = "Screen Off",
+              iconTint = MaterialTheme.colorScheme.primary,
+          )
+          PowerStatItem(
+              icon = Icons.Rounded.NightsStay,
+              value = deepSleepTime,
+              label = "Deep Sleep",
+              iconTint = MaterialTheme.colorScheme.primary,
+          )
         }
       }
     }
@@ -249,28 +279,31 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo) {
 
 @Composable
 fun PowerStatItem(icon: ImageVector, value: String, label: String, iconTint: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconTint, // Override with specific color if needed, or use argument
-            modifier = Modifier.size(20.dp).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape).padding(4.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
-            )
-        }
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = iconTint, // Override with specific color if needed, or use argument
+        modifier =
+            Modifier.size(20.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
+                .padding(4.dp),
+    )
+    Spacer(modifier = Modifier.width(12.dp))
+    Column {
+      Text(
+          text = value,
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onSurface,
+      )
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+      )
     }
+  }
 }
 
 @Composable
@@ -544,8 +577,6 @@ fun GameSpaceCard(
     }
   }
 }
-
-
 
 @Composable
 fun FunctionalRomCard(viewModel: MiscViewModel) {
