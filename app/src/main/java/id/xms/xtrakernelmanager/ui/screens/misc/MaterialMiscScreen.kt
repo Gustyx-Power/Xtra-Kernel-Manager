@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.ui.components.WavySlider
-import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import java.util.Locale
 import kotlinx.coroutines.delay
 import org.json.JSONArray
@@ -37,10 +36,6 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
   val isRooted by viewModel.isRootAvailable.collectAsState()
-
-  // State for Sheets
-  var showSettingsBottomSheet by remember { mutableStateOf(false) }
-  @OptIn(ExperimentalMaterial3Api::class) val settingsSheetState = rememberModalBottomSheetState()
 
   // State for Card Expansion (Mutually Exclusive ideally, but enforced by visibility)
   var isGameSpaceExpanded by remember { mutableStateOf(false) }
@@ -54,7 +49,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
 
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
-      topBar = { MaterialMiscHeader(onSettingsClick = { showSettingsBottomSheet = true }) },
+      topBar = { MaterialMiscHeader() },
   ) { paddingValues ->
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
@@ -109,10 +104,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
         }
       }
 
-      // 4. Connectivity & Hostname (Full Width Group)
-      item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 300) { ConnectivityGroup(viewModel) }
-      }
+
 
       // 5. Functional ROM (Conditional)
       item(span = StaggeredGridItemSpan.FullLine) {
@@ -121,24 +113,11 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
     }
   }
 
-  // Settings Sheet
-  if (showSettingsBottomSheet) {
-    ModalBottomSheet(
-        onDismissRequest = { showSettingsBottomSheet = false },
-        sheetState = settingsSheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-      SettingsSheet(
-          preferencesManager = viewModel.preferencesManager,
-          onDismiss = { showSettingsBottomSheet = false },
-      )
-    }
-  }
+
 }
 
 @Composable
-fun MaterialMiscHeader(onSettingsClick: () -> Unit) {
+fun MaterialMiscHeader() {
   Row(
       modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 16.dp),
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -158,16 +137,7 @@ fun MaterialMiscHeader(onSettingsClick: () -> Unit) {
       )
     }
 
-    IconButton(
-        onClick = onSettingsClick,
-        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-    ) {
-      Icon(
-          imageVector = Icons.Rounded.Settings,
-          contentDescription = "Settings",
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
+
   }
 }
 
@@ -521,117 +491,7 @@ fun GameSpaceCard(
   }
 }
 
-@Composable
-fun ConnectivityGroup(viewModel: MiscViewModel) {
-  val hostname by viewModel.currentHostname.collectAsState()
-  val networkStatus by viewModel.networkStatus.collectAsState()
-  var showHostnameDialog by remember { mutableStateOf(false) }
 
-  Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    // Hostname Strip
-    Surface(
-        onClick = { showHostnameDialog = true },
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.fillMaxWidth().height(60.dp),
-    ) {
-      Row(
-          modifier = Modifier.padding(horizontal = 16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Icon(
-            Icons.Rounded.Dns,
-            null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp),
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-              "Hostname",
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-          Text(
-              hostname.ifEmpty { "android-xxxxxxxx" },
-              style = MaterialTheme.typography.bodyMedium,
-              fontWeight = FontWeight.SemiBold,
-              color = MaterialTheme.colorScheme.onSurface,
-          )
-        }
-        Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(16.dp))
-      }
-    }
-
-    // TCP & Network
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-      Card(
-          modifier = Modifier.weight(1f).height(100.dp),
-          shape = RoundedCornerShape(20.dp),
-          colors =
-              CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      ) {
-        Column(
-            Modifier.padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-          Icon(Icons.Rounded.Router, null, tint = MaterialTheme.colorScheme.secondary)
-          Text(
-              networkStatus,
-              style = MaterialTheme.typography.bodyMedium,
-              fontWeight = FontWeight.Bold,
-          )
-        }
-      }
-      Card(
-          modifier = Modifier.weight(1f).height(100.dp),
-          shape = RoundedCornerShape(20.dp),
-          colors =
-              CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      ) {
-        Column(
-            Modifier.padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-          Icon(Icons.Rounded.Security, null, tint = MaterialTheme.colorScheme.tertiary)
-          Text(
-              "Private DNS", // Value placeholder
-              style = MaterialTheme.typography.bodyMedium,
-              fontWeight = FontWeight.Bold,
-          )
-        }
-      }
-    }
-  }
-
-  // Hostname Dialog
-  if (showHostnameDialog) {
-    var input by remember { mutableStateOf(hostname) }
-    AlertDialog(
-        onDismissRequest = { showHostnameDialog = false },
-        title = { Text("Set Hostname") },
-        text = {
-          OutlinedTextField(
-              value = input,
-              onValueChange = { input = it },
-              label = { Text("Hostname") },
-              singleLine = true,
-          )
-        },
-        confirmButton = {
-          Button(
-              onClick = {
-                viewModel.setHostname(input)
-                showHostnameDialog = false
-              }
-          ) {
-            Text("Save")
-          }
-        },
-        dismissButton = { TextButton(onClick = { showHostnameDialog = false }) { Text("Cancel") } },
-    )
-  }
-}
 
 @Composable
 fun FunctionalRomCard(viewModel: MiscViewModel) {
