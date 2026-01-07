@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.ui.components.WavySlider
-import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import java.util.Locale
 import kotlinx.coroutines.delay
 import org.json.JSONArray
@@ -34,13 +33,28 @@ import org.json.JSONArray
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
+  var showBatteryDetail by remember { mutableStateOf(false) }
+
+  if (showBatteryDetail) {
+    MaterialBatteryScreen(onBack = { showBatteryDetail = false })
+  } else {
+    MaterialMiscScreenContent(
+        viewModel,
+        onNavigate,
+        onBatteryDetailClick = { showBatteryDetail = true },
+    )
+  }
+}
+
+@Composable
+fun MaterialMiscScreenContent(
+    viewModel: MiscViewModel,
+    onNavigate: (String) -> Unit,
+    onBatteryDetailClick: () -> Unit,
+) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
   val isRooted by viewModel.isRootAvailable.collectAsState()
-
-  // State for Sheets
-  var showSettingsBottomSheet by remember { mutableStateOf(false) }
-  @OptIn(ExperimentalMaterial3Api::class) val settingsSheetState = rememberModalBottomSheetState()
 
   // State for Card Expansion (Mutually Exclusive ideally, but enforced by visibility)
   var isGameSpaceExpanded by remember { mutableStateOf(false) }
@@ -54,7 +68,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
 
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
-      topBar = { MaterialMiscHeader(onSettingsClick = { showSettingsBottomSheet = true }) },
+      topBar = { MaterialMiscHeader() },
   ) { paddingValues ->
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
@@ -63,9 +77,11 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(bottom = 24.dp),
     ) {
-      // 1. Battery Hero Card
+      // 1. Power Insight Card
       item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 0) { MiscBatteryCard(batteryInfo) }
+        StaggeredEntry(delayMillis = 0) {
+          PowerInsightCard(viewModel, batteryInfo, onClick = onBatteryDetailClick)
+        }
       }
 
       // 2. Display & Color (Left) - Hide if Game Space is Expanded
@@ -109,36 +125,16 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
         }
       }
 
-      // 4. Connectivity & Hostname (Full Width Group)
-      item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 300) { ConnectivityGroup(viewModel) }
-      }
-
       // 5. Functional ROM (Conditional)
       item(span = StaggeredGridItemSpan.FullLine) {
         StaggeredEntry(delayMillis = 400) { FunctionalRomCard(viewModel) }
       }
     }
   }
-
-  // Settings Sheet
-  if (showSettingsBottomSheet) {
-    ModalBottomSheet(
-        onDismissRequest = { showSettingsBottomSheet = false },
-        sheetState = settingsSheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-      SettingsSheet(
-          preferencesManager = viewModel.preferencesManager,
-          onDismiss = { showSettingsBottomSheet = false },
-      )
-    }
-  }
 }
 
 @Composable
-fun MaterialMiscHeader(onSettingsClick: () -> Unit) {
+fun MaterialMiscHeader() {
   Row(
       modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 16.dp),
       horizontalArrangement = Arrangement.SpaceBetween,
@@ -157,94 +153,155 @@ fun MaterialMiscHeader(onSettingsClick: () -> Unit) {
           color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
       )
     }
+  }
+}
 
-    IconButton(
-        onClick = onSettingsClick,
-        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-    ) {
-      Icon(
-          imageVector = Icons.Rounded.Settings,
-          contentDescription = "Settings",
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
+@Composable
+fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick: () -> Unit) {
+  val screenOnTime by viewModel.screenOnTime.collectAsState()
+  val screenOffTime by viewModel.screenOffTime.collectAsState()
+  val deepSleepTime by viewModel.deepSleepTime.collectAsState()
+  val drainRate by viewModel.drainRate.collectAsState()
+
+  Card(
+      modifier = Modifier.fillMaxWidth().height(220.dp),
+      shape = RoundedCornerShape(32.dp),
+      colors =
+          CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.surfaceContainer
+          ), // Dynamic background
+      onClick = onClick,
+  ) {
+    Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
+      // Header
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(
+              Icons.Rounded.Schedule, // Clock icon
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+              modifier =
+                  Modifier.size(24.dp)
+                      .background(
+                          MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                          RoundedCornerShape(8.dp),
+                      )
+                      .padding(4.dp),
+          )
+          Spacer(modifier = Modifier.width(12.dp))
+          Text(
+              text = "Power Insight",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface,
+          )
+        }
+
+        // Charging Status Badge
+        val isPluggedIn =
+            batteryInfo.status.contains("Charging", ignoreCase = true) ||
+                batteryInfo.status.contains("Full", ignoreCase = true)
+        Surface(
+            color =
+                if (isPluggedIn) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.secondaryContainer,
+            shape = RoundedCornerShape(50),
+        ) {
+          Text(
+              text = if (isPluggedIn) "Plugged In" else "Unplugged",
+              style = MaterialTheme.typography.labelMedium,
+              color =
+                  if (isPluggedIn) MaterialTheme.colorScheme.onPrimaryContainer
+                  else MaterialTheme.colorScheme.onSecondaryContainer,
+              fontWeight = FontWeight.Bold,
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+          )
+        }
+      }
+
+      // Content (Progress + Stats)
+      Row(
+          modifier = Modifier.fillMaxSize().padding(top = 40.dp), // Space for header
+          horizontalArrangement = Arrangement.spacedBy(24.dp),
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        // Left: Wavy Progress
+        Box(contentAlignment = Alignment.Center) {
+          id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
+              progress = 0.75f, // Placeholder progress
+              modifier = Modifier.size(120.dp),
+              color = MaterialTheme.colorScheme.primary,
+              trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+              strokeWidth = 14.dp,
+              amplitude = 4.dp,
+              frequency = 10,
+          )
+          Text(
+              text = screenOnTime,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface,
+          )
+        }
+
+        // Right: Stats List
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+          PowerStatItem(
+              icon = Icons.Rounded.WbSunny,
+              value = screenOnTime,
+              label = "Screen On",
+              iconTint = MaterialTheme.colorScheme.primary,
+          )
+          PowerStatItem(
+              icon = Icons.Rounded.Smartphone,
+              value = screenOffTime,
+              label = "Screen Off",
+              iconTint = MaterialTheme.colorScheme.primary,
+          )
+          PowerStatItem(
+              icon = Icons.Rounded.NightsStay,
+              value = deepSleepTime,
+              label = "Deep Sleep",
+              iconTint = MaterialTheme.colorScheme.primary,
+          )
+        }
+      }
     }
   }
 }
 
 @Composable
-fun MiscBatteryCard(batteryInfo: BatteryInfo) {
-  Card(
-      modifier =
-          Modifier
-              .fillMaxWidth(), // Removed fixed height, removed height(140.dp) to allow flexibility
-      shape = RoundedCornerShape(32.dp),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-  ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-      // Background Watermark (Optional: Charging Bolt)
-      if (batteryInfo.status.contains("Charging", ignoreCase = true)) {
-        Icon(
-            Icons.Rounded.Bolt,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f),
-            modifier = Modifier.size(120.dp).align(Alignment.CenterEnd).offset(x = 24.dp),
-        )
-      }
-
-      Row(
-          modifier = Modifier.fillMaxWidth().padding(24.dp), // Increased padding
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                Icons.Rounded.BatteryStd,
-                null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Battery",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-          }
-
-          Column {
-            Text(
-                text = "${batteryInfo.level}%",
-                style = MaterialTheme.typography.displayMedium, // kept large
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-            Text(
-                text = batteryInfo.status,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-            )
-          }
-        }
-
-        // Right Side Stats - Vertical Badge Stack
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.End,
-        ) {
-          BatteryStatBadge(
-              value = "${batteryInfo.temperature}°C",
-              label = "Temp",
-              icon = Icons.Rounded.Thermostat,
-          )
-          BatteryStatBadge(
-              value = "${batteryInfo.currentNow}mA",
-              label = "Current",
-              icon = Icons.Rounded.ElectricBolt,
-          )
-        }
-      }
+fun PowerStatItem(icon: ImageVector, value: String, label: String, iconTint: Color) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = iconTint, // Override with specific color if needed, or use argument
+        modifier =
+            Modifier.size(20.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
+                .padding(4.dp),
+    )
+    Spacer(modifier = Modifier.width(12.dp))
+    Column {
+      Text(
+          text = value,
+          style = MaterialTheme.typography.labelLarge,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onSurface,
+      )
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+      )
     }
   }
 }
@@ -518,118 +575,6 @@ fun GameSpaceCard(
         }
       }
     }
-  }
-}
-
-@Composable
-fun ConnectivityGroup(viewModel: MiscViewModel) {
-  val hostname by viewModel.currentHostname.collectAsState()
-  val networkStatus by viewModel.networkStatus.collectAsState()
-  var showHostnameDialog by remember { mutableStateOf(false) }
-
-  Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-    // Hostname Strip
-    Surface(
-        onClick = { showHostnameDialog = true },
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.fillMaxWidth().height(60.dp),
-    ) {
-      Row(
-          modifier = Modifier.padding(horizontal = 16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Icon(
-            Icons.Rounded.Dns,
-            null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp),
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(modifier = Modifier.weight(1f)) {
-          Text(
-              "Hostname",
-              style = MaterialTheme.typography.labelSmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-          )
-          Text(
-              hostname.ifEmpty { "android-xxxxxxxx" },
-              style = MaterialTheme.typography.bodyMedium,
-              fontWeight = FontWeight.SemiBold,
-              color = MaterialTheme.colorScheme.onSurface,
-          )
-        }
-        Icon(Icons.Rounded.Edit, null, modifier = Modifier.size(16.dp))
-      }
-    }
-
-    // TCP & Network
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-      Card(
-          modifier = Modifier.weight(1f).height(100.dp),
-          shape = RoundedCornerShape(20.dp),
-          colors =
-              CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      ) {
-        Column(
-            Modifier.padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-          Icon(Icons.Rounded.Router, null, tint = MaterialTheme.colorScheme.secondary)
-          Text(
-              networkStatus,
-              style = MaterialTheme.typography.bodyMedium,
-              fontWeight = FontWeight.Bold,
-          )
-        }
-      }
-      Card(
-          modifier = Modifier.weight(1f).height(100.dp),
-          shape = RoundedCornerShape(20.dp),
-          colors =
-              CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      ) {
-        Column(
-            Modifier.padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-          Icon(Icons.Rounded.Security, null, tint = MaterialTheme.colorScheme.tertiary)
-          Text(
-              "Private DNS", // Value placeholder
-              style = MaterialTheme.typography.bodyMedium,
-              fontWeight = FontWeight.Bold,
-          )
-        }
-      }
-    }
-  }
-
-  // Hostname Dialog
-  if (showHostnameDialog) {
-    var input by remember { mutableStateOf(hostname) }
-    AlertDialog(
-        onDismissRequest = { showHostnameDialog = false },
-        title = { Text("Set Hostname") },
-        text = {
-          OutlinedTextField(
-              value = input,
-              onValueChange = { input = it },
-              label = { Text("Hostname") },
-              singleLine = true,
-          )
-        },
-        confirmButton = {
-          Button(
-              onClick = {
-                viewModel.setHostname(input)
-                showHostnameDialog = false
-              }
-          ) {
-            Text("Save")
-          }
-        },
-        dismissButton = { TextButton(onClick = { showHostnameDialog = false }) { Text("Cancel") } },
-    )
   }
 }
 
