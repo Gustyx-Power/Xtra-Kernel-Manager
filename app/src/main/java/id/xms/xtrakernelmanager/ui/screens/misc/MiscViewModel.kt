@@ -35,6 +35,19 @@ class MiscViewModel(
   private val _batteryInfo = MutableStateFlow(BatteryInfo())
   val batteryInfo: StateFlow<BatteryInfo> = _batteryInfo.asStateFlow()
 
+  // Placeholder Stats for Power Insight
+  private val _screenOnTime = MutableStateFlow("--h --m")
+  val screenOnTime: StateFlow<String> = _screenOnTime.asStateFlow()
+
+  private val _screenOffTime = MutableStateFlow("--h --m")
+  val screenOffTime: StateFlow<String> = _screenOffTime.asStateFlow()
+
+  private val _deepSleepTime = MutableStateFlow("--h --m")
+  val deepSleepTime: StateFlow<String> = _deepSleepTime.asStateFlow()
+
+  private val _drainRate = MutableStateFlow("0%/h")
+  val drainRate: StateFlow<String> = _drainRate.asStateFlow()
+
   private val _performanceMode = MutableStateFlow("balanced")
   val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
 
@@ -97,7 +110,15 @@ class MiscViewModel(
   }
 
   fun loadBatteryInfo(context: Context) {
-    viewModelScope.launch { _batteryInfo.value = batteryRepository.getBatteryInfo(context) }
+    viewModelScope.launch { 
+        _batteryInfo.value = batteryRepository.getBatteryInfo(context)
+        
+        // Populate placeholders (Simulated for design)
+        _screenOnTime.value = "13h 17m"
+        _screenOffTime.value = "10h 27m"
+        _deepSleepTime.value = "4h 36m"
+        _drainRate.value = "-0.0%/h"
+    }
   }
 
   fun setShowBatteryNotification(enabled: Boolean) {
