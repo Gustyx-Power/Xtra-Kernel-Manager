@@ -33,7 +33,7 @@ data class ProcessInfo(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProcessManagerScreen(
+fun MaterialProcessManagerScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
 ) {

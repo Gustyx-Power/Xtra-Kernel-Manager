@@ -35,15 +35,18 @@ import org.json.JSONArray
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
   var showBatteryDetail by remember { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
+  var showGameSpace by remember { mutableStateOf(false) }
 
   when {
     showBatteryDetail -> MaterialBatteryScreen(onBack = { showBatteryDetail = false })
-    showProcessManager -> ProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
+    showProcessManager -> MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
+    showGameSpace -> MaterialGameSpaceScreen(viewModel = viewModel, onBack = { showGameSpace = false })
     else -> MaterialMiscScreenContent(
         viewModel,
         onNavigate,
         onBatteryDetailClick = { showBatteryDetail = true },
         onProcessManagerClick = { showProcessManager = true },
+        onGameSpaceClick = { showGameSpace = true },
     )
   }
 }
@@ -54,13 +57,13 @@ fun MaterialMiscScreenContent(
     onNavigate: (String) -> Unit,
     onBatteryDetailClick: () -> Unit,
     onProcessManagerClick: () -> Unit,
+    onGameSpaceClick: () -> Unit,
 ) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
   val isRooted by viewModel.isRootAvailable.collectAsState()
 
-  // State for Card Expansion (Mutually Exclusive ideally, but enforced by visibility)
-  var isGameSpaceExpanded by remember { mutableStateOf(false) }
+  // State for Card Expansion
   var isDisplayExpanded by remember { mutableStateOf(false) }
   var isSELinuxExpanded by remember { mutableStateOf(false) }
 
@@ -88,44 +91,31 @@ fun MaterialMiscScreenContent(
         }
       }
 
-      // 2. Display & Color (Left) - Hide if Game Space is Expanded
-      if (!isGameSpaceExpanded) {
-        item(
-            span =
-                if (isDisplayExpanded) StaggeredGridItemSpan.FullLine
-                else StaggeredGridItemSpan.SingleLane
-        ) {
+      // 2. Game Space (Left) - Navigate to screen, hide when Display expanded
+      if (!isDisplayExpanded) {
+        item(span = StaggeredGridItemSpan.SingleLane) {
           StaggeredEntry(delayMillis = 100) {
-            DisplayColorCard(
+            GameSpaceCard(
                 viewModel = viewModel,
-                isRooted = isRooted,
-                expanded = isDisplayExpanded,
-                onExpandedChange = {
-                  isDisplayExpanded = it
-                  if (it) isGameSpaceExpanded = false // Safety
-                },
+                onClick = onGameSpaceClick,
             )
           }
         }
       }
 
-      // 3. Game Space (Right) - Hide if Display is Expanded
-      if (!isDisplayExpanded) {
-        item(
-            span =
-                if (isGameSpaceExpanded) StaggeredGridItemSpan.FullLine
-                else StaggeredGridItemSpan.SingleLane
-        ) {
-          StaggeredEntry(delayMillis = 200) {
-            GameSpaceCard(
-                viewModel = viewModel,
-                expanded = isGameSpaceExpanded,
-                onExpandedChange = {
-                  isGameSpaceExpanded = it
-                  if (it) isDisplayExpanded = false // Safety
-                },
-            )
-          }
+      // 3. Display & Color (Right) - Expandable
+      item(
+          span =
+              if (isDisplayExpanded) StaggeredGridItemSpan.FullLine
+              else StaggeredGridItemSpan.SingleLane
+      ) {
+        StaggeredEntry(delayMillis = 200) {
+          DisplayColorCard(
+              viewModel = viewModel,
+              isRooted = isRooted,
+              expanded = isDisplayExpanded,
+              onExpandedChange = { isDisplayExpanded = it },
+          )
         }
       }
 
@@ -506,21 +496,18 @@ fun DisplayColorCard(
 @Composable
 fun GameSpaceCard(
     viewModel: MiscViewModel,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
+    onClick: () -> Unit,
 ) {
   val gameApps by viewModel.gameApps.collectAsState()
   val isServiceRunning by viewModel.enableGameOverlay.collectAsState()
+  val appCount = try { JSONArray(gameApps).length() } catch (e: Exception) { 0 }
 
   Card(
-      modifier =
-          Modifier.fillMaxWidth()
-              .heightIn(min = 140.dp) // Dynamic height
-              .animateContentSize(),
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth().height(140.dp),
       shape = RoundedCornerShape(24.dp),
       colors =
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-      onClick = { onExpandedChange(!expanded) },
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
       // Background Watermark
@@ -529,9 +516,9 @@ fun GameSpaceCard(
           null,
           tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.05f),
           modifier =
-              Modifier.size(if (expanded) 240.dp else 120.dp)
-                  .align(Alignment.CenterEnd)
-                  .offset(x = 30.dp, y = 10.dp),
+              Modifier.size(100.dp)
+                  .align(Alignment.BottomEnd)
+                  .offset(x = 20.dp, y = 20.dp),
       )
 
       Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
@@ -548,7 +535,7 @@ fun GameSpaceCard(
               modifier = Modifier.size(28.dp),
           )
 
-          // Toggle
+          // Toggle (stops click propagation)
           Switch(
               checked = isServiceRunning,
               onCheckedChange = { viewModel.setEnableGameOverlay(it) },
@@ -560,7 +547,7 @@ fun GameSpaceCard(
                       uncheckedThumbColor = MaterialTheme.colorScheme.outline,
                       uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                   ),
-              modifier = Modifier.scale(0.7f), // Smaller
+              modifier = Modifier.scale(0.7f),
           )
         }
 
@@ -572,36 +559,11 @@ fun GameSpaceCard(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onTertiaryContainer,
         )
-
-        if (!expanded) {
-          Text(
-              text =
-                  "${try { JSONArray(gameApps).length() } catch(e: Exception) { 0 }} Apps active",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-          )
-        } else {
-          Column(modifier = Modifier.padding(top = 8.dp)) {
-            Text(
-                text = "Manage your games library for automatic optimization.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-                modifier = Modifier.padding(bottom = 12.dp),
-            )
-            Button(
-                onClick = { /* TODO: Open App Picker */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    ),
-                shape = RoundedCornerShape(12.dp),
-            ) {
-              Text("Manage Library")
-            }
-          }
-        }
+        Text(
+            text = "$appCount Apps active",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+        )
       }
     }
   }
