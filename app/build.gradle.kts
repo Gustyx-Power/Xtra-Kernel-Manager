@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
@@ -126,7 +125,7 @@ dependencies {
 
 
     // Compose BOM
-    val composeBom = platform("androidx.compose:compose-bom:2025.12.01")
+    val composeBom = platform("androidx.compose:compose-bom:2026.01.00")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -155,7 +154,7 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:nio:6.0.0")
     
     // Firebase 
-    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
     implementation("com.google.firebase:firebase-database") 
 
     // TOML Parser
@@ -171,7 +170,7 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:6.4.0")
 
     // Charts
-    implementation("com.patrykandpatrick.vico:compose-m3:2.4.0-beta.3")
+    implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.2")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")

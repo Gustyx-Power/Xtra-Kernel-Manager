@@ -93,15 +93,54 @@ class MiscViewModel(
   private val _saturationApplyStatus = MutableStateFlow("")
   val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()
 
+  // SELinux State
+  private val _selinuxStatus = MutableStateFlow("Unknown")
+  val selinuxStatus: StateFlow<String> = _selinuxStatus.asStateFlow()
+
+  private val _selinuxLoading = MutableStateFlow(false)
+  val selinuxLoading: StateFlow<Boolean> = _selinuxLoading.asStateFlow()
+
   init {
     checkRoot()
     loadCurrentPerformanceMode()
+    loadSELinuxStatus()
   }
 
   private fun checkRoot() {
     viewModelScope.launch {
       _isRootAvailable.value = RootManager.isRootAvailable()
       Log.d("MiscViewModel", "Root available: ${_isRootAvailable.value}")
+    }
+  }
+
+  // SELinux Functions
+  fun loadSELinuxStatus() {
+    viewModelScope.launch {
+      val result = RootManager.executeCommand("getenforce")
+      _selinuxStatus.value = result.getOrNull()?.trim() ?: "Unknown"
+      Log.d("MiscViewModel", "SELinux status: ${_selinuxStatus.value}")
+    }
+  }
+
+  fun setSELinuxMode(enforcing: Boolean) {
+    viewModelScope.launch {
+      if (!_isRootAvailable.value) {
+        Log.e("MiscViewModel", "Cannot set SELinux: Root not available")
+        return@launch
+      }
+
+      _selinuxLoading.value = true
+      val mode = if (enforcing) "1" else "0"
+      val result = RootManager.executeCommand("setenforce $mode")
+
+      if (result.isSuccess) {
+        _selinuxStatus.value = if (enforcing) "Enforcing" else "Permissive"
+        Log.d("MiscViewModel", "SELinux set to: ${_selinuxStatus.value}")
+      } else {
+        Log.e("MiscViewModel", "Failed to set SELinux: ${result.exceptionOrNull()?.message}")
+      }
+
+      _selinuxLoading.value = false
     }
   }
 
