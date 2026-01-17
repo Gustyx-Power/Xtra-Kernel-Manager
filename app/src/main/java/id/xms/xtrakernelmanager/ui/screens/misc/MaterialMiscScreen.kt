@@ -34,14 +34,16 @@ import org.json.JSONArray
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
   var showBatteryDetail by remember { mutableStateOf(false) }
+  var showProcessManager by remember { mutableStateOf(false) }
 
-  if (showBatteryDetail) {
-    MaterialBatteryScreen(onBack = { showBatteryDetail = false })
-  } else {
-    MaterialMiscScreenContent(
+  when {
+    showBatteryDetail -> MaterialBatteryScreen(onBack = { showBatteryDetail = false })
+    showProcessManager -> ProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
+    else -> MaterialMiscScreenContent(
         viewModel,
         onNavigate,
         onBatteryDetailClick = { showBatteryDetail = true },
+        onProcessManagerClick = { showProcessManager = true },
     )
   }
 }
@@ -51,6 +53,7 @@ fun MaterialMiscScreenContent(
     viewModel: MiscViewModel,
     onNavigate: (String) -> Unit,
     onBatteryDetailClick: () -> Unit,
+    onProcessManagerClick: () -> Unit,
 ) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
@@ -126,27 +129,34 @@ fun MaterialMiscScreenContent(
         }
       }
 
-      // 5. SELinux Card (Before Functional ROM)
-      if (!isDisplayExpanded && !isGameSpaceExpanded) {
-        item(
-            span =
-                if (isSELinuxExpanded) StaggeredGridItemSpan.FullLine
-                else StaggeredGridItemSpan.SingleLane
-        ) {
-          StaggeredEntry(delayMillis = 300) {
-            SELinuxCard(
-                viewModel = viewModel,
-                isRooted = isRooted,
-                expanded = isSELinuxExpanded,
-                onExpandedChange = { isSELinuxExpanded = it },
-            )
-          }
+      // 4. Functional ROM (After Display & Game Space row)
+      item(span = StaggeredGridItemSpan.FullLine) {
+        StaggeredEntry(delayMillis = 250) { FunctionalRomCard(viewModel) }
+      }
+
+      // 5. SELinux Card (Left)
+      item(
+          span =
+              if (isSELinuxExpanded) StaggeredGridItemSpan.FullLine
+              else StaggeredGridItemSpan.SingleLane
+      ) {
+        StaggeredEntry(delayMillis = 300) {
+          SELinuxCard(
+              viewModel = viewModel,
+              isRooted = isRooted,
+              expanded = isSELinuxExpanded,
+              onExpandedChange = { isSELinuxExpanded = it },
+          )
         }
       }
 
-      // 6. Functional ROM (Conditional)
-      item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 400) { FunctionalRomCard(viewModel) }
+      // 6. Process Manager Card (Right) - Next to SELinux
+      if (!isSELinuxExpanded) {
+        item(span = StaggeredGridItemSpan.SingleLane) {
+          StaggeredEntry(delayMillis = 350) {
+            ProcessManagerCard(onClick = onProcessManagerClick)
+          }
+        }
       }
     }
   }
@@ -790,6 +800,71 @@ fun SELinuxCard(
             }
           }
         }
+      }
+    }
+  }
+}
+
+@Composable
+fun ProcessManagerCard(onClick: () -> Unit) {
+  Card(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth().height(140.dp),
+      shape = RoundedCornerShape(24.dp),
+      colors =
+          CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+          ),
+  ) {
+    Box(modifier = Modifier.fillMaxSize()) {
+      // Background Watermark
+      Icon(
+          Icons.Rounded.Memory,
+          null,
+          tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
+          modifier =
+              Modifier.size(100.dp)
+                  .align(Alignment.BottomEnd)
+                  .offset(x = 20.dp, y = 20.dp),
+      )
+
+      Column(
+          modifier = Modifier.padding(20.dp),
+          verticalArrangement = Arrangement.SpaceBetween,
+      ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Icon(
+              Icons.Rounded.Memory,
+              null,
+              tint = MaterialTheme.colorScheme.onSurface,
+              modifier = Modifier.size(28.dp),
+          )
+
+          Icon(
+              Icons.Rounded.ChevronRight,
+              null,
+              tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+              modifier = Modifier.size(20.dp),
+          )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Processes",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = "View & Kill Apps",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+        )
       }
     }
   }
