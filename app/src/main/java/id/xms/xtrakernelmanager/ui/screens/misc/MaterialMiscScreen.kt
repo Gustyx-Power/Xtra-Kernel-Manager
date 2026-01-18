@@ -414,7 +414,12 @@ fun DisplayColorCard(
                 Icons.Rounded.Palette,
                 null,
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(28.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                        RoundedCornerShape(8.dp)
+                    )
+                    .padding(4.dp),
             )
 
             if (expanded && isRooted) {
@@ -529,7 +534,7 @@ fun GameSpaceCard(
     Box(modifier = Modifier.fillMaxSize()) {
       // Background Watermark
       Icon(
-          Icons.Rounded.Gamepad,
+          Icons.Rounded.SportsEsports,
           null,
           tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.05f),
           modifier =
@@ -546,10 +551,15 @@ fun GameSpaceCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
           Icon(
-              Icons.Rounded.Gamepad,
+              Icons.Rounded.SportsEsports,
               null,
               tint = MaterialTheme.colorScheme.onTertiaryContainer,
-              modifier = Modifier.size(28.dp),
+              modifier = Modifier.size(28.dp)
+                  .background(
+                      MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f),
+                      RoundedCornerShape(8.dp)
+                  )
+                  .padding(4.dp),
           )
 
 
@@ -627,7 +637,13 @@ fun SELinuxCard(
               tint =
                   if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
                   else MaterialTheme.colorScheme.onErrorContainer,
-              modifier = Modifier.size(28.dp),
+              modifier = Modifier.size(28.dp)
+                  .background(
+                      (if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
+                      else MaterialTheme.colorScheme.onErrorContainer).copy(alpha = 0.1f),
+                      RoundedCornerShape(8.dp)
+                  )
+                  .padding(4.dp),
           )
 
           // Status Badge
@@ -807,7 +823,12 @@ fun ProcessManagerCard(onClick: () -> Unit) {
               Icons.Rounded.Memory,
               null,
               tint = MaterialTheme.colorScheme.onSurface,
-              modifier = Modifier.size(28.dp),
+              modifier = Modifier.size(28.dp)
+                  .background(
+                      MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                      RoundedCornerShape(8.dp)
+                  )
+                  .padding(4.dp),
           )
 
           Icon(
@@ -856,7 +877,12 @@ fun FunctionalRomCard(viewModel: MiscViewModel) {
         Icon(
             Icons.Rounded.Extension, // Use Extension icon instead of missing drawable
             contentDescription = null,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(32.dp)
+                .background(
+                     MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
+                     RoundedCornerShape(8.dp)
+                )
+                .padding(4.dp),
             tint = MaterialTheme.colorScheme.error,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -899,7 +925,12 @@ fun PerAppProfileCard(onClick: () -> Unit) {
         Icon(
             Icons.Rounded.AppSettingsAlt,
             contentDescription = null,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(32.dp)
+                .background(
+                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                     RoundedCornerShape(8.dp)
+                )
+                .padding(4.dp),
             tint = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.width(16.dp))
