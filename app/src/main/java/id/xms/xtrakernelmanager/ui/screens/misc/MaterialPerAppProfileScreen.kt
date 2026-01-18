@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,10 +33,10 @@ data class AppProfile(
 
 enum class ProfileType(val displayName: String, val description: String) {
     DEFAULT("Default", "Use system defaults"),
-    PERFORMANCE("Performance", "Maximum performance mode"),
-    BALANCED("Balanced", "Balance between performance and battery"),
-    POWER_SAVE("Power Save", "Extend battery life"),
-    GAMING("Gaming", "Optimized for games"),
+    PERFORMANCE("Performance", "Max performance"),
+    BALANCED("Balanced", "Optimal balance"),
+    POWER_SAVE("Power Save", "Extend battery"),
+    GAMING("Gaming", "Gaming optimization"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,10 +48,13 @@ fun MaterialPerAppProfileScreen(
     val context = LocalContext.current
     var appProfiles by remember { mutableStateOf(getInstalledApps(context)) }
     var searchQuery by remember { mutableStateOf("") }
+    var selectedFilter by remember { mutableStateOf<ProfileType?>(null) }
     var selectedApp by remember { mutableStateOf<AppProfile?>(null) }
     
-    val filteredApps = remember(appProfiles, searchQuery) {
-        if (searchQuery.isBlank()) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    val filteredApps = remember(appProfiles, searchQuery, selectedFilter) {
+        val baseList = if (searchQuery.isBlank()) {
             appProfiles.sortedBy { it.appName }
         } else {
             appProfiles.filter {
@@ -56,34 +62,35 @@ fun MaterialPerAppProfileScreen(
                     it.packageName.contains(searchQuery, ignoreCase = true)
             }.sortedBy { it.appName }
         }
+
+        if (selectedFilter != null) {
+            baseList.filter { it.profileType == selectedFilter }
+        } else {
+            baseList
+        }
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            "Per App Profile",
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            "${appProfiles.count { it.profileType != ProfileType.DEFAULT }} apps configured",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        )
-                    }
+                    Text(
+                        "Per App Profile",
+                        fontWeight = FontWeight.Bold,
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back")
                     }
                 },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    ),
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
             )
         },
     ) { paddingValues ->
@@ -92,70 +99,150 @@ fun MaterialPerAppProfileScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Search apps...") },
-                leadingIcon = {
-                    Icon(Icons.Rounded.Search, contentDescription = null)
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Rounded.Clear, contentDescription = "Clear")
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = MaterialTheme.shapes.large,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                ),
-            )
-
-            // Profile Legend
+            // Search & Filters Row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                ProfileType.entries.filter { it != ProfileType.DEFAULT }.forEach { type ->
-                    Surface(
-                        color = getProfileColor(type).copy(alpha = 0.1f),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Text(
-                            text = type.displayName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = getProfileColor(type),
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                // Search Field
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Search apps...") },
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Rounded.Clear, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = Color.Transparent,
+                    ),
+                )
+
+                // Filter Dropdown
+                Box {
+                    var filterExpanded by remember { mutableStateOf(false) }
+                    
+                    FilledTonalIconButton(
+                        onClick = { filterExpanded = true },
+                        modifier = Modifier.size(56.dp),
+                        shape = MaterialTheme.shapes.large,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                             containerColor = if (selectedFilter != null) 
+                                getProfileColor(selectedFilter!!).copy(alpha = 0.2f)
+                             else MaterialTheme.colorScheme.surfaceContainerHigh,
+                             contentColor = if (selectedFilter != null)
+                                getProfileColor(selectedFilter!!)
+                             else MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    ) {
+                        Icon(
+                            imageVector = if (selectedFilter != null) Icons.Rounded.FilterListOff else Icons.Rounded.FilterList,
+                            contentDescription = "Filter",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = filterExpanded,
+                        onDismissRequest = { filterExpanded = false },
+                        shape = MaterialTheme.shapes.large,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("All Apps") },
+                            onClick = {
+                                selectedFilter = null
+                                filterExpanded = false
+                            },
+                            leadingIcon = {
+                                if (selectedFilter == null) Icon(Icons.Rounded.Check, null)
+                            }
+                        )
+                        
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                        ProfileType.entries.filter { it != ProfileType.DEFAULT }.forEach { type ->
+                            DropdownMenuItem(
+                                text = { 
+                                    Text(
+                                        type.displayName,
+                                        color = getProfileColor(type)
+                                    ) 
+                                },
+                                onClick = {
+                                    selectedFilter = type
+                                    filterExpanded = false
+                                },
+                                leadingIcon = {
+                                    if (selectedFilter == type) {
+                                        Icon(Icons.Rounded.Check, null, tint = getProfileColor(type))
+                                    } else {
+                                        Icon(getProfileIcon(type), null, tint = getProfileColor(type))
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant,
-            )
-
+            
             // App List
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // Active Configs Section (Only show if no filter and search)
+                val activeConfigs = appProfiles.filter { it.profileType != ProfileType.DEFAULT }
+                if (searchQuery.isEmpty() && selectedFilter == null && activeConfigs.isNotEmpty()) {
+                    item {
+                        Text(
+                            "Active Configurations",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp, start = 8.dp)
+                        )
+                    }
+                    
+                    item {
+                         LazyRow(
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            items(activeConfigs) { app ->
+                                ActiveConfigCard(
+                                    app = app,
+                                    onClick = { selectedApp = app }
+                                )
+                            }
+                        }
+                    }
+                    
+                    item {
+                        Text(
+                            "All Application",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp, start = 8.dp)
+                        )
+                    }
+                }
+
                 items(filteredApps, key = { it.packageName }) { app ->
-                    AppProfileItem(
+                    ExpressiveAppItem(
                         app = app,
                         isSelected = selectedApp?.packageName == app.packageName,
                         onClick = {
@@ -167,25 +254,89 @@ fun MaterialPerAppProfileScreen(
                                     it.copy(profileType = newProfile)
                                 } else it
                             }
-                            // TODO: Save to preferences/viewModel
                         },
                     )
                 }
-
-                item { Spacer(modifier = Modifier.height(16.dp)) }
+                
+                item { Spacer(modifier = Modifier.height(80.dp)) } // Bottom padding
             }
         }
     }
 }
 
 @Composable
-fun AppProfileItem(
+fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val color = getProfileColor(app.profileType)
+    
+    Card(
+        onClick = onClick,
+        modifier = Modifier.size(width = 160.dp, height = 180.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.1f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(getAppIcon(context, app.packageName))
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.medium)
+                )
+                
+                Surface(
+                   color = color,
+                   shape = CircleShape,
+                   modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        getProfileIcon(app.profileType),
+                        null,
+                        tint = MaterialTheme.colorScheme.surface,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
+            
+            Column {
+                Text(
+                    app.appName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    app.profileType.displayName,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = color,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpressiveAppItem(
     app: AppProfile,
     isSelected: Boolean,
     onClick: () -> Unit,
     onProfileChange: (ProfileType) -> Unit,
 ) {
     val context = LocalContext.current
+    val isCustomized = app.profileType != ProfileType.DEFAULT
     
     Card(
         modifier = Modifier
@@ -194,18 +345,21 @@ fun AppProfileItem(
             .clickable { onClick() },
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
-            containerColor = if (app.profileType != ProfileType.DEFAULT) {
-                getProfileColor(app.profileType).copy(alpha = 0.08f)
+            containerColor = if (isCustomized) {
+                getProfileColor(app.profileType).copy(alpha = 0.05f)
             } else {
-                MaterialTheme.colorScheme.surfaceContainerHigh
+                MaterialTheme.colorScheme.surfaceContainerLow
             }
         ),
+        border = if (isCustomized) {
+            androidx.compose.foundation.BorderStroke(1.dp, getProfileColor(app.profileType).copy(alpha = 0.3f))
+        } else null
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 // App icon
                 SubcomposeAsyncImage(
@@ -217,48 +371,39 @@ fun AppProfileItem(
                     loading = {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                .size(56.dp)
+                                .clip(MaterialTheme.shapes.large)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 app.appName.take(2).uppercase(),
-                                style = MaterialTheme.typography.labelMedium,
+                                style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     },
                     error = {
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                                .size(56.dp)
+                                .clip(MaterialTheme.shapes.large)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                             contentAlignment = Alignment.Center,
                         ) {
-                            Icon(
-                                Icons.Rounded.Android,
-                                null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+                             Icon(Icons.Rounded.Android, null)
                         }
                     },
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(MaterialTheme.shapes.medium),
+                    modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.large),
                 )
 
                 // App info
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = app.appName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = app.packageName,
@@ -269,48 +414,46 @@ fun AppProfileItem(
                     )
                 }
 
-                // Profile Badge
-                if (app.profileType != ProfileType.DEFAULT) {
-                    Surface(
-                        color = getProfileColor(app.profileType).copy(alpha = 0.15f),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Text(
-                            text = app.profileType.displayName,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = getProfileColor(app.profileType),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        )
-                    }
+                // Status Indicator
+                if (isCustomized) {
+                   Box(
+                       modifier = Modifier
+                           .size(40.dp)
+                           .clip(CircleShape)
+                           .background(getProfileColor(app.profileType).copy(alpha = 0.1f)),
+                       contentAlignment = Alignment.Center
+                   ) {
+                       Icon(
+                           getProfileIcon(app.profileType),
+                           null,
+                           tint = getProfileColor(app.profileType),
+                           modifier = Modifier.size(20.dp)
+                       )
+                   }
+                } else {
+                   Icon(
+                        if (isSelected) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-
-                // Expand Icon
-                Icon(
-                    if (isSelected) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
 
             // Expanded Profile Selection
             AnimatedVisibility(visible = isSelected) {
                 Column(
-                    modifier = Modifier.padding(top = 16.dp),
+                    modifier = Modifier.padding(top = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    
                     Text(
-                        "Select Profile",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
+                        "Performance Profile",
+                        style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp),
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
 
                     ProfileType.entries.forEach { profile ->
-                        ProfileOptionItem(
+                        ExpressiveProfileOption(
                             profile = profile,
                             isSelected = app.profileType == profile,
                             onClick = { onProfileChange(profile) },
@@ -323,92 +466,74 @@ fun AppProfileItem(
 }
 
 @Composable
-fun ProfileOptionItem(
+fun ExpressiveProfileOption(
     profile: ProfileType,
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
+    val color = getProfileColor(profile)
+    
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        color = if (isSelected) {
-            getProfileColor(profile).copy(alpha = 0.12f)
-        } else {
-            MaterialTheme.colorScheme.surfaceContainer
-        },
-        border = if (isSelected) {
-            androidx.compose.foundation.BorderStroke(2.dp, getProfileColor(profile))
-        } else null,
+        color = if (isSelected) color.copy(alpha = 0.15f) else Color.Transparent,
+        border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, color) else null
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Icon
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(getProfileColor(profile).copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    getProfileIcon(profile),
-                    null,
-                    tint = getProfileColor(profile),
-                    modifier = Modifier.size(18.dp),
-                )
-            }
+            Icon(
+                getProfileIcon(profile),
+                null,
+                tint = if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
 
-            // Text
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = profile.displayName,
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isSelected) getProfileColor(profile) else MaterialTheme.colorScheme.onSurface,
+                    color = if (isSelected) color else MaterialTheme.colorScheme.onSurface,
                 )
-                Text(
-                    text = profile.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (isSelected) {
+                     Text(
+                        text = profile.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = color.copy(alpha = 0.8f),
+                    )
+                }
             }
-
-            // Checkmark
+            
             if (isSelected) {
-                Icon(
-                    Icons.Rounded.CheckCircle,
-                    null,
-                    tint = getProfileColor(profile),
-                    modifier = Modifier.size(20.dp),
-                )
+                Icon(Icons.Rounded.Check, null, tint = color)
             }
         }
     }
 }
 
 @Composable
-private fun getProfileColor(profile: ProfileType): androidx.compose.ui.graphics.Color {
+private fun getProfileColor(profile: ProfileType): Color {
     return when (profile) {
         ProfileType.DEFAULT -> MaterialTheme.colorScheme.outline
-        ProfileType.PERFORMANCE -> MaterialTheme.colorScheme.error
-        ProfileType.BALANCED -> MaterialTheme.colorScheme.primary
+        ProfileType.PERFORMANCE -> MaterialTheme.colorScheme.primary
+        ProfileType.BALANCED -> MaterialTheme.colorScheme.secondary
         ProfileType.POWER_SAVE -> MaterialTheme.colorScheme.tertiary
-        ProfileType.GAMING -> MaterialTheme.colorScheme.secondary
+        ProfileType.GAMING -> MaterialTheme.colorScheme.inversePrimary
     }
 }
 
 private fun getProfileIcon(profile: ProfileType): androidx.compose.ui.graphics.vector.ImageVector {
     return when (profile) {
         ProfileType.DEFAULT -> Icons.Rounded.Settings
-        ProfileType.PERFORMANCE -> Icons.Rounded.Speed
+        ProfileType.PERFORMANCE -> Icons.Rounded.RocketLaunch
         ProfileType.BALANCED -> Icons.Rounded.Balance
-        ProfileType.POWER_SAVE -> Icons.Rounded.BatterySaver
+        ProfileType.POWER_SAVE -> Icons.Rounded.BatteryChargingFull
         ProfileType.GAMING -> Icons.Rounded.SportsEsports
     }
 }
