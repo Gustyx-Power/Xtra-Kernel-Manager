@@ -36,17 +36,20 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   var showBatteryDetail by remember { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
   var showGameSpace by remember { mutableStateOf(false) }
+  var showPerAppProfile by remember { mutableStateOf(false) }
 
   when {
     showBatteryDetail -> MaterialBatteryScreen(onBack = { showBatteryDetail = false })
     showProcessManager -> MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
     showGameSpace -> MaterialGameSpaceScreen(viewModel = viewModel, onBack = { showGameSpace = false })
+    showPerAppProfile -> MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })
     else -> MaterialMiscScreenContent(
         viewModel,
         onNavigate,
         onBatteryDetailClick = { showBatteryDetail = true },
         onProcessManagerClick = { showProcessManager = true },
         onGameSpaceClick = { showGameSpace = true },
+        onPerAppProfileClick = { showPerAppProfile = true },
     )
   }
 }
@@ -58,6 +61,7 @@ fun MaterialMiscScreenContent(
     onBatteryDetailClick: () -> Unit,
     onProcessManagerClick: () -> Unit,
     onGameSpaceClick: () -> Unit,
+    onPerAppProfileClick: () -> Unit,
 ) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
@@ -119,9 +123,11 @@ fun MaterialMiscScreenContent(
         }
       }
 
-      // 4. Functional ROM (After Display & Game Space row)
+      // 4. Per App Profile Card (NEW - After Display & Game Space row)
       item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 250) { FunctionalRomCard(viewModel) }
+        StaggeredEntry(delayMillis = 250) {
+          PerAppProfileCard(onClick = onPerAppProfileClick)
+        }
       }
 
       // 5. SELinux Card (Left)
@@ -147,6 +153,11 @@ fun MaterialMiscScreenContent(
             ProcessManagerCard(onClick = onProcessManagerClick)
           }
         }
+      }
+
+      // 7. Functional ROM (VIP Feature - Moved to bottom)
+      item(span = StaggeredGridItemSpan.FullLine) {
+        StaggeredEntry(delayMillis = 400) { FunctionalRomCard(viewModel) }
       }
     }
   }
@@ -871,6 +882,53 @@ fun FunctionalRomCard(viewModel: MiscViewModel) {
         }
       }
       Icon(Icons.Rounded.Lock, null, tint = MaterialTheme.colorScheme.error)
+    }
+  }
+}
+
+@Composable
+fun PerAppProfileCard(onClick: () -> Unit) {
+  Card(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth().height(80.dp),
+      shape = MaterialTheme.shapes.large,
+      colors =
+          CardDefaults.cardColors(
+              containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+          ),
+  ) {
+    Row(
+        modifier = Modifier.padding(16.dp).fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            Icons.Rounded.AppSettingsAlt,
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+          Text(
+              "Per App Profile",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onPrimaryContainer,
+          )
+          Text(
+              "Custom settings for each app",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+          )
+        }
+      }
+      Icon(
+          Icons.Rounded.ChevronRight,
+          null,
+          tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+      )
     }
   }
 }
