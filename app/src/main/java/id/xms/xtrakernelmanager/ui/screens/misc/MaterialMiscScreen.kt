@@ -510,7 +510,7 @@ fun GameSpaceCard(
     onClick: () -> Unit,
 ) {
   val gameApps by viewModel.gameApps.collectAsState()
-  val isServiceRunning by viewModel.enableGameOverlay.collectAsState()
+
   val appCount = try { JSONArray(gameApps).length() } catch (e: Exception) { 0 }
 
   Card(
@@ -546,20 +546,7 @@ fun GameSpaceCard(
               modifier = Modifier.size(28.dp),
           )
 
-          // Toggle (stops click propagation)
-          Switch(
-              checked = isServiceRunning,
-              onCheckedChange = { viewModel.setEnableGameOverlay(it) },
-              colors =
-                  SwitchDefaults.colors(
-                      checkedThumbColor = MaterialTheme.colorScheme.tertiary,
-                      checkedTrackColor =
-                          MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.2f),
-                      uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                      uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                  ),
-              modifier = Modifier.scale(0.7f),
-          )
+
         }
 
         Spacer(modifier = Modifier.height(12.dp))
