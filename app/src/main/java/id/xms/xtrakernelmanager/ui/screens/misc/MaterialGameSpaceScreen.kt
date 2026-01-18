@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.ui.screens.misc
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -124,18 +125,46 @@ fun MaterialGameSpaceScreen(
                     onCheckedChange = { viewModel.setDanmakuMode(it) }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                GameSpaceNavRow(
-                    title = "In-game call",
-                    subtitle = "No action",
-                    icon = Icons.Rounded.PhoneInTalk,
-                    onClick = { /* TODO */ }
-                )
                 Spacer(modifier = Modifier.height(16.dp))
-                GameSpaceNavRow(
+                
+                val callAction = viewModel.inGameCallAction.collectAsState().value
+                GameSpaceExpandableRow(
+                    title = "In-game call",
+                    subtitle = when(callAction) {
+                        "no_action" -> "No action"
+                        "answer" -> "Auto Answer"
+                        "reject" -> "Auto Reject"
+                        else -> "No action"
+                    },
+                    icon = Icons.Rounded.PhoneInTalk,
+                    options = listOf(
+                        "no_action" to "No action",
+                        "answer" to "Auto Answer",
+                        "reject" to "Auto Reject"
+                    ),
+                    selectedOption = callAction,
+                    onOptionSelected = { viewModel.setInGameCallAction(it) }
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                val ringerMode = viewModel.inGameRingerMode.collectAsState().value
+                GameSpaceExpandableRow(
                     title = "In-game ringer mode",
-                    subtitle = "Do not change",
+                    subtitle = when(ringerMode) {
+                        "no_change" -> "Do not change"
+                        "silent" -> "Silent"
+                        "vibrate" -> "Vibrate"
+                        else -> "Do not change"
+                    },
                     icon = Icons.Rounded.VolumeUp,
-                    onClick = { /* TODO */ }
+                    options = listOf(
+                        "no_change" to "Do not change",
+                        "silent" to "Silent",
+                        "vibrate" to "Vibrate"
+                    ),
+                    selectedOption = ringerMode,
+                    onOptionSelected = { viewModel.setInGameRingerMode(it) }
                 )
             }
         )
@@ -257,50 +286,105 @@ fun GameSpaceSwitchRow(
 }
 
 @Composable
-fun GameSpaceNavRow(
+fun GameSpaceExpandableRow(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    onClick: () -> Unit
+    options: List<Pair<String, String>>, // key -> label
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick), // Make row clickable if needed
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Icon Circle
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF2D2E36)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+    var expanded by remember { mutableStateOf(false) }
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = Color.White
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
+    Column(modifier = Modifier.animateContentSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Icon Circle
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF2D2E36)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray
+                )
+            }
+            
+
         }
         
-        // Chevron (Optional)
-        // Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+        if (expanded) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color(0xFF2D2E36),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    options.forEach { (key, label) ->
+                        val isSelected = (key == selectedOption)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f) 
+                                    else Color.Transparent
+                                )
+                                .clickable { 
+                                    onOptionSelected(key)
+                                    expanded = false 
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Gray,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                            
+                            if (isSelected) {
+                                Icon(
+                                    Icons.Rounded.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

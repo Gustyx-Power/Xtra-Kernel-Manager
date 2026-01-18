@@ -252,6 +252,23 @@ class MiscViewModel(
       _disableThreeFingerSwipe.value = enabled
   }
 
+  // New states for expandable lists
+  private val _inGameCallAction = MutableStateFlow("no_action")
+  val inGameCallAction: StateFlow<String> = _inGameCallAction.asStateFlow()
+
+  private val _inGameRingerMode = MutableStateFlow("no_change")
+  val inGameRingerMode: StateFlow<String> = _inGameRingerMode.asStateFlow()
+
+  fun setInGameCallAction(action: String) {
+      _inGameCallAction.value = action
+  }
+
+  fun setInGameRingerMode(mode: String) {
+      _inGameRingerMode.value = mode
+  }
+
+
+
   // Game Control Functions
   fun setPerformanceMode(mode: String) {
     viewModelScope.launch {
