@@ -24,19 +24,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaterialBatteryScreen(onBack: () -> Unit) {
+fun MaterialBatteryScreen(
+    viewModel: MiscViewModel,
+    onBack: () -> Unit,
+    onSettingsClick: () -> Unit
+) {
+  val context = LocalContext.current
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
         TopAppBar(
             title = {
               Text(
-                  "Monitoring",
+                  "Battery Monitor",
+                  style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold,
-                  style = MaterialTheme.typography.titleLarge
               )
             },
             navigationIcon = {
@@ -45,13 +52,15 @@ fun MaterialBatteryScreen(onBack: () -> Unit) {
               }
             },
             actions = {
-              IconButton(onClick = { /* TODO: Settings */ }) {
+              IconButton(onClick = onSettingsClick) {
                 Icon(Icons.Rounded.Settings, contentDescription = "Settings")
               }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
-            )
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
         )
       }
   ) { paddingValues ->

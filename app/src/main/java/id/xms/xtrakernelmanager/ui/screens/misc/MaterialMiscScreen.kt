@@ -34,14 +34,20 @@ import org.json.JSONArray
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
   var showBatteryDetail by remember { mutableStateOf(false) }
+  var showBatterySettings by remember { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
   var showGameSpace by remember { mutableStateOf(false) }
   var showGameAppSelector by remember { mutableStateOf(false) }
   var showPerAppProfile by remember { mutableStateOf(false) }
 
   when {
+    showBatterySettings -> BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
     showGameAppSelector -> MaterialGameAppSelectorScreen(viewModel = viewModel, onBack = { showGameAppSelector = false })
-    showBatteryDetail -> MaterialBatteryScreen(onBack = { showBatteryDetail = false })
+    showBatteryDetail ->
+        MaterialBatteryScreen(
+            viewModel = viewModel,
+            onBack = { showBatteryDetail = false },
+            onSettingsClick = { showBatterySettings = true })
     showProcessManager -> MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
     showGameSpace -> MaterialGameSpaceScreen(
         viewModel = viewModel, 

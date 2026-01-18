@@ -178,6 +178,118 @@ class MiscViewModel(
     }
   }
 
+  // Battery Notification Settings
+  val batteryNotifIconType =
+      preferencesManager
+          .getBatteryNotifIconType()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "circle_percent")
+
+  fun setBatteryNotifIconType(type: String) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifIconType(type)
+      Log.d("MiscViewModel", "Battery notification icon type: $type")
+    }
+  }
+
+  val batteryNotifRefreshRate =
+      preferencesManager
+          .getBatteryNotifRefreshRate()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5)
+
+  fun setBatteryNotifRefreshRate(seconds: Int) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifRefreshRate(seconds)
+      Log.d("MiscViewModel", "Battery notification refresh rate: $seconds")
+    }
+  }
+
+  val batteryNotifSecureLockScreen =
+      preferencesManager
+          .getBatteryNotifSecureLockScreen()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+  fun setBatteryNotifSecureLockScreen(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifSecureLockScreen(enabled)
+      Log.d("MiscViewModel", "Battery notification secure lock screen: $enabled")
+    }
+  }
+
+  val batteryNotifHighPriority =
+      preferencesManager
+          .getBatteryNotifHighPriority()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+  fun setBatteryNotifHighPriority(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifHighPriority(enabled)
+      Log.d("MiscViewModel", "Battery notification high priority: $enabled")
+    }
+  }
+
+  val batteryNotifForceOnTop =
+      preferencesManager
+          .getBatteryNotifForceOnTop()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+  fun setBatteryNotifForceOnTop(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifForceOnTop(enabled)
+      Log.d("MiscViewModel", "Battery notification force on top: $enabled")
+    }
+  }
+
+  val batteryNotifDontUpdateScreenOff =
+      preferencesManager
+          .getBatteryNotifDontUpdateScreenOff()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryNotifDontUpdateScreenOff(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifDontUpdateScreenOff(enabled)
+      Log.d("MiscViewModel", "Battery notification don't update screen off: $enabled")
+    }
+  }
+
+  // Battery Statistics Settings
+  val batteryStatsActiveIdle =
+      preferencesManager
+          .getBatteryStatsActiveIdle()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryStatsActiveIdle(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryStatsActiveIdle(enabled)
+      Log.d("MiscViewModel", "Battery stats active/idle: $enabled")
+    }
+  }
+
+  val batteryStatsScreen =
+      preferencesManager
+          .getBatteryStatsScreen()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryStatsScreen(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryStatsScreen(enabled)
+      Log.d("MiscViewModel", "Battery stats screen: $enabled")
+    }
+  }
+
+  val batteryStatsAwakeSleep =
+      preferencesManager
+          .getBatteryStatsAwakeSleep()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryStatsAwakeSleep(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryStatsAwakeSleep(enabled)
+      Log.d("MiscViewModel", "Battery stats awake/sleep: $enabled")
+    }
+  }
+
+
+
   // State for overlay permission request
   private val _needsOverlayPermission = MutableStateFlow(false)
   val needsOverlayPermission: StateFlow<Boolean> = _needsOverlayPermission.asStateFlow()

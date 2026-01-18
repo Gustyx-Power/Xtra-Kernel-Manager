@@ -104,6 +104,21 @@ class PreferencesManager(private val context: Context) {
   private val RAMADAN_SHOWN_YEAR = intPreferencesKey("ramadan_shown_year")
   private val EID_FITR_SHOWN_YEAR = intPreferencesKey("eid_fitr_shown_year")
 
+  // Notification Settings
+  private val BATTERY_NOTIF_ICON_TYPE = stringPreferencesKey("battery_notif_icon_type") // icon_only, circle_percent, etc.
+  private val BATTERY_NOTIF_REFRESH_RATE = intPreferencesKey("battery_notif_refresh_rate") // Seconds
+  private val BATTERY_NOTIF_SECURE_LOCK_SCREEN = booleanPreferencesKey("battery_notif_secure_lock_screen")
+  private val BATTERY_NOTIF_HIGH_PRIORITY = booleanPreferencesKey("battery_notif_high_priority")
+  private val BATTERY_NOTIF_FORCE_ON_TOP = booleanPreferencesKey("battery_notif_force_on_top")
+  private val BATTERY_NOTIF_DONT_UPDATE_SCREEN_OFF = booleanPreferencesKey("battery_notif_dont_update_screen_off")
+  
+  // Statistics Settings
+  private val BATTERY_STATS_ACTIVE_IDLE = booleanPreferencesKey("battery_stats_active_idle")
+  private val BATTERY_STATS_SCREEN = booleanPreferencesKey("battery_stats_screen")
+  private val BATTERY_STATS_AWAKE_SLEEP = booleanPreferencesKey("battery_stats_awake_sleep")
+
+
+
   val themeMode: Flow<Int> = context.dataStore.data.map { prefs -> prefs[THEME_MODE] ?: 0 }
 
   val setOnBoot: Flow<Boolean> = context.dataStore.data.map { prefs -> prefs[SET_ON_BOOT] ?: false }
@@ -308,6 +323,71 @@ class PreferencesManager(private val context: Context) {
 
   fun getEidFitrShownYear(): Flow<Int> =
       context.dataStore.data.map { prefs -> prefs[EID_FITR_SHOWN_YEAR] ?: 0 }
+
+  suspend fun setBatteryNotifIconType(type: String) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_ICON_TYPE] = type }
+  }
+
+  fun getBatteryNotifIconType(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_ICON_TYPE] ?: "circle_percent" }
+
+  suspend fun setBatteryNotifRefreshRate(seconds: Int) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE] = seconds }
+  }
+
+  fun getBatteryNotifRefreshRate(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE] ?: 5 }
+
+  suspend fun setBatteryNotifSecureLockScreen(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_SECURE_LOCK_SCREEN] = enabled }
+  }
+
+  fun getBatteryNotifSecureLockScreen(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_SECURE_LOCK_SCREEN] ?: false }
+
+  suspend fun setBatteryNotifHighPriority(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_HIGH_PRIORITY] = enabled }
+  }
+
+  fun getBatteryNotifHighPriority(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_HIGH_PRIORITY] ?: false }
+
+  suspend fun setBatteryNotifForceOnTop(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_FORCE_ON_TOP] = enabled }
+  }
+
+  fun getBatteryNotifForceOnTop(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_FORCE_ON_TOP] ?: false }
+
+  suspend fun setBatteryNotifDontUpdateScreenOff(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_DONT_UPDATE_SCREEN_OFF] = enabled }
+  }
+
+  fun getBatteryNotifDontUpdateScreenOff(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_DONT_UPDATE_SCREEN_OFF] ?: true }
+
+  suspend fun setBatteryStatsActiveIdle(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_STATS_ACTIVE_IDLE] = enabled }
+  }
+
+  fun getBatteryStatsActiveIdle(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_STATS_ACTIVE_IDLE] ?: true }
+
+  suspend fun setBatteryStatsScreen(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_STATS_SCREEN] = enabled }
+  }
+
+  fun getBatteryStatsScreen(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_STATS_SCREEN] ?: true }
+
+  suspend fun setBatteryStatsAwakeSleep(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_STATS_AWAKE_SLEEP] = enabled }
+  }
+
+  fun getBatteryStatsAwakeSleep(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_STATS_AWAKE_SLEEP] ?: true }
+
+
 
   // ==================== Quick Apps Preferences ====================
   private val QUICK_APPS = stringPreferencesKey("quick_apps")
