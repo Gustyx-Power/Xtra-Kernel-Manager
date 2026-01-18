@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.ui.screens.misc
 
+import android.graphics.drawable.Drawable
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,12 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
 import id.xms.xtrakernelmanager.domain.root.RootManager
-import id.xms.xtrakernelmanager.ui.components.WavyProgressIndicator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -39,11 +43,14 @@ fun MaterialProcessManagerScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
 ) {
+  val context = LocalContext.current
   val scope = rememberCoroutineScope()
   var processes by remember { mutableStateOf<List<ProcessInfo>>(emptyList()) }
   var isLoading by remember { mutableStateOf(true) }
   var isKilling by remember { mutableStateOf<String?>(null) }
   var sortByMemory by remember { mutableStateOf(true) }
+
+  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
   // Load processes on launch
   LaunchedEffect(Unit) { 
@@ -82,19 +89,15 @@ fun MaterialProcessManagerScreen(
   }
 
   Scaffold(
+      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
-        TopAppBar(
+        LargeTopAppBar(
             title = {
               Column {
                 Text(
                     "Process Manager",
                     fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    "${processes.size} running",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 )
               }
             },
@@ -116,10 +119,11 @@ fun MaterialProcessManagerScreen(
                 Icon(Icons.Rounded.Refresh, "Refresh")
               }
             },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
+            colors = TopAppBarDefaults.largeTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            ),
+            scrollBehavior = scrollBehavior
         )
       },
   ) { paddingValues ->
@@ -152,7 +156,8 @@ fun MaterialProcessManagerScreen(
           )
           Text(
               "No user processes found",
-              style = MaterialTheme.typography.bodyLarge,
+              style = MaterialTheme.typography.headlineSmall,
+              fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSurface,
           )
         }
@@ -160,7 +165,7 @@ fun MaterialProcessManagerScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
           // Memory summary card
           item {
@@ -180,7 +185,7 @@ fun MaterialProcessManagerScreen(
           }
 
           // Bottom spacing
-          item { Spacer(modifier = Modifier.height(16.dp)) }
+          item { Spacer(modifier = Modifier.height(32.dp)) }
         }
       }
     }
@@ -189,65 +194,68 @@ fun MaterialProcessManagerScreen(
 
 @Composable
 fun MemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
-  val totalDeviceRAM = 8192f
+  val totalDeviceRAM = 8192f // Still hardcoded, but that's okay for now
   val usagePercent = (totalMemoryMB / totalDeviceRAM).coerceIn(0f, 1f)
 
   Card(
       modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-      shape = MaterialTheme.shapes.extraLarge, // M3: 28.dp
-      colors =
-          CardDefaults.cardColors(containerColor = Color(0xFF3E2C28)), // Dark brown from screenshot
+      shape = MaterialTheme.shapes.extraLarge,
+      colors = CardDefaults.cardColors(
+          containerColor = MaterialTheme.colorScheme.primaryContainer,
+          contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+      ),
   ) {
     Column(modifier = Modifier.padding(24.dp)) {
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
+          verticalAlignment = Alignment.Top,
       ) {
         Column {
           Text(
               "RAM Usage",
-              style = MaterialTheme.typography.titleSmall,
-              color = Color(0xFFD7C1BE).copy(alpha = 0.8f),
+              style = MaterialTheme.typography.labelLarge,
+              color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
           )
           Row(verticalAlignment = Alignment.Bottom) {
             Text(
                 "${String.format("%.1f", totalMemoryMB / 1024).replace('.', ',')}",
-                style =
-                    MaterialTheme.typography.displayMedium.copy(
+                style = MaterialTheme.typography.displayMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 42.sp),
-                color = Color(0xFFEDDDD9),
+                        fontSize = 48.sp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             Text(
                 " GB",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFEDDDD9).copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
             )
           }
         }
 
-        // Apps count badge - using M3 Large shape instead of custom CookieEight
-        Box(
-            modifier =
-                Modifier.size(72.dp)
-                    .clip(MaterialTheme.shapes.large) // M3: 16.dp rounded
-                    .background(Color(0xFF564442)),
-            contentAlignment = Alignment.Center,
+        // Apps count badge
+        Surface(
+            shape = MaterialTheme.shapes.large, 
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(80.dp)
         ) {
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.Center
+          ) {
             Text(
                 "$processCount",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFFFB4AB), // Bright pink accent
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 "Apps",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color(0xFFFFB4AB).copy(alpha = 0.8f),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
         }
@@ -255,29 +263,29 @@ fun MemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
 
       Spacer(modifier = Modifier.height(24.dp))
 
-      // Progress Bar
+      // Progress Bar Section
       Column {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween) {
               Text(
-                  "Visualized Usage (Estimate)",
+                  "Visualized Usage",
                   style = MaterialTheme.typography.labelMedium,
-                  color = Color(0xFFD7C1BE).copy(alpha = 0.6f),
+                  color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
               )
               Text(
                   "${(usagePercent * 100).toInt()}%",
                   style = MaterialTheme.typography.labelMedium,
                   fontWeight = FontWeight.Bold,
-                  color = Color(0xFFD7C1BE),
+                  color = MaterialTheme.colorScheme.onPrimaryContainer,
               )
             }
         Spacer(modifier = Modifier.height(12.dp))
         LinearProgressIndicator(
             progress = { usagePercent },
-            modifier = Modifier.fillMaxWidth().height(8.dp).clip(MaterialTheme.shapes.extraSmall), // M3: 4.dp
-            color = Color(0xFFFFB4AB), // Salmon/Pink progress
-            trackColor = Color(0xFF534341), // Darker brown track
+            modifier = Modifier.fillMaxWidth().height(12.dp).clip(MaterialTheme.shapes.extraSmall),
+            color = MaterialTheme.colorScheme.primary,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
         )
       }
     }
@@ -290,6 +298,7 @@ fun ProcessItem(
     isKilling: Boolean,
     onKill: () -> Unit,
 ) {
+  val context = LocalContext.current
   var expanded by remember { mutableStateOf(false) }
   
   Card(
@@ -297,39 +306,64 @@ fun ProcessItem(
           .fillMaxWidth()
           .animateContentSize()
           .clickable { expanded = !expanded },
-      shape = MaterialTheme.shapes.large, // M3: 16.dp
+      shape = MaterialTheme.shapes.large,
       colors = CardDefaults.cardColors(
-          containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+          containerColor = MaterialTheme.colorScheme.surfaceContainerLow
       ),
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       Row(
           modifier = Modifier.fillMaxWidth(),
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        // App icon placeholder
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(MaterialTheme.shapes.medium) // M3: 12.dp
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center,
-        ) {
-          Text(
-              text = process.packageName.substringAfterLast('.').take(2).uppercase(),
-              style = MaterialTheme.typography.labelMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onPrimaryContainer,
-          )
-        }
+        // App icon
+        SubcomposeAsyncImage(
+            model = ImageRequest.Builder(context)
+                .data(getAppIcon(context, process.packageName))
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            loading = {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        process.packageName.substringAfterLast('.').take(2).uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
+            },
+            error = {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Rounded.Android,
+                        null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                    )
+                }
+            },
+            modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.large)
+        )
         
         // Process info
         Column(modifier = Modifier.weight(1f)) {
           Text(
               text = process.packageName.substringAfterLast('.'),
-              style = MaterialTheme.typography.titleSmall,
-              fontWeight = FontWeight.SemiBold,
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSurface,
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
@@ -343,35 +377,41 @@ fun ProcessItem(
           )
         }
         
-        // Memory usage
+        // Memory usage pill
         Surface(
             color = MaterialTheme.colorScheme.secondaryContainer,
-            shape = MaterialTheme.shapes.small, // M3: 8.dp
+            shape = CircleShape,
         ) {
           Text(
               text = "${String.format("%.0f", process.memoryMB)} MB",
               style = MaterialTheme.typography.labelMedium,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSecondaryContainer,
-              modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
           )
         }
         
         // Kill button
-        IconButton(
+        FilledTonalIconButton(
             onClick = onKill,
             enabled = !isKilling,
+            modifier = Modifier.size(36.dp),
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            )
         ) {
           if (isKilling) {
             CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(16.dp),
                 strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.onErrorContainer
             )
           } else {
             Icon(
                 Icons.Rounded.Close,
                 contentDescription = "Kill process",
-                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(18.dp)
             )
           }
         }
@@ -380,40 +420,71 @@ fun ProcessItem(
       // Expanded content
       AnimatedVisibility(visible = expanded) {
         Column(
-            modifier = Modifier.padding(top = 12.dp),
+            modifier = Modifier.padding(top = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
           
           Row(
-              modifier = Modifier.fillMaxWidth(),
+              modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
               horizontalArrangement = Arrangement.SpaceBetween,
           ) {
-            Text(
-                "PID: ${process.pid}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                "CPU: ${String.format("%.1f", process.cpuPercent)}%",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column {
+                Text(
+                    "Process ID",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "${process.pid}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    "CPU Usage (Est.)",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "${String.format("%.1f", process.cpuPercent)}%",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
           }
           
-          // Memory progress bar
-          WavyProgressIndicator(
-              progress = (process.memoryMB / 1024f).coerceIn(0f, 1f),
-              modifier = Modifier.fillMaxWidth().height(8.dp),
-              color = MaterialTheme.colorScheme.primary,
-              trackColor = MaterialTheme.colorScheme.surfaceVariant,
-              strokeWidth = 4.dp,
-              amplitude = 2.dp,
-          )
+          Spacer(modifier = Modifier.height(4.dp))
+          
+          // Visual Memory Bar
+          Column {
+             Text(
+                "Memory Allocation",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+             )
+             LinearProgressIndicator(
+                  progress = { (process.memoryMB / 1024f).coerceIn(0f, 1f) },
+                  modifier = Modifier.fillMaxWidth().height(12.dp).clip(CircleShape),
+                  color = MaterialTheme.colorScheme.secondary,
+                  trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+              )
+          }
         }
       }
     }
   }
+}
+
+private fun getAppIcon(context: android.content.Context, packageName: String): android.graphics.drawable.Drawable? {
+    return try {
+        context.packageManager.getApplicationIcon(packageName)
+    } catch (e: Exception) {
+        null
+    }
 }
 
 suspend fun loadRunningProcesses(): List<ProcessInfo> = withContext(Dispatchers.IO) {
