@@ -1,7 +1,11 @@
 package id.xms.xtrakernelmanager.ui.screens.misc
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -10,8 +14,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -19,240 +27,280 @@ import org.json.JSONArray
 fun MaterialGameSpaceScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
+    onAddGames: () -> Unit,
 ) {
   val gameApps by viewModel.gameApps.collectAsState()
-  val isServiceRunning by viewModel.enableGameOverlay.collectAsState()
-  val performanceMode by viewModel.performanceMode.collectAsState()
-
   val appCount = try { JSONArray(gameApps).length() } catch (e: Exception) { 0 }
 
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
-        TopAppBar(
+        LargeTopAppBar(
             title = {
-              Column {
                 Text(
                     "Game Space",
                     fontWeight = FontWeight.Bold,
+                    fontSize = 32.sp
                 )
-                Text(
-                    "$appCount games registered",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                )
-              }
             },
             navigationIcon = {
               IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onBackground)
               }
             },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
+            colors = TopAppBarDefaults.largeTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background,
+                scrolledContainerColor = MaterialTheme.colorScheme.background,
+                titleContentColor = MaterialTheme.colorScheme.onBackground,
+                navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+            ),
         )
       },
   ) { paddingValues ->
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-        contentPadding = PaddingValues(16.dp),
+        modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      // Service Toggle Card
+
+      item { Spacer(modifier = Modifier.height(8.dp)) }
+
+      // 1. Game Library Section
       item {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                ),
-        ) {
-          Row(
-              modifier = Modifier.padding(20.dp).fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Column(modifier = Modifier.weight(1f)) {
-              Text(
-                  "Game Overlay Service",
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onTertiaryContainer,
-              )
-              Text(
-                  if (isServiceRunning) "Service is running" else "Service is stopped",
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
-              )
-            }
-            Switch(
-                checked = isServiceRunning,
-                onCheckedChange = { viewModel.setEnableGameOverlay(it) },
-                colors =
-                    SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.tertiary,
-                        checkedTrackColor =
-                            MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.2f),
-                    ),
-            )
-          }
-        }
-      }
-
-      // Performance Mode Card
-      item {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-        ) {
-          Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Icon(
-                  Icons.Rounded.Speed,
-                  null,
-                  tint = MaterialTheme.colorScheme.primary,
-                  modifier = Modifier.size(24.dp),
-              )
-              Spacer(modifier = Modifier.width(12.dp))
-              Text(
-                  "Performance Mode",
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface,
-              )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              val modes = listOf("powersave" to "Battery", "balanced" to "Balanced", "performance" to "Performance")
-              modes.forEach { (mode, label) ->
-                FilterChip(
-                    selected = performanceMode == mode,
-                    onClick = { viewModel.setPerformanceMode(mode) },
-                    label = { Text(label) },
-                    modifier = Modifier.weight(1f),
-                    colors =
-                        FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        ),
-                )
+          GameSpaceSection(
+              title = "Game Library",
+              content = {
+                  Row(
+                      modifier = Modifier.fillMaxWidth(),
+                      horizontalArrangement = Arrangement.SpaceBetween,
+                      verticalAlignment = Alignment.CenterVertically
+                  ) {
+                      Column {
+                          Text(
+                              text = "$appCount Games",
+                              style = MaterialTheme.typography.titleMedium,
+                              fontWeight = FontWeight.Bold,
+                              color = Color.White
+                          )
+                          Text(
+                              text = "Registered in Game Space",
+                              style = MaterialTheme.typography.bodySmall,
+                              color = Color.Gray
+                          )
+                      }
+                      
+                      Button(
+                          onClick = onAddGames,
+                          colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                      ) {
+                          Icon(Icons.Rounded.Add, null, modifier = Modifier.size(18.dp))
+                          Spacer(modifier = Modifier.width(8.dp))
+                          Text("Add")
+                      }
+                  }
               }
-            }
-          }
-        }
+          )
       }
 
-      // Game Library Card
+      item { Spacer(modifier = Modifier.height(8.dp)) }
+
+      // 2. Notifications Section
       item {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-        ) {
-          Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Rounded.Apps,
-                    null,
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(24.dp),
+        GameSpaceSection(
+            title = "Notifications",
+            content = {
+                GameSpaceSwitchRow(
+                    title = "Call overlay",
+                    subtitle = "Show minimal call overlay to answer/reject calls",
+                    icon = Icons.Rounded.Call,
+                    checked = viewModel.callOverlay.collectAsState().value,
+                    onCheckedChange = { viewModel.setCallOverlay(it) }
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                  Text(
-                      "Game Library",
-                      style = MaterialTheme.typography.titleMedium,
-                      fontWeight = FontWeight.Bold,
-                      color = MaterialTheme.colorScheme.onSurface,
-                  )
-                  Text(
-                      "$appCount games added",
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                  )
-                }
-              }
+                Spacer(modifier = Modifier.height(16.dp))
+                GameSpaceSwitchRow(
+                    title = "Danmaku Notification mode",
+                    subtitle = "Show notification as danmaku aka bullet comments while game is active",
+                    icon = Icons.Rounded.Comment,
+                    checked = viewModel.danmakuMode.collectAsState().value,
+                    onCheckedChange = { viewModel.setDanmakuMode(it) }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                GameSpaceNavRow(
+                    title = "In-game call",
+                    subtitle = "No action",
+                    icon = Icons.Rounded.PhoneInTalk,
+                    onClick = { /* TODO */ }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                GameSpaceNavRow(
+                    title = "In-game ringer mode",
+                    subtitle = "Do not change",
+                    icon = Icons.Rounded.VolumeUp,
+                    onClick = { /* TODO */ }
+                )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { /* TODO: Open App Picker */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary,
-                    ),
-                shape = RoundedCornerShape(12.dp),
-            ) {
-              Icon(Icons.Rounded.Add, null, modifier = Modifier.size(18.dp))
-              Spacer(modifier = Modifier.width(8.dp))
-              Text("Add Games")
-            }
-          }
-        }
+        )
       }
 
-      // Quick Actions Card
-      item {
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors =
-                CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                ),
-        ) {
-          Column(modifier = Modifier.padding(20.dp)) {
-            Text(
-                "Quick Actions",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Clear RAM Button
-            val clearStatus by viewModel.clearRAMStatus.collectAsState()
-            OutlinedButton(
-                onClick = { viewModel.clearRAM() },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-            ) {
-              Icon(Icons.Rounded.Memory, null, modifier = Modifier.size(18.dp))
-              Spacer(modifier = Modifier.width(8.dp))
-              Text(if (clearStatus.isNotEmpty()) clearStatus else "Clear RAM")
-            }
-          }
-        }
-      }
-
-      // Bottom spacing
       item { Spacer(modifier = Modifier.height(16.dp)) }
+
+      // 3. Display & Gestures Section
+      item {
+        GameSpaceSection(
+            title = "Display & Gestures",
+            content = {
+                GameSpaceSwitchRow(
+                    title = "Disable auto-brightness",
+                    subtitle = "Keep brightness settled while in-game",
+                    icon = Icons.Rounded.BrightnessAuto,
+                    checked = viewModel.disableAutoBrightness.collectAsState().value,
+                    onCheckedChange = { viewModel.setDisableAutoBrightness(it) }
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                GameSpaceSwitchRow(
+                    title = "Disable three fingers swipe gesture",
+                    subtitle = "Temporary disable three fingers swipe gesture while in-game",
+                    icon = Icons.Rounded.Gesture,
+                    checked = viewModel.disableThreeFingerSwipe.collectAsState().value,
+                    onCheckedChange = { viewModel.setDisableThreeFingerSwipe(it) }
+                )
+            }
+        )
+      }
+
+      item { Spacer(modifier = Modifier.height(32.dp)) }
     }
   }
+}
+
+@Composable
+fun GameSpaceSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = Color.White,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24))
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+fun GameSpaceSwitchRow(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Icon Circle
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF2D2E36)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                maxLines = 2,
+                lineHeight = 16.sp
+            )
+        }
+
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = Color.White,
+                checkedTrackColor = Color.LightGray,
+                uncheckedThumbColor = Color.Gray,
+                uncheckedTrackColor = Color.Transparent,
+                uncheckedBorderColor = Color.Gray
+            )
+        )
+    }
+}
+
+@Composable
+fun GameSpaceNavRow(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick), // Make row clickable if needed
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Icon Circle
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF2D2E36)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        }
+        
+        // Chevron (Optional)
+        // Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null, tint = Color.Gray, modifier = Modifier.size(16.dp))
+    }
 }

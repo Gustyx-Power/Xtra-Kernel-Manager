@@ -12,6 +12,8 @@ import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.service.GameOverlayService
+import org.json.JSONArray
+import org.json.JSONException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -99,6 +101,19 @@ class MiscViewModel(
 
   private val _selinuxLoading = MutableStateFlow(false)
   val selinuxLoading: StateFlow<Boolean> = _selinuxLoading.asStateFlow()
+
+  // Game Space Mock States
+  private val _callOverlay = MutableStateFlow(true)
+  val callOverlay: StateFlow<Boolean> = _callOverlay.asStateFlow()
+
+  private val _danmakuMode = MutableStateFlow(false)
+  val danmakuMode: StateFlow<Boolean> = _danmakuMode.asStateFlow()
+
+  private val _disableAutoBrightness = MutableStateFlow(true)
+  val disableAutoBrightness: StateFlow<Boolean> = _disableAutoBrightness.asStateFlow()
+
+  private val _disableThreeFingerSwipe = MutableStateFlow(false)
+  val disableThreeFingerSwipe: StateFlow<Boolean> = _disableThreeFingerSwipe.asStateFlow()
 
   init {
     checkRoot()
@@ -221,6 +236,22 @@ class MiscViewModel(
     }
   }
 
+  fun setCallOverlay(enabled: Boolean) {
+      _callOverlay.value = enabled
+  }
+
+  fun setDanmakuMode(enabled: Boolean) {
+      _danmakuMode.value = enabled
+  }
+
+  fun setDisableAutoBrightness(enabled: Boolean) {
+      _disableAutoBrightness.value = enabled
+  }
+
+  fun setDisableThreeFingerSwipe(enabled: Boolean) {
+      _disableThreeFingerSwipe.value = enabled
+  }
+
   // Game Control Functions
   fun setPerformanceMode(mode: String) {
     viewModelScope.launch {
@@ -299,6 +330,72 @@ class MiscViewModel(
   suspend fun saveGameApps(jsonString: String) {
     preferencesManager.saveGameApps(jsonString)
     Log.d("MiscViewModel", "Game apps saved: $jsonString")
+  }
+
+  fun addGameApp(packageName: String) {
+    viewModelScope.launch {
+        val currentApps = try {
+            JSONArray(gameApps.value)
+        } catch (e: JSONException) {
+            JSONArray()
+        }
+
+        // Check if already exists
+        var exists = false
+        for (i in 0 until currentApps.length()) {
+            if (currentApps.optString(i) == packageName) {
+                exists = true
+                break
+            }
+        }
+
+        if (!exists) {
+            currentApps.put(packageName)
+            saveGameApps(currentApps.toString())
+        }
+    }
+  }
+
+  fun removeGameApp(packageName: String) {
+    viewModelScope.launch {
+        val currentApps = try {
+            JSONArray(gameApps.value)
+        } catch (e: JSONException) {
+            JSONArray()
+        }
+
+        val newApps = JSONArray()
+        for (i in 0 until currentApps.length()) {
+            if (currentApps.optString(i) != packageName) {
+                newApps.put(currentApps.get(i))
+            }
+        }
+        
+        saveGameApps(newApps.toString())
+    }
+  }
+
+  fun toggleGameApp(packageName: String) {
+      if (isGameApp(packageName)) {
+          removeGameApp(packageName)
+      } else {
+          addGameApp(packageName)
+      }
+  }
+
+  fun isGameApp(packageName: String): Boolean {
+      val currentApps = try {
+          JSONArray(gameApps.value)
+      } catch (e: JSONException) {
+          JSONArray()
+      }
+
+      for (i in 0 until currentApps.length()) {
+          if (currentApps.optString(i) == packageName) {
+              return true
+          }
+      }
+      return false
   }
 
   // Display Saturation Functions

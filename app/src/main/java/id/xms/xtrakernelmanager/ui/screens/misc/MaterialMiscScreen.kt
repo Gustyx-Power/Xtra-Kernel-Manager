@@ -36,12 +36,18 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   var showBatteryDetail by remember { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
   var showGameSpace by remember { mutableStateOf(false) }
+  var showGameAppSelector by remember { mutableStateOf(false) }
   var showPerAppProfile by remember { mutableStateOf(false) }
 
   when {
+    showGameAppSelector -> MaterialGameAppSelectorScreen(viewModel = viewModel, onBack = { showGameAppSelector = false })
     showBatteryDetail -> MaterialBatteryScreen(onBack = { showBatteryDetail = false })
     showProcessManager -> MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
-    showGameSpace -> MaterialGameSpaceScreen(viewModel = viewModel, onBack = { showGameSpace = false })
+    showGameSpace -> MaterialGameSpaceScreen(
+        viewModel = viewModel, 
+        onBack = { showGameSpace = false },
+        onAddGames = { showGameAppSelector = true }
+    )
     showPerAppProfile -> MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })
     else -> MaterialMiscScreenContent(
         viewModel,
