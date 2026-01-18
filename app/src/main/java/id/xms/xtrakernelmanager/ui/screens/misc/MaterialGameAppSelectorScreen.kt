@@ -32,22 +32,35 @@ fun MaterialGameAppSelectorScreen(
 ) {
     val context = LocalContext.current
     val gameAppsJson by viewModel.gameApps.collectAsState()
-    
-    
-    var appProfiles by remember { mutableStateOf(getAllInstalledApps(context)) }
-    var searchQuery by remember { mutableStateOf("") }
-    
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    
+    var searchQuery by remember { mutableStateOf("") }
+    var filterMode by remember { mutableStateOf("All") } // All, Added, Not Added
+    var showFilterMenu by remember { mutableStateOf(false) }
+    
+    // Get installed apps
+    val appProfiles = remember { getAllInstalledApps(context) }
 
-    val filteredApps = remember(appProfiles, searchQuery) {
-        if (searchQuery.isBlank()) {
-            appProfiles.sortedBy { it.appName }
+    val filteredApps = remember(appProfiles, searchQuery, gameAppsJson, filterMode) {
+        val sortedApps = if (searchQuery.isBlank()) {
+            appProfiles
         } else {
             appProfiles.filter {
                 it.appName.contains(searchQuery, ignoreCase = true) ||
                     it.packageName.contains(searchQuery, ignoreCase = true)
-            }.sortedBy { it.appName }
+            }
         }
+        
+        val filteredByMode = when (filterMode) {
+            "Added" -> sortedApps.filter { viewModel.isGameApp(it.packageName) }
+            "Not Added" -> sortedApps.filter { !viewModel.isGameApp(it.packageName) }
+            else -> sortedApps
+        }
+
+        filteredByMode.sortedWith(
+            compareByDescending<AppProfile> { viewModel.isGameApp(it.packageName) }
+                .thenBy { it.appName }
+        )
     }
 
     Scaffold(
@@ -79,38 +92,86 @@ fun MaterialGameAppSelectorScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
+            // Search Bar & Filter
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Search apps...") },
-                leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Rounded.Clear, contentDescription = "Clear")
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Search apps...") },
+                    leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Rounded.Clear, contentDescription = "Clear")
+                            }
                         }
+                    },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.extraLarge,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = Color.Transparent,
+                    ),
+                )
+                
+                Box {
+                    FilledTonalIconButton(
+                        onClick = { showFilterMenu = true },
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (filterMode != "All") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
+                        )
+                    ) {
+                        Icon(
+                            Icons.Rounded.FilterList, 
+                            contentDescription = "Filter",
+                            tint = if (filterMode != "All") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
                     }
-                },
-                singleLine = true,
-                shape = MaterialTheme.shapes.extraLarge,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = Color.Transparent,
-                ),
-            )
+                    
+                    DropdownMenu(
+                        expanded = showFilterMenu,
+                        onDismissRequest = { showFilterMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("All") },
+                            onClick = { filterMode = "All"; showFilterMenu = false },
+                            leadingIcon = { 
+                                if (filterMode == "All") Icon(Icons.Rounded.Check, null) 
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Added") },
+                            onClick = { filterMode = "Added"; showFilterMenu = false },
+                            leadingIcon = { 
+                                if (filterMode == "Added") Icon(Icons.Rounded.Check, null) 
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Not Added") },
+                            onClick = { filterMode = "Not Added"; showFilterMenu = false },
+                            leadingIcon = { 
+                                if (filterMode == "Not Added") Icon(Icons.Rounded.Check, null) 
+                            }
+                        )
+                    }
+                }
+            }
             
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                items(filteredApps, key = { it.packageName }) { app ->
+                items(filteredApps, key = { it.packageName }) { app: AppProfile ->
                      val isGame = viewModel.isGameApp(app.packageName)
                      
                      GameAppItem(
