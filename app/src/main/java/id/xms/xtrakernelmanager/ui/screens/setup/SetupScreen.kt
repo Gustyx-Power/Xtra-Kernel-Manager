@@ -22,7 +22,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -296,7 +295,7 @@ fun WelcomePage(onNext: () -> Unit) {
     Button(
         onClick = onNext,
         modifier = Modifier.fillMaxWidth().height(56.dp),
-        shape = RoundedCornerShape(18.dp),
+        shape = MaterialTheme.shapes.large,
         colors =
             ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
@@ -419,7 +418,7 @@ fun PermissionsPage(
                       if (canProceed) MaterialTheme.colorScheme.onPrimary
                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
               ),
-          shape = RoundedCornerShape(18.dp),
+          shape = MaterialTheme.shapes.large,
           elevation =
               ButtonDefaults.buttonElevation(defaultElevation = if (canProceed) 6.dp else 0.dp),
       ) {
@@ -500,7 +499,7 @@ fun LayoutSelectionPage(
     Button(
         onClick = onFinish,
         modifier = Modifier.fillMaxWidth().height(56.dp),
-        shape = RoundedCornerShape(18.dp),
+        shape = MaterialTheme.shapes.large,
         elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
     ) {
       AnimatedContent(targetState = selectedLayout, label = "Button Text") { layout ->
@@ -532,7 +531,7 @@ fun GlassyCard(modifier: Modifier = Modifier, content: @Composable BoxScope.() -
       modifier =
           modifier
               .fillMaxWidth()
-              .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(24.dp))
+              .background(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.shapes.extraLarge)
               .padding(24.dp), // Inner padding
       content = content,
   )
@@ -563,7 +562,7 @@ fun LayoutOptionCard(
   Card(
       onClick = onSelect,
       modifier = Modifier.fillMaxWidth().scale(animatedScale),
-      shape = RoundedCornerShape(24.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors = CardDefaults.cardColors(containerColor = containerColor),
       interactionSource = interactionSource,
       elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 0.dp),
@@ -624,7 +623,7 @@ fun PermissionItem(
       onClick = { onGrant() }, // Allow clicking even if granted (to re-check or view settings)
       modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      shape = RoundedCornerShape(20.dp),
+      shape = MaterialTheme.shapes.large,
   ) {
     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
       // M3 Shape Container
@@ -683,7 +682,7 @@ fun PermissionItem(
             modifier =
                 Modifier.background(
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        RoundedCornerShape(50),
+                        CircleShape,
                     )
                     .padding(horizontal = 12.dp, vertical = 6.dp),
         ) {

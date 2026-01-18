@@ -12,7 +12,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -262,7 +261,7 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
 fun MaterialDeviceCard(systemInfo: SystemInfo) {
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -286,7 +285,7 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                   MaterialTheme.colorScheme.onPrimaryContainer.copy(
                       alpha = 0.1f
                   ), // Tonal on primary
-              shape = RoundedCornerShape(50), // Fully rounded pill
+              shape = CircleShape, // Fully rounded pill
           ) {
             Text(
                 text = android.os.Build.BOARD.uppercase(),
@@ -322,7 +321,7 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
 
         Surface(
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f),
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
             modifier =
                 Modifier.fillMaxWidth()
                     .padding(end = 100.dp), // Increased padding to shift left away from silhouette
@@ -367,7 +366,7 @@ fun MaterialStatTile(
 ) {
   Card(
       modifier = modifier.animateContentSize(),
-      shape = RoundedCornerShape(24.dp), // "Kotak tapi membulat" (Squarish but rounded)
+      shape = MaterialTheme.shapes.extraLarge,
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
@@ -390,7 +389,7 @@ fun MaterialStatTile(
           verticalAlignment = Alignment.Top,
       ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = MaterialTheme.shapes.medium,
             color = color.copy(alpha = 0.1f),
             modifier = Modifier.size(36.dp),
         ) {
@@ -408,7 +407,7 @@ fun MaterialStatTile(
         if (badgeText != null) {
           Surface(
               color = color.copy(alpha = 0.1f),
-              shape = RoundedCornerShape(50),
+              shape = CircleShape,
           ) {
             Text(
                 text = badgeText,
@@ -465,7 +464,7 @@ fun MaterialStatTile(
 fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors =
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
   ) {
@@ -485,7 +484,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
         // Smart Badge: GPU Renderer
         Surface(
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-            shape = RoundedCornerShape(50),
+            shape = CircleShape,
         ) {
           val gpuBadge =
               remember(gpuInfo.renderer) {
@@ -537,7 +536,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
         Surface(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
         ) {
           Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -558,7 +557,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
         Surface(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
         ) {
           Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -586,7 +585,7 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
 fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer,
@@ -608,7 +607,7 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
                   Modifier.size(36.dp)
                       .background(
                           MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                          RoundedCornerShape(12.dp),
+                          MaterialTheme.shapes.medium,
                       ),
               contentAlignment = Alignment.Center,
           ) {
@@ -630,7 +629,7 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
         // Smart Badge: Technology
         Surface(
             color = MaterialTheme.colorScheme.tertiaryContainer,
-            shape = RoundedCornerShape(50),
+            shape = CircleShape,
         ) {
           Text(
               text = batteryInfo.technology.takeIf { it != "Unknown" } ?: "Li-ion",
@@ -714,14 +713,14 @@ fun BatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
     Box(
         modifier =
             Modifier.size(20.dp, 4.dp)
-                .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.extraSmall)
     )
 
     // Main Body
     Box(
         modifier =
             Modifier.size(50.dp, 80.dp)
-                .border(4.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(12.dp))
+                .border(4.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium)
                 .padding(4.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
@@ -729,7 +728,7 @@ fun BatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
           modifier =
               Modifier.fillMaxWidth()
                   .fillMaxHeight(level)
-                  .background(color, RoundedCornerShape(6.dp))
+                  .background(color, MaterialTheme.shapes.small)
       )
     }
   }
@@ -737,7 +736,7 @@ fun BatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
 
 @Composable
 fun BatteryStatusChip(text: String) {
-  Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(8.dp)) {
+  Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.small) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
@@ -751,7 +750,7 @@ fun BatteryStatusChip(text: String) {
 fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier) {
   Card(
       modifier = modifier,
-      shape = RoundedCornerShape(16.dp),
+      shape = MaterialTheme.shapes.large,
       colors =
           CardDefaults.cardColors(
               containerColor =
@@ -785,7 +784,7 @@ fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier) 
 fun MaterialMemoryCard(systemInfo: SystemInfo) {
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors =
           CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
   ) {
@@ -797,7 +796,7 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
                 Modifier.size(36.dp)
                     .background(
                         MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                        RoundedCornerShape(12.dp),
+                        MaterialTheme.shapes.medium,
                     ),
             contentAlignment = Alignment.Center,
         ) {
@@ -971,7 +970,7 @@ fun PowerMenuContent(onAction: (PowerAction) -> Unit) {
 fun PowerMenuItem(action: PowerAction, onClick: () -> Unit) {
   Surface(
       onClick = onClick,
-      shape = RoundedCornerShape(16.dp),
+      shape = MaterialTheme.shapes.large,
       color = MaterialTheme.colorScheme.surfaceVariant,
       modifier = Modifier.fillMaxWidth(),
   ) {
@@ -1036,7 +1035,7 @@ fun MaterialPowerInsightCard(
 
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors =
           CardDefaults.cardColors(
               containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f)
@@ -1059,7 +1058,7 @@ fun MaterialPowerInsightCard(
                   Modifier.size(36.dp)
                       .background(
                           MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                          RoundedCornerShape(12.dp),
+                          MaterialTheme.shapes.medium,
                       ),
               contentAlignment = Alignment.Center,
           ) {
@@ -1081,7 +1080,7 @@ fun MaterialPowerInsightCard(
         // Badge (Pushed to Right)
         Surface(
             color = badgeColor,
-            shape = RoundedCornerShape(50),
+            shape = CircleShape,
         ) {
           Text(
               text = badgeText,
@@ -1264,7 +1263,7 @@ fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
 fun MaterialAppInfoSection() {
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize(),
-      shape = RoundedCornerShape(32.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       colors =
           CardDefaults.cardColors(
               containerColor =
@@ -1282,7 +1281,7 @@ fun MaterialAppInfoSection() {
         // Maintainer Card
         Card(
             modifier = Modifier.weight(1f).fillMaxHeight(), // Fill available height
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             colors =
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
@@ -1340,7 +1339,7 @@ fun MaterialAppInfoSection() {
 
               Surface(
                   color = MaterialTheme.colorScheme.secondaryContainer,
-                  shape = RoundedCornerShape(8.dp),
+                  shape = MaterialTheme.shapes.small,
               ) {
                 Text(
                     text = "TEAM",
@@ -1391,7 +1390,7 @@ fun MaterialAppInfoSection() {
         // Release Card
         Card(
             modifier = Modifier.weight(1f).fillMaxHeight(), // Fill available height
-            shape = RoundedCornerShape(24.dp),
+            shape = MaterialTheme.shapes.extraLarge,
             colors =
                 CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
@@ -1421,7 +1420,7 @@ fun MaterialAppInfoSection() {
               Box(
                   modifier =
                       Modifier.size(40.dp)
-                          .clip(RoundedCornerShape(12.dp))
+                          .clip(MaterialTheme.shapes.medium)
                           .background(badgeColor.copy(alpha = 0.2f)), // Match badge color
                   contentAlignment = Alignment.Center,
               ) {
@@ -1433,7 +1432,7 @@ fun MaterialAppInfoSection() {
                 )
               }
 
-              Surface(color = badgeColor.copy(alpha = 0.1f), shape = RoundedCornerShape(50)) {
+              Surface(color = badgeColor.copy(alpha = 0.1f), shape = CircleShape) {
                 Text(
                     text = badgeText,
                     style = MaterialTheme.typography.labelSmall,
@@ -1498,7 +1497,7 @@ fun MaterialAppInfoSection() {
       // Project Info Card
       Card(
           modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(24.dp),
+          shape = MaterialTheme.shapes.extraLarge,
           colors =
               CardDefaults.cardColors(
                   containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
@@ -1535,7 +1534,7 @@ fun MaterialAppInfoSection() {
             OutlinedButton(
                 onClick = { uriHandler.openUri("https://github.com/Xtra-Manager-Software") },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
                 border =
                     androidx.compose.foundation.BorderStroke(
                         1.dp,
@@ -1563,7 +1562,7 @@ fun MaterialAppInfoSection() {
                   uriHandler.openUri("https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager")
                 },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
+                shape = MaterialTheme.shapes.medium,
             ) {
               Icon(Icons.Rounded.Info, null, modifier = Modifier.size(18.dp))
               Spacer(modifier = Modifier.width(8.dp))
