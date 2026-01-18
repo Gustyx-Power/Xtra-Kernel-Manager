@@ -286,7 +286,8 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
 
         // Right: Stats List
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxHeight(),
+            verticalArrangement = Arrangement.SpaceEvenly, // Distribute evenly height-wise
             horizontalAlignment = Alignment.Start,
         ) {
           PowerStatItem(
@@ -422,9 +423,11 @@ fun DisplayColorCard(
                     .padding(4.dp),
             )
 
-            if (expanded && isRooted) {
-              // Reset Button or similar could go here if needed
-            }
+            StatusBadge(
+                text = "Visuals",
+                containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
           }
 
           Spacer(modifier = Modifier.height(12.dp))
@@ -562,7 +565,11 @@ fun GameSpaceCard(
                   .padding(4.dp),
           )
 
-
+          StatusBadge(
+              text = "$appCount Apps",
+              containerColor = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f),
+              contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+          )
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -574,7 +581,7 @@ fun GameSpaceCard(
             color = MaterialTheme.colorScheme.onTertiaryContainer,
         )
         Text(
-            text = "$appCount Apps active",
+            text = "Manage & Boost Games",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
         )
@@ -788,6 +795,22 @@ fun SELinuxCard(
 }
 
 @Composable
+fun StatusBadge(text: String, containerColor: Color, contentColor: Color) {
+  Surface(
+      color = containerColor,
+      shape = RoundedCornerShape(50),
+  ) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = contentColor,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+    )
+  }
+}
+
+@Composable
 fun ProcessManagerCard(onClick: () -> Unit) {
   Card(
       onClick = onClick,
@@ -831,11 +854,10 @@ fun ProcessManagerCard(onClick: () -> Unit) {
                   .padding(4.dp),
           )
 
-          Icon(
-              Icons.Rounded.ChevronRight,
-              null,
-              tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-              modifier = Modifier.size(20.dp),
+          StatusBadge(
+              text = "Monitor",
+              containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+              contentColor = MaterialTheme.colorScheme.onSurface
           )
         }
 
@@ -900,7 +922,11 @@ fun FunctionalRomCard(viewModel: MiscViewModel) {
           )
         }
       }
-      Icon(Icons.Rounded.Lock, null, tint = MaterialTheme.colorScheme.error)
+      StatusBadge(
+          text = "VIP",
+          containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+          contentColor = MaterialTheme.colorScheme.error
+      )
     }
   }
 }
@@ -948,10 +974,10 @@ fun PerAppProfileCard(onClick: () -> Unit) {
           )
         }
       }
-      Icon(
-          Icons.Rounded.ChevronRight,
-          null,
-          tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+      StatusBadge(
+          text = "Custom",
+          containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+          contentColor = MaterialTheme.colorScheme.primary
       )
     }
   }
