@@ -82,146 +82,14 @@ fun MaterialBatteryScreen(
         }
       }
       
-      item {
-        BatteryInfoGrid()
-      }
+
       
       item { Spacer(modifier = Modifier.height(24.dp)) }
     }
   }
 }
 
-@Composable
-fun BatteryInfoGrid() {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24))
-    ) {
-        Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            // Header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF009688).copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.BatteryFull,
-                        contentDescription = null,
-                        tint = Color(0xFF009688),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                Text(
-                    text = "Battery Status",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
 
-            // Row 1: Temperature & Health
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                BatteryInfoItem(
-                    modifier = Modifier.weight(1f),
-                    label = "Temperature",
-                    value = "34.5°C",
-                    icon = Icons.Rounded.Thermostat,
-                    color = Color(0xFFEF5350)
-                )
-                BatteryInfoItem(
-                    modifier = Modifier.weight(1f),
-                    label = "Health",
-                    value = "Good",
-                    icon = Icons.Rounded.Favorite,
-                    color = Color(0xFF66BB6A)
-                )
-            }
-
-            // Row 2: Capacity & Technology
-            Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                BatteryInfoItem(
-                    modifier = Modifier.weight(1f),
-                    label = "Capacity",
-                    value = "4800 mAh",
-                    icon = Icons.Rounded.BatteryFull,
-                    color = Color(0xFFFFA726)
-                )
-                BatteryInfoItem(
-                    modifier = Modifier.weight(1f),
-                    label = "Technology",
-                    value = "Li-poly",
-                    icon = Icons.Rounded.Memory,
-                    color = Color(0xFF42A5F5)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun BatteryInfoItem(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    icon: ImageVector,
-    color: Color
-) {
-    Card(
-        modifier = modifier.fillMaxHeight(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2D2E36) // Slightly lighter than main card
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Icon Badge
-            Surface(
-                shape = CircleShape,
-                color = color.copy(alpha = 0.1f),
-                modifier = Modifier.size(36.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = color, modifier = Modifier.size(18.dp))
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Column {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun HistoryChartCard() {
