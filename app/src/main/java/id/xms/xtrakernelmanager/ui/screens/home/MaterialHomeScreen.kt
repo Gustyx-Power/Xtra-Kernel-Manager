@@ -862,7 +862,8 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
         // Prefer Swap stats if available, otherwise fallback to ZRAM capacity with 0 usage
         val swapTotal = if (systemInfo.swapTotal > 0) systemInfo.swapTotal else systemInfo.zramSize
         val swapUsed =
-            if (systemInfo.swapTotal > 0) (systemInfo.swapTotal - systemInfo.swapFree) else 0L
+            if (systemInfo.swapTotal > 0) (systemInfo.swapTotal - systemInfo.swapFree)
+            else systemInfo.zramUsed
         val swapProgress = if (swapTotal > 0) swapUsed.toFloat() / swapTotal.toFloat() else 0f
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

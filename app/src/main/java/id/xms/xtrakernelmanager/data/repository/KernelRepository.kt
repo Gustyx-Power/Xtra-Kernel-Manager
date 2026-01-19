@@ -506,6 +506,21 @@ class KernelRepository {
               swapTotalBytes - getSwapUsedSize()
             }
 
+        val zramUsed =
+            try {
+              val mmStat =
+                  RootManager.executeCommand("cat /sys/block/zram0/mm_stat 2>/dev/null")
+                      .getOrNull()
+                      ?.trim()
+              if (!mmStat.isNullOrBlank()) {
+                mmStat.split("\\s+".toRegex()).firstOrNull()?.toLongOrNull() ?: 0L
+              } else {
+                0L
+              }
+            } catch (e: Exception) {
+              0L
+            }
+
         SystemInfo(
             androidVersion = androidVersion,
             abi = abi,
@@ -519,6 +534,7 @@ class KernelRepository {
             totalRam = totalRam * 1024,
             availableRam = availableRam * 1024,
             zramSize = zramSize,
+            zramUsed = zramUsed,
             totalStorage = totalStorage,
             availableStorage = availableStorage,
             swapTotal = swapTotalBytes,
