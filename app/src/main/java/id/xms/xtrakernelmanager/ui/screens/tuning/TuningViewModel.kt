@@ -442,7 +442,7 @@ class TuningViewModel(
     _cpuClusters.value = updatedClusters
 
     if (!_isMediatek.value) {
-      _gpuInfo.value = gpuUseCase.getGPUInfo()
+      _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
     }
 
     val states = mutableMapOf<Int, ClusterUIState>()
@@ -485,7 +485,7 @@ class TuningViewModel(
     _cpuClusters.value = updatedClusters
 
     if (!_isMediatek.value) {
-      _gpuInfo.value = gpuUseCase.getGPUInfo()
+      _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
     }
 
     // Update temperature
@@ -533,9 +533,9 @@ class TuningViewModel(
 
         // GPU Info depends on Mediatek check
         if (!isMtk) {
-          _gpuInfo.value = gpuUseCase.getGPUInfo()
+          val staticInfo = gpuUseCase.getGPUStaticInfo()
+          _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
         }
-
         _blockDeviceStates.value = blockDevicesDeferred.await()
 
         val currentTCP = tcpDeferred.await()
@@ -1114,7 +1114,36 @@ class TuningViewModel(
     return gpuUseCase.checkMagiskAvailability()
   }
 
+  // Job for real-time monitoring
+  private var monitoringJob: kotlinx.coroutines.Job? = null
+
+  /** Start real-time monitoring loop (called when screen becomes active) */
+  fun startRealTimeMonitoring() {
+    if (monitoringJob?.isActive == true) return
+
+    monitoringJob =
+        viewModelScope.launch(Dispatchers.IO) {
+          while (true) {
+            refreshDynamicValues()
+            // 1 second interval for smooth but not overwhelming updates
+            delay(1000)
+          }
+        }
+  }
+
+  /** Stop real-time monitoring (called when screen minimized/closed) */
+  fun stopRealTimeMonitoring() {
+    monitoringJob?.cancel()
+    monitoringJob = null
+  }
+
+  override fun onCleared() {
+    super.onCleared()
+    stopRealTimeMonitoring()
+  }
+
   fun refreshData() {
+    // Force a full refresh
     viewModelScope.launch { refreshCurrentValues() }
   }
 }

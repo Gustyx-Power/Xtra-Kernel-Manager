@@ -571,4 +571,48 @@ object NativeLib {
   }
 
   private external fun getAvailableZramAlgorithmsNative(): String
+
+  private external fun getGpuAvailableFrequenciesNative(): String
+
+  private external fun getGpuAvailablePoliciesNative(): String
+
+  private external fun getGpuDriverInfoNative(): String
+
+  private external fun readZramDeviceStatsNative(device: Int): String
+
+  // Wrappers for new GPU functions
+  fun getGpuAvailableFrequencies(): List<Int> {
+    if (!isLoaded) return emptyList()
+    return try {
+      val jsonString = getGpuAvailableFrequenciesNative()
+      if (jsonString.isBlank() || jsonString == "[]") return emptyList()
+      val jsonArray = JSONArray(jsonString)
+      List(jsonArray.length()) { i -> jsonArray.getInt(i) }
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getGpuAvailableFrequencies failed: ${e.message}")
+      emptyList()
+    }
+  }
+
+  fun getGpuAvailablePolicies(): List<String> {
+    if (!isLoaded) return emptyList()
+    return try {
+      val jsonString = getGpuAvailablePoliciesNative()
+      if (jsonString.isBlank() || jsonString == "[]") return emptyList()
+      val jsonArray = JSONArray(jsonString)
+      List(jsonArray.length()) { i -> jsonArray.getString(i) }
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getGpuAvailablePolicies failed: ${e.message}")
+      emptyList()
+    }
+  }
+
+  fun getGpuDriverInfo(): String {
+    if (!isLoaded) return "unknown"
+    return try {
+      getGpuDriverInfoNative()
+    } catch (e: Exception) {
+      "unknown"
+    }
+  }
 }
