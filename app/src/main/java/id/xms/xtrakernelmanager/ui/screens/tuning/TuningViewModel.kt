@@ -525,6 +525,9 @@ class TuningViewModel(
       _currentTCPCongestion.value = currentTCP
     }
 
+    // Load available compression algorithms
+    _availableCompressionAlgorithms.value = ramUseCase.getAvailableCompressionAlgorithms()
+
     val currentComp = ramUseCase.getCurrentCompressionAlgorithm()
     if (currentComp.isNotEmpty()) {
       _currentCompressionAlgorithm.value = currentComp
