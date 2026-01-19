@@ -169,7 +169,6 @@ dependencies {
     // Lottie for animations
     implementation("com.airbnb.android:lottie-compose:6.4.0")
 
-    // Charts
     implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.2")
 
     // Coroutines

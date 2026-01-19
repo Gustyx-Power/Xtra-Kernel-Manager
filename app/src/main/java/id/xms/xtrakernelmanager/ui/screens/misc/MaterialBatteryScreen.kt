@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.ui.screens.misc
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -32,7 +33,8 @@ import androidx.compose.ui.platform.LocalContext
 fun MaterialBatteryScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: () -> Unit,
+    onGraphClick: () -> Unit,
 ) {
   val context = LocalContext.current
   Scaffold(
@@ -77,7 +79,7 @@ fun MaterialBatteryScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard() }
+          Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard(onClick = onGraphClick) }
           Box(modifier = Modifier.weight(1f)) { CurrentSessionCard() }
         }
       }
@@ -225,11 +227,11 @@ fun HistoryChartCard() {
 }
 
 @Composable
-fun ElectricCurrentCard() {
+fun ElectricCurrentCard(onClick: () -> Unit = {}) {
   Card(
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
-      modifier = Modifier.fillMaxWidth().height(260.dp),
+      modifier = Modifier.fillMaxWidth().height(260.dp).clickable(onClick = onClick),
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(

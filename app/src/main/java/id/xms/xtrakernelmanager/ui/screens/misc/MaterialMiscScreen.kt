@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -33,8 +34,9 @@ import org.json.JSONArray
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
-  var showBatteryDetail by remember { mutableStateOf(false) }
-  var showBatterySettings by remember { mutableStateOf(false) }
+  var showBatteryDetail by rememberSaveable { mutableStateOf(false) }
+  var showBatterySettings by rememberSaveable { mutableStateOf(false) }
+  var showBatteryGraph by rememberSaveable { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
   var showGameSpace by remember { mutableStateOf(false) }
   var showGameAppSelector by remember { mutableStateOf(false) }
@@ -43,11 +45,17 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   when {
     showBatterySettings -> BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
     showGameAppSelector -> MaterialGameAppSelectorScreen(viewModel = viewModel, onBack = { showGameAppSelector = false })
+    showBatteryGraph ->
+        MaterialBatteryGraphScreen(
+            viewModel = viewModel,
+            onBack = { showBatteryGraph = false }
+        )
     showBatteryDetail ->
         MaterialBatteryScreen(
             viewModel = viewModel,
             onBack = { showBatteryDetail = false },
-            onSettingsClick = { showBatterySettings = true })
+            onSettingsClick = { showBatterySettings = true },
+            onGraphClick = { showBatteryGraph = true })
     showProcessManager -> MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
     showGameSpace -> MaterialGameSpaceScreen(
         viewModel = viewModel, 
