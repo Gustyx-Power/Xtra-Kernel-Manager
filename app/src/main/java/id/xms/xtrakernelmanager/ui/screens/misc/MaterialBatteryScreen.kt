@@ -33,8 +33,9 @@ import androidx.compose.ui.platform.LocalContext
 fun MaterialBatteryScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onGraphClick: () -> Unit,
+    onSettingsClick: () -> Unit = {},
+    onGraphClick: () -> Unit = {},
+    onCurrentSessionClick: () -> Unit = {}
 ) {
   val context = LocalContext.current
   Scaffold(
@@ -71,7 +72,7 @@ fun MaterialBatteryScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       // 1. History Chart Card
-      item { HistoryChartCard() }
+      item { HistoryChartCard(onCurrentSessionClick = onCurrentSessionClick) }
 
       // 2. Current & Session Cards (Row)
       item {
@@ -80,7 +81,7 @@ fun MaterialBatteryScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard(onClick = onGraphClick) }
-          Box(modifier = Modifier.weight(1f)) { CurrentSessionCard() }
+          Box(modifier = Modifier.weight(1f)) { CurrentSessionCard(onClick = onCurrentSessionClick) }
         }
       }
       
@@ -94,7 +95,7 @@ fun MaterialBatteryScreen(
 
 
 @Composable
-fun HistoryChartCard() {
+fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
   // Card background simulating the dark grey/blue from screenshot
   val cardColor = Color(0xFF1E1F24) 
   
@@ -189,6 +190,7 @@ fun HistoryChartCard() {
 
       // Nested Stats Card
       Card(
+          onClick = onCurrentSessionClick,
           colors = CardDefaults.cardColors(
               containerColor = Color(0xFF16171B) // Slightly darker than main card
           ),
@@ -273,8 +275,9 @@ fun ElectricCurrentCard(onClick: () -> Unit = {}) {
 }
 
 @Composable
-fun CurrentSessionCard() {
+fun CurrentSessionCard(onClick: () -> Unit = {}) {
   Card(
+      onClick = onClick,
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
       modifier = Modifier.fillMaxWidth().height(260.dp),
