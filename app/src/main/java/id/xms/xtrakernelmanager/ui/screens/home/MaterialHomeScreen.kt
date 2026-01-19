@@ -488,15 +488,8 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
           val gpuBadge =
               remember(gpuInfo.renderer) {
                 when {
-                  gpuInfo.renderer.contains("Adreno", true) -> {
-                    // Extract "Adreno 730" from "Adreno (TM) 730"
-                    val match = Regex("Adreno.*?(\\d+)").find(gpuInfo.renderer)
-                    match?.let { "Adreno ${it.groupValues[1]}" } ?: "Adreno"
-                  }
-                  gpuInfo.renderer.contains("Mali", true) -> {
-                    val match = Regex("Mali[- ]?(G\\d+|T\\d+)?").find(gpuInfo.renderer)
-                    match?.value?.trim() ?: "Mali"
-                  }
+                  gpuInfo.renderer.contains("Adreno", true) -> "Adreno"
+                  gpuInfo.renderer.contains("Mali", true) -> "Mali"
                   gpuInfo.renderer.contains("PowerVR", true) -> "PowerVR"
                   gpuInfo.renderer.contains("NVIDIA", true) -> "NVIDIA"
                   gpuInfo.renderer != "Unknown" -> gpuInfo.renderer.take(12)
@@ -559,8 +552,21 @@ fun MaterialGPUCard(gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo) {
             shape = MaterialTheme.shapes.large,
         ) {
           Column(modifier = Modifier.padding(16.dp)) {
+            val cleanGpuName = remember(gpuInfo.renderer) {
+              when {
+                gpuInfo.renderer.contains("Adreno", ignoreCase = true) -> {
+                  val match = Regex("Adreno.*?(\\d{3})").find(gpuInfo.renderer)
+                  match?.let { "Adreno ${it.groupValues[1]}" } ?: gpuInfo.renderer
+                }
+                gpuInfo.renderer.contains("Mali", ignoreCase = true) -> {
+                  val match = Regex("Mali[- ]?(G\\d+|T\\d+)?").find(gpuInfo.renderer)
+                  match?.value?.trim() ?: gpuInfo.renderer
+                }
+                else -> gpuInfo.renderer
+              }
+            }
             Text(
-                text = gpuInfo.renderer,
+                text = cleanGpuName,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
