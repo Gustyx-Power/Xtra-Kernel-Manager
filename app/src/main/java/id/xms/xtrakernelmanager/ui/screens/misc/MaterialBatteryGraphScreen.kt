@@ -49,14 +49,20 @@ fun MaterialBatteryGraphScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.surface, // Standard surface for M3
         topBar = {
-            LargeTopAppBar(
-                title = { Text("Battery Analytics") },
+            TopAppBar(
+                title = {
+                    Text(
+                        "Battery Analytics",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 24.sp
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )

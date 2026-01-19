@@ -57,30 +57,23 @@ fun MaterialCurrentSessionScreen(
         containerColor = Color.Transparent, 
         contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { 
                     Text(
                         "Session Insight", 
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.headlineMedium
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 24.sp
                     ) 
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = onBack,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
+                    IconButton(onClick = onBack) {
                         Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
-                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     ) { paddingValues ->
