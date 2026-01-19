@@ -1,364 +1,474 @@
 package id.xms.xtrakernelmanager.ui.screens.misc
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialCurrentSessionScreen(
     onBack: () -> Unit
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } 
+    var selectedTab by remember { mutableIntStateOf(0) } // 0 = Charging, 1 = Discharging
     
-    val cardColor = Color(0xFF1E1F24) 
-    val surfaceColor = Color(0xFF121212)
+    // Expressive Palette
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryContainer = MaterialTheme.colorScheme.secondaryContainer
+    val onSecondaryContainer = MaterialTheme.colorScheme.onSecondaryContainer
+    
+    // Background Gradient for a "Premium" feel
+    val backgroundBrush = Brush.verticalGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.surface,
+            MaterialTheme.colorScheme.surfaceContainer // Slightly lighter bottom
+        )
+    )
 
     Scaffold(
-        containerColor = surfaceColor, // Dark background
+        containerColor = Color.Transparent, 
+        contentColor = MaterialTheme.colorScheme.onSurface,
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = { 
                     Text(
-                        "Sedang berlangsung", 
+                        "Session Insight", 
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.White
+                        style = MaterialTheme.typography.headlineMedium
                     ) 
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    IconButton(
+                        onClick = onBack,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            contentColor = MaterialTheme.colorScheme.onSurface
+                        )
+                    ) {
+                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = surfaceColor
-                )
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
+                ),
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(backgroundBrush)
         ) {
-            // 1. Segmented Control
-            item {
-                SegmentedControl(
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it },
-                    activeColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-                    inactiveColor = cardColor
-                )
-            }
-
-            // 2. Total Time Header
-            item {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = "Total waktu",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = "1j 18m 37d", // Mock
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 24.dp), // More breathing room
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // 1. Sleek Segmented Control
+                item {
+                    ExpressiveSegmentedControl(
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it }
                     )
                 }
-            }
 
-            // 3. Main Stats Grid (2x2)
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        StatsCard(
-                            label = if (selectedTab == 0) "Terisi" else "Dikosongkan",
-                            mainValue = "16%",
-                            subValue = "715 mAh", 
-                             modifier = Modifier.weight(1f),
-                             containerColor = cardColor
-                        )
-                        StatsCard(
-                            label = if (selectedTab == 0) "Tingkat pengisian" else "Tingkat pengosongan",
-                            mainValue = if (selectedTab == 0) "12.2%/j" else "15.0%/j",
-                            subValue = if (selectedTab == 0) "~546 mA" else "~681 mA",
-                            modifier = Modifier.weight(1f),
-                            containerColor = cardColor
-                        )
+                // 2. Hero Circular Timer
+                item {
+                    SessionHeroCard(
+                        time = "1h 18m",
+                        status = if (selectedTab == 0) "Charging Time" else "Usage Time",
+                        progress = 0.75f, // Mock progress
+                        accentColor = if (selectedTab == 0) Color(0xFF4CAF50) else Color(0xFFFF5252) // Green/Red
+                    )
+                }
+
+                // 3. Key Metrics (Staggered/Grid)
+                item {
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            // Rate Card (Large)
+                            ExpressiveStatCard(
+                                title = "Rate",
+                                value = if (selectedTab == 0) "12.2%/h" else "15.0%/h",
+                                subValue = if (selectedTab == 0) "~546 mA" else "~681 mA",
+                                icon = Icons.Rounded.Speed,
+                                accentColor = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            
+                            // Capacity Card (Large)
+                            ExpressiveStatCard(
+                                title = if (selectedTab == 0) "Gained" else "Lost",
+                                value = "16%",
+                                subValue = "715 mAh", 
+                                icon = if (selectedTab == 0) Icons.Rounded.BatteryChargingFull else Icons.Rounded.BatteryAlert,
+                                accentColor = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        
+                        // Screen On/Off Row
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                             CompactStatCard(
+                                label = "Screen On",
+                                value = "1h 02m",
+                                icon = Icons.Rounded.WbSunny,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.weight(1f)
+                            )
+                             CompactStatCard(
+                                label = "Screen Off",
+                                value = "15m",
+                                icon = Icons.Rounded.NightsStay,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
-                    
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                         StatsCard(
-                            label = "Waktu layar aktif",
-                            mainValue = "1j 2m 47d",
-                            subValue = null, 
-                             modifier = Modifier.weight(1f),
-                             containerColor = cardColor
+                }
+
+                // 4. Detailed "Bento" Grid
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                         Text(
+                            text = "Deep Dive",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(start = 4.dp)
                         )
-                         StatsCard(
-                            label = "Waktu layar mati",
-                            mainValue = "15m 59d",
-                            subValue = null, 
-                             modifier = Modifier.weight(1f),
-                             containerColor = cardColor
-                        )
+                        
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(24.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                DetailRowItem(label = "Est. Capacity", value = "4471 mAh", icon = Icons.Rounded.BatteryStd)
+                                DetailRowItem(label = "Max Temperature", value = "38.2°C", icon = Icons.Rounded.Thermostat)
+                                DetailRowItem(label = "Cycles Used", value = "0.08", icon = Icons.Rounded.Refresh)
+                                DetailRowItem(label = "Charger Type", value = "USB-PD", icon = Icons.Rounded.Cable)
+                                DetailRowItem(label = "Max Power", value = "25.4 W", icon = Icons.Rounded.FlashOn)
+                            }
+                        }
                     }
                 }
-            }
-            
-            // 4. Usage Cards
-             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    StatsCard(
-                        label = "Digunakan",
-                        mainValue = "4.0%",
-                        subValue = "181 mAh",
-                        modifier = Modifier.weight(1f),
-                        containerColor = cardColor
-                    )
-                     StatsCard(
-                        label = "Digunakan (Laju)",
-                        mainValue = "15.0%/j",
-                        subValue = "~681 mA",
-                        modifier = Modifier.weight(1f),
-                        containerColor = cardColor
-                    )
+                
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
-            }
-
-            // 5. Additional Info Header
-            item {
-                Text(
-                    text = "Tambahan",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            // 6. Additional Info Grid
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                     DetailedInfoCard(
-                         label = "Perkiraan kapasitas",
-                         value = "4471 mAh",
-                         modifier = Modifier.weight(1f),
-                         containerColor = cardColor
-                     )
-                      DetailedInfoCard(
-                         label = "Suhu Maks",
-                         value = "38.2°C",
-                         modifier = Modifier.weight(1f),
-                         containerColor = cardColor
-                     )
-                }
-            }
-            
-             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                     DetailedInfoCard(
-                         label = "Siklus yang digunakan",
-                         value = "0.08 siklus",
-                         modifier = Modifier.weight(1f),
-                         containerColor = cardColor
-                     )
-                     // Placeholder for 4th item or spacer
-                     Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-            
-            item {
-                 Text(
-                    text = "Info pengisi daya",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            
-             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                     DetailedInfoCard(
-                         label = "Jenis pengisi daya",
-                         value = "USB",
-                         modifier = Modifier.weight(1f),
-                         containerColor = cardColor
-                     )
-                      DetailedInfoCard(
-                         label = "Daya pengisian Max",
-                         value = "6.4 W",
-                         modifier = Modifier.weight(1f),
-                         containerColor = cardColor
-                     )
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
 }
 
 @Composable
-fun SegmentedControl(
+fun SessionHeroCard(
+    time: String,
+    status: String,
+    progress: Float,
+    accentColor: Color
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        shape = RoundedCornerShape(32.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+    ) {
+        Row(
+            modifier = Modifier.padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = status.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = time,
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            // Circular Progress Indicator
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    drawArc(
+                        color = accentColor.copy(alpha = 0.2f),
+                        startAngle = 0f,
+                        sweepAngle = 360f,
+                        useCenter = false,
+                        style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                    drawArc(
+                        color = accentColor,
+                        startAngle = -90f,
+                        sweepAngle = 360 * progress,
+                        useCenter = false,
+                        style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+                    )
+                }
+                Text(
+                    text = "${(progress * 100).roundToInt()}%",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ExpressiveSegmentedControl(
     selectedTab: Int,
-    onTabSelected: (Int) -> Unit,
-    activeColor: Color,
-    inactiveColor: Color
+    onTabSelected: (Int) -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = RoundedCornerShape(50),
+        modifier = Modifier.fillMaxWidth().height(56.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TabButton(
+                text = "Charging",
+                isSelected = selectedTab == 0,
+                onClick = { onTabSelected(0) },
+                modifier = Modifier.weight(1f)
+            )
+            TabButton(
+                text = "Discharging",
+                isSelected = selectedTab == 1,
+                onClick = { onTabSelected(1) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun TabButton(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val containerColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.surface else Color.Transparent,
+        label = "tabContainer"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "tabContent"
+    )
+    val shadowElevation by animateFloatAsState(targetValue = if (isSelected) 2f else 0f, label = "tabShadow")
+
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        shape = RoundedCornerShape(50),
+        shadowElevation = shadowElevation.dp,
+        onClick = onClick,
+        modifier = modifier.fillMaxHeight()
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+fun ExpressiveStatCard(
+    title: String,
+    value: String,
+    subValue: String,
+    icon: ImageVector,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(28.dp),
+        modifier = modifier.aspectRatio(0.9f) // Taller aspect
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp).fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Icon Pill
+            Surface(
+                color = accentColor.copy(alpha = 0.15f),
+                shape = CircleShape,
+                modifier = Modifier.size(40.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = accentColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+            
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineSmall, // Responsive size
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                 Text(
+                    text = subValue,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CompactStatCard(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    containerColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(20.dp),
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Tiny Icon
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailRowItem(
+    label: String,
+    value: String,
+    icon: ImageVector
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp) // Taller for easy tap
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        // Tab 1
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .padding(end = 8.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (selectedTab == 0) activeColor else inactiveColor)
-                .clickable { onTabSelected(0) },
-            contentAlignment = Alignment.Center
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // Icon
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = "Mengisi daya",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
         }
         
-        // Tab 2
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .padding(start = 8.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (selectedTab == 1) activeColor else inactiveColor)
-                .clickable { onTabSelected(1) },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Pengosongan",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White.copy(alpha = if (selectedTab == 1) 1f else 0.7f)
-            )
-        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
-}
-
-@Composable
-fun StatsCard(
-    label: String,
-    mainValue: String,
-    subValue: String?,
-    modifier: Modifier = Modifier,
-    containerColor: Color
-) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        shape = RoundedCornerShape(24.dp), // Expressive corners
-        modifier = modifier.aspectRatio(1.2f) // Slightly rectangular/squareish
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.White.copy(alpha = 0.7f)
-            )
-            
-            Column {
-                Text(
-                    text = mainValue,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontSize = 26.sp), // Big readable number
-                    color = Color.White,
-                     fontWeight = FontWeight.Normal
-                )
-                if (subValue != null) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = subValue,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.6f)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun DetailedInfoCard(
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    containerColor: Color
-) {
-     Card(
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        shape = RoundedCornerShape(20.dp),
-        modifier = modifier.height(100.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize(),
-             verticalArrangement = Arrangement.Top
-        ) {
-             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                    maxLines = 1
-                )
-                 Icon(Icons.Rounded.Info, contentDescription = null, tint = Color.White.copy(alpha = 0.3f), modifier = Modifier.size(14.dp))
-            }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            Text(
-                text = value,
-                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                 fontWeight = FontWeight.Normal
-            )
-        }
-     }
 }
