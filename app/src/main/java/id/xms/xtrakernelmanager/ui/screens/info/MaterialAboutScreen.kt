@@ -147,16 +147,7 @@ fun MaterialAboutScreen() {
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalItemSpacing = 12.dp,
     ) {
-      item(span = StaggeredGridItemSpan.FullLine) { 
-        SectionHeader("Our Team") 
-      }
-
-      item(span = StaggeredGridItemSpan.FullLine) { 
-        TeamCarousel(teamMembers, uriHandler) 
-      }
-
       item(span = StaggeredGridItemSpan.FullLine) {
-        Spacer(modifier = Modifier.height(8.dp))
         SectionHeader("Community & Info")
       }
 
@@ -207,6 +198,36 @@ fun MaterialAboutScreen() {
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             onClick = {},
         )
+      }
+      
+      item(span = StaggeredGridItemSpan.FullLine) { 
+        Spacer(modifier = Modifier.height(16.dp))
+        SectionHeader("Founders") 
+      }
+
+      item(span = StaggeredGridItemSpan.FullLine) { 
+        val founders = teamMembers.filter { it.role.contains("Founder", ignoreCase = true) }
+        TeamCarousel(founders, uriHandler) 
+      }
+
+      item(span = StaggeredGridItemSpan.FullLine) { 
+        Spacer(modifier = Modifier.height(8.dp))
+        SectionHeader("Contributors") 
+      }
+
+      item(span = StaggeredGridItemSpan.FullLine) { 
+        val contributors = teamMembers.filter { it.role.contains("Contributor", ignoreCase = true) }
+        TeamCarousel(contributors, uriHandler) 
+      }
+
+      item(span = StaggeredGridItemSpan.FullLine) { 
+        Spacer(modifier = Modifier.height(8.dp))
+        SectionHeader("Testers") 
+      }
+
+      item(span = StaggeredGridItemSpan.FullLine) { 
+        val testers = teamMembers.filter { it.role.contains("Tester", ignoreCase = true) }
+        TeamCarousel(testers, uriHandler) 
       }
     }
   }
@@ -364,7 +385,7 @@ private fun TeamMemberCarouselCard(
   Card(
       modifier = Modifier
           .width(160.dp)
-          .height(if (hasSocial) 240.dp else 220.dp), // Dynamic height
+          .height(240.dp), // Fixed height for consistency
       shape = RoundedCornerShape(28.dp),
       colors = CardDefaults.cardColors(
           containerColor = MaterialTheme.colorScheme.surfaceContainer
