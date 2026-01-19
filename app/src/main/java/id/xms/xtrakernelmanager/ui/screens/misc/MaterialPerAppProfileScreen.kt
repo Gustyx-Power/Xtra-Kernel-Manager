@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 
@@ -51,7 +52,7 @@ fun MaterialPerAppProfileScreen(
     var selectedFilter by remember { mutableStateOf<ProfileType?>(null) }
     var selectedApp by remember { mutableStateOf<AppProfile?>(null) }
     
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
 
     val filteredApps = remember(appProfiles, searchQuery, selectedFilter) {
         val baseList = if (searchQuery.isBlank()) {
@@ -71,14 +72,15 @@ fun MaterialPerAppProfileScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         "Per App Profile",
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 24.sp
                     )
                 },
                 navigationIcon = {
@@ -86,8 +88,7 @@ fun MaterialPerAppProfileScreen(
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back")
                     }
                 },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
