@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
@@ -73,7 +75,6 @@ fun MaterialProcessManagerScreen(
         RootManager.executeCommand("am force-stop $packageName")
       }
       if (result.isSuccess) {
-        // Remove from list
         processes = processes.filter { it.packageName != packageName }
       }
       isKilling = null
@@ -94,12 +95,11 @@ fun MaterialProcessManagerScreen(
       topBar = {
         LargeTopAppBar(
             title = {
-              Column {
-                Text(
-                    "Process Manager",
-                    fontWeight = FontWeight.Bold,
-                )
-              }
+              Text(
+                  "Process Manager",
+                  fontWeight = FontWeight.Bold,
+                  style = MaterialTheme.typography.displaySmall
+              )
             },
             navigationIcon = {
               IconButton(onClick = onBack) {
@@ -107,14 +107,12 @@ fun MaterialProcessManagerScreen(
               }
             },
             actions = {
-              // Sort toggle
               IconButton(onClick = { sortByMemory = !sortByMemory }) {
                 Icon(
                     if (sortByMemory) Icons.Rounded.Memory else Icons.Rounded.SortByAlpha,
                     "Sort",
                 )
               }
-              // Refresh
               IconButton(onClick = { refreshProcesses() }) {
                 Icon(Icons.Rounded.Refresh, "Refresh")
               }
@@ -127,166 +125,233 @@ fun MaterialProcessManagerScreen(
         )
       },
   ) { paddingValues ->
-    Box(
-        modifier = Modifier.fillMaxSize().padding(paddingValues),
-        contentAlignment = Alignment.Center,
-    ) {
-      if (isLoading) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-          CircularProgressIndicator()
-          Text(
-              "Loading processes...",
-              style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-          )
+     if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
-      } else if (processes.isEmpty()) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-          Icon(
-              Icons.Rounded.CheckCircle,
-              null,
-              modifier = Modifier.size(64.dp),
-              tint = MaterialTheme.colorScheme.primary,
-          )
-          Text(
-              "No user processes found",
-              style = MaterialTheme.typography.headlineSmall,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSurface,
-          )
+    } else if (processes.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+           Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Rounded.CheckCircle, null, Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("All clear", style = MaterialTheme.typography.titleLarge)
+           }
         }
-      } else {
+    } else {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-          // Memory summary card
-          item {
-            val totalMemory = processes.sumOf { it.memoryMB.toDouble() }
-            MemorySummaryCard(
-                totalMemoryMB = totalMemory.toFloat(),
-                processCount = processes.size,
-            )
-          }
+            item {
+                val totalMemory = processes.sumOf { it.memoryMB.toDouble() }.toFloat()
+                // Expressive Memory Card - High Contrast, Solid Colors
+                MemorySummaryHero(totalMemory, processes.size)
+            }
+            
+            item {
+                Text(
+                    "Running Processes",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+                )
+            }
 
-          items(sortedProcesses, key = { it.packageName }) { process ->
-            ProcessItem(
-                process = process,
-                isKilling = isKilling == process.packageName,
-                onKill = { killProcess(process.packageName) },
-            )
-          }
-
-          // Bottom spacing
-          item { Spacer(modifier = Modifier.height(32.dp)) }
+            items(sortedProcesses, key = { it.packageName }) { process ->
+                ProcessItem(
+                    process = process,
+                    isKilling = isKilling == process.packageName,
+                    onKill = { killProcess(process.packageName) }
+                )
+            }
         }
-      }
     }
   }
 }
 
 @Composable
+fun MemorySummaryHero(totalMemoryMB: Float, processCount: Int) {
+    val totalDeviceRAM = 8192f
+    val usagePercent = (totalMemoryMB / totalDeviceRAM).coerceIn(0f, 1f)
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column {
+                    Text(
+                        "RAM Usage",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = "${String.format("%.1f", totalMemoryMB / 1024).replace('.', ',')}",
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = (-2).sp
+                            ),
+                            lineHeight = 64.sp
+                        )
+                        Text(
+                            text = "GB",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+                
+                Surface(
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        Icons.Rounded.Memory,
+                        contentDescription = null,
+                        modifier = Modifier.padding(12.dp).size(32.dp)
+                    )
+                }
+            }
+            
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                     Text(
+                        "$processCount processes active",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        "${(usagePercent * 100).toInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                
+                LinearProgressIndicator(
+                    progress = { usagePercent },
+                    modifier = Modifier.fillMaxWidth().height(16.dp).clip(RoundedCornerShape(8.dp)),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun MemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
-  val totalDeviceRAM = 8192f // Still hardcoded, but that's okay for now
+  val totalDeviceRAM = 8192f // 8GB placeholder
   val usagePercent = (totalMemoryMB / totalDeviceRAM).coerceIn(0f, 1f)
 
   Card(
       modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-      shape = MaterialTheme.shapes.extraLarge,
+      shape = RoundedCornerShape(28.dp),
       colors = CardDefaults.cardColors(
-          containerColor = MaterialTheme.colorScheme.primaryContainer,
-          contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+          containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+          contentColor = MaterialTheme.colorScheme.onSurface
       ),
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
   ) {
-    Column(modifier = Modifier.padding(24.dp)) {
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.Top,
-      ) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+      // Left Side: Info
+      Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Column {
-          Text(
-              "RAM Usage",
-              style = MaterialTheme.typography.labelLarge,
-              color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-          )
-          Row(verticalAlignment = Alignment.Bottom) {
             Text(
-                "${String.format("%.1f", totalMemoryMB / 1024).replace('.', ',')}",
-                style = MaterialTheme.typography.displayMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 48.sp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                "RAM Usage",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                " GB",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                modifier = Modifier.padding(bottom = 8.dp, start = 4.dp),
-            )
-          }
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    "${String.format("%.1f", totalMemoryMB / 1024).replace('.', ',')}",
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-1).sp
+                    ),
+                    lineHeight = 40.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "GB",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                )
+            }
         }
-
-        // Apps count badge
+        
+        // Compact Apps Chip
         Surface(
-            shape = MaterialTheme.shapes.large, 
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(80.dp)
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = RoundedCornerShape(12.dp)
         ) {
-          Column(
-              horizontalAlignment = Alignment.CenterHorizontally,
-              verticalArrangement = Arrangement.Center
-          ) {
-            Text(
-                "$processCount",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                "Apps",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Rounded.Apps,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    "$processCount Running",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
         }
       }
 
-      Spacer(modifier = Modifier.height(24.dp))
-
-      // Progress Bar Section
-      Column {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween) {
-              Text(
-                  "Visualized Usage",
-                  style = MaterialTheme.typography.labelMedium,
-                  color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-              )
-              Text(
-                  "${(usagePercent * 100).toInt()}%",
-                  style = MaterialTheme.typography.labelMedium,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onPrimaryContainer,
-              )
-            }
-        Spacer(modifier = Modifier.height(12.dp))
-        LinearProgressIndicator(
-            progress = { usagePercent },
-            modifier = Modifier.fillMaxWidth().height(12.dp).clip(MaterialTheme.shapes.extraSmall),
-            color = MaterialTheme.colorScheme.primary,
-            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f),
-        )
+      // Right Side: Circular Indicator
+      Box(contentAlignment = Alignment.Center) {
+          CircularProgressIndicator(
+              progress = { usagePercent },
+              modifier = Modifier.size(80.dp),
+              color = MaterialTheme.colorScheme.primary,
+              trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+              strokeWidth = 8.dp,
+              strokeCap = StrokeCap.Round,
+          )
+          Text(
+              "${(usagePercent * 100).toInt()}%",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface
+          )
       }
     }
   }
@@ -537,9 +602,7 @@ private fun getMockProcesses(): List<ProcessInfo> = listOf(
     ProcessInfo(pid = 4567, packageName = "com.twitter.android", memoryMB = 198.3f),
     ProcessInfo(pid = 5678, packageName = "com.discord", memoryMB = 175.6f),
     ProcessInfo(pid = 6789, packageName = "com.netflix.mediaclient", memoryMB = 523.1f),
-    ProcessInfo(pid = 7890, packageName = "com.zhiliaoapp.musically", memoryMB = 612.4f),
     ProcessInfo(pid = 8901, packageName = "com.facebook.katana", memoryMB = 445.7f),
-    ProcessInfo(pid = 9012, packageName = "com.snapchat.android", memoryMB = 389.2f),
     ProcessInfo(pid = 1023, packageName = "com.miHoYo.GenshinImpact", memoryMB = 1245.8f),
     ProcessInfo(pid = 1124, packageName = "com.supercell.clashofclans", memoryMB = 156.3f),
     ProcessInfo(pid = 1225, packageName = "com.mojang.minecraftpe", memoryMB = 234.1f),
