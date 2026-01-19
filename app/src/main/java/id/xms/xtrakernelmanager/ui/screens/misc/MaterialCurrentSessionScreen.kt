@@ -258,8 +258,8 @@ fun SessionHeroCard(
                     )
                     Text(
                         text = "${(progress * 100).roundToInt()}%",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
