@@ -283,7 +283,7 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
               )
               Text(
                   text = displayTime,
-                  style = MaterialTheme.typography.headlineSmall,
+                  style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold,
                   color = MaterialTheme.colorScheme.onSurface,
               )
