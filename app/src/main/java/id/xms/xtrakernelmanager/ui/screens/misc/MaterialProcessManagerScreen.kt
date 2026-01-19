@@ -52,8 +52,6 @@ fun MaterialProcessManagerScreen(
   var isKilling by remember { mutableStateOf<String?>(null) }
   var sortByMemory by remember { mutableStateOf(true) }
 
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
   // Load processes on launch
   LaunchedEffect(Unit) { 
     processes = loadRunningProcesses()
@@ -90,15 +88,14 @@ fun MaterialProcessManagerScreen(
   }
 
   Scaffold(
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
-        LargeTopAppBar(
+        TopAppBar(
             title = {
               Text(
                   "Process Manager",
-                  fontWeight = FontWeight.Bold,
-                  style = MaterialTheme.typography.displaySmall
+                  fontWeight = FontWeight.SemiBold,
+                  fontSize = 24.sp
               )
             },
             navigationIcon = {
@@ -117,11 +114,10 @@ fun MaterialProcessManagerScreen(
                 Icon(Icons.Rounded.Refresh, "Refresh")
               }
             },
-            colors = TopAppBarDefaults.largeTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background,
                 scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
             ),
-            scrollBehavior = scrollBehavior
         )
       },
   ) { paddingValues ->
