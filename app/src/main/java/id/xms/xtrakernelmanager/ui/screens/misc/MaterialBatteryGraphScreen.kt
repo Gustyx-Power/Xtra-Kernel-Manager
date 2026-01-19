@@ -284,7 +284,8 @@ fun TimeChip(text: String, selected: Boolean, onClick: () -> Unit) {
           else MaterialTheme.colorScheme.surface,
       shape = CircleShape,
       onClick = onClick,
-      border = if (!selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
+      border =
+          if (!selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null,
   ) {
     Box(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
