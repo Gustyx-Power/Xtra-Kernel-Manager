@@ -277,7 +277,7 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
                   modifier = Modifier.fillMaxSize(),
                   color = MaterialTheme.colorScheme.primaryContainer,
                   trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
-                  strokeWidth = 18.dp, 
+                  strokeWidth = 12.dp, 
                   amplitude = 5.dp,
                   frequency = 8,
               )
@@ -293,7 +293,7 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.Start, // Text alignment within column
-                modifier = Modifier.padding(end = 8.dp) // Slight padding from ease
+                modifier = Modifier.padding(end = 24.dp) // Shifted left by increasing end padding
             ) {
                  InsightStatRow(
                     icon = Icons.Rounded.WbSunny,
@@ -331,19 +331,19 @@ fun InsightStatRow(
             imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(24.dp) // Slightly larger icon for balance
         )
         Column {
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodyLarge, // Larger font
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelSmall, // Smaller clean font
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) // Slightly clearer hierarchy
             )
         }
     }
