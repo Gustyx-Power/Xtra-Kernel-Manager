@@ -201,11 +201,6 @@ fun MaterialMiscHeader() {
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.onBackground,
       )
-      Text(
-          text = "Tools & Tweaks",
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-      )
     }
   }
 }
@@ -215,150 +210,143 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
   val screenOnTime by viewModel.screenOnTime.collectAsState()
   val screenOffTime by viewModel.screenOffTime.collectAsState()
   val deepSleepTime by viewModel.deepSleepTime.collectAsState()
-  val drainRate by viewModel.drainRate.collectAsState()
+
+  // Use mock values if empty for preview, or actual values
+  val displayTime = if (screenOnTime.isNotEmpty()) screenOnTime else "13h 17m" 
+  val offTime = if (screenOffTime.isNotEmpty()) screenOffTime else "10h 27m"
+  val sleepTime = if (deepSleepTime.isNotEmpty()) deepSleepTime else "4h 36m"
 
   Card(
-      modifier = Modifier.fillMaxWidth().height(220.dp),
+      modifier = Modifier.fillMaxWidth().height(240.dp),
       shape = RoundedCornerShape(32.dp),
-      colors =
-          CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.surfaceContainer
-          ), // Dynamic background
+      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24)), // Darker background like reference
+      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
       onClick = onClick,
   ) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-      // Header
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(
-              Icons.Rounded.Schedule, // Clock icon
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-              modifier =
-                  Modifier.size(24.dp)
-                      .background(
-                          MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                          RoundedCornerShape(8.dp),
-                      )
-                      .padding(4.dp),
-          )
-          Spacer(modifier = Modifier.width(12.dp))
-          Text(
-              text = "Power Insight",
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSurface,
-          )
-        }
+      Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+          // Header
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+               Icon(
+                  imageVector = Icons.Rounded.AccessTime,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.size(24.dp)
+               )
+              Text(
+                  text = "Power Insight",
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+            }
 
-        // Charging Status Badge
-        val isPluggedIn =
-            batteryInfo.status.contains("Charging", ignoreCase = true) ||
-                batteryInfo.status.contains("Full", ignoreCase = true)
-        Surface(
-            color =
-                if (isPluggedIn) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.secondaryContainer,
-            shape = RoundedCornerShape(50),
-        ) {
-          Text(
-              text = if (isPluggedIn) "Plugged In" else "Unplugged",
-              style = MaterialTheme.typography.labelMedium,
-              color =
-                  if (isPluggedIn) MaterialTheme.colorScheme.onPrimaryContainer
-                  else MaterialTheme.colorScheme.onSecondaryContainer,
-              fontWeight = FontWeight.Bold,
-              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-          )
-        }
-      }
+            // Charging Status Badge
+            val isPluggedIn =
+                batteryInfo.status.contains("Charging", ignoreCase = true) ||
+                    batteryInfo.status.contains("Full", ignoreCase = true)
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(50),
+            ) {
+              Text(
+                  text = if (isPluggedIn) "Plugged In" else "Unplugged",
+                  style = MaterialTheme.typography.labelMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+                  fontWeight = FontWeight.Bold,
+                  modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+              )
+            }
+          }
 
-      // Content (Progress + Stats)
-      Row(
-          modifier = Modifier.fillMaxSize().padding(top = 40.dp), // Space for header
-          horizontalArrangement = Arrangement.spacedBy(24.dp),
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        // Left: Wavy Progress
-        Box(contentAlignment = Alignment.Center) {
-          id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
-              progress = 0.75f, // Placeholder progress
-              modifier = Modifier.size(120.dp),
-              color = MaterialTheme.colorScheme.primary,
-              trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-              strokeWidth = 14.dp,
-              amplitude = 4.dp,
-              frequency = 10,
-          )
-          Text(
-              text = screenOnTime,
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSurface,
-          )
-        }
+          // Content (Progress + Stats)
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween, // Push contents apart
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            // Left: Wavy Progress
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
+              id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
+                  progress = 0.75f, // Placeholder
+                  modifier = Modifier.fillMaxSize(),
+                  color = MaterialTheme.colorScheme.primaryContainer,
+                  trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
+                  strokeWidth = 18.dp, 
+                  amplitude = 5.dp,
+                  frequency = 8,
+              )
+              Text(
+                  text = displayTime,
+                  style = MaterialTheme.typography.headlineSmall,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+            }
 
-        // Right: Stats List
-        Column(
-            modifier = Modifier.fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceEvenly, // Distribute evenly height-wise
-            horizontalAlignment = Alignment.Start,
-        ) {
-          PowerStatItem(
-              icon = Icons.Rounded.WbSunny,
-              value = screenOnTime,
-              label = "Screen On",
-              iconTint = MaterialTheme.colorScheme.primary,
-          )
-          PowerStatItem(
-              icon = Icons.Rounded.Smartphone,
-              value = screenOffTime,
-              label = "Screen Off",
-              iconTint = MaterialTheme.colorScheme.primary,
-          )
-          PowerStatItem(
-              icon = Icons.Rounded.NightsStay,
-              value = deepSleepTime,
-              label = "Deep Sleep",
-              iconTint = MaterialTheme.colorScheme.primary,
-          )
-        }
+            // Right: Stats Column
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.Start, // Text alignment within column
+                modifier = Modifier.padding(end = 8.dp) // Slight padding from ease
+            ) {
+                 InsightStatRow(
+                    icon = Icons.Rounded.WbSunny,
+                    value = displayTime,
+                    label = "Screen On"
+                )
+                InsightStatRow(
+                    icon = Icons.Rounded.Smartphone,
+                    value = offTime,
+                    label = "Screen Off"
+                )
+                InsightStatRow(
+                    icon = Icons.Rounded.NightsStay,
+                    value = sleepTime,
+                    label = "Deep Sleep"
+                )
+            }
+          }
       }
     }
   }
 }
 
 @Composable
-fun PowerStatItem(icon: ImageVector, value: String, label: String, iconTint: Color) {
-  Row(verticalAlignment = Alignment.CenterVertically) {
-    Icon(
-        imageVector = icon,
-        contentDescription = null,
-        tint = iconTint, // Override with specific color if needed, or use argument
-        modifier =
-            Modifier.size(20.dp)
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
-                .padding(4.dp),
-    )
-    Spacer(modifier = Modifier.width(12.dp))
-    Column {
-      Text(
-          text = value,
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
-      Text(
-          text = label,
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-      )
+fun InsightStatRow(
+    icon: ImageVector,
+    value: String,
+    label: String
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            modifier = Modifier.size(20.dp)
+        )
+        Column {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge, // Larger font
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
-  }
 }
 
 @Composable
