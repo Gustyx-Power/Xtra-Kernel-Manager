@@ -105,19 +105,21 @@ class PreferencesManager(private val context: Context) {
   private val EID_FITR_SHOWN_YEAR = intPreferencesKey("eid_fitr_shown_year")
 
   // Notification Settings
-  private val BATTERY_NOTIF_ICON_TYPE = stringPreferencesKey("battery_notif_icon_type") // icon_only, circle_percent, etc.
-  private val BATTERY_NOTIF_REFRESH_RATE = intPreferencesKey("battery_notif_refresh_rate") // Seconds
-  private val BATTERY_NOTIF_SECURE_LOCK_SCREEN = booleanPreferencesKey("battery_notif_secure_lock_screen")
+  private val BATTERY_NOTIF_ICON_TYPE =
+      stringPreferencesKey("battery_notif_icon_type") // icon_only, circle_percent, etc.
+  private val BATTERY_NOTIF_REFRESH_RATE =
+      intPreferencesKey("battery_notif_refresh_rate") // Seconds
+  private val BATTERY_NOTIF_SECURE_LOCK_SCREEN =
+      booleanPreferencesKey("battery_notif_secure_lock_screen")
   private val BATTERY_NOTIF_HIGH_PRIORITY = booleanPreferencesKey("battery_notif_high_priority")
   private val BATTERY_NOTIF_FORCE_ON_TOP = booleanPreferencesKey("battery_notif_force_on_top")
-  private val BATTERY_NOTIF_DONT_UPDATE_SCREEN_OFF = booleanPreferencesKey("battery_notif_dont_update_screen_off")
-  
+  private val BATTERY_NOTIF_DONT_UPDATE_SCREEN_OFF =
+      booleanPreferencesKey("battery_notif_dont_update_screen_off")
+
   // Statistics Settings
   private val BATTERY_STATS_ACTIVE_IDLE = booleanPreferencesKey("battery_stats_active_idle")
   private val BATTERY_STATS_SCREEN = booleanPreferencesKey("battery_stats_screen")
   private val BATTERY_STATS_AWAKE_SLEEP = booleanPreferencesKey("battery_stats_awake_sleep")
-
-
 
   val themeMode: Flow<Int> = context.dataStore.data.map { prefs -> prefs[THEME_MODE] ?: 0 }
 
@@ -386,8 +388,6 @@ class PreferencesManager(private val context: Context) {
 
   fun getBatteryStatsAwakeSleep(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[BATTERY_STATS_AWAKE_SLEEP] ?: true }
-
-
 
   // ==================== Quick Apps Preferences ====================
   private val QUICK_APPS = stringPreferencesKey("quick_apps")

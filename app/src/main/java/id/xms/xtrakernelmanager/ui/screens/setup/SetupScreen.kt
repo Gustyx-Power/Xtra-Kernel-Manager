@@ -531,7 +531,10 @@ fun GlassyCard(modifier: Modifier = Modifier, content: @Composable BoxScope.() -
       modifier =
           modifier
               .fillMaxWidth()
-              .background(MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.shapes.extraLarge)
+              .background(
+                  MaterialTheme.colorScheme.surfaceContainerHigh,
+                  MaterialTheme.shapes.extraLarge,
+              )
               .padding(24.dp), // Inner padding
       content = content,
   )

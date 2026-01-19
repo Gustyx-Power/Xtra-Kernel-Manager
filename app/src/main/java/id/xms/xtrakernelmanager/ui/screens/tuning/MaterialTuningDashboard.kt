@@ -59,13 +59,7 @@ fun MaterialTuningDashboard(
       topBar = {
         TopAppBar(
             modifier = Modifier.offset(y = (-24).dp),
-            title = {
-              Text(
-                  text = "Tuning",
-                  fontWeight = FontWeight.SemiBold,
-                  fontSize = 24.sp
-              )
-            },
+            title = { Text(text = "Tuning", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
             actions = {
               var showMenu by remember { mutableStateOf(false) }
 
@@ -97,9 +91,10 @@ fun MaterialTuningDashboard(
                 }
               }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
-            ),
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                ),
         )
       },
   ) { paddingValues ->

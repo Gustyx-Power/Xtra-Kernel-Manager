@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -44,37 +43,43 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   var showCurrentSession by rememberSaveable { mutableStateOf(false) }
 
   when {
-    showBatterySettings -> BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
+    showBatterySettings ->
+        BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
     showCurrentSession -> MaterialCurrentSessionScreen(onBack = { showCurrentSession = false })
-    showGameAppSelector -> MaterialGameAppSelectorScreen(viewModel = viewModel, onBack = { showGameAppSelector = false })
-    showBatteryGraph ->
-        MaterialBatteryGraphScreen(
+    showGameAppSelector ->
+        MaterialGameAppSelectorScreen(
             viewModel = viewModel,
-            onBack = { showBatteryGraph = false }
+            onBack = { showGameAppSelector = false },
         )
+    showBatteryGraph ->
+        MaterialBatteryGraphScreen(viewModel = viewModel, onBack = { showBatteryGraph = false })
     showBatteryDetail ->
         MaterialBatteryScreen(
             viewModel = viewModel,
             onBack = { showBatteryDetail = false },
             onSettingsClick = { showBatterySettings = true },
             onGraphClick = { showBatteryGraph = true },
-            onCurrentSessionClick = { showCurrentSession = true }
+            onCurrentSessionClick = { showCurrentSession = true },
         )
-    showProcessManager -> MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
-    showGameSpace -> MaterialGameSpaceScreen(
-        viewModel = viewModel, 
-        onBack = { showGameSpace = false },
-        onAddGames = { showGameAppSelector = true }
-    )
-    showPerAppProfile -> MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })
-    else -> MaterialMiscScreenContent(
-        viewModel,
-        onNavigate,
-        onBatteryDetailClick = { showBatteryDetail = true },
-        onProcessManagerClick = { showProcessManager = true },
-        onGameSpaceClick = { showGameSpace = true },
-        onPerAppProfileClick = { showPerAppProfile = true },
-    )
+    showProcessManager ->
+        MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
+    showGameSpace ->
+        MaterialGameSpaceScreen(
+            viewModel = viewModel,
+            onBack = { showGameSpace = false },
+            onAddGames = { showGameAppSelector = true },
+        )
+    showPerAppProfile ->
+        MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })
+    else ->
+        MaterialMiscScreenContent(
+            viewModel,
+            onNavigate,
+            onBatteryDetailClick = { showBatteryDetail = true },
+            onProcessManagerClick = { showProcessManager = true },
+            onGameSpaceClick = { showGameSpace = true },
+            onPerAppProfileClick = { showPerAppProfile = true },
+        )
   }
 }
 
@@ -149,9 +154,7 @@ fun MaterialMiscScreenContent(
 
       // 4. Per App Profile Card (NEW - After Display & Game Space row)
       item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 250) {
-          PerAppProfileCard(onClick = onPerAppProfileClick)
-        }
+        StaggeredEntry(delayMillis = 250) { PerAppProfileCard(onClick = onPerAppProfileClick) }
       }
 
       // 5. SELinux Card (Left)
@@ -173,9 +176,7 @@ fun MaterialMiscScreenContent(
       // 6. Process Manager Card (Right) - Next to SELinux
       if (!isSELinuxExpanded) {
         item(span = StaggeredGridItemSpan.SingleLane) {
-          StaggeredEntry(delayMillis = 350) {
-            ProcessManagerCard(onClick = onProcessManagerClick)
-          }
+          StaggeredEntry(delayMillis = 350) { ProcessManagerCard(onClick = onProcessManagerClick) }
         }
       }
 
@@ -212,141 +213,134 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
   val deepSleepTime by viewModel.deepSleepTime.collectAsState()
 
   // Use mock values if empty for preview, or actual values
-  val displayTime = if (screenOnTime.isNotEmpty()) screenOnTime else "13h 17m" 
+  val displayTime = if (screenOnTime.isNotEmpty()) screenOnTime else "13h 17m"
   val offTime = if (screenOffTime.isNotEmpty()) screenOffTime else "10h 27m"
   val sleepTime = if (deepSleepTime.isNotEmpty()) deepSleepTime else "4h 36m"
 
   Card(
       modifier = Modifier.fillMaxWidth().height(240.dp),
       shape = RoundedCornerShape(32.dp),
-      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24)), // Darker background like reference
+      colors =
+          CardDefaults.cardColors(
+              containerColor = Color(0xFF1E1E24)
+          ), // Darker background like reference
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
       onClick = onClick,
   ) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
       Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-          // Header
+        // Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
           Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween,
               verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(12.dp),
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-               Icon(
-                  imageVector = Icons.Rounded.AccessTime,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                  modifier = Modifier.size(24.dp)
-               )
-              Text(
-                  text = "Power Insight",
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface,
-              )
-            }
-
-            // Charging Status Badge
-            val isPluggedIn =
-                batteryInfo.status.contains("Charging", ignoreCase = true) ||
-                    batteryInfo.status.contains("Full", ignoreCase = true)
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                shape = RoundedCornerShape(50),
-            ) {
-              Text(
-                  text = if (isPluggedIn) "Plugged In" else "Unplugged",
-                  style = MaterialTheme.typography.labelMedium,
-                  color = MaterialTheme.colorScheme.onSurface,
-                  fontWeight = FontWeight.Bold,
-                  modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-              )
-            }
+            Icon(
+                imageVector = Icons.Rounded.AccessTime,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = "Power Insight",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
           }
 
-          // Content (Progress + Stats)
-          Row(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.SpaceBetween, // Push contents apart
-              verticalAlignment = Alignment.CenterVertically,
+          // Charging Status Badge
+          val isPluggedIn =
+              batteryInfo.status.contains("Charging", ignoreCase = true) ||
+                  batteryInfo.status.contains("Full", ignoreCase = true)
+          Surface(
+              color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+              shape = RoundedCornerShape(50),
           ) {
-            // Left: Wavy Progress
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
-              id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
-                  progress = 0.75f, // Placeholder
-                  modifier = Modifier.fillMaxSize(),
-                  color = MaterialTheme.colorScheme.primaryContainer,
-                  trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
-                  strokeWidth = 12.dp, 
-                  amplitude = 5.dp,
-                  frequency = 8,
-              )
-              Text(
-                  text = displayTime,
-                  style = MaterialTheme.typography.titleLarge,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onSurface,
-              )
-            }
-
-            // Right: Stats Column
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.Start, // Text alignment within column
-                modifier = Modifier.padding(end = 24.dp) // Shifted left by increasing end padding
-            ) {
-                 InsightStatRow(
-                    icon = Icons.Rounded.WbSunny,
-                    value = displayTime,
-                    label = "Screen On"
-                )
-                InsightStatRow(
-                    icon = Icons.Rounded.Smartphone,
-                    value = offTime,
-                    label = "Screen Off"
-                )
-                InsightStatRow(
-                    icon = Icons.Rounded.NightsStay,
-                    value = sleepTime,
-                    label = "Deep Sleep"
-                )
-            }
+            Text(
+                text = if (isPluggedIn) "Plugged In" else "Unplugged",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+            )
           }
+        }
+
+        // Content (Progress + Stats)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween, // Push contents apart
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          // Left: Wavy Progress
+          Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
+            id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
+                progress = 0.75f, // Placeholder
+                modifier = Modifier.fillMaxSize(),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
+                strokeWidth = 12.dp,
+                amplitude = 5.dp,
+                frequency = 8,
+            )
+            Text(
+                text = displayTime,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+          }
+
+          // Right: Stats Column
+          Column(
+              verticalArrangement = Arrangement.spacedBy(16.dp),
+              horizontalAlignment = Alignment.Start, // Text alignment within column
+              modifier = Modifier.padding(end = 24.dp), // Shifted left by increasing end padding
+          ) {
+            InsightStatRow(icon = Icons.Rounded.WbSunny, value = displayTime, label = "Screen On")
+            InsightStatRow(icon = Icons.Rounded.Smartphone, value = offTime, label = "Screen Off")
+            InsightStatRow(icon = Icons.Rounded.NightsStay, value = sleepTime, label = "Deep Sleep")
+          }
+        }
       }
     }
   }
 }
 
 @Composable
-fun InsightStatRow(
-    icon: ImageVector,
-    value: String,
-    label: String
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            modifier = Modifier.size(24.dp) // Slightly larger icon for balance
-        )
-        Column {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall, // Smaller clean font
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) // Slightly clearer hierarchy
-            )
-        }
+fun InsightStatRow(icon: ImageVector, value: String, label: String) {
+  Row(
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+        modifier = Modifier.size(24.dp), // Slightly larger icon for balance
+    )
+    Column {
+      Text(
+          text = value,
+          style = MaterialTheme.typography.bodyLarge,
+          fontWeight = FontWeight.Bold,
+          color = MaterialTheme.colorScheme.onSurface,
+      )
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelSmall, // Smaller clean font
+          color =
+              MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                  alpha = 0.7f
+              ), // Slightly clearer hierarchy
+      )
     }
+  }
 }
 
 @Composable
@@ -421,18 +415,19 @@ fun DisplayColorCard(
                 Icons.Rounded.Palette,
                 null,
                 tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier.size(28.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                        RoundedCornerShape(8.dp)
-                    )
-                    .padding(4.dp),
+                modifier =
+                    Modifier.size(28.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
+                            RoundedCornerShape(8.dp),
+                        )
+                        .padding(4.dp),
             )
 
             StatusBadge(
                 text = "Visuals",
                 containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             )
           }
 
@@ -531,7 +526,12 @@ fun GameSpaceCard(
 ) {
   val gameApps by viewModel.gameApps.collectAsState()
 
-  val appCount = try { JSONArray(gameApps).length() } catch (e: Exception) { 0 }
+  val appCount =
+      try {
+        JSONArray(gameApps).length()
+      } catch (e: Exception) {
+        0
+      }
 
   Card(
       onClick = onClick,
@@ -546,10 +546,7 @@ fun GameSpaceCard(
           Icons.Rounded.SportsEsports,
           null,
           tint = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.05f),
-          modifier =
-              Modifier.size(100.dp)
-                  .align(Alignment.BottomEnd)
-                  .offset(x = 20.dp, y = 20.dp),
+          modifier = Modifier.size(100.dp).align(Alignment.BottomEnd).offset(x = 20.dp, y = 20.dp),
       )
 
       Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
@@ -563,18 +560,19 @@ fun GameSpaceCard(
               Icons.Rounded.SportsEsports,
               null,
               tint = MaterialTheme.colorScheme.onTertiaryContainer,
-              modifier = Modifier.size(28.dp)
-                  .background(
-                      MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f),
-                      RoundedCornerShape(8.dp)
-                  )
-                  .padding(4.dp),
+              modifier =
+                  Modifier.size(28.dp)
+                      .background(
+                          MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f),
+                          RoundedCornerShape(8.dp),
+                      )
+                      .padding(4.dp),
           )
 
           StatusBadge(
               text = "$appCount Apps",
               containerColor = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.1f),
-              contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+              contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
           )
         }
 
@@ -624,8 +622,7 @@ fun SELinuxCard(
           Icons.Rounded.Shield,
           null,
           tint =
-              if (isEnforcing)
-                  MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f)
+              if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f)
               else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.05f),
           modifier =
               Modifier.size(if (expanded) 200.dp else 100.dp)
@@ -650,13 +647,15 @@ fun SELinuxCard(
               tint =
                   if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
                   else MaterialTheme.colorScheme.onErrorContainer,
-              modifier = Modifier.size(28.dp)
-                  .background(
-                      (if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
-                      else MaterialTheme.colorScheme.onErrorContainer).copy(alpha = 0.1f),
-                      RoundedCornerShape(8.dp)
-                  )
-                  .padding(4.dp),
+              modifier =
+                  Modifier.size(28.dp)
+                      .background(
+                          (if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
+                              else MaterialTheme.colorScheme.onErrorContainer)
+                              .copy(alpha = 0.1f),
+                          RoundedCornerShape(8.dp),
+                      )
+                      .padding(4.dp),
           )
 
           // Status Badge
@@ -692,8 +691,7 @@ fun SELinuxCard(
             text = "Security Policy",
             style = MaterialTheme.typography.bodySmall,
             color =
-                if (isEnforcing)
-                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                 else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
         )
 
@@ -703,8 +701,7 @@ fun SELinuxCard(
             HorizontalDivider(
                 modifier = Modifier.padding(bottom = 16.dp),
                 color =
-                    if (isEnforcing)
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
+                    if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
                     else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
             )
 
@@ -732,8 +729,7 @@ fun SELinuxCard(
                   )
                   Text(
                       text =
-                          if (isEnforcing) "Security policies active"
-                          else "Policies not enforced",
+                          if (isEnforcing) "Security policies active" else "Policies not enforced",
                       style = MaterialTheme.typography.bodySmall,
                       color =
                           if (isEnforcing)
@@ -823,9 +819,7 @@ fun ProcessManagerCard(onClick: () -> Unit) {
       modifier = Modifier.fillMaxWidth().height(140.dp),
       shape = RoundedCornerShape(24.dp),
       colors =
-          CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-          ),
+          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
   ) {
     Box(modifier = Modifier.fillMaxSize()) {
       // Background Watermark
@@ -833,10 +827,7 @@ fun ProcessManagerCard(onClick: () -> Unit) {
           Icons.Rounded.Memory,
           null,
           tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f),
-          modifier =
-              Modifier.size(100.dp)
-                  .align(Alignment.BottomEnd)
-                  .offset(x = 20.dp, y = 20.dp),
+          modifier = Modifier.size(100.dp).align(Alignment.BottomEnd).offset(x = 20.dp, y = 20.dp),
       )
 
       Column(
@@ -852,18 +843,19 @@ fun ProcessManagerCard(onClick: () -> Unit) {
               Icons.Rounded.Memory,
               null,
               tint = MaterialTheme.colorScheme.onSurface,
-              modifier = Modifier.size(28.dp)
-                  .background(
-                      MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                      RoundedCornerShape(8.dp)
-                  )
-                  .padding(4.dp),
+              modifier =
+                  Modifier.size(28.dp)
+                      .background(
+                          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                          RoundedCornerShape(8.dp),
+                      )
+                      .padding(4.dp),
           )
 
           StatusBadge(
               text = "Monitor",
               containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-              contentColor = MaterialTheme.colorScheme.onSurface
+              contentColor = MaterialTheme.colorScheme.onSurface,
           )
         }
 
@@ -905,12 +897,13 @@ fun FunctionalRomCard(viewModel: MiscViewModel) {
         Icon(
             Icons.Rounded.Extension, // Use Extension icon instead of missing drawable
             contentDescription = null,
-            modifier = Modifier.size(32.dp)
-                .background(
-                     MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
-                     RoundedCornerShape(8.dp)
-                )
-                .padding(4.dp),
+            modifier =
+                Modifier.size(32.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
+                        RoundedCornerShape(8.dp),
+                    )
+                    .padding(4.dp),
             tint = MaterialTheme.colorScheme.error,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -931,7 +924,7 @@ fun FunctionalRomCard(viewModel: MiscViewModel) {
       StatusBadge(
           text = "VIP",
           containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-          contentColor = MaterialTheme.colorScheme.error
+          contentColor = MaterialTheme.colorScheme.error,
       )
     }
   }
@@ -957,12 +950,13 @@ fun PerAppProfileCard(onClick: () -> Unit) {
         Icon(
             Icons.Rounded.AppSettingsAlt,
             contentDescription = null,
-            modifier = Modifier.size(32.dp)
-                .background(
-                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
-                     RoundedCornerShape(8.dp)
-                )
-                .padding(4.dp),
+            modifier =
+                Modifier.size(32.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                        RoundedCornerShape(8.dp),
+                    )
+                    .padding(4.dp),
             tint = MaterialTheme.colorScheme.primary,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -983,7 +977,7 @@ fun PerAppProfileCard(onClick: () -> Unit) {
       StatusBadge(
           text = "Custom",
           containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-          contentColor = MaterialTheme.colorScheme.primary
+          contentColor = MaterialTheme.colorScheme.primary,
       )
     }
   }

@@ -12,14 +12,14 @@ import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.service.GameOverlayService
-import org.json.JSONArray
-import org.json.JSONException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONException
 
 class MiscViewModel(
     val preferencesManager: PreferencesManager,
@@ -288,8 +288,6 @@ class MiscViewModel(
     }
   }
 
-
-
   // State for overlay permission request
   private val _needsOverlayPermission = MutableStateFlow(false)
   val needsOverlayPermission: StateFlow<Boolean> = _needsOverlayPermission.asStateFlow()
@@ -349,19 +347,19 @@ class MiscViewModel(
   }
 
   fun setCallOverlay(enabled: Boolean) {
-      _callOverlay.value = enabled
+    _callOverlay.value = enabled
   }
 
   fun setDanmakuMode(enabled: Boolean) {
-      _danmakuMode.value = enabled
+    _danmakuMode.value = enabled
   }
 
   fun setDisableAutoBrightness(enabled: Boolean) {
-      _disableAutoBrightness.value = enabled
+    _disableAutoBrightness.value = enabled
   }
 
   fun setDisableThreeFingerSwipe(enabled: Boolean) {
-      _disableThreeFingerSwipe.value = enabled
+    _disableThreeFingerSwipe.value = enabled
   }
 
   // New states for expandable lists
@@ -372,14 +370,12 @@ class MiscViewModel(
   val inGameRingerMode: StateFlow<String> = _inGameRingerMode.asStateFlow()
 
   fun setInGameCallAction(action: String) {
-      _inGameCallAction.value = action
+    _inGameCallAction.value = action
   }
 
   fun setInGameRingerMode(mode: String) {
-      _inGameRingerMode.value = mode
+    _inGameRingerMode.value = mode
   }
-
-
 
   // Game Control Functions
   fun setPerformanceMode(mode: String) {
@@ -463,68 +459,71 @@ class MiscViewModel(
 
   fun addGameApp(packageName: String) {
     viewModelScope.launch {
-        val currentApps = try {
+      val currentApps =
+          try {
             JSONArray(gameApps.value)
-        } catch (e: JSONException) {
+          } catch (e: JSONException) {
             JSONArray()
-        }
+          }
 
-        // Check if already exists
-        var exists = false
-        for (i in 0 until currentApps.length()) {
-            if (currentApps.optString(i) == packageName) {
-                exists = true
-                break
-            }
+      // Check if already exists
+      var exists = false
+      for (i in 0 until currentApps.length()) {
+        if (currentApps.optString(i) == packageName) {
+          exists = true
+          break
         }
+      }
 
-        if (!exists) {
-            currentApps.put(packageName)
-            saveGameApps(currentApps.toString())
-        }
+      if (!exists) {
+        currentApps.put(packageName)
+        saveGameApps(currentApps.toString())
+      }
     }
   }
 
   fun removeGameApp(packageName: String) {
     viewModelScope.launch {
-        val currentApps = try {
+      val currentApps =
+          try {
             JSONArray(gameApps.value)
-        } catch (e: JSONException) {
+          } catch (e: JSONException) {
             JSONArray()
-        }
+          }
 
-        val newApps = JSONArray()
-        for (i in 0 until currentApps.length()) {
-            if (currentApps.optString(i) != packageName) {
-                newApps.put(currentApps.get(i))
-            }
+      val newApps = JSONArray()
+      for (i in 0 until currentApps.length()) {
+        if (currentApps.optString(i) != packageName) {
+          newApps.put(currentApps.get(i))
         }
-        
-        saveGameApps(newApps.toString())
+      }
+
+      saveGameApps(newApps.toString())
     }
   }
 
   fun toggleGameApp(packageName: String) {
-      if (isGameApp(packageName)) {
-          removeGameApp(packageName)
-      } else {
-          addGameApp(packageName)
-      }
+    if (isGameApp(packageName)) {
+      removeGameApp(packageName)
+    } else {
+      addGameApp(packageName)
+    }
   }
 
   fun isGameApp(packageName: String): Boolean {
-      val currentApps = try {
+    val currentApps =
+        try {
           JSONArray(gameApps.value)
-      } catch (e: JSONException) {
+        } catch (e: JSONException) {
           JSONArray()
-      }
+        }
 
-      for (i in 0 until currentApps.length()) {
-          if (currentApps.optString(i) == packageName) {
-              return true
-          }
+    for (i in 0 until currentApps.length()) {
+      if (currentApps.optString(i) == packageName) {
+        return true
       }
-      return false
+    }
+    return false
   }
 
   // Display Saturation Functions

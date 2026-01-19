@@ -9,24 +9,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
-import androidx.compose.material.icons.rounded.Thermostat
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.BatteryFull
-import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +29,7 @@ fun MaterialBatteryScreen(
     onBack: () -> Unit,
     onSettingsClick: () -> Unit = {},
     onGraphClick: () -> Unit = {},
-    onCurrentSessionClick: () -> Unit = {}
+    onCurrentSessionClick: () -> Unit = {},
 ) {
   val context = LocalContext.current
   Scaffold(
@@ -65,7 +59,7 @@ fun MaterialBatteryScreen(
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
                 ),
         )
-      }
+      },
   ) { paddingValues ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
@@ -81,24 +75,22 @@ fun MaterialBatteryScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard(onClick = onGraphClick) }
-          Box(modifier = Modifier.weight(1f)) { CurrentSessionCard(onClick = onCurrentSessionClick) }
+          Box(modifier = Modifier.weight(1f)) {
+            CurrentSessionCard(onClick = onCurrentSessionClick)
+          }
         }
       }
-      
 
-      
       item { Spacer(modifier = Modifier.height(24.dp)) }
     }
   }
 }
 
-
-
 @Composable
 fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
   // Card background simulating the dark grey/blue from screenshot
-  val cardColor = Color(0xFF1E1F24) 
-  
+  val cardColor = Color(0xFF1E1F24)
+
   Card(
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = cardColor),
@@ -109,43 +101,43 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
+          verticalAlignment = Alignment.CenterVertically,
       ) {
-          Text(
-              text = "History",
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-              color = Color.White
-          )
-          
-          // Status Pill (Mock data: Charging)
-          Surface(
-              color = Color(0xFF009688).copy(alpha = 0.1f),
-              shape = RoundedCornerShape(50),
-              border = BorderStroke(1.dp, Color(0xFF009688).copy(alpha = 0.2f)),
+        Text(
+            text = "History",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+        )
+
+        // Status Pill (Mock data: Charging)
+        Surface(
+            color = Color(0xFF009688).copy(alpha = 0.1f),
+            shape = RoundedCornerShape(50),
+            border = BorderStroke(1.dp, Color(0xFF009688).copy(alpha = 0.2f)),
+        ) {
+          Row(
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              verticalAlignment = Alignment.CenterVertically,
           ) {
-              Row(
-                  modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-              ) {
-                  Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF009688)))
-                  Spacer(modifier = Modifier.width(8.dp))
-                  Text(
-                      text = "Charging",
-                      style = MaterialTheme.typography.labelMedium,
-                      color = Color(0xFF009688),
-                      fontWeight = FontWeight.Bold,
-                  )
-              }
+            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF009688)))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Charging",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color(0xFF009688),
+                fontWeight = FontWeight.Bold,
+            )
           }
+        }
       }
 
       Spacer(modifier = Modifier.height(32.dp))
 
       // Bar Chart Area
-      // Mock Data 
+      // Mock Data
       val bars = remember { List(10) { (20..90).random() } }
-      
+
       Row(
           modifier = Modifier.fillMaxWidth().height(140.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
@@ -153,37 +145,36 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       ) {
         val days = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo", "Tu", "We")
         bars.forEachIndexed { index, heightPercent ->
-             val isSelected = index == bars.lastIndex - 3 // Just to simulate selection
-             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    modifier = Modifier
-                        .width(20.dp)
+          val isSelected = index == bars.lastIndex - 3 // Just to simulate selection
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier =
+                    Modifier.width(20.dp)
                         .fillMaxHeight(heightPercent / 100f)
                         .clip(CircleShape)
-                        .background(
-                            if (isSelected) Color(0xFF7986CB) else Color(0xFF3F455A)
-                        )
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = days[index],
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.6f),
-                )
-            }
+                        .background(if (isSelected) Color(0xFF7986CB) else Color(0xFF3F455A))
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = days[index],
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.6f),
+            )
+          }
         }
       }
-      
+
       Spacer(modifier = Modifier.height(8.dp))
-      
+
       // Play Icon Divider
       Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-           Icon(
-               Icons.Rounded.PlayArrow, 
-               null, 
-               tint = Color.White.copy(alpha = 0.6f),
-               modifier = Modifier.size(20.dp).graphicsLayer(rotationZ = 90f) // Standard rotation logic
-           )
+        Icon(
+            Icons.Rounded.PlayArrow,
+            null,
+            tint = Color.White.copy(alpha = 0.6f),
+            modifier =
+                Modifier.size(20.dp).graphicsLayer(rotationZ = 90f), // Standard rotation logic
+        )
       }
 
       Spacer(modifier = Modifier.height(8.dp))
@@ -191,9 +182,10 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       // Nested Stats Card
       Card(
           onClick = onCurrentSessionClick,
-          colors = CardDefaults.cardColors(
-              containerColor = Color(0xFF16171B) // Slightly darker than main card
-          ),
+          colors =
+              CardDefaults.cardColors(
+                  containerColor = Color(0xFF16171B) // Slightly darker than main card
+              ),
           shape = RoundedCornerShape(24.dp),
           modifier = Modifier.fillMaxWidth(),
       ) {
@@ -206,18 +198,18 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
           VerticalDivider(
               modifier = Modifier.height(32.dp),
               thickness = 1.dp,
-              color = Color.White.copy(alpha = 0.1f)
+              color = Color.White.copy(alpha = 0.1f),
           )
           SummaryStat("Discharging", "-- %")
-           VerticalDivider(
+          VerticalDivider(
               modifier = Modifier.height(32.dp),
               thickness = 1.dp,
-              color = Color.White.copy(alpha = 0.1f)
+              color = Color.White.copy(alpha = 0.1f),
           )
           SummaryStat("Sessions", "1")
         }
       }
-      
+
       Spacer(modifier = Modifier.height(16.dp))
       Text(
           "Last 10 days",
@@ -240,7 +232,7 @@ fun ElectricCurrentCard(onClick: () -> Unit = {}) {
           text = "Electric Current",
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.Bold,
-          color = Color.White
+          color = Color.White,
       )
 
       Spacer(modifier = Modifier.height(16.dp))
@@ -249,18 +241,18 @@ fun ElectricCurrentCard(onClick: () -> Unit = {}) {
           text = "457 mA",
           style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp),
           fontWeight = FontWeight.Medium,
-          color = Color.White
+          color = Color.White,
       )
 
       Spacer(modifier = Modifier.weight(1f))
 
       // Graph Placeholder - Solid block
       Box(
-          modifier = Modifier
-              .fillMaxWidth()
-              .height(60.dp)
-              .clip(RoundedCornerShape(16.dp))
-              .background(Color(0xFF2D2E36))
+          modifier =
+              Modifier.fillMaxWidth()
+                  .height(60.dp)
+                  .clip(RoundedCornerShape(16.dp))
+                  .background(Color(0xFF2D2E36))
       )
 
       Spacer(modifier = Modifier.height(16.dp))
@@ -284,12 +276,12 @@ fun CurrentSessionCard(onClick: () -> Unit = {}) {
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
-            text = "Current Session",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
+          text = "Current Session",
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.Bold,
+          color = Color.White,
       )
-      
+
       Spacer(modifier = Modifier.height(24.dp))
 
       StatRowCompact(icon = Icons.Rounded.WbSunny, label = "Screen On", value = "6m 30d")
@@ -305,23 +297,23 @@ fun CurrentSessionCard(onClick: () -> Unit = {}) {
 fun StatRowCompact(icon: ImageVector, label: String, value: String) {
   Row(verticalAlignment = Alignment.CenterVertically) {
     Icon(
-        imageVector = icon, 
-        contentDescription = null, 
+        imageVector = icon,
+        contentDescription = null,
         modifier = Modifier.size(20.dp),
-        tint = Color.White
+        tint = Color.White,
     )
     Spacer(modifier = Modifier.width(12.dp))
     Column {
       Text(
-          text = label, 
-          style = MaterialTheme.typography.labelSmall, 
+          text = label,
+          style = MaterialTheme.typography.labelSmall,
           fontWeight = FontWeight.Bold,
-          color = Color.White
+          color = Color.White,
       )
       Text(
-          text = value, 
+          text = value,
           style = MaterialTheme.typography.bodySmall,
-          color = Color.White.copy(alpha = 0.7f)
+          color = Color.White.copy(alpha = 0.7f),
       )
     }
   }
@@ -354,16 +346,16 @@ fun LegendBadge(color: Color, label: String) {
 fun SummaryStat(label: String, value: String) {
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
     Text(
-        text = label, 
-        style = MaterialTheme.typography.labelMedium, 
+        text = label,
+        style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
-        color = Color.White
+        color = Color.White,
     )
     Spacer(modifier = Modifier.height(4.dp))
     Text(
-        text = value, 
+        text = value,
         style = MaterialTheme.typography.titleMedium,
-        color = Color.White.copy(alpha = 0.7f)
+        color = Color.White.copy(alpha = 0.7f),
     )
   }
 }
