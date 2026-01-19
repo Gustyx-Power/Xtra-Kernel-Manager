@@ -1120,13 +1120,13 @@ class TuningViewModel(
   /** Start real-time monitoring loop (called when screen becomes active) */
   fun startRealTimeMonitoring() {
     if (monitoringJob?.isActive == true) return
+    NativeLib.resetGpuStats()
 
     monitoringJob =
         viewModelScope.launch(Dispatchers.IO) {
           while (true) {
             refreshDynamicValues()
-            // 1 second interval for smooth but not overwhelming updates
-            delay(1000)
+            delay(300)
           }
         }
   }

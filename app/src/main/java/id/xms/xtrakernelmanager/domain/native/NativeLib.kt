@@ -146,6 +146,15 @@ object NativeLib {
     }
   }
 
+  fun resetGpuStats() {
+    if (!isLoaded) return
+    try {
+      resetGpuStatsNative()
+    } catch (e: Exception) {
+      Log.e(TAG, "Native resetGpuStats failed: ${e.message}")
+    }
+  }
+
   /** Read battery level percentage (0-100) */
   fun readBatteryLevel(): Int? {
     if (!isLoaded) return null
@@ -294,6 +303,8 @@ object NativeLib {
   private external fun readGpuFreqNative(): Int
 
   private external fun readGpuBusyNative(): Int
+
+  private external fun resetGpuStatsNative()
 
   // Power Module
   private external fun readBatteryLevelNative(): Int

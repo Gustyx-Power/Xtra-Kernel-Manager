@@ -11,6 +11,7 @@ pub struct CpuCluster {
     pub min_freq: i32,
     pub max_freq: i32,
     pub governor: String,
+    pub available_governors: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -82,6 +83,7 @@ pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
             );
             let governor = utils::read_sysfs_cached(&governor_path, 1000)
                 .unwrap_or_else(|| "unknown".to_string());
+            let available_governors = get_available_governors(first_core);
 
             CpuCluster {
                 cluster_number: idx as i32,
@@ -89,6 +91,7 @@ pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
                 min_freq: min,
                 max_freq: max,
                 governor,
+                available_governors,
             }
         })
         .collect();

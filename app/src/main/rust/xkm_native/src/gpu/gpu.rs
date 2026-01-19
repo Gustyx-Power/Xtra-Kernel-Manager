@@ -299,14 +299,13 @@ pub fn read_gpu_busy() -> i32 {
     }
 }
 
-fn read_adreno_busy() -> i32 {
-    if let Some(busy) = utils::read_sysfs_int("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", 200) {
-        return busy as i32;
-    }
+pub fn reset_gpu_stats() {
+    let mut last = LAST_GPU_BUSY.lock().unwrap();
+    *last = None;
+}
 
-    // Method 2: Cumulative counters (Needs delta calculation)
-    // Method 2: Cumulative counters (Needs delta calculation)
-    // Use uncached read to ensure we get fresh counters every time
+fn read_adreno_busy() -> i32 {
+    // 1. Try raw counters first for better real-time responsiveness
     if let Some(content) = utils::read_sysfs("/sys/class/kgsl/kgsl-3d0/gpubusy") {
         let parts: Vec<&str> = content.split_whitespace().collect();
         if parts.len() >= 2 {
@@ -338,9 +337,22 @@ fn read_adreno_busy() -> i32 {
                     if delta_total > 0 {
                         // Calculate percentage
                         let load = (delta_busy * 100) / delta_total;
+                        // If there was ANY activity but load rounded to 0, show 1% to indicate aliveness
+                        if load == 0 && delta_busy > 0 {
+                            eprintln!(
+                                "GPU: busy={}/{} delta={}/{} load=1 (bumped)",
+                                curr_busy, curr_total, delta_busy, delta_total
+                            );
+                            return 1;
+                        }
+                        eprintln!(
+                            "GPU: busy={}/{} delta={}/{} load={}",
+                            curr_busy, curr_total, delta_busy, delta_total, load
+                        );
                         return load.min(100) as i32;
                     } else {
                         // No change in cycles = 0% load
+                        eprintln!("GPU: busy={}/{} delta=0/0 load=0", curr_busy, curr_total);
                         return 0;
                     }
                 } else {
@@ -349,9 +361,15 @@ fn read_adreno_busy() -> i32 {
                         busy: curr_busy,
                         total: curr_total,
                     });
+                    // Fallthrough to percentage file for first run
                 }
             }
         }
+    }
+
+    // 2. Fallback to system percentage or first run
+    if let Some(busy) = utils::read_sysfs_int("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", 0) {
+        return busy as i32;
     }
 
     0

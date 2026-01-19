@@ -92,6 +92,14 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
 }
 
 #[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_resetGpuStatsNative(
+    _env: JNIEnv,
+    _class: JClass,
+) {
+    gpu::reset_gpu_stats();
+}
+
+#[unsafe(no_mangle)]
 pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getGpuVendorNative(
     env: JNIEnv,
     _class: JClass,
