@@ -95,11 +95,10 @@ fun MaterialHomeScreen(
             modifier =
                 Modifier.fillMaxSize()
                     .verticalScroll(rememberScrollState())
+                    .statusBarsPadding()
+                    .offset(y = (-16).dp)
                     .padding(horizontal = 24.dp)
-                    .padding(paddingValues)
-                    .padding(
-                        vertical = 24.dp
-                    ), // Added vertical padding here since contentPadding is gone
+                    .padding(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           // Header
@@ -207,7 +206,7 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
 
   Row(
       modifier =
-          Modifier.fillMaxWidth().padding(vertical = 12.dp).clickable(
+          Modifier.fillMaxWidth().clickable(
               interactionSource = remember { MutableInteractionSource() },
               indication = null,
           ) {
