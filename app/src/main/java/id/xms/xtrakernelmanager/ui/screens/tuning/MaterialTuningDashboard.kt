@@ -58,13 +58,12 @@ fun MaterialTuningDashboard(
       modifier = Modifier.fillMaxSize(),
       topBar = {
         TopAppBar(
+            modifier = Modifier.offset(y = (-24).dp),
             title = {
               Text(
                   text = "Tuning",
-                  style =
-                      MaterialTheme.typography.headlineMedium.copy(
-                          fontWeight = FontWeight.SemiBold
-                      ),
+                  fontWeight = FontWeight.SemiBold,
+                  fontSize = 24.sp
               )
             },
             actions = {
@@ -98,7 +97,9 @@ fun MaterialTuningDashboard(
                 }
               }
             },
-            scrollBehavior = scrollBehavior,
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background
+            ),
         )
       },
   ) { paddingValues ->
