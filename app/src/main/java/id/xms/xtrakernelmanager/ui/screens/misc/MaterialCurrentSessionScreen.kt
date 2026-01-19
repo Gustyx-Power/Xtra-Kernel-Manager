@@ -26,6 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import kotlin.math.sin
+import kotlin.math.cos
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,15 +96,6 @@ fun MaterialCurrentSessionScreen(
                     .padding(horizontal = 24.dp), // More breathing room
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                // 1. Sleek Segmented Control
-                item {
-                    ExpressiveSegmentedControl(
-                        selectedTab = selectedTab,
-                        onTabSelected = { selectedTab = it }
-                    )
-                }
-
-                // 2. Hero Circular Timer
                 item {
                     SessionHeroCard(
                         time = "1h 18m",
@@ -110,11 +105,16 @@ fun MaterialCurrentSessionScreen(
                     )
                 }
 
-                // 3. Key Metrics (Staggered/Grid)
+                item {
+                    ExpressiveSegmentedControl(
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it }
+                    )
+                }
+
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            // Rate Card (Large)
                             ExpressiveStatCard(
                                 title = "Rate",
                                 value = if (selectedTab == 0) "12.2%/h" else "15.0%/h",
@@ -124,7 +124,6 @@ fun MaterialCurrentSessionScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             
-                            // Capacity Card (Large)
                             ExpressiveStatCard(
                                 title = if (selectedTab == 0) "Gained" else "Lost",
                                 value = "16%",
@@ -135,7 +134,6 @@ fun MaterialCurrentSessionScreen(
                             )
                         }
                         
-                        // Screen On/Off Row
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                              CompactStatCard(
                                 label = "Screen On",
@@ -203,59 +201,130 @@ fun SessionHeroCard(
     progress: Float,
     accentColor: Color
 ) {
+    // Gradient for the card background to avoid "pitch black" look
+    val brush = Brush.verticalGradient(
+        colors = listOf(
+            MaterialTheme.colorScheme.surfaceContainerHigh,
+            MaterialTheme.colorScheme.surfaceContainer
+        )
+    )
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent), // Use Box with background for gradient
         shape = RoundedCornerShape(32.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        modifier = Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(32.dp))
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp), // Slight elevation for depth
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f), RoundedCornerShape(32.dp))
     ) {
-        Row(
-            modifier = Modifier.padding(24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            modifier = Modifier
+                .background(brush)
+                .padding(24.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = status.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = time,
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            
-            // Circular Progress Indicator
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.size(80.dp)) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
-                    drawArc(
-                        color = accentColor.copy(alpha = 0.2f),
-                        startAngle = 0f,
-                        sweepAngle = 360f,
-                        useCenter = false,
-                        style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = status.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    drawArc(
-                        color = accentColor,
-                        startAngle = -90f,
-                        sweepAngle = 360 * progress,
-                        useCenter = false,
-                        style = Stroke(width = 8.dp.toPx(), cap = StrokeCap.Round)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = time,
+                        style = MaterialTheme.typography.displayLarge.copy(fontSize = 58.sp), // Slightly smaller, cleaner
+                        fontWeight = FontWeight.Bold, // Reduced from Black to Bold for cleaner look
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 64.sp
                     )
                 }
-                Text(
-                    text = "${(progress * 100).roundToInt()}%",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+                
+                // Wavy Circular Progress Indicator
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(110.dp)) {
+                    WavyCircularProgressIndicator(
+                        progress = progress,
+                        modifier = Modifier.fillMaxSize(),
+                        color = accentColor,
+                        trackColor = accentColor.copy(alpha = 0.15f),
+                        strokeWidth = 10.dp,
+                        amplitude = 4.dp, 
+                        frequency = 8 // Reduced frequency for "fewer curves" look
+                    )
+                    Text(
+                        text = "${(progress * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
+        }
+    }
+}
+
+@Composable
+fun WavyCircularProgressIndicator(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.primary,
+    trackColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    strokeWidth: Dp = 8.dp,
+    amplitude: Dp = 4.dp, // Wave height
+    frequency: Int = 12 // Number of waves
+) {
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val radius = (width.coerceAtMost(height) - strokeWidth.toPx() - amplitude.toPx() * 2) / 2f
+        val center = Offset(width / 2f, height / 2f)
+        val waveAmplitudePx = amplitude.toPx()
+
+        // Helper to create wavy path
+        fun createWavyPath(startAngle: Float, sweepAngle: Float): androidx.compose.ui.graphics.Path {
+            val path = androidx.compose.ui.graphics.Path()
+            val step = 1f // degree step
+            
+            for (angle in 0..sweepAngle.toInt()) {
+                val currentAngle = startAngle + angle
+                val theta = Math.toRadians(currentAngle.toDouble())
+                
+                // r = R + A * sin(N * theta)
+                val r = radius + waveAmplitudePx * kotlin.math.sin(frequency * theta)
+                
+                val x = center.x + r * kotlin.math.cos(theta)
+                val y = center.y + r * kotlin.math.sin(theta)
+                
+                if (angle == 0) {
+                    path.moveTo(x.toFloat(), y.toFloat())
+                } else {
+                    path.lineTo(x.toFloat(), y.toFloat())
+                }
+            }
+            return path
+        }
+
+        // Draw Track (Full Circle)
+        val trackPath = createWavyPath(-90f, 360f)
+        drawPath(
+            path = trackPath,
+            color = trackColor,
+            style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+        )
+
+        // Draw Progress
+        if (progress > 0) {
+            val progressPath = createWavyPath(-90f, 360f * progress)
+            drawPath(
+                path = progressPath,
+                color = color,
+                style = Stroke(width = strokeWidth.toPx(), cap = StrokeCap.Round)
+            )
         }
     }
 }
