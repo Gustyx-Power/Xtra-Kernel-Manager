@@ -300,3 +300,13 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_get
     let value = utils::get_system_property(&key_str).unwrap_or_default();
     create_jstring_safe(&env, value)
 }
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getAvailableZramAlgorithmsNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let algos = memory::get_available_zram_algorithms();
+    let json = serde_json::to_string(&algos).unwrap_or_else(|_| "[]".to_string());
+    create_jstring_safe(&env, json)
+}

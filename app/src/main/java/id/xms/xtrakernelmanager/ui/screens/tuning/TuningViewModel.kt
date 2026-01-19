@@ -16,11 +16,15 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -509,53 +513,62 @@ class TuningViewModel(
     _memoryStats.value = ramUseCase.getMemoryStats()
   }
 
-  private suspend fun loadSystemInfo() {
-    _cpuClusters.value = cpuUseCase.detectClusters()
+  private suspend fun loadSystemInfo() =
+      withContext(Dispatchers.IO) {
+        // Launch independent tasks in parallel
+        val clustersDeferred = async { cpuUseCase.detectClusters() }
+        val mediatekDeferred = async { detectMediatek() }
+        val blockDevicesDeferred = async { loadBlockDeviceStatesParallel() }
+        val tcpDeferred = async { getCurrentTCPCongestion() }
+        val compAlgoDeferred = async { ramUseCase.getCurrentCompressionAlgorithm() }
+        val memoryInfoDeferred = async { loadMemoryInfoParallel() }
+        val availableAlgorithmsDeferred = async { ramUseCase.getAvailableCompressionAlgorithms() }
 
-    _isMediatek.value = detectMediatek()
+        // Await results
+        val clusters = clustersDeferred.await()
+        val isMtk = mediatekDeferred.await()
 
-    if (!_isMediatek.value) {
-      _gpuInfo.value = gpuUseCase.getGPUInfo()
-    }
+        _cpuClusters.value = clusters
+        _isMediatek.value = isMtk
 
-    loadBlockDeviceStates()
+        // GPU Info depends on Mediatek check
+        if (!isMtk) {
+          _gpuInfo.value = gpuUseCase.getGPUInfo()
+        }
 
-    val currentTCP = getCurrentTCPCongestion()
-    if (currentTCP.isNotEmpty()) {
-      _currentTCPCongestion.value = currentTCP
-    }
+        _blockDeviceStates.value = blockDevicesDeferred.await()
 
-    // Load available compression algorithms
-    _availableCompressionAlgorithms.value = ramUseCase.getAvailableCompressionAlgorithms()
+        val currentTCP = tcpDeferred.await()
+        if (currentTCP.isNotEmpty()) {
+          _currentTCPCongestion.value = currentTCP
+        }
 
-    val currentComp = ramUseCase.getCurrentCompressionAlgorithm()
-    if (currentComp.isNotEmpty()) {
-      _currentCompressionAlgorithm.value = currentComp
-    }
+        val currentComp = compAlgoDeferred.await()
+        if (currentComp.isNotEmpty()) {
+          _currentCompressionAlgorithm.value = currentComp
+        }
 
-    // Load current memory settings from system
-    loadMemoryInfo()
+        _availableCompressionAlgorithms.value = availableAlgorithmsDeferred.await()
 
-    refreshCurrentValues()
+        // Wait for memory info (it updates stateflows internally)
+        memoryInfoDeferred.await()
+
+        refreshCurrentValues()
+      }
+
+  /** Load current memory settings from system (Parallelized internal calls) */
+  private suspend fun loadMemoryInfoParallel() = coroutineScope {
+    launch { _currentSwappiness.value = ramUseCase.getSwappiness() }
+    launch { _currentDirtyRatio.value = ramUseCase.getDirtyRatio() }
+    launch { _currentMinFreeMem.value = ramUseCase.getMinFreeMem() }
+    launch { _zramStatus.value = ramUseCase.getZramStatus() }
+    launch { _swapFileStatus.value = ramUseCase.getSwapFileStatus() }
+    launch { _memoryStats.value = ramUseCase.getMemoryStats() }
   }
 
-  /** Load current memory settings from system */
+  // Deprecated sequential version, kept if needed but unused in new flow
   private suspend fun loadMemoryInfo() {
-    _currentSwappiness.value = ramUseCase.getSwappiness()
-    _currentDirtyRatio.value = ramUseCase.getDirtyRatio()
-    _currentMinFreeMem.value = ramUseCase.getMinFreeMem()
-    _zramStatus.value = ramUseCase.getZramStatus()
-    _swapFileStatus.value = ramUseCase.getSwapFileStatus()
-    _memoryStats.value = ramUseCase.getMemoryStats()
-  }
-
-  /** Refresh memory stats (called periodically for real-time updates) */
-  fun refreshMemoryStats() {
-    viewModelScope.launch(Dispatchers.IO) {
-      _zramStatus.value = ramUseCase.getZramStatus()
-      _swapFileStatus.value = ramUseCase.getSwapFileStatus()
-      _memoryStats.value = ramUseCase.getMemoryStats()
-    }
+    loadMemoryInfoParallel()
   }
 
   private suspend fun detectMediatek(): Boolean {
@@ -568,34 +581,55 @@ class TuningViewModel(
         soc.contains("mediatek")
   }
 
-  private suspend fun loadBlockDeviceStates() {
+  private suspend fun loadBlockDeviceStatesParallel(): List<BlockDeviceState> = coroutineScope {
     val devices = listOf("sda", "sdb", "sdc", "sdd", "sde", "sdf", "mmcblk0", "dm-0")
-    val states = mutableListOf<BlockDeviceState>()
-    for (device in devices) {
-      val output =
-          RootManager.executeCommand("cat /sys/block/$device/queue/scheduler 2>/dev/null")
-              .getOrNull()
-      if (!output.isNullOrBlank()) {
-        val match = Regex("\\[(.*?)]").find(output)
-        var current = match?.groupValues?.get(1) ?: ""
-        val available =
-            output.replace("[", "").replace("]", "").split("\\s+".toRegex()).filter {
-              it.isNotBlank()
+
+    // Check all devices in parallel
+    devices
+        .map { device ->
+          async {
+            // Try direct file read first (faster), fallback to root if needed
+            var output: String? =
+                try {
+                  java.io.File("/sys/block/$device/queue/scheduler").readText().trim()
+                } catch (e: Exception) {
+                  null
+                }
+
+            if (output == null) {
+              output =
+                  RootManager.executeCommand("cat /sys/block/$device/queue/scheduler 2>/dev/null")
+                      .getOrNull()
             }
 
-        // Fix: If current is empty but only 1 option exists (e.g. "none"), assume it's active
-        if (current.isEmpty() && available.size == 1) {
-          current = available.first()
-        }
+            if (!output.isNullOrBlank()) {
+              val match = Regex("\\[(.*?)]").find(output)
+              var current = match?.groupValues?.get(1) ?: ""
+              val available =
+                  output.replace("[", "").replace("]", "").split("\\s+".toRegex()).filter {
+                    it.isNotBlank()
+                  }
 
-        if (available.isNotEmpty()) {
-          states.add(BlockDeviceState(device, current, available))
+              if (current.isEmpty() && available.size == 1) {
+                current = available.first()
+              }
+
+              if (available.isNotEmpty()) {
+                BlockDeviceState(device, current, available)
+              } else null
+            } else null
+          }
         }
-      }
-    }
-    _blockDeviceStates.value = states
+        .awaitAll()
+        .filterNotNull()
+  }
+
+  // Wrapper for existing call to maintain compatibility if called elsewhere
+  private suspend fun loadBlockDeviceStates() {
+    _blockDeviceStates.value = loadBlockDeviceStatesParallel()
 
     // Sync legacy flows
+    val states = _blockDeviceStates.value
     val sda = states.find { it.name == "sda" } ?: states.firstOrNull()
     if (sda != null) {
       _availableIOSchedulers.value = sda.availableSchedulers
@@ -701,12 +735,15 @@ class TuningViewModel(
     }
   }
 
-  private suspend fun applySavedCoreStates() {
-    for (core in 0..7) {
-      val enabled = preferencesManager.isCpuCoreEnabled(core).first()
-      Log.d("TuningViewModel", "Applying core $core state: enabled=$enabled")
-      cpuUseCase.setCoreOnline(core, enabled)
-    }
+  private suspend fun applySavedCoreStates() = coroutineScope {
+    (0..7)
+        .map { core ->
+          launch(Dispatchers.IO) {
+            val enabled = preferencesManager.isCpuCoreEnabled(core).first()
+            cpuUseCase.setCoreOnline(core, enabled)
+          }
+        }
+        .joinAll()
     refreshCurrentValues()
   }
 

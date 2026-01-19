@@ -204,12 +204,17 @@ class RAMControlUseCase {
   }
 
   suspend fun getAvailableCompressionAlgorithms(): List<String> {
+    // Try native first
+    val nativeAlgos = NativeLib.getAvailableZramAlgorithms()
+    if (!nativeAlgos.isNullOrEmpty()) {
+      return nativeAlgos
+    }
+
+    // Fallback to shell
     val result =
         RootManager.executeCommand("cat /sys/block/zram0/comp_algorithm 2>/dev/null || echo 'lz4'")
     return if (result.isSuccess) {
       val output = result.getOrNull() ?: "lz4"
-      // Output format: "lzo lzo-rle lz4 [lz4hc] 842 zstd"
-      // Parse and extract available algorithms
       output.replace("[", "").replace("]", "").split(" ").filter { it.isNotBlank() }
     } else {
       listOf("lz4", "lzo", "lzo-rle", "zstd", "lz4hc", "842")

@@ -552,4 +552,23 @@ object NativeLib {
       null
     }
   }
+
+  /** Get available ZRAM compression algorithms */
+  fun getAvailableZramAlgorithms(): List<String>? {
+    if (!isLoaded) return null
+    return try {
+      val json = getAvailableZramAlgorithmsNative()
+      val list = mutableListOf<String>()
+      val jsonArray = JSONArray(json)
+      for (i in 0 until jsonArray.length()) {
+        list.add(jsonArray.getString(i))
+      }
+      list
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getAvailableZramAlgorithms failed: ${e.message}")
+      null
+    }
+  }
+
+  private external fun getAvailableZramAlgorithmsNative(): String
 }
