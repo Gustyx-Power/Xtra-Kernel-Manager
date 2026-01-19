@@ -36,12 +36,12 @@ fun MaterialGameSpaceScreen(
   Scaffold(
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
-        LargeTopAppBar(
+        TopAppBar(
             title = {
                 Text(
                     "Game Space",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 32.sp
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 24.sp
                 )
             },
             navigationIcon = {
@@ -49,7 +49,7 @@ fun MaterialGameSpaceScreen(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back", tint = MaterialTheme.colorScheme.onBackground)
               }
             },
-            colors = TopAppBarDefaults.largeTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background,
                 scrolledContainerColor = MaterialTheme.colorScheme.background,
                 titleContentColor = MaterialTheme.colorScheme.onBackground,
