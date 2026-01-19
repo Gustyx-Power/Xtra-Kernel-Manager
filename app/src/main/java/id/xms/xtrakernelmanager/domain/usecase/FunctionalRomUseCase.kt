@@ -58,6 +58,17 @@ class FunctionalRomUseCase {
               "/sys/class/power_supply/battery/constant_charge_current_max",
               "/sys/class/qcom-battery/restricted_current",
           )
+      
+      // Brightness control paths for Unlock Nits feature
+      val MAX_BRIGHTNESS_PATHS = listOf(
+          "/sys/class/backlight/panel0-backlight/max_brightness",
+          "/sys/class/leds/lcd-backlight/max_brightness",
+          "/sys/class/backlight/panel/max_brightness",
+      )
+      
+      // Brightness values: 4095 = 1000 nits (unlocked), 2047 = 500 nits (default)
+      const val BRIGHTNESS_1000_NITS = 4095
+      const val BRIGHTNESS_500_NITS = 2047
     }
 
     // Property-based Features (Shimoku's area)
@@ -72,6 +83,17 @@ class FunctionalRomUseCase {
       // Xiaomi Touch
       const val TOUCH_GAME_MODE = "persist.sys.oosexgang.touch.gamemode"
       const val TOUCH_ACTIVE_MODE = "persist.sys.oosexgang.touch.active"
+      // Fix DT2W Props
+      const val FIX_DT2W_VENDOR = "ro.vendor.touchgesture.double_tap"
+      const val FIX_DT2W_INPUT = "ro.input.gesture_settings"
+    }
+
+    // Module Constants for Fix DT2W
+    object ModuleConstants {
+      const val FIX_DT2W_MODULE_ID = "oplus_fix"
+      const val META_OVERLAYFS_MODULE_ID = "meta-overlayfs"
+      const val META_OVERLAYFS_ASSET = "meta-overlayfs-13100-1.3.1.zip"
+      const val FIX_DT2W_ASSET = "fix_dt2w.zip"
     }
   }
 
@@ -119,6 +141,55 @@ class FunctionalRomUseCase {
   suspend fun findChargingLimitNode(): String? =
       withContext(Dispatchers.IO) {
         KernelNodes.CHARGING_LIMIT_PATHS.find { RootManager.fileExists(it) }
+      }
+
+  /** Find available max brightness node path */
+  suspend fun findMaxBrightnessNode(): String? =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Searching for max brightness node...")
+        for (path in KernelNodes.MAX_BRIGHTNESS_PATHS) {
+          val exists = RootManager.fileExists(path)
+          Log.d(TAG, "Max brightness path check: $path -> exists=$exists")
+          if (exists) {
+            Log.d(TAG, "Max brightness node found: $path")
+            return@withContext path
+          }
+        }
+        Log.w(TAG, "No max brightness node found on this device")
+        null
+      }
+
+  // ==================== Unlock Nits Feature ====================
+
+  /**
+   * Set unlock additional nits state
+   * @param enabled true to enable 1000 nits (4095), false for 500 nits (2047)
+   * @param nodePath Path to max_brightness node
+   */
+  suspend fun setUnlockNits(enabled: Boolean, nodePath: String): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        val value = if (enabled) KernelNodes.BRIGHTNESS_1000_NITS else KernelNodes.BRIGHTNESS_500_NITS
+        Log.d(TAG, "Setting unlock nits: enabled=$enabled, value=$value, path=$nodePath")
+        RootManager.writeToNode(nodePath, value.toString())
+      }
+
+  /**
+   * Get current max brightness value
+   */
+  suspend fun getMaxBrightnessValue(nodePath: String): Int =
+      withContext(Dispatchers.IO) {
+        val value = RootManager.readFromNode(nodePath)
+        Log.d(TAG, "Current max brightness: $value")
+        value.toIntOrNull() ?: 0
+      }
+
+  /**
+   * Check if unlock nits is currently enabled (4095 = enabled)
+   */
+  suspend fun isUnlockNitsEnabled(nodePath: String): Boolean =
+      withContext(Dispatchers.IO) {
+        val value = getMaxBrightnessValue(nodePath)
+        value >= KernelNodes.BRIGHTNESS_1000_NITS
       }
 
   // ==================== Native Features (Kernel Nodes) ====================
@@ -275,4 +346,85 @@ class FunctionalRomUseCase {
   suspend fun getTouchActiveModeState(): Boolean {
     return RootManager.getProp(Properties.TOUCH_ACTIVE_MODE).equals("true", ignoreCase = true)
   }
+
+  /** Set Fix DT2W state - sets both vendor and input gesture props */
+  suspend fun setFixDt2w(enabled: Boolean): Result<Unit> {
+    val value = if (enabled) "1" else "0"
+    val valueTrue = if (enabled) "true" else "false"
+    Log.d(TAG, "Setting Fix DT2W: enabled=$enabled")
+    // Set both properties
+    val result1 = RootManager.setProp(Properties.FIX_DT2W_VENDOR, value)
+    val result2 = RootManager.setProp(Properties.FIX_DT2W_INPUT, valueTrue)
+    return if (result1.isSuccess && result2.isSuccess) {
+      Result.success(Unit)
+    } else {
+      Result.failure(Exception("Failed to set DT2W props"))
+    }
+  }
+
+  suspend fun getFixDt2wState(): Boolean {
+    val vendorProp = RootManager.getProp(Properties.FIX_DT2W_VENDOR)
+    val inputProp = RootManager.getProp(Properties.FIX_DT2W_INPUT)
+    return vendorProp == "1" || inputProp.equals("true", ignoreCase = true)
+  }
+
+  // ==================== Fix DT2W Module Installation (2-Step) ====================
+
+  /** Check if overlayfs module is installed */
+  suspend fun isOverlayfsInstalled(): Boolean =
+      withContext(Dispatchers.IO) {
+        val installed = RootManager.isModuleInstalled(ModuleConstants.META_OVERLAYFS_MODULE_ID)
+        Log.d(TAG, "Overlayfs installed: $installed")
+        installed
+      }
+
+  /** Check if fix_dt2w module is installed */
+  suspend fun isFixDt2wModuleInstalled(): Boolean =
+      withContext(Dispatchers.IO) {
+        val installed = RootManager.isModuleInstalled(ModuleConstants.FIX_DT2W_MODULE_ID)
+        Log.d(TAG, "Fix DT2W module installed: $installed")
+        installed
+      }
+
+  /** Install overlayfs module only (Step 1) */
+  suspend fun installOverlayfsModule(modulePath: String): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Installing meta-overlayfs module...")
+        RootManager.installKernelSuModule(modulePath)
+      }
+
+  /** Install fix_dt2w module only (Step 2) */
+  suspend fun installFixDt2wModule(modulePath: String): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Installing fix_dt2w module...")
+        RootManager.installKernelSuModule(modulePath)
+      }
+
+  /** Reboot device after module installation */
+  suspend fun rebootForModules(): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Rebooting device for module activation...")
+        RootManager.rebootDevice()
+      }
+
+  /** Remove both Fix DT2W modules */
+  suspend fun removeFixDt2wModules(): Result<Unit> =
+      withContext(Dispatchers.IO) {
+        Log.d(TAG, "Removing Fix DT2W modules...")
+        
+        // Remove fix_dt2w first
+        val dt2wResult = RootManager.removeModule(ModuleConstants.FIX_DT2W_MODULE_ID)
+        if (dt2wResult.isFailure) {
+          Log.e(TAG, "Failed to remove fix_dt2w module")
+        }
+        
+        // Remove overlayfs
+        val overlayResult = RootManager.removeModule(ModuleConstants.META_OVERLAYFS_MODULE_ID)
+        if (overlayResult.isFailure) {
+          Log.e(TAG, "Failed to remove overlayfs module")
+        }
+        
+        Log.d(TAG, "Modules removal complete")
+        Result.success(Unit)
+      }
 }

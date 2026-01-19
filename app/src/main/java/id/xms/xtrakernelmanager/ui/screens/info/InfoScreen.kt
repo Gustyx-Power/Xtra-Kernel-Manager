@@ -186,8 +186,8 @@ private fun LegacyInfoScreen() {
 
           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             InfoStatItem(value = "2", label = "Founders")
-            InfoStatItem(value = "2", label = "Contributors")
-            InfoStatItem(value = "5", label = "Tester")
+            InfoStatItem(value = "3", label = "Contributors")
+            InfoStatItem(value = "8", label = "Tester")
           }
         }
       }
@@ -289,27 +289,104 @@ private fun LegacyInfoScreen() {
 
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-          // Contributors Grid
-          Row(
+          // Contributors Carousel
+          val contributors = listOf(
+              Triple(R.drawable.team_contributor_pandu, "Ziyu", "🇮🇩"),
+              Triple(R.drawable.team_contributor_shimoku, "Shimoku", "🇺🇦"),
+              Triple(R.drawable.team_contributor_rio, R.string.team_contributor_rio to true, "🇮🇩"),
+          )
+
+          val contributorPagerState = rememberPagerState(pageCount = { contributors.size })
+
+          LaunchedEffect(contributorPagerState) {
+            while (true) {
+              delay(3000L)
+              val nextPage = (contributorPagerState.currentPage + 1) % contributors.size
+              contributorPagerState.animateScrollToPage(
+                  page = nextPage,
+                  animationSpec = spring(
+                      dampingRatio = Spring.DampingRatioMediumBouncy,
+                      stiffness = Spring.StiffnessLow,
+                  ),
+              )
+            }
+          }
+
+          Column(
               modifier = Modifier.fillMaxWidth(),
-              horizontalArrangement = Arrangement.spacedBy(12.dp),
+              horizontalAlignment = Alignment.CenterHorizontally,
           ) {
-            TeamMemberCard(
-                modifier = Modifier.weight(1f),
-                imageResId = R.drawable.team_contributor_pandu,
-                name = "Ziyu",
-                role = stringResource(R.string.info_role_contributor),
-                country = "🇮🇩",
-                isFounder = false,
-            )
-            TeamMemberCard(
-                modifier = Modifier.weight(1f),
-                imageResId = R.drawable.team_contributor_shimoku,
-                name = "Shimoku",
-                role = stringResource(R.string.info_role_contributor),
-                country = "🇺🇦",
-                isFounder = false,
-            )
+            HorizontalPager(
+                state = contributorPagerState,
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+                contentPadding = PaddingValues(horizontal = 80.dp),
+                pageSpacing = (-20).dp,
+                beyondViewportPageCount = 2,
+            ) { page ->
+              val (imageRes, nameData, country) = contributors[page]
+              val name = if (nameData is Pair<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                stringResource((nameData as Pair<Int, Boolean>).first)
+              } else {
+                nameData as String
+              }
+
+              val pageOffset = (contributorPagerState.currentPage - page) + contributorPagerState.currentPageOffsetFraction
+              val scale by animateFloatAsState(
+                  targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.85f,
+                  animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+                  label = "scale",
+              )
+              val alpha by animateFloatAsState(
+                  targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.6f,
+                  animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
+                  label = "alpha",
+              )
+
+              Box(
+                  modifier = Modifier.graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    this.alpha = alpha
+                    rotationY = pageOffset * -5f
+                  },
+                  contentAlignment = Alignment.Center,
+              ) {
+                TeamMemberCard(
+                    modifier = Modifier.width(160.dp),
+                    imageResId = imageRes,
+                    name = name,
+                    role = stringResource(R.string.info_role_contributor),
+                    country = country,
+                    isFounder = false,
+                )
+              }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+              contributors.forEachIndexed { index, _ ->
+                val isSelected = contributorPagerState.currentPage == index
+                val indicatorSize by animateFloatAsState(
+                    targetValue = if (isSelected) 10f else 6f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
+                    label = "indicator",
+                )
+                Box(
+                    modifier = Modifier
+                        .size(indicatorSize.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                        )
+                )
+              }
+            }
           }
         }
       }
@@ -350,122 +427,38 @@ private fun LegacyInfoScreen() {
 
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-          // Testers Carousel - iOS-style stacked carousel
-          val testers =
-              listOf(
-                  Triple(R.drawable.team_tester_achmad, R.string.team_tester_achmad, "🇮🇩"),
-                  Triple(R.drawable.team_tester_hasan, R.string.team_tester_hasan, "🇮🇩"),
-                  Triple(R.drawable.team_tester_reffan, R.string.team_tester_reffan, "🇮🇩"),
-                  Triple(R.drawable.team_tester_wil, R.string.team_tester_wil, "🇮🇩"),
-                  Triple(R.drawable.team_sm_tester, R.string.team_tester_shadow_monarch, "🇵🇰"),
-              )
+          // Testers Grid - 2 columns
+          val testers = listOf(
+              Triple(R.drawable.team_tester_achmad, R.string.team_tester_achmad, "🇮🇩"),
+              Triple(R.drawable.team_tester_hasan, R.string.team_tester_hasan, "🇮🇩"),
+              Triple(R.drawable.team_tester_reffan, R.string.team_tester_reffan, "🇮🇩"),
+              Triple(R.drawable.team_tester_wil, R.string.team_tester_wil, "🇮🇩"),
+              Triple(R.drawable.team_sm_tester, R.string.team_tester_shadow_monarch, "🇵🇰"),
+              Triple(R.drawable.team_tester_azhar, R.string.team_tester_azhar, "🇮🇩"),
+              Triple(R.drawable.team_tester_juni, R.string.team_tester_juni, "🇮🇩🇯🇵"),
+              Triple(R.drawable.team_tester_sleep, R.string.team_tester_sleep, "🇮🇩"),
+          )
 
-          val pagerState = rememberPagerState(pageCount = { testers.size })
-
-          // Auto-slide every 3 seconds
-          LaunchedEffect(pagerState) {
-            while (true) {
-              delay(3000L)
-              val nextPage = (pagerState.currentPage + 1) % testers.size
-              pagerState.animateScrollToPage(
-                  page = nextPage,
-                  animationSpec =
-                      spring(
-                          dampingRatio = Spring.DampingRatioMediumBouncy,
-                          stiffness = Spring.StiffnessLow,
-                      ),
-              )
-            }
-          }
-
-          Column(
-              modifier = Modifier.fillMaxWidth(),
-              horizontalAlignment = Alignment.CenterHorizontally,
-          ) {
-            // Stack-style pager like iOS recent apps
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth().height(200.dp),
-                contentPadding = PaddingValues(horizontal = 80.dp),
-                pageSpacing = (-20).dp,
-                beyondViewportPageCount = 2,
-            ) { page ->
-              val (imageRes, nameRes, country) = testers[page]
-
-              // Calculate scale and alpha based on distance from current page
-              val pageOffset =
-                  (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-              val scale by
-                  animateFloatAsState(
-                      targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.85f,
-                      animationSpec =
-                          spring(
-                              dampingRatio = Spring.DampingRatioMediumBouncy,
-                              stiffness = Spring.StiffnessMedium,
-                          ),
-                      label = "scale",
-                  )
-              val alpha by
-                  animateFloatAsState(
-                      targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.6f,
-                      animationSpec =
-                          spring(
-                              dampingRatio = Spring.DampingRatioNoBouncy,
-                              stiffness = Spring.StiffnessMedium,
-                          ),
-                      label = "alpha",
-                  )
-
-              Box(
-                  modifier =
-                      Modifier.graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
-                        this.alpha = alpha
-                        // Add slight rotation for depth effect
-                        rotationY = pageOffset * -5f
-                      },
-                  contentAlignment = Alignment.Center,
+          Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            testers.chunked(2).forEach { rowTesters ->
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.spacedBy(12.dp),
               ) {
-                TeamMemberCard(
-                    modifier = Modifier.width(160.dp),
-                    imageResId = imageRes,
-                    name = stringResource(nameRes),
-                    role = stringResource(R.string.info_role_tester),
-                    country = country,
-                    isFounder = false,
-                )
-              }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Page indicators
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              testers.forEachIndexed { index, _ ->
-                val isSelected = pagerState.currentPage == index
-                val indicatorSize by
-                    animateFloatAsState(
-                        targetValue = if (isSelected) 10f else 6f,
-                        animationSpec =
-                            spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium,
-                            ),
-                        label = "indicator",
-                    )
-                Box(
-                    modifier =
-                        Modifier.size(indicatorSize.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                            )
-                )
+                rowTesters.forEach { (imageRes, nameRes, country) ->
+                  TeamMemberCard(
+                      modifier = Modifier.weight(1f),
+                      imageResId = imageRes,
+                      name = stringResource(nameRes),
+                      role = stringResource(R.string.info_role_tester),
+                      country = country,
+                      isFounder = false,
+                  )
+                }
+                // Fill empty space if odd number of items in row
+                if (rowTesters.size == 1) {
+                  Spacer(modifier = Modifier.weight(1f))
+                }
               }
             }
           }
