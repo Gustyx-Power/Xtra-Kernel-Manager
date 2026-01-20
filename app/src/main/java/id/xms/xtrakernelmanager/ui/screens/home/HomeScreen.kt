@@ -202,7 +202,7 @@ private fun LegacyHomeContent(
   LazyVerticalStaggeredGrid(
       columns = StaggeredGridCells.Fixed(2),
       modifier = Modifier.fillMaxSize().padding(horizontal = dimens.screenHorizontalPadding),
-      contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 80.dp),
+      contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 120.dp),
       horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
       verticalItemSpacing = dimens.spacingMedium,
   ) {

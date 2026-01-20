@@ -1,12 +1,17 @@
 package id.xms.xtrakernelmanager.ui.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -132,45 +137,28 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
 
-  Scaffold(
-      containerColor = MaterialTheme.colorScheme.background,
-      bottomBar = {
-        // Hide BottomBar on Setup screen
-        if (currentRoute != "setup") {
-          ModernBottomBar(
-              currentRoute = currentRoute,
-              onNavigate = { route ->
-                if (currentRoute != route) {
-                  navController.navigate(route) {
-                    popUpTo(navController.graph.startDestinationId) { saveState = true }
-                    launchSingleTop = true
-                    restoreState = true
-                  }
+  Box(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { paddingValues ->
+      NavHost(
+          navController = navController,
+          startDestination = startDest,
+          modifier = Modifier.padding(paddingValues),
+      ) {
+        composable("setup") {
+          SetupScreen(
+              onSetupComplete = { layoutStyle ->
+                scope.launch {
+                  preferencesManager.setLayoutStyle(layoutStyle)
+                  preferencesManager.setSetupComplete(true)
                 }
-              },
-              items = bottomNavItems,
+                // Navigation will be handled by LaunchedEffect monitoring isSetupCompleteState
+                // or we can force it here
+                navController.navigate("home") { popUpTo("setup") { inclusive = true } }
+              }
           )
         }
-      },
-  ) { paddingValues ->
-    NavHost(
-        navController = navController,
-        startDestination = startDest,
-        modifier = Modifier.padding(paddingValues),
-    ) {
-      composable("setup") {
-        SetupScreen(
-            onSetupComplete = { layoutStyle ->
-              scope.launch {
-                preferencesManager.setLayoutStyle(layoutStyle)
-                preferencesManager.setSetupComplete(true)
-              }
-              // Navigation will be handled by LaunchedEffect monitoring isSetupCompleteState
-              // or we can force it here
-              navController.navigate("home") { popUpTo("setup") { inclusive = true } }
-            }
-        )
-      }
       composable("home") { HomeScreen(preferencesManager = preferencesManager) }
       composable("tuning") {
         TuningScreen(
@@ -232,4 +220,26 @@ fun Navigation(preferencesManager: PreferencesManager) {
       composable("info") { InfoScreen(preferencesManager) }
     }
   }
+
+  // Floating Bottom Dock
+  if (currentRoute != "setup") {
+    ModernBottomBar(
+        currentRoute = currentRoute,
+        onNavigate = { route ->
+          if (currentRoute != route) {
+            navController.navigate(route) {
+              popUpTo(navController.graph.startDestinationId) { saveState = true }
+              launchSingleTop = true
+              restoreState = true
+            }
+          }
+        },
+        items = bottomNavItems,
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .navigationBarsPadding()
+            .padding(bottom = 24.dp)
+    )
+  }
+}
 }
