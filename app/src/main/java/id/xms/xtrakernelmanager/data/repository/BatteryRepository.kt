@@ -25,7 +25,9 @@ data class BatteryRealtimeState(
     val screenOffTime: Long = 0L,
     val deepSleepTime: Long = 0L,
     val activeDrainRate: Float = 0f,
-    val idleDrainRate: Float = 0f
+    val idleDrainRate: Float = 0f,
+    val totalCapacity: Int = 0,
+    val currentCapacity: Int = 0
 )
 
 object BatteryRepository {
@@ -47,6 +49,9 @@ object BatteryRepository {
     private var cachedTotalCapacity = 0
     private var cachedCurrentCapacity = 0
     private var cachedCycleCount = 0
+
+    fun getCachedTotalCapacity(): Int = cachedTotalCapacity
+    fun getCachedCurrentCapacity(): Int = cachedCurrentCapacity
 
     suspend fun getBatteryInfo(context: Context? = null): BatteryInfo =
         withContext(Dispatchers.IO) {

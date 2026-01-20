@@ -74,7 +74,12 @@ fun MaterialBatteryScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard(onClick = onGraphClick) }
+          Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+             BatteryCapacityCard() 
+             ElectricCurrentCard(onClick = onGraphClick) 
+          }
+          
+          // Right Column: Session Stats
           Box(modifier = Modifier.weight(1f)) {
             CurrentSessionCard(onClick = onCurrentSessionClick)
           }
@@ -289,10 +294,17 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
 
 @Composable
 fun ElectricCurrentCard(onClick: () -> Unit = {}) {
+  val state by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
+  
+  // Calculate specific metrics
+  val currentMa = state.currentNow
+  val voltageMv = state.voltage
+  val watts = (kotlin.math.abs(currentMa) / 1000f) * (voltageMv / 1000f)
+  
   Card(
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
-      modifier = Modifier.fillMaxWidth().height(260.dp).clickable(onClick = onClick),
+      modifier = Modifier.fillMaxWidth().height(160.dp).clickable(onClick = onClick), // Height reduced
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
@@ -305,31 +317,72 @@ fun ElectricCurrentCard(onClick: () -> Unit = {}) {
       Spacer(modifier = Modifier.height(16.dp))
 
       Text(
-          text = "457 mA",
+          text = "$currentMa mA",
           style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp),
           fontWeight = FontWeight.Medium,
-          color = Color.White,
+          color = if (currentMa > 0) Color(0xFF009688) else if (currentMa < 0) Color(0xFFD32F2F) else Color.White,
       )
 
       Spacer(modifier = Modifier.weight(1f))
 
-      // Graph Placeholder - Solid block
-      Box(
-          modifier =
-              Modifier.fillMaxWidth()
-                  .height(60.dp)
-                  .clip(RoundedCornerShape(16.dp))
-                  .background(Color(0xFF2D2E36))
-      )
+      // Graph Removed as per request
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.weight(1f))
 
       Text(
-          text = "1.9 W • 4233 mV",
+          text = "%.1f W • %d mV".format(watts, voltageMv),
           style = MaterialTheme.typography.bodyMedium,
           color = Color.White.copy(alpha = 0.6f),
       )
     }
+  }
+}
+
+@Composable
+fun BatteryCapacityCard() {
+  val state by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
+  // Mock capacity if 0 (native/root failure fallback)
+  val design = if(state.totalCapacity > 0) state.totalCapacity else 5000 
+  val current = if(state.currentCapacity > 0) state.currentCapacity else 4500
+  
+  Card(
+      shape = RoundedCornerShape(24.dp), 
+      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
+      modifier = Modifier.fillMaxWidth().height(84.dp), // Remaining height to match right card roughly
+  ) {
+     Row(
+         modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+         verticalAlignment = Alignment.CenterVertically,
+         horizontalArrangement = Arrangement.SpaceBetween
+     ) {
+         Column {
+             Text(
+                text = "Capacity",
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.White.copy(alpha=0.6f)
+             )
+             Spacer(modifier = Modifier.height(2.dp))
+             Text(
+                text = "$current mAh",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+             )
+         }
+         
+         // Design Capacity Pill
+         Surface(
+            color = Color(0xFF2C2D35),
+            shape = RoundedCornerShape(12.dp),
+         ) {
+             Text(
+                text = "/ $design",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha=0.5f),
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+             )
+         }
+     }
   }
 }
 

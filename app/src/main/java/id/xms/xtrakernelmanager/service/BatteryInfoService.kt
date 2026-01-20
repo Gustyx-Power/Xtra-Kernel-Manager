@@ -302,7 +302,9 @@ class BatteryInfoService : Service() {
            screenOffTime = totalScreenOff,
            deepSleepTime = deepSleepTime,
            activeDrainRate = activeDrainRate,
-           idleDrainRate = idleDrainRate
+           idleDrainRate = idleDrainRate,
+            totalCapacity = id.xms.xtrakernelmanager.data.repository.BatteryRepository.getCachedTotalCapacity(),
+            currentCapacity = id.xms.xtrakernelmanager.data.repository.BatteryRepository.getCachedCurrentCapacity()
      )
      id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
 
