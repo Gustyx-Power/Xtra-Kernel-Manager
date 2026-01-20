@@ -115,6 +115,9 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
     val observer = LifecycleEventObserver { _, event ->
       if (event == Lifecycle.Event.ON_RESUME) {
         resumeKey++
+        viewModel.startRealTimeMonitoring()
+      } else if (event == Lifecycle.Event.ON_PAUSE) {
+        viewModel.stopRealTimeMonitoring()
       }
     }
     lifecycleOwner.lifecycle.addObserver(observer)

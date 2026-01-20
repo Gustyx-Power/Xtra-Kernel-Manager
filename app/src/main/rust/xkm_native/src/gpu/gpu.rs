@@ -1,7 +1,8 @@
 use crate::utils;
-use once_cell::sync::OnceCell;
+use once_cell::sync::{Lazy, OnceCell};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
+use std::sync::Mutex;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GpuVendor {
@@ -32,7 +33,13 @@ pub struct GpuLoad {
     pub throttled: bool,
 }
 
+struct GpuBusyStats {
+    busy: i64,
+    total: i64,
+}
+
 static GPU_INFO: OnceCell<(GpuVendor, String)> = OnceCell::new();
+static LAST_GPU_BUSY: Lazy<Mutex<Option<GpuBusyStats>>> = Lazy::new(|| Mutex::new(None));
 
 /// Detect GPU vendor and model
 fn detect_gpu() -> (GpuVendor, String) {
@@ -86,6 +93,10 @@ fn detect_adreno_model() -> Option<String> {
 
     for path in &paths {
         if let Some(model) = utils::read_sysfs_cached(path, 0) {
+            let model = model.trim();
+            if model.to_lowercase().starts_with("adreno") {
+                return Some(model.to_string());
+            }
             return Some(format!("Adreno {}", model));
         }
     }
@@ -101,6 +112,10 @@ fn detect_mali_model() -> Option<String> {
 
     for path in &paths {
         if let Some(model) = utils::read_sysfs_cached(path, 0) {
+            let model = model.trim();
+            if model.to_lowercase().starts_with("mali") {
+                return Some(model.to_string());
+            }
             return Some(format!("Mali {}", model));
         }
     }
@@ -284,20 +299,77 @@ pub fn read_gpu_busy() -> i32 {
     }
 }
 
-fn read_adreno_busy() -> i32 {
-    if let Some(busy) = utils::read_sysfs_int("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", 200) {
-        return busy as i32;
-    }
+pub fn reset_gpu_stats() {
+    let mut last = LAST_GPU_BUSY.lock().unwrap();
+    *last = None;
+}
 
-    if let Some(content) = utils::read_sysfs_cached("/sys/class/kgsl/kgsl-3d0/gpubusy", 200) {
+fn read_adreno_busy() -> i32 {
+    // 1. Try raw counters first for better real-time responsiveness
+    if let Some(content) = utils::read_sysfs("/sys/class/kgsl/kgsl-3d0/gpubusy") {
         let parts: Vec<&str> = content.split_whitespace().collect();
         if parts.len() >= 2 {
-            if let (Ok(busy), Ok(total)) = (parts[0].parse::<i64>(), parts[1].parse::<i64>()) {
-                if total > 0 {
-                    return ((busy * 100) / total) as i32;
+            if let (Ok(curr_busy), Ok(curr_total)) =
+                (parts[0].parse::<i64>(), parts[1].parse::<i64>())
+            {
+                let mut last_processed = LAST_GPU_BUSY.lock().unwrap();
+
+                if let Some(last) = &*last_processed {
+                    let delta_busy;
+                    let delta_total;
+
+                    // Check for reset/overflow
+                    if curr_total < last.total {
+                        // Reset: Treat current values as the delta
+                        delta_busy = curr_busy;
+                        delta_total = curr_total;
+                    } else {
+                        delta_busy = curr_busy.saturating_sub(last.busy);
+                        delta_total = curr_total.saturating_sub(last.total);
+                    }
+
+                    // Update state
+                    *last_processed = Some(GpuBusyStats {
+                        busy: curr_busy,
+                        total: curr_total,
+                    });
+
+                    if delta_total > 0 {
+                        // Calculate percentage
+                        let load = (delta_busy * 100) / delta_total;
+                        // If there was ANY activity but load rounded to 0, show 1% to indicate aliveness
+                        if load == 0 && delta_busy > 0 {
+                            eprintln!(
+                                "GPU: busy={}/{} delta={}/{} load=1 (bumped)",
+                                curr_busy, curr_total, delta_busy, delta_total
+                            );
+                            return 1;
+                        }
+                        eprintln!(
+                            "GPU: busy={}/{} delta={}/{} load={}",
+                            curr_busy, curr_total, delta_busy, delta_total, load
+                        );
+                        return load.min(100) as i32;
+                    } else {
+                        // No change in cycles = 0% load
+                        eprintln!("GPU: busy={}/{} delta=0/0 load=0", curr_busy, curr_total);
+                        return 0;
+                    }
+                } else {
+                    // First run, initialize state
+                    *last_processed = Some(GpuBusyStats {
+                        busy: curr_busy,
+                        total: curr_total,
+                    });
+                    // Fallthrough to percentage file for first run
                 }
             }
         }
+    }
+
+    // 2. Fallback to system percentage or first run
+    if let Some(busy) = utils::read_sysfs_int("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", 0) {
+        return busy as i32;
     }
 
     0

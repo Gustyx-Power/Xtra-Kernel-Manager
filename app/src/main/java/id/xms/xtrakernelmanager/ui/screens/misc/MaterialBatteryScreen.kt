@@ -2,71 +2,71 @@ package id.xms.xtrakernelmanager.ui.screens.misc
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.BatteryStd
-import androidx.compose.material.icons.rounded.NightsStay
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.WbSunny
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaterialBatteryScreen(onBack: () -> Unit) {
+fun MaterialBatteryScreen(
+    viewModel: MiscViewModel,
+    onBack: () -> Unit,
+    onSettingsClick: () -> Unit = {},
+    onGraphClick: () -> Unit = {},
+    onCurrentSessionClick: () -> Unit = {},
+) {
+  val context = LocalContext.current
   Scaffold(
+      containerColor = MaterialTheme.colorScheme.background,
       topBar = {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          IconButton(onClick = onBack) {
-            Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
-          }
-          Spacer(modifier = Modifier.width(8.dp))
-          Text(text = "Monitoring", style = MaterialTheme.typography.titleLarge)
-          Spacer(modifier = Modifier.weight(1f))
-          IconButton(onClick = { /* TODO: Notification Settings */ }) {
-            Icon(Icons.Rounded.Settings, contentDescription = "Settings")
-          }
-        }
-      }
+        TopAppBar(
+            title = {
+              Text(
+                  "Battery Monitor",
+                  style = MaterialTheme.typography.titleLarge,
+                  fontWeight = FontWeight.Bold,
+              )
+            },
+            navigationIcon = {
+              IconButton(onClick = onBack) {
+                Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+              }
+            },
+            actions = {
+              IconButton(onClick = onSettingsClick) {
+                Icon(Icons.Rounded.Settings, contentDescription = "Settings")
+              }
+            },
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.background,
+                ),
+        )
+      },
   ) { paddingValues ->
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       // 1. History Chart Card
-      item { HistoryChartCard() }
+      item { HistoryChartCard(onCurrentSessionClick = onCurrentSessionClick) }
 
       // 2. Current & Session Cards (Row)
       item {
@@ -74,81 +74,59 @@ fun MaterialBatteryScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard() }
-          Box(modifier = Modifier.weight(1f)) { CurrentSessionCard() }
+          Box(modifier = Modifier.weight(1f)) { ElectricCurrentCard(onClick = onGraphClick) }
+          Box(modifier = Modifier.weight(1f)) {
+            CurrentSessionCard(onClick = onCurrentSessionClick)
+          }
         }
       }
+
+      item { Spacer(modifier = Modifier.height(24.dp)) }
     }
   }
 }
 
 @Composable
-fun HistoryChartCard() {
+fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
+  // Card background simulating the dark grey/blue from screenshot
+  val cardColor = Color(0xFF1E1F24)
+
   Card(
-      shape = RoundedCornerShape(24.dp),
-      colors =
-          CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)
-          ), // Lighter background
+      shape = RoundedCornerShape(32.dp),
+      colors = CardDefaults.cardColors(containerColor = cardColor),
       modifier = Modifier.fillMaxWidth(),
   ) {
     Column(modifier = Modifier.padding(24.dp)) {
-      Text(
-          text = "History",
-          style = MaterialTheme.typography.titleLarge, // Larger title
-          fontWeight = FontWeight.Bold,
-      )
-      Spacer(modifier = Modifier.height(16.dp))
-
-      // Legend Row - Badges
+      // Header with Status Pill
       Row(
           modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
       ) {
-        LegendBadge(color = Color(0xFF00796B), label = "Charging")
-        LegendBadge(color = Color(0xFFC62828), label = "Discharging")
-        LegendBadge(
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            label = "No Data",
+        Text(
+            text = "History",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
         )
-      }
 
-      Spacer(modifier = Modifier.height(24.dp))
-
-      // Divider
-      Box(
-          modifier =
-              Modifier.fillMaxWidth()
-                  .height(1.dp)
-                  .background(MaterialTheme.colorScheme.outlineVariant)
-      )
-
-      Spacer(modifier = Modifier.height(32.dp))
-
-      // Bar Chart - Fully Rounded Bars
-      Row(
-          modifier = Modifier.fillMaxWidth().height(140.dp),
-          horizontalArrangement = Arrangement.SpaceBetween, // Even spacing
-          verticalAlignment = Alignment.Bottom,
-      ) {
-        val days = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo", "Tu", "We")
-        days.forEach { day ->
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier =
-                    Modifier.width(22.dp) // Slightly wider
-                        .height((40..100).random().dp)
-                        .clip(CircleShape) // Fully rounded
-                        .background(
-                            MaterialTheme.colorScheme.primaryContainer
-                        ) // Monet pink/purple usually
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+        // Status Pill (Mock data: Charging)
+        Surface(
+            color = Color(0xFF009688).copy(alpha = 0.1f),
+            shape = RoundedCornerShape(50),
+            border = BorderStroke(1.dp, Color(0xFF009688).copy(alpha = 0.2f)),
+        ) {
+          Row(
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF009688)))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = day,
+                text = "Charging",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color(0xFF009688),
+                fontWeight = FontWeight.Bold,
             )
           }
         }
@@ -156,13 +134,59 @@ fun HistoryChartCard() {
 
       Spacer(modifier = Modifier.height(32.dp))
 
-      // Summary Stats - Card Style
+      // Bar Chart Area
+      // Mock Data
+      val bars = remember { List(10) { (20..90).random() } }
+
+      Row(
+          modifier = Modifier.fillMaxWidth().height(140.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.Bottom,
+      ) {
+        val days = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo", "Tu", "We")
+        bars.forEachIndexed { index, heightPercent ->
+          val isSelected = index == bars.lastIndex - 3 // Just to simulate selection
+          Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(
+                modifier =
+                    Modifier.width(20.dp)
+                        .fillMaxHeight(heightPercent / 100f)
+                        .clip(CircleShape)
+                        .background(if (isSelected) Color(0xFF7986CB) else Color(0xFF3F455A))
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = days[index],
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.6f),
+            )
+          }
+        }
+      }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      // Play Icon Divider
+      Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Icon(
+            Icons.Rounded.PlayArrow,
+            null,
+            tint = Color.White.copy(alpha = 0.6f),
+            modifier =
+                Modifier.size(20.dp).graphicsLayer(rotationZ = 90f), // Standard rotation logic
+        )
+      }
+
+      Spacer(modifier = Modifier.height(8.dp))
+
+      // Nested Stats Card
       Card(
+          onClick = onCurrentSessionClick,
           colors =
               CardDefaults.cardColors(
-                  containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-              ), // Subtle background
-          shape = RoundedCornerShape(20.dp),
+                  containerColor = Color(0xFF16171B) // Slightly darker than main card
+              ),
+          shape = RoundedCornerShape(24.dp),
           modifier = Modifier.fillMaxWidth(),
       ) {
         Row(
@@ -172,91 +196,92 @@ fun HistoryChartCard() {
         ) {
           SummaryStat("Charging", "0 %")
           VerticalDivider(
-              modifier = Modifier.height(32.dp).width(1.dp),
-              color = MaterialTheme.colorScheme.outlineVariant,
+              modifier = Modifier.height(32.dp),
+              thickness = 1.dp,
+              color = Color.White.copy(alpha = 0.1f),
           )
           SummaryStat("Discharging", "-- %")
           VerticalDivider(
-              modifier = Modifier.height(32.dp).width(1.dp),
-              color = MaterialTheme.colorScheme.outlineVariant,
+              modifier = Modifier.height(32.dp),
+              thickness = 1.dp,
+              color = Color.White.copy(alpha = 0.1f),
           )
           SummaryStat("Sessions", "1")
         }
       }
+
       Spacer(modifier = Modifier.height(16.dp))
       Text(
           "Last 10 days",
           style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          color = Color.White.copy(alpha = 0.5f),
       )
     }
   }
 }
 
 @Composable
-fun ElectricCurrentCard() {
+fun ElectricCurrentCard(onClick: () -> Unit = {}) {
   Card(
-      shape = RoundedCornerShape(24.dp),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      modifier = Modifier.fillMaxWidth().height(240.dp), // Taller to match session card/needs
+      shape = RoundedCornerShape(32.dp),
+      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
+      modifier = Modifier.fillMaxWidth().height(260.dp).clickable(onClick = onClick),
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
           text = "Electric Current",
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.Bold,
+          color = Color.White,
       )
 
-      Spacer(modifier = Modifier.height(12.dp))
+      Spacer(modifier = Modifier.height(16.dp))
 
       Text(
           text = "457 mA",
-          style = MaterialTheme.typography.headlineLarge,
+          style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp),
           fontWeight = FontWeight.Medium,
+          color = Color.White,
       )
 
       Spacer(modifier = Modifier.weight(1f))
 
-      // Graph Placeholder - Solid rounded block as per image
+      // Graph Placeholder - Solid block
       Box(
           modifier =
               Modifier.fillMaxWidth()
-                  .height(60.dp) // Reduced height slightly to be neater
-                  .clip(RoundedCornerShape(12.dp))
-                  .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                  .height(60.dp)
+                  .clip(RoundedCornerShape(16.dp))
+                  .background(Color(0xFF2D2E36))
       )
 
-      Spacer(modifier = Modifier.height(16.dp)) // Increased spacing
+      Spacer(modifier = Modifier.height(16.dp))
 
       Text(
           text = "1.9 W • 4233 mV",
           style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          color = Color.White.copy(alpha = 0.6f),
       )
     }
   }
 }
 
 @Composable
-fun CurrentSessionCard() {
+fun CurrentSessionCard(onClick: () -> Unit = {}) {
   Card(
-      shape = RoundedCornerShape(24.dp),
-      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
-      modifier = Modifier.fillMaxWidth().height(240.dp), // Match height
+      onClick = onClick,
+      shape = RoundedCornerShape(32.dp),
+      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
+      modifier = Modifier.fillMaxWidth().height(260.dp),
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
-      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(
-            text = "Current Session",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-        )
-        Icon(
-            Icons.Rounded.ArrowBack,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp).alpha(0f),
-        ) // Invisible spacer if needed
-      }
+      Text(
+          text = "Current Session",
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.Bold,
+          color = Color.White,
+      )
+
       Spacer(modifier = Modifier.height(24.dp))
 
       StatRowCompact(icon = Icons.Rounded.WbSunny, label = "Screen On", value = "6m 30d")
@@ -271,11 +296,25 @@ fun CurrentSessionCard() {
 @Composable
 fun StatRowCompact(icon: ImageVector, label: String, value: String) {
   Row(verticalAlignment = Alignment.CenterVertically) {
-    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp))
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        modifier = Modifier.size(20.dp),
+        tint = Color.White,
+    )
     Spacer(modifier = Modifier.width(12.dp))
     Column {
-      Text(text = label, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-      Text(text = value, style = MaterialTheme.typography.bodySmall)
+      Text(
+          text = label,
+          style = MaterialTheme.typography.labelSmall,
+          fontWeight = FontWeight.Bold,
+          color = Color.White,
+      )
+      Text(
+          text = value,
+          style = MaterialTheme.typography.bodySmall,
+          color = Color.White.copy(alpha = 0.7f),
+      )
     }
   }
 }
@@ -288,11 +327,11 @@ fun LegendBadge(color: Color, label: String) {
       border = BorderStroke(1.dp, color.copy(alpha = 0.2f)),
   ) {
     Row(
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(color))
-      Spacer(modifier = Modifier.width(8.dp))
+      Spacer(modifier = Modifier.width(6.dp))
       Text(
           text = label,
           style = MaterialTheme.typography.labelSmall,
@@ -306,7 +345,17 @@ fun LegendBadge(color: Color, label: String) {
 @Composable
 fun SummaryStat(label: String, value: String) {
   Column(horizontalAlignment = Alignment.CenterHorizontally) {
-    Text(text = label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-    Text(text = value, style = MaterialTheme.typography.bodyMedium)
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+    )
+    Spacer(modifier = Modifier.height(4.dp))
+    Text(
+        text = value,
+        style = MaterialTheme.typography.titleMedium,
+        color = Color.White.copy(alpha = 0.7f),
+    )
   }
 }

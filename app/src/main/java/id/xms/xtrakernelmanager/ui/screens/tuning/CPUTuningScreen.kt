@@ -20,30 +20,32 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CPUTuningScreen(viewModel: TuningViewModel, onNavigateBack: () -> Unit) {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
   Scaffold(
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
       topBar = {
-        LargeTopAppBar(
-            title = { Text("CPU Tuning") },
+        TopAppBar(
+            title = { Text("CPU Tuning", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
             navigationIcon = {
               IconButton(onClick = onNavigateBack) {
                 Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
               }
             },
-            scrollBehavior = scrollBehavior,
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
         )
       },
   ) { paddingValues ->

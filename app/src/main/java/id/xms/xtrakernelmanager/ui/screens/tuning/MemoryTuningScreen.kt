@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -236,7 +235,7 @@ fun MemorySettingCard(
 ) {
   val containerColor = Color(0xFFE0E0E0)
   val iconColor = Color(0xFF6750A4)
-  val shape = RoundedCornerShape(4.dp)
+  val shape = MaterialTheme.shapes.extraSmall
   val border = if (isSelected) BorderStroke(2.dp, Color(0xFF2196F3)) else null
 
   Surface(
@@ -431,7 +430,7 @@ fun ExpandableRamCard(
       }
 
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
-  val shape = RoundedCornerShape(32.dp)
+  val shape = MaterialTheme.shapes.extraLarge
 
   Surface(
       modifier = modifier.fillMaxWidth(),
@@ -444,7 +443,7 @@ fun ExpandableRamCard(
         Box(
             modifier =
                 Modifier.size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(MaterialTheme.shapes.medium)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
@@ -555,7 +554,7 @@ fun ExpandableZramCard(
       remember(ramConfig.dirtyRatio) { mutableFloatStateOf(ramConfig.dirtyRatio.toFloat()) }
 
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
-  val shape = RoundedCornerShape(32.dp)
+  val shape = MaterialTheme.shapes.extraLarge
 
   Surface(
       modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
@@ -590,7 +589,7 @@ fun ExpandableZramCard(
         Box(
             modifier =
                 Modifier.size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(MaterialTheme.shapes.medium)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
@@ -674,7 +673,7 @@ fun ExpandableZramCard(
 
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth(),
         ) {
           Column(
@@ -797,7 +796,7 @@ fun ExpandableSelectionCard(
     onExpandedChange: (Boolean) -> Unit,
 ) {
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
-  val shape = RoundedCornerShape(24.dp)
+  val shape = MaterialTheme.shapes.extraLarge
 
   Surface(
       modifier =
@@ -817,7 +816,7 @@ fun ExpandableSelectionCard(
           Box(
               modifier =
                   Modifier.size(48.dp)
-                      .clip(RoundedCornerShape(12.dp))
+                      .clip(MaterialTheme.shapes.medium)
                       .background(MaterialTheme.colorScheme.surfaceContainerHigh),
               contentAlignment = Alignment.Center,
           ) {
@@ -832,7 +831,7 @@ fun ExpandableSelectionCard(
           // Badge
           Surface(
               color = MaterialTheme.colorScheme.secondaryContainer,
-              shape = RoundedCornerShape(12.dp),
+              shape = MaterialTheme.shapes.medium,
           ) {
             Text(
                 text = selectedOption,
@@ -863,7 +862,7 @@ fun ExpandableSelectionCard(
 
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth(),
         ) {
           Column(
@@ -875,7 +874,7 @@ fun ExpandableSelectionCard(
               Row(
                   modifier =
                       Modifier.fillMaxWidth()
-                          .clip(RoundedCornerShape(12.dp))
+                          .clip(MaterialTheme.shapes.medium)
                           .clickable {
                             onOptionSelected(option)
                             // Don't auto-close, let user click outside to close
@@ -928,7 +927,7 @@ fun ExpandableSwapCard(
       remember(ramConfig.swapSize) { mutableFloatStateOf(ramConfig.swapSize.toFloat()) }
 
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
-  val shape = RoundedCornerShape(24.dp)
+  val shape = MaterialTheme.shapes.extraLarge
 
   Surface(
       modifier =
@@ -948,7 +947,7 @@ fun ExpandableSwapCard(
           Box(
               modifier =
                   Modifier.size(48.dp)
-                      .clip(RoundedCornerShape(12.dp))
+                      .clip(MaterialTheme.shapes.medium)
                       .background(MaterialTheme.colorScheme.surfaceContainerHigh),
               contentAlignment = Alignment.Center,
           ) {
@@ -963,7 +962,7 @@ fun ExpandableSwapCard(
           // Badge
           Surface(
               color = MaterialTheme.colorScheme.secondaryContainer,
-              shape = RoundedCornerShape(12.dp),
+              shape = MaterialTheme.shapes.medium,
           ) {
             Text(
                 text = if (ramConfig.swapSize > 0) "${ramConfig.swapSize} MB" else "Disabled",
@@ -996,7 +995,7 @@ fun ExpandableSwapCard(
 
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth(),
         ) {
           Column(modifier = Modifier.padding(16.dp)) {
@@ -1032,7 +1031,7 @@ fun ExpandableIOCard(
   var expanded by remember { mutableStateOf(false) }
 
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
-  val shape = RoundedCornerShape(32.dp)
+  val shape = MaterialTheme.shapes.extraLarge
 
   Surface(
       modifier = modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
@@ -1045,7 +1044,7 @@ fun ExpandableIOCard(
         Box(
             modifier =
                 Modifier.size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(MaterialTheme.shapes.medium)
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh),
             contentAlignment = Alignment.Center,
         ) {
@@ -1113,7 +1112,7 @@ fun DeviceIOSection(
 
   Surface(
       color = MaterialTheme.colorScheme.surfaceContainerHigh,
-      shape = RoundedCornerShape(24.dp),
+      shape = MaterialTheme.shapes.extraLarge,
       modifier = Modifier.fillMaxWidth(),
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
@@ -1184,7 +1183,7 @@ fun DeviceIOSection(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = Color.Transparent,
                 ),
-            shape = RoundedCornerShape(16.dp),
+            shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth().menuAnchor(),
         )
 
