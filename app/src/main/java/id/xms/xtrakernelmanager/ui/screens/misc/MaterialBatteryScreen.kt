@@ -90,6 +90,10 @@ fun MaterialBatteryScreen(
 fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
   // Card background simulating the dark grey/blue from screenshot
   val cardColor = Color(0xFF1E1F24)
+  val state by id.xms.xtrakernelmanager.data.repository.HistoryRepository.hourlyStats.collectAsState()
+  
+  // Filter State: true = Screen On (Time), false = Drain (%)
+  var showScreenOn by remember { mutableStateOf(true) }
 
   Card(
       shape = RoundedCornerShape(32.dp),
@@ -97,37 +101,64 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       modifier = Modifier.fillMaxWidth(),
   ) {
     Column(modifier = Modifier.padding(24.dp)) {
-      // Header with Status Pill
+      // Header with Filter Toggle
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
       ) {
-        Text(
-            text = "History",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-        )
-
-        // Status Pill (Mock data: Charging)
-        Surface(
-            color = Color(0xFF009688).copy(alpha = 0.1f),
-            shape = RoundedCornerShape(50),
-            border = BorderStroke(1.dp, Color(0xFF009688).copy(alpha = 0.2f)),
-        ) {
-          Row(
-              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-              verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(Color(0xFF009688)))
-            Spacer(modifier = Modifier.width(8.dp))
+        Column {
             Text(
-                text = "Charging",
-                style = MaterialTheme.typography.labelMedium,
-                color = Color(0xFF009688),
+                text = "History",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
+                color = Color.White,
             )
+            Text(
+                text = state.date,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha=0.5f),
+            )
+        }
+
+        // Toggle Pill
+        Surface(
+            color = Color(0xFF2C2D35),
+            shape = RoundedCornerShape(50),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
+        ) {
+          Row(modifier = Modifier.padding(4.dp)) {
+             // Screen On Tab
+             Box(
+                 modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if(showScreenOn) Color(0xFF009688) else Color.Transparent)
+                    .clickable { showScreenOn = true }
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+             ) {
+                 Text(
+                    text = "Screen",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if(showScreenOn) Color.White else Color.White.copy(alpha=0.5f),
+                    fontWeight = FontWeight.Bold
+                 )
+             }
+             
+             // Drain Tab
+             Box(
+                 modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(if(!showScreenOn) Color(0xFFD32F2F) else Color.Transparent)
+                    .clickable { showScreenOn = false }
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+             ) {
+                 Text(
+                    text = "Drain",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if(!showScreenOn) Color.White else Color.White.copy(alpha=0.5f),
+                    fontWeight = FontWeight.Bold
+                 )
+             }
           }
         }
       }
@@ -135,58 +166,92 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       Spacer(modifier = Modifier.height(32.dp))
 
       // Bar Chart Area
-      // Mock Data
-      val bars = remember { List(10) { (20..90).random() } }
+      val buckets = state.buckets
+      val maxVal = if (showScreenOn) {
+          // Max minutes in an hour is 60. Cap it at 60 for 100% height, but allow dynamic if needed
+          60f 
+      } else {
+          // Max drain percent. Dynamic based on data, min 10%
+          buckets.maxOfOrNull { it.drainPercent }?.toFloat()?.coerceAtLeast(10f) ?: 10f
+      }
 
       Row(
           modifier = Modifier.fillMaxWidth().height(140.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.Bottom,
       ) {
-        val days = listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su", "Mo", "Tu", "We")
-        bars.forEachIndexed { index, heightPercent ->
-          val isSelected = index == bars.lastIndex - 3 // Just to simulate selection
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier =
-                    Modifier.width(20.dp)
-                        .fillMaxHeight(heightPercent / 100f)
-                        .clip(CircleShape)
-                        .background(if (isSelected) Color(0xFF7986CB) else Color(0xFF3F455A))
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = days[index],
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.6f),
-            )
-          }
+        // Show only even hours to save space: 0, 2, 4 ... 22
+        // Or show all 24 as thin bars? 
+        // Design choice: Show buckets in groups or just every 4th hour label
+        val primaryColor = if(showScreenOn) Color(0xFF009688) else Color(0xFFD32F2F)
+        
+        buckets.forEachIndexed { index, bucket ->
+           // Calculate height ratio
+           val value = if(showScreenOn) (bucket.screenOnMs / 60000f) else bucket.drainPercent.toFloat()
+           val heightPercent = (value / maxVal).coerceIn(0.05f, 1f) // Min 5% height to be visible
+           
+           // Only show some bars if too crowded? No, 24 bars is fine on width
+           Column(
+               horizontalAlignment = Alignment.CenterHorizontally,
+               modifier = Modifier.weight(1f)
+           ) {
+             // Tooltip/Value on top if selected? Too complex for now, just bars
+             Box(
+                modifier = Modifier
+                    .width(6.dp)
+                    .fillMaxHeight(heightPercent)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(
+                        if (value > 0) primaryColor else Color(0xFF3F455A) 
+                    )
+             )
+             Spacer(modifier = Modifier.height(8.dp))
+             
+             // X-Axis Labels (Every 4 hours)
+             if (index % 4 == 0) {
+                 Text(
+                    text = "%02d".format(index),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = Color.White.copy(alpha = 0.5f),
+                 )
+             } else {
+                 Spacer(modifier = Modifier.height(12.dp)) // Placeholder for alignment
+             }
+           }
         }
       }
 
       Spacer(modifier = Modifier.height(8.dp))
-
-      // Play Icon Divider
-      Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Icon(
-            Icons.Rounded.PlayArrow,
-            null,
-            tint = Color.White.copy(alpha = 0.6f),
-            modifier =
-                Modifier.size(20.dp).graphicsLayer(rotationZ = 90f), // Standard rotation logic
-        )
+      
+      // Total Summary for View
+      val totalStr = if(showScreenOn) {
+          val totalMs = buckets.sumOf { it.screenOnMs }
+          formatDuration(totalMs)
+      } else {
+          "${buckets.sumOf { it.drainPercent }}%"
       }
+      
+      Text(
+           text = "Total Today: $totalStr",
+           style = MaterialTheme.typography.bodyMedium,
+           color = Color.White.copy(alpha = 0.7f),
+           modifier = Modifier.align(Alignment.CenterHorizontally)
+      )
 
       Spacer(modifier = Modifier.height(8.dp))
+      
+      // Divider
+      Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha=0.1f)))
+      
+      Spacer(modifier = Modifier.height(16.dp))
 
-      // Nested Stats Card
-
-      val state by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
+      // Nested Stats Card (Session)
+      val sessionState by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
       
       // Calculate display values
-      val activeDrain = "%.2f".format(state.activeDrainRate)
-      val idleDrain = "%.2f".format(state.idleDrainRate)
-      val screenOnStr = formatDuration(state.screenOnTime)
+      val activeDrain = "%.2f".format(sessionState.activeDrainRate)
+      val idleDrain = "%.2f".format(sessionState.idleDrainRate)
+      val screenOnStr = formatDuration(sessionState.screenOnTime)
 
        // Nested Stats Card
        Card(
@@ -215,16 +280,9 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
                thickness = 1.dp,
                color = Color.White.copy(alpha = 0.1f),
            )
-           SummaryStat("Screen On", screenOnStr)
+           SummaryStat("Session", screenOnStr)
          }
        }
-
-      Spacer(modifier = Modifier.height(16.dp))
-      Text(
-          "Last 10 days",
-          style = MaterialTheme.typography.bodyMedium,
-          color = Color.White.copy(alpha = 0.5f),
-      )
     }
   }
 }

@@ -65,6 +65,10 @@ class BatteryInfoService : Service() {
     initialDeepSleep = getSystemDeepSleepTime()
 
     createNotificationChannel()
+    
+    // Initialize History Repository
+    id.xms.xtrakernelmanager.data.repository.HistoryRepository.init(applicationContext)
+    
     registerReceiver()
     registerScreenReceiver()
   }
@@ -184,6 +188,10 @@ class BatteryInfoService : Service() {
             // Track battery drain
             if (lastBatteryLevel != -1 && level < lastBatteryLevel && !isCharging) {
               val drain = lastBatteryLevel - level
+              
+              // Feed to History
+              id.xms.xtrakernelmanager.data.repository.HistoryRepository.addDrain(drain)
+              
               if (isScreenOn) {
                 batteryDrainWhileScreenOn += drain
               } else {
@@ -228,12 +236,19 @@ class BatteryInfoService : Service() {
                 }
                 lastScreenOnTimestamp = now
                 isScreenOn = true
+                
+                // Start history tracking session
+                lastHistoryUpdateParams = now 
+                
                 refreshState()
               }
               Intent.ACTION_SCREEN_OFF -> {
                 val now = SystemClock.elapsedRealtime()
                 if (isScreenOn) {
                   screenOnTime += now - lastScreenOnTimestamp
+                  
+                  // Finalize history tracking for this session
+                  updateHistoryValues(now)
                 }
                 lastScreenOffTimestamp = now
                 isScreenOn = false
@@ -294,6 +309,27 @@ class BatteryInfoService : Service() {
      // Update Notification
      val notif = buildNotification(cachedLevel, cachedIsCharging, cachedTemp, cachedVoltage, cachedHealth, cachedCurrent)
      updateNotificationSafe(notif)
+     
+     // Update history if screen is on
+     if (isScreenOn) {
+         updateHistoryValues(currentTime)
+     }
+  }
+
+  // Track last history update time to calculate deltas
+  private var lastHistoryUpdateParams: Long = 0L
+
+  private fun updateHistoryValues(now: Long) {
+      if (lastHistoryUpdateParams == 0L) {
+          lastHistoryUpdateParams = now
+          return
+      }
+
+      val delta = now - lastHistoryUpdateParams
+      if (delta > 0) {
+          id.xms.xtrakernelmanager.data.repository.HistoryRepository.incrementScreenOn(delta)
+          lastHistoryUpdateParams = now
+      }
   }
 
   private fun buildNotification(
