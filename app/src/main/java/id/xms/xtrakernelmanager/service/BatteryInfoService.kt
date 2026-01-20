@@ -209,9 +209,8 @@ class BatteryInfoService : Service() {
             cachedVoltage = voltage
             cachedHealth = healthTxt
             cachedCurrent = currentNow
-
-            val notif = buildNotification(level, isCharging, temp, voltage, healthTxt, currentNow)
-            updateNotificationSafe(notif)
+            
+            refreshState()
           }
         }
     registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -229,6 +228,7 @@ class BatteryInfoService : Service() {
                 }
                 lastScreenOnTimestamp = now
                 isScreenOn = true
+                refreshState()
               }
               Intent.ACTION_SCREEN_OFF -> {
                 val now = SystemClock.elapsedRealtime()
@@ -237,6 +237,7 @@ class BatteryInfoService : Service() {
                 }
                 lastScreenOffTimestamp = now
                 isScreenOn = false
+                refreshState()
               }
             }
           }
@@ -247,6 +248,52 @@ class BatteryInfoService : Service() {
           addAction(Intent.ACTION_SCREEN_OFF)
         }
     registerReceiver(screenReceiver, filter)
+  }
+
+  private fun refreshState() {
+     if (cachedLevel == -1) return
+
+     val currentTime = SystemClock.elapsedRealtime()
+     val totalScreenOn = if (isScreenOn) {
+         screenOnTime + (currentTime - lastScreenOnTimestamp)
+     } else {
+         screenOnTime
+     }
+     val totalScreenOff = if (!isScreenOn) {
+         screenOffTime + (currentTime - lastScreenOffTimestamp)
+     } else {
+         screenOffTime
+     }
+     
+     val deepSleepTime = getDeepSleepTime()
+
+     val activeDrainRate = if (totalScreenOn > 0) {
+        (batteryDrainWhileScreenOn.toFloat() / (totalScreenOn / 3600000f))
+     } else 0f
+     
+     val idleDrainRate = if (totalScreenOff > 0) {
+        (batteryDrainWhileScreenOff.toFloat() / (totalScreenOff / 3600000f))
+     } else 0f
+
+     // Update Repository
+     val newState = id.xms.xtrakernelmanager.data.repository.BatteryRealtimeState(
+           level = cachedLevel,
+           isCharging = cachedIsCharging,
+           temp = cachedTemp,
+           voltage = cachedVoltage,
+           currentNow = cachedCurrent,
+           health = cachedHealth,
+           screenOnTime = totalScreenOn,
+           screenOffTime = totalScreenOff,
+           deepSleepTime = deepSleepTime,
+           activeDrainRate = activeDrainRate,
+           idleDrainRate = idleDrainRate
+     )
+     id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
+
+     // Update Notification
+     val notif = buildNotification(cachedLevel, cachedIsCharging, cachedTemp, cachedVoltage, cachedHealth, cachedCurrent)
+     updateNotificationSafe(notif)
   }
 
   private fun buildNotification(
@@ -274,7 +321,6 @@ class BatteryInfoService : Service() {
 
     // Get deep sleep time from system
     val deepSleepTime = getDeepSleepTime()
-    val awakeTime = (totalScreenOff - deepSleepTime).coerceAtLeast(0L)
 
     // Calculate drain rates (% per hour)
     val activeDrainRate =
@@ -287,64 +333,73 @@ class BatteryInfoService : Service() {
           (batteryDrainWhileScreenOff.toFloat() / (totalScreenOff / 3600000f))
         } else 0f
 
-    // Format time strings
-    val screenOnStr = formatTime(totalScreenOn)
-    val screenOffStr = formatTime(totalScreenOff)
-    val deepSleepStr = formatTime(deepSleepTime)
-    val awakeStr = formatTime(awakeTime)
+    // Format time strings (Compact: 1h 20m)
+    val screenOnStr = formatTimeCompact(totalScreenOn)
+    val screenOffStr = formatTimeCompact(totalScreenOff)
+    val deepSleepStr = formatTimeCompact(deepSleepTime)
 
-    // Build notification with detailed layout
+    // Format numbers
     val tempStr = "%.1f".format(temp / 10f)
-    val voltageStr = "%.2f".format(voltage / 1000f)
-    val activeDrainStr = "%.2f".format(activeDrainRate)
-    val idleDrainStr = "%.2f".format(idleDrainRate)
+    val activeDrainStr = "%.1f".format(activeDrainRate) // 1 decimal is enough for clean look
+    val idleDrainStr = "%.1f".format(idleDrainRate)
+    
+    // Calculate Watts (P = V * I)
+    // Voltage is in mV, Current is in mA
+    // Watts = (mV / 1000) * (mA / 1000)
+    val watts = (kotlin.math.abs(voltage) / 1000f) * (kotlin.math.abs(currentNow) / 1000f)
+    val wattsStr = "%.1f".format(watts)
 
-    // Format current with proper sign
-    val currentStr =
-        if (currentNow >= 0) {
-          "+$currentNow mA"
-        } else {
-          "$currentNow mA"
-        }
+    // Format current (Always signed) with Watts if charging
+    val currentStr = "$currentNow mA"
+        
+    val powerStr = if (charging && watts > 0) "($wattsStr W)" else ""
 
-    // Calculate drain percentages
-    val totalDrain = batteryDrainWhileScreenOn + batteryDrainWhileScreenOff
-    val activeDrainPercent =
-        if (totalDrain > 0) {
-          (batteryDrainWhileScreenOn.toFloat() / totalDrain * 100)
-        } else 0f
-    val idleDrainPercent =
-        if (totalDrain > 0) {
-          (batteryDrainWhileScreenOff.toFloat() / totalDrain * 100)
-        } else 0f
+    // Deep Sleep Percentage
+    val deepSleepPercent =
+        if (totalScreenOff > 0) {
+          (deepSleepTime.toFloat() / totalScreenOff * 100).toInt()
+        } else 0
 
+    // Title: 55% • +351 mA (1.4 W) • 32.6°
+    val title = "$level% • $currentStr $powerStr • $tempStr°"
+
+    // BigText Content
     val bigTextStyle =
         NotificationCompat.BigTextStyle()
-            .setBigContentTitle(
-                "Battery: $level% | $tempStr°C | $currentStr ${if(charging) "⚡" else "📉"}"
-            )
+            .setBigContentTitle(title)
             .bigText(
                 buildString {
-                  appendLine("Voltage: ${voltageStr}V | Health: $health")
-                  appendLine("Screen On: $screenOnStr | Screen Off: $screenOffStr")
-                  appendLine("Deep Sleep: $deepSleepStr | Awake: $awakeStr")
-                  append(
-                      "Active: $activeDrainStr%%/h (%.0f%%) | Idle: $idleDrainStr%%/h (%.0f%%)"
-                          .format(activeDrainPercent, idleDrainPercent)
-                  )
+                  appendLine("Screen On: $screenOnStr • $activeDrainStr%/h")
+                  appendLine("Screen Off: $screenOffStr • $idleDrainStr%/h")
+                  
+                  // Only show deep sleep if NOT charging
+                  if (!charging) {
+                      append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
+                  }
                 }
             )
 
     val builder =
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Battery: $level% | $tempStr°C | $currentStr")
-            .setContentText("Screen: $screenOnStr | Drain: $activeDrainStr%/h")
+            .setContentTitle(title)
+            .setContentText("Screen On: $screenOnStr • Charge: $level%") // Collapsed state
             .setStyle(bigTextStyle)
             .setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
             .setOngoing(true)
-            .setColor(if (charging) Color.GREEN else Color.YELLOW)
+            .setColor(if (charging) Color.parseColor("#4CAF50") else Color.parseColor("#FFC107")) // Material Green/Amber
             .setOnlyAlertOnce(true)
     return builder.build()
+  }
+
+  private fun formatTimeCompact(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) {
+        "%dh %02dm".format(hours, minutes % 60)
+    } else {
+        "%dm %02ds".format(minutes, seconds % 60)
+    }
   }
 
   private fun formatTime(millis: Long): String {

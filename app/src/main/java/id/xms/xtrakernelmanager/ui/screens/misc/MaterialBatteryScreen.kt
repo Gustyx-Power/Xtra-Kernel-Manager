@@ -180,35 +180,44 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       Spacer(modifier = Modifier.height(8.dp))
 
       // Nested Stats Card
-      Card(
-          onClick = onCurrentSessionClick,
-          colors =
-              CardDefaults.cardColors(
-                  containerColor = Color(0xFF16171B) // Slightly darker than main card
-              ),
-          shape = RoundedCornerShape(24.dp),
-          modifier = Modifier.fillMaxWidth(),
-      ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          SummaryStat("Charging", "0 %")
-          VerticalDivider(
-              modifier = Modifier.height(32.dp),
-              thickness = 1.dp,
-              color = Color.White.copy(alpha = 0.1f),
-          )
-          SummaryStat("Discharging", "-- %")
-          VerticalDivider(
-              modifier = Modifier.height(32.dp),
-              thickness = 1.dp,
-              color = Color.White.copy(alpha = 0.1f),
-          )
-          SummaryStat("Sessions", "1")
-        }
-      }
+
+      val state by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
+      
+      // Calculate display values
+      val activeDrain = "%.2f".format(state.activeDrainRate)
+      val idleDrain = "%.2f".format(state.idleDrainRate)
+      val screenOnStr = formatDuration(state.screenOnTime)
+
+       // Nested Stats Card
+       Card(
+           onClick = onCurrentSessionClick,
+           colors =
+               CardDefaults.cardColors(
+                   containerColor = Color(0xFF16171B) // Slightly darker than main card
+               ),
+           shape = RoundedCornerShape(24.dp),
+           modifier = Modifier.fillMaxWidth(),
+       ) {
+         Row(
+             modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+             horizontalArrangement = Arrangement.SpaceEvenly,
+             verticalAlignment = Alignment.CenterVertically,
+         ) {
+           SummaryStat("Active", "$activeDrain%/h")
+           VerticalDivider(
+               modifier = Modifier.height(32.dp),
+               thickness = 1.dp,
+               color = Color.White.copy(alpha = 0.1f),
+           )
+           SummaryStat("Idle", "$idleDrain%/h")
+           VerticalDivider(
+               modifier = Modifier.height(32.dp),
+               thickness = 1.dp,
+               color = Color.White.copy(alpha = 0.1f),
+           )
+           SummaryStat("Screen On", screenOnStr)
+         }
+       }
 
       Spacer(modifier = Modifier.height(16.dp))
       Text(
@@ -358,4 +367,11 @@ fun SummaryStat(label: String, value: String) {
         color = Color.White.copy(alpha = 0.7f),
     )
   }
+}
+private fun formatDuration(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) "%dh %02dm".format(hours, minutes % 60) 
+    else "%dm %02ds".format(minutes, seconds % 60)
 }

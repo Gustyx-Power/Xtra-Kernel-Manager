@@ -31,6 +31,8 @@ class MainActivity : ComponentActivity() {
 
     // Start foreground kernel config service (persistent tuning)
     startService(Intent(this, KernelConfigService::class.java))
+    // Start battery info service to populate real-time stats
+    startService(Intent(this, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java))
 
     setContent {
       XtraKernelManagerTheme {

@@ -26,7 +26,6 @@ class MiscViewModel(
     private val context: Context,
 ) : ViewModel() {
 
-  private val batteryRepository = BatteryRepository()
   private val gameControlUseCase = GameControlUseCase(context)
 
   private val _isRootAvailable = MutableStateFlow(false)
@@ -161,7 +160,7 @@ class MiscViewModel(
 
   fun loadBatteryInfo(context: Context) {
     viewModelScope.launch {
-      _batteryInfo.value = batteryRepository.getBatteryInfo(context)
+      _batteryInfo.value = BatteryRepository.getBatteryInfo(context)
 
       // Populate placeholders (Simulated for design)
       _screenOnTime.value = "13h 17m"
