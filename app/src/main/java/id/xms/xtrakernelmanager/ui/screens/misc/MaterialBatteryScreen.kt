@@ -21,6 +21,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.runtime.saveable.rememberSaveable
+import id.xms.xtrakernelmanager.data.model.AppBatteryStats
+import id.xms.xtrakernelmanager.data.model.BatteryUsageType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +89,11 @@ fun MaterialBatteryScreen(
           }
         }
       }
+
+      item { Spacer(modifier = Modifier.height(8.dp)) }
+      
+      // 3. App Battery Usage List
+      item { AppBatteryUsageList(viewModel) }
 
       item { Spacer(modifier = Modifier.height(24.dp)) }
     }
@@ -485,4 +494,183 @@ private fun formatDuration(millis: Long): String {
     val hours = minutes / 60
     return if (hours > 0) "%dh %02dm".format(hours, minutes % 60) 
     else "%dm %02ds".format(minutes, seconds % 60)
+}
+
+@Composable
+fun AppBatteryUsageList(viewModel: MiscViewModel) {
+  val appUsageList by viewModel.appBatteryUsage.collectAsState()
+  val isLoading by viewModel.isLoadingAppUsage.collectAsState()
+  
+  // false = Apps, true = System
+  var showSystem by rememberSaveable { mutableStateOf(false) }
+
+  val filteredList = remember(appUsageList, showSystem) {
+      if (showSystem) {
+          appUsageList.filter { it.usageType == BatteryUsageType.SYSTEM }
+      } else {
+          appUsageList.filter { it.usageType == BatteryUsageType.APP }
+      }
+  }
+
+  Column(modifier = Modifier.fillMaxWidth()) {
+      // Header
+      Text(
+          text = "Battery usage since last full charge",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Bold,
+          color = Color.White
+      )
+      
+      Spacer(modifier = Modifier.height(16.dp))
+      
+      // Filter Dropdown
+      FilterDropdown(
+          isSystem = showSystem, 
+          onFilterChange = { showSystem = it }
+      )
+      
+      Spacer(modifier = Modifier.height(16.dp))
+      
+      if (isLoading && appUsageList.isEmpty()) {
+          Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+              CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+          }
+      } else if (filteredList.isEmpty()) {
+          Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
+              Text(
+                  text = "No usage data available",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = Color.White.copy(alpha=0.5f)
+              )
+          }
+      } else {
+          // List Items
+          Card(
+              shape = RoundedCornerShape(32.dp),
+              colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
+              modifier = Modifier.fillMaxWidth()
+          ) {
+              Column(modifier = Modifier.padding(16.dp)) {
+                  filteredList.forEachIndexed { index, app ->
+                      AppUsageItem(app)
+                      if (index < filteredList.lastIndex) {
+                          HorizontalDivider(
+                              modifier = Modifier.padding(vertical = 12.dp, horizontal = 0.dp),
+                              thickness = 1.dp,
+                              color = Color.White.copy(alpha = 0.05f)
+                          )
+                      }
+                  }
+              }
+          }
+      }
+  }
+}
+
+@Composable
+fun FilterDropdown(isSystem: Boolean, onFilterChange: (Boolean) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Box {
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = Color(0xFF2C2D35),
+            modifier = Modifier.clickable { expanded = true }
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if(isSystem) "View by systems" else "View by apps",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Rounded.ArrowDropDown,
+                    contentDescription = null,
+                    tint = Color.White
+                )
+            }
+        }
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            containerColor = Color(0xFF2C2D35)
+        ) {
+            DropdownMenuItem(
+                text = { Text("View by apps", color = Color.White) },
+                onClick = { 
+                    onFilterChange(false)
+                    expanded = false 
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("View by systems", color = Color.White) },
+                onClick = { 
+                    onFilterChange(true)
+                    expanded = false 
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun AppUsageItem(app: AppBatteryStats) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // App Icon
+        if (app.icon != null) {
+            androidx.compose.foundation.Image(
+                painter = rememberAsyncImagePainter(model = app.icon),
+                contentDescription = null,
+                modifier = Modifier.size(40.dp)
+            )
+        } else {
+            // Placeholder Icon
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF3F455A)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if(app.usageType == BatteryUsageType.SYSTEM) Icons.Rounded.Android else Icons.Rounded.Apps,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha=0.7f),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(16.dp))
+        
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = app.appName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            
+            Text(
+                text = "Battery usage", // Generic subtitle since we lack exact screen/bg times
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha=0.5f)
+            )
+        }
+        
+        Text(
+            text = "${app.percent.toInt()}%",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
 }

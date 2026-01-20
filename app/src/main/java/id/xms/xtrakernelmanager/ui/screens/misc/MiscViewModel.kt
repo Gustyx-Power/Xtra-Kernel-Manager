@@ -6,7 +6,9 @@ import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.xms.xtrakernelmanager.data.model.AppBatteryStats
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
+
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.domain.root.RootManager
@@ -94,6 +96,13 @@ class MiscViewModel(
   private val _saturationApplyStatus = MutableStateFlow("")
   val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()
 
+  // App Battery Usage
+  private val _appBatteryUsage = MutableStateFlow<List<AppBatteryStats>>(emptyList())
+  val appBatteryUsage: StateFlow<List<AppBatteryStats>> = _appBatteryUsage.asStateFlow()
+
+  private val _isLoadingAppUsage = MutableStateFlow(false)
+  val isLoadingAppUsage: StateFlow<Boolean> = _isLoadingAppUsage.asStateFlow()
+
   // SELinux State
   private val _selinuxStatus = MutableStateFlow("Unknown")
   val selinuxStatus: StateFlow<String> = _selinuxStatus.asStateFlow()
@@ -167,6 +176,24 @@ class MiscViewModel(
       _screenOffTime.value = "10h 27m"
       _deepSleepTime.value = "4h 36m"
       _drainRate.value = "-0.0%/h"
+
+      // Load App Battery Usage
+      loadAppBatteryUsage(context)
+    }
+  }
+
+  fun loadAppBatteryUsage(context: Context) {
+    viewModelScope.launch {
+      _isLoadingAppUsage.value = true
+      try {
+        val stats = id.xms.xtrakernelmanager.data.repository.AppBatteryRepository.getAppBatteryUsage(context)
+        _appBatteryUsage.value = stats
+      } catch (e: Exception) {
+        Log.e("MiscViewModel", "Failed to load app battery usage", e)
+        _appBatteryUsage.value = emptyList()
+      } finally {
+        _isLoadingAppUsage.value = false
+      }
     }
   }
 
