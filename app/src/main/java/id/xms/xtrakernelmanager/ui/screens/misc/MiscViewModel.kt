@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.model.AppBatteryStats
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
-
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.domain.root.RootManager
@@ -186,7 +185,10 @@ class MiscViewModel(
     viewModelScope.launch {
       _isLoadingAppUsage.value = true
       try {
-        val stats = id.xms.xtrakernelmanager.data.repository.AppBatteryRepository.getAppBatteryUsage(context)
+        val stats =
+            id.xms.xtrakernelmanager.data.repository.AppBatteryRepository.getAppBatteryUsage(
+                context
+            )
         _appBatteryUsage.value = stats
       } catch (e: Exception) {
         Log.e("MiscViewModel", "Failed to load app battery usage", e)

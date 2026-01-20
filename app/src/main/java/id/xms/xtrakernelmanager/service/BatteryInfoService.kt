@@ -65,10 +65,10 @@ class BatteryInfoService : Service() {
     initialDeepSleep = getSystemDeepSleepTime()
 
     createNotificationChannel()
-    
+
     // Initialize History Repository
     id.xms.xtrakernelmanager.data.repository.HistoryRepository.init(applicationContext)
-    
+
     registerReceiver()
     registerScreenReceiver()
   }
@@ -188,10 +188,10 @@ class BatteryInfoService : Service() {
             // Track battery drain
             if (lastBatteryLevel != -1 && level < lastBatteryLevel && !isCharging) {
               val drain = lastBatteryLevel - level
-              
+
               // Feed to History
               id.xms.xtrakernelmanager.data.repository.HistoryRepository.addDrain(drain)
-              
+
               if (isScreenOn) {
                 batteryDrainWhileScreenOn += drain
               } else {
@@ -217,7 +217,7 @@ class BatteryInfoService : Service() {
             cachedVoltage = voltage
             cachedHealth = healthTxt
             cachedCurrent = currentNow
-            
+
             refreshState()
           }
         }
@@ -236,17 +236,17 @@ class BatteryInfoService : Service() {
                 }
                 lastScreenOnTimestamp = now
                 isScreenOn = true
-                
+
                 // Start history tracking session
-                lastHistoryUpdateParams = now 
-                
+                lastHistoryUpdateParams = now
+
                 refreshState()
               }
               Intent.ACTION_SCREEN_OFF -> {
                 val now = SystemClock.elapsedRealtime()
                 if (isScreenOn) {
                   screenOnTime += now - lastScreenOnTimestamp
-                  
+
                   // Finalize history tracking for this session
                   updateHistoryValues(now)
                 }
@@ -266,72 +266,88 @@ class BatteryInfoService : Service() {
   }
 
   private fun refreshState() {
-     if (cachedLevel == -1) return
+    if (cachedLevel == -1) return
 
-     val currentTime = SystemClock.elapsedRealtime()
-     val totalScreenOn = if (isScreenOn) {
-         screenOnTime + (currentTime - lastScreenOnTimestamp)
-     } else {
-         screenOnTime
-     }
-     val totalScreenOff = if (!isScreenOn) {
-         screenOffTime + (currentTime - lastScreenOffTimestamp)
-     } else {
-         screenOffTime
-     }
-     
-     val deepSleepTime = getDeepSleepTime()
+    val currentTime = SystemClock.elapsedRealtime()
+    val totalScreenOn =
+        if (isScreenOn) {
+          screenOnTime + (currentTime - lastScreenOnTimestamp)
+        } else {
+          screenOnTime
+        }
+    val totalScreenOff =
+        if (!isScreenOn) {
+          screenOffTime + (currentTime - lastScreenOffTimestamp)
+        } else {
+          screenOffTime
+        }
 
-     val activeDrainRate = if (totalScreenOn > 0) {
-        (batteryDrainWhileScreenOn.toFloat() / (totalScreenOn / 3600000f))
-     } else 0f
-     
-     val idleDrainRate = if (totalScreenOff > 0) {
-        (batteryDrainWhileScreenOff.toFloat() / (totalScreenOff / 3600000f))
-     } else 0f
+    val deepSleepTime = getDeepSleepTime()
 
-     // Update Repository
-     val newState = id.xms.xtrakernelmanager.data.repository.BatteryRealtimeState(
-           level = cachedLevel,
-           isCharging = cachedIsCharging,
-           temp = cachedTemp,
-           voltage = cachedVoltage,
-           currentNow = cachedCurrent,
-           health = cachedHealth,
-           screenOnTime = totalScreenOn,
-           screenOffTime = totalScreenOff,
-           deepSleepTime = deepSleepTime,
-           activeDrainRate = activeDrainRate,
-           idleDrainRate = idleDrainRate,
-            totalCapacity = id.xms.xtrakernelmanager.data.repository.BatteryRepository.getCachedTotalCapacity(),
-            currentCapacity = id.xms.xtrakernelmanager.data.repository.BatteryRepository.getCachedCurrentCapacity()
-     )
-     id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
+    val activeDrainRate =
+        if (totalScreenOn > 0) {
+          (batteryDrainWhileScreenOn.toFloat() / (totalScreenOn / 3600000f))
+        } else 0f
 
-     // Update Notification
-     val notif = buildNotification(cachedLevel, cachedIsCharging, cachedTemp, cachedVoltage, cachedHealth, cachedCurrent)
-     updateNotificationSafe(notif)
-     
-     // Update history if screen is on
-     if (isScreenOn) {
-         updateHistoryValues(currentTime)
-     }
+    val idleDrainRate =
+        if (totalScreenOff > 0) {
+          (batteryDrainWhileScreenOff.toFloat() / (totalScreenOff / 3600000f))
+        } else 0f
+
+    // Update Repository
+    val newState =
+        id.xms.xtrakernelmanager.data.repository.BatteryRealtimeState(
+            level = cachedLevel,
+            isCharging = cachedIsCharging,
+            temp = cachedTemp,
+            voltage = cachedVoltage,
+            currentNow = cachedCurrent,
+            health = cachedHealth,
+            screenOnTime = totalScreenOn,
+            screenOffTime = totalScreenOff,
+            deepSleepTime = deepSleepTime,
+            activeDrainRate = activeDrainRate,
+            idleDrainRate = idleDrainRate,
+            totalCapacity =
+                id.xms.xtrakernelmanager.data.repository.BatteryRepository.getCachedTotalCapacity(),
+            currentCapacity =
+                id.xms.xtrakernelmanager.data.repository.BatteryRepository
+                    .getCachedCurrentCapacity(),
+        )
+    id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
+
+    // Update Notification
+    val notif =
+        buildNotification(
+            cachedLevel,
+            cachedIsCharging,
+            cachedTemp,
+            cachedVoltage,
+            cachedHealth,
+            cachedCurrent,
+        )
+    updateNotificationSafe(notif)
+
+    // Update history if screen is on
+    if (isScreenOn) {
+      updateHistoryValues(currentTime)
+    }
   }
 
   // Track last history update time to calculate deltas
   private var lastHistoryUpdateParams: Long = 0L
 
   private fun updateHistoryValues(now: Long) {
-      if (lastHistoryUpdateParams == 0L) {
-          lastHistoryUpdateParams = now
-          return
-      }
+    if (lastHistoryUpdateParams == 0L) {
+      lastHistoryUpdateParams = now
+      return
+    }
 
-      val delta = now - lastHistoryUpdateParams
-      if (delta > 0) {
-          id.xms.xtrakernelmanager.data.repository.HistoryRepository.incrementScreenOn(delta)
-          lastHistoryUpdateParams = now
-      }
+    val delta = now - lastHistoryUpdateParams
+    if (delta > 0) {
+      id.xms.xtrakernelmanager.data.repository.HistoryRepository.incrementScreenOn(delta)
+      lastHistoryUpdateParams = now
+    }
   }
 
   private fun buildNotification(
@@ -380,7 +396,7 @@ class BatteryInfoService : Service() {
     val tempStr = "%.1f".format(temp / 10f)
     val activeDrainStr = "%.1f".format(activeDrainRate) // 1 decimal is enough for clean look
     val idleDrainStr = "%.1f".format(idleDrainRate)
-    
+
     // Calculate Watts (P = V * I)
     // Voltage is in mV, Current is in mA
     // Watts = (mV / 1000) * (mA / 1000)
@@ -389,7 +405,7 @@ class BatteryInfoService : Service() {
 
     // Format current (Always signed) with Watts if charging
     val currentStr = "$currentNow mA"
-        
+
     val powerStr = if (charging && watts > 0) "($wattsStr W)" else ""
 
     // Deep Sleep Percentage
@@ -409,10 +425,10 @@ class BatteryInfoService : Service() {
                 buildString {
                   appendLine("Screen On: $screenOnStr • $activeDrainStr%/h")
                   appendLine("Screen Off: $screenOffStr • $idleDrainStr%/h")
-                  
+
                   // Only show deep sleep if NOT charging
                   if (!charging) {
-                      append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
+                    append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
                   }
                 }
             )
@@ -424,7 +440,9 @@ class BatteryInfoService : Service() {
             .setStyle(bigTextStyle)
             .setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
             .setOngoing(true)
-            .setColor(if (charging) Color.parseColor("#4CAF50") else Color.parseColor("#FFC107")) // Material Green/Amber
+            .setColor(
+                if (charging) Color.parseColor("#4CAF50") else Color.parseColor("#FFC107")
+            ) // Material Green/Amber
             .setOnlyAlertOnce(true)
     return builder.build()
   }
@@ -434,9 +452,9 @@ class BatteryInfoService : Service() {
     val minutes = seconds / 60
     val hours = minutes / 60
     return if (hours > 0) {
-        "%dh %02dm".format(hours, minutes % 60)
+      "%dh %02dm".format(hours, minutes % 60)
     } else {
-        "%dm %02ds".format(minutes, seconds % 60)
+      "%dm %02ds".format(minutes, seconds % 60)
     }
   }
 

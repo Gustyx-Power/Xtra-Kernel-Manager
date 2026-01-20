@@ -58,7 +58,7 @@ fun GlassmorphicCard(
     ) {
       Column(
           modifier = Modifier.padding(dimens.cardPadding),
-          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
       ) {
         content()
       }
@@ -73,7 +73,7 @@ fun GlassmorphicCard(
     ) {
       Column(
           modifier = Modifier.padding(dimens.cardPadding),
-          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
       ) {
         content()
       }

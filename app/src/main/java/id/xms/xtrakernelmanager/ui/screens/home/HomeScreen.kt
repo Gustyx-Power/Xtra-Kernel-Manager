@@ -197,8 +197,9 @@ private fun LegacyHomeContent(
     onSettingsClick: () -> Unit,
 ) {
   val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
-  
+  val isCompact =
+      dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+
   // Holiday Decoration (cached outside grid)
   val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
@@ -214,8 +215,8 @@ private fun LegacyHomeContent(
       Column(modifier = Modifier.padding(bottom = dimens.spacingTiny)) {
         // Holiday Ornament if active
         if (currentHolidayDecor != null) {
-            HolidayDecorationRow(holiday = currentHolidayDecor)
-            Spacer(modifier = Modifier.height(dimens.spacingMedium))
+          HolidayDecorationRow(holiday = currentHolidayDecor)
+          Spacer(modifier = Modifier.height(dimens.spacingMedium))
         }
 
         Row(
@@ -226,15 +227,17 @@ private fun LegacyHomeContent(
           Column {
             Text(
                 text = "Xtra Kernel Manager",
-                style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
+                style =
+                    if (isCompact) MaterialTheme.typography.titleMedium
+                    else MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary, 
-                fontWeight = FontWeight.SemiBold
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
             )
           }
 

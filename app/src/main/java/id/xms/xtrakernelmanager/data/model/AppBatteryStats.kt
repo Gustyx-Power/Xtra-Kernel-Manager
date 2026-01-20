@@ -3,8 +3,8 @@ package id.xms.xtrakernelmanager.data.model
 import android.graphics.drawable.Drawable
 
 enum class BatteryUsageType {
-    APP,
-    SYSTEM
+  APP,
+  SYSTEM,
 }
 
 data class AppBatteryStats(
@@ -13,5 +13,5 @@ data class AppBatteryStats(
     val appName: String,
     val icon: Drawable? = null,
     val percent: Double,
-    val usageType: BatteryUsageType
+    val usageType: BatteryUsageType,
 )
