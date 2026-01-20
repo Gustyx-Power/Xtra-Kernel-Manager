@@ -581,9 +581,6 @@
     <string name="dc_dimming_desc_enabled">DC Dimming aktif - mengurangi kedipan PWM</string>
     <string name="dc_dimming_desc_disabled">DC Dimming nonaktif</string>
     <string name="category_system">Sistem</string>
-    <string name="performance_mode">Mode Performa</string>
-    <string name="performance_mode_desc_enabled">Mode performa aktif - prioritas performa maksimum</string>
-    <string name="performance_mode_desc_disabled">Mode performa nonaktif</string>
     <string name="category_charging">Pengisian Daya</string>
     <string name="bypass_charging">Bypass Pengisian</string>
     <string name="bypass_charging_desc_enabled">Bypass pengisian aktif - langsung dari adaptor</string>
