@@ -3,7 +3,13 @@ package id.xms.xtrakernelmanager.domain.usecase
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import java.io.File
 
+import id.xms.xtrakernelmanager.domain.native.NativeLib
+
 class GameOverlayUseCase {
+  private val rootManager = RootManager
+  
+  private var lastTotal: Long = 0
+  private var lastIdle: Long = 0
 
   suspend fun getCurrentFPS(): Int {
     // Baca dari sde-crtc-0/measured_fps yang formatnya "fps: XX.XX duration: YY"
@@ -40,7 +46,12 @@ class GameOverlayUseCase {
   }
 
   suspend fun getCPULoad(): Float {
-    // Perbaikan: Gunakan root access untuk membaca /proc/stat
+    val nativeLoad = NativeLib.readCpuLoad()
+    if (nativeLoad != null && nativeLoad > 0) {
+      return nativeLoad
+    }
+
+    // 2. Fallback: Gunakan root access untuk membaca /proc/stat
     return try {
       val stat = RootManager.readFile("/proc/stat").getOrNull() ?: return 0f
       val cpuLine = stat.lines().firstOrNull { it.startsWith("cpu ") } ?: return 0f
@@ -51,14 +62,33 @@ class GameOverlayUseCase {
       val idle = values[3]
       val total = values.sum()
 
-      if (total > 0) ((total - idle).toFloat() / total.toFloat()) * 100f else 0f
+      val diffTotal = total - lastTotal
+      val diffIdle = idle - lastIdle
+
+      val load = if (diffTotal > 0 && lastTotal > 0) {
+          ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat()) * 100f
+      } else {
+          0f
+      }
+
+      lastTotal = total
+      lastIdle = idle
+
+      load
     } catch (e: Exception) {
+      android.util.Log.e("GameOverlay", "CPU Fallback Error", e)
       0f
     }
   }
 
   suspend fun getGPULoad(): Float {
-    // Berbagai path GPU untuk berbagai chipset
+      // 1. Try Native JNI first (Faster)
+      val nativeBusy = NativeLib.readGpuBusy()
+      if (nativeBusy != null && nativeBusy > 0) {
+          return nativeBusy.toFloat()
+      }
+
+    // 2. Fallback: Berbagai path GPU untuk berbagai chipset
     val gpuPaths =
         listOf(
             // Adreno (Qualcomm)

@@ -112,26 +112,38 @@ class GameMonitorViewModel(
         startTime = System.currentTimeMillis()
         pollingJob = viewModelScope.launch {
             while (true) {
-                // CPU
-                _cpuFreq.value = withContext(Dispatchers.IO) {
-                    val freq = gameOverlayUseCase.getMaxCPUFreq()
-                    if (freq >= 1000) "%.2f".format(freq / 1000f) else freq.toString()
+            while (true) {
+                val cycleStart = System.currentTimeMillis()
+
+                withContext(Dispatchers.IO) {
+                    // 1. Fetch all data in parallel logic (fast native calls)
+                    val cpuFreq = gameOverlayUseCase.getMaxCPUFreq().let { freq ->
+                        if (freq >= 1000) "%.1f".format(freq / 1000f) else freq.toString()
+                    }
+                    val cpuLoad = gameOverlayUseCase.getCPULoad()
+                    
+                    val gpuFreq = gameOverlayUseCase.getGPUFreq().toString()
+                    val gpuLoad = gameOverlayUseCase.getGPULoad()
+                    
+                    val fps = gameOverlayUseCase.getCurrentFPS().toString()
+                    val temp = "%.0f".format(gameOverlayUseCase.getTemperature()) // Round temp to whole number for cleaner UI
+
+                    // 2. Update states (Thread-safe)
+                    _cpuFreq.value = cpuFreq
+                    _cpuLoad.value = cpuLoad
+                    _gpuFreq.value = gpuFreq
+                    _gpuLoad.value = gpuLoad
+                    _fpsValue.value = fps
+                    _tempValue.value = temp
                 }
-                _cpuLoad.value = withContext(Dispatchers.IO) { gameOverlayUseCase.getCPULoad() }
 
-                // GPU
-                _gpuFreq.value = withContext(Dispatchers.IO) {
-                    gameOverlayUseCase.getGPUFreq().toString()
-                }
-                _gpuLoad.value = withContext(Dispatchers.IO) { gameOverlayUseCase.getGPULoad() }
+                val batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                val battPct = if (level >= 0 && scale > 0) (level * 100 / scale) else 100
+                _batteryPercentage.value = battPct
 
-                // FPS
-                _fpsValue.value = withContext(Dispatchers.IO) { gameOverlayUseCase.getCurrentFPS().toString() }
-
-                // Temp
-                _tempValue.value = withContext(Dispatchers.IO) { "%.1f".format(gameOverlayUseCase.getTemperature()) }
-
-                // Duration
+                // Duration Calculation
                 val durationMs = System.currentTimeMillis() - startTime
                 val minutes = (durationMs / 60000).toInt()
                 val seconds = ((durationMs % 60000) / 1000).toInt()
@@ -141,15 +153,11 @@ class GameMonitorViewModel(
                     "$minutes:${"%02d".format(seconds)}"
                 }
 
-                // Battery
-                val batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-                val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-                val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-                _batteryPercentage.value = if (level >= 0 && scale > 0) {
-                    (level * 100 / scale)
-                } else 100
-
-                delay(1000)
+                // 3. Smart Delay: Target 250ms loop time (4Hz refresh rate)
+                val elapsed = System.currentTimeMillis() - cycleStart
+                val wait = (250 - elapsed).coerceAtLeast(10) // Min 10ms wait to prevent CPU hogs
+                delay(wait)
+            }
             }
         }
     }
