@@ -144,7 +144,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
       NavHost(
           navController = navController,
           startDestination = startDest,
-          modifier = Modifier.padding(paddingValues),
+          modifier = Modifier.padding(paddingValues).padding(bottom = 100.dp),
       ) {
         composable("setup") {
           SetupScreen(
