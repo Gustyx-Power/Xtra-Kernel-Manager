@@ -73,22 +73,15 @@ class GameMonitorService : AccessibilityService() {
             } else if (ignoredPackages.contains(packageName) || packageName.contains("inputmethod")) {
                 // Ignore system UI, keyboards, Google services
                 Log.d(TAG, "Ignoring system/transient package: $packageName")
-                // Critical: If we moved from "Unknown" to "Ignored", we should probably cancel the kill timer?
-                // Example: Game -> Glitch(Unknown) -> Keyboard(Ignored). We want to stay.
                 stopJob?.cancel() 
                 stopJob = null
             } else {
-                // Potential exit - wait a bit before killing
-                Log.d(TAG, "Non-game package detected: $packageName. Scheduling stop...")
+                // Potential exit - Stopping immediately as requested
+                Log.d(TAG, "Non-game package detected: $packageName. Stopping overlay.")
                 
-                // Only schedule if not already scheduled
-                if (stopJob?.isActive != true) {
-                    stopJob = serviceScope.launch {
-                        delay(4000) // 4 seconds grace period (Internal login/loading buffers)
-                        Log.d(TAG, "Grace period over. Stopping overlay. Last package: $packageName")
-                        stopGameOverlay()
-                    }
-                }
+                stopJob?.cancel()
+                stopJob = null
+                stopGameOverlay()
             }
         }
     }

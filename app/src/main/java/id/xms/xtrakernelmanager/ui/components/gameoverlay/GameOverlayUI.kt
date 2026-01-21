@@ -193,9 +193,9 @@ fun GamePanelCard(
                 Spacer(modifier = Modifier.weight(1f))
                 
                 // Status Pills (More compact)
-                StatusPill(icon = Icons.Rounded.BatteryStd, text = "$batteryLevel%")
-                Spacer(modifier = Modifier.width(6.dp))
                 StatusPill(icon = Icons.Rounded.Thermostat, text = "$temp°C", isWarning = true)
+                Spacer(modifier = Modifier.width(6.dp))
+                StatusPill(icon = Icons.Rounded.BatteryStd, text = "$batteryLevel%")
                 
                 // Close button removed, click header to close
             }
@@ -273,8 +273,8 @@ fun PerformanceBento(fps: String, cpu: Float, gpu: Float) {
             modifier = Modifier.weight(1f).fillMaxHeight(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            LoadChip(label = "CPU", value = cpu, color = Color(0xFF90CAF9), modifier = Modifier.weight(1f))
-            LoadChip(label = "GPU", value = gpu, color = Color(0xFFCE93D8), modifier = Modifier.weight(1f))
+            LoadChip(label = "CPU", value = cpu, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.weight(1f))
+            LoadChip(label = "GPU", value = gpu, color = MaterialTheme.colorScheme.secondary, modifier = Modifier.weight(1f))
         }
     }
 }
