@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.xms.xtrakernelmanager.ui.screens.misc.GameMonitorViewModel
+import id.xms.xtrakernelmanager.ui.theme.ExpressiveShapes
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.*
@@ -73,8 +74,8 @@ fun GameSidebar(
     onDrag: (Float, Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val pillColor = Color(0xFF1F1F1F).copy(alpha = 0.95f) 
-    val contentColor = Color(0xFFC8E6C9) 
+    val pillColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f)
+    val contentColor = MaterialTheme.colorScheme.primary // Fixed: Consistent Monet color 
     
     // Shape: Half-rounded rect attached to side
     val shape = if (overlayOnRight) {
@@ -129,51 +130,15 @@ fun GameSidebar(
 }
 
 
-@Composable
-fun FpsFloatingPill(
-    fps: String,
-    onExpand: () -> Unit,
-    onDrag: (Float, Float) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        color = Color(0xFF1F1F1F).copy(alpha = 0.9f),
-        shape = RoundedCornerShape(50), // Fully rounded pill
-        shadowElevation = 4.dp,
-        modifier = modifier
-            .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    onDrag(dragAmount.x, dragAmount.y)
-                }
-            }
-            .clickable { onExpand() }
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "$fps FPS",
-                style = MaterialTheme.typography.labelLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-        }
-    }
-}
+
 
 
 // --- EXPRESSIVE PANEL (Bento Style) ---
 @Composable
 fun GamePanelCard(
     viewModel: GameMonitorViewModel,
+    isFpsEnabled: Boolean,
+    onFpsToggle: () -> Unit,
     onCollapse: () -> Unit,
     onMoveSide: () -> Unit,
     modifier: Modifier = Modifier
@@ -195,7 +160,7 @@ fun GamePanelCard(
     
     Card(
         shape = RoundedCornerShape(28.dp), // Slightly tighter radius
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         modifier = modifier
             .width(312.dp) // COMPACT: Reduced from 360dp for less width
@@ -209,7 +174,12 @@ fun GamePanelCard(
             // 1. EXPRESSIVE HEADER
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null // No ripple
+                    ) { onCollapse() }
             ) {
                 // Big Bold Clock (Smaller)
                 Text(
@@ -227,32 +197,20 @@ fun GamePanelCard(
                 Spacer(modifier = Modifier.width(6.dp))
                 StatusPill(icon = Icons.Rounded.Thermostat, text = "$temp°C", isWarning = true)
                 
-                Spacer(modifier = Modifier.width(10.dp))
-                
-                // Close Button
-                Surface(
-                    onClick = onCollapse,
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    modifier = Modifier.size(32.dp) // Reduced size
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Rounded.Close, null, modifier = Modifier.size(18.dp))
-                    }
-                }
+                // Close button removed, click header to close
             }
 
-            // 2. PERFORMANCE WIDGET (Bento Box)
-            PerformanceBento(fps, cpuLoad, gpuLoad)
-
-            // 3. GAME MODE SELECTOR (Text Only)
-            ExpressiveModeSelector(viewModel)
-            
-            // 4. BRIGHTNESS (Compact slider)
+            // 2. BRIGHTNESS (Compact slider)
             BrightnessControlExpressive()
 
+            // 3. PERFORMANCE WIDGET (Bento Box)
+            PerformanceBento(fps, cpuLoad, gpuLoad)
+
+            // 4. GAME MODE SELECTOR (Text Only)
+            ExpressiveModeSelector(viewModel)
+
             // 5. TOOLS GRID (Slidable Row)
-            ToolsGridExpressive(viewModel)
+            ToolsGridExpressive(viewModel, isFpsEnabled, onFpsToggle)
         }
     }
 }
@@ -281,28 +239,28 @@ fun PerformanceBento(fps: String, cpu: Float, gpu: Float) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(96.dp), // Reduced height from 110dp
+            .height(86.dp), // Reduced height from 96dp for better proportions
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // FPS Card (Left - Big)
         Card(
             modifier = Modifier.weight(1.3f).fillMaxHeight(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(32.dp) // Reverted to Rounded Rect
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val fpsVal = fps.toFloatOrNull()?.toInt() ?: 60
                     Text(
                         text = "$fpsVal",
-                        style = MaterialTheme.typography.displaySmall, // Reduced from displayMedium
+                        style = MaterialTheme.typography.headlineMedium, // Reduced from displaySmall
                         fontWeight = FontWeight.Black,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        lineHeight = 40.sp
+                        lineHeight = 32.sp
                     )
                     Text(
                         text = "FPS",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelSmall, // Reduced from labelMedium
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                     )
@@ -324,7 +282,7 @@ fun PerformanceBento(fps: String, cpu: Float, gpu: Float) {
 @Composable
 fun LoadChip(label: String, value: Float, color: Color, modifier: Modifier = Modifier) {
     Surface(
-        color = Color(0xFF252525),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         shape = RoundedCornerShape(14.dp),
         modifier = modifier.fillMaxWidth()
     ) {
@@ -359,7 +317,7 @@ fun ExpressiveModeSelector(viewModel: GameMonitorViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp) // Reduced height from 56dp
-            .background(Color(0xFF252525), CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
             .padding(4.dp)
     ) {
         modes.forEach { (modeKey, modeLabel) ->
@@ -396,7 +354,7 @@ fun BrightnessControlExpressive() {
     
     // Thick Expressive Slider
     Surface(
-        color = Color(0xFF252525),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         shape = CircleShape,
         modifier = Modifier.fillMaxWidth().height(44.dp) // Reduced height
     ) {
@@ -427,8 +385,9 @@ fun BrightnessControlExpressive() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Rounded.BrightnessLow, null, tint = Color.White.copy(0.5f), modifier = Modifier.size(18.dp))
-                Icon(Icons.Rounded.BrightnessHigh, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                // Fixed: Uniform tinting using theme content colors
+                Icon(Icons.Rounded.BrightnessLow, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                Icon(Icons.Rounded.BrightnessHigh, null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(18.dp))
             }
         }
     }
@@ -436,7 +395,11 @@ fun BrightnessControlExpressive() {
 
 // SLIDABLE TOOLS
 @Composable
-fun ToolsGridExpressive(viewModel: GameMonitorViewModel) {
+fun ToolsGridExpressive(
+    viewModel: GameMonitorViewModel,
+    isFpsEnabled: Boolean,
+    onFpsToggle: () -> Unit
+) {
     val dnd by viewModel.doNotDisturb.collectAsStateWithLifecycle()
     val touchGuard by viewModel.touchGuard.collectAsStateWithLifecycle()
     
@@ -448,6 +411,13 @@ fun ToolsGridExpressive(viewModel: GameMonitorViewModel) {
     ) {
         item {
             ToolButtonExpressive(
+                icon = Icons.Rounded.Speed, // FPS Icon
+                label = "FPS",
+                isActive = isFpsEnabled,
+            ) { onFpsToggle() }
+        }
+        item {
+            ToolButtonExpressive(
                 icon = Icons.Rounded.DoNotDisturb,
                 label = "DND",
                 isActive = dnd,
@@ -455,7 +425,7 @@ fun ToolsGridExpressive(viewModel: GameMonitorViewModel) {
         }
         item {
             ToolButtonExpressive(
-                icon = Icons.Rounded.CleaningServices,
+                icon = Icons.Rounded.RocketLaunch, // Changed from CleaningServices
                 label = "Boost",
                 isActive = false, 
             ) { viewModel.clearRAM() }
@@ -463,15 +433,15 @@ fun ToolsGridExpressive(viewModel: GameMonitorViewModel) {
         item {
             ToolButtonExpressive(
                 icon = Icons.Rounded.TouchApp,
-                label = "Block",
+                label = "Gesture", // Renamed from Block
                 isActive = touchGuard,
             ) { viewModel.setTouchGuard(!touchGuard) }
         }
         item {
             ToolButtonExpressive(
                 icon = Icons.Rounded.Screenshot,
-                label = "Shot",
-                isActive = false,
+                label = "Screenshot", // Renamed from Shot
+                isActive = false, 
             ) { /* TODO */ }
         }
         // Additional items can be added here easily
@@ -486,8 +456,8 @@ fun ToolButtonExpressive(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val bgColor = if (isActive) MaterialTheme.colorScheme.primary else Color(0xFF252525)
-    val iconColor = if (isActive) MaterialTheme.colorScheme.onPrimary else Color.White
+    val bgColor = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer
+    val iconColor = if (isActive) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     
     Column(
         modifier = modifier,

@@ -156,26 +156,47 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         if (isExpanded) {
             GamePanelCard(
                 viewModel = viewModel,
+                isFpsEnabled = isFpsEnabled,
+                onFpsToggle = { isFpsEnabled = !isFpsEnabled },
                 onCollapse = { isExpanded = false },
                 onMoveSide = { toggleOverlayPosition() }
             )
         } else {
-            // Unified Sidebar (handles both Icon and FPS modes)
             val fpsVal by viewModel.fpsValue.collectAsState()
             
             GameSidebar(
                 isExpanded = isExpanded,
                 overlayOnRight = isOverlayOnRight,
-                fps = if (isFpsEnabled) fpsVal else null, // If enabled, pass FPS to be displayed
+                fps = if (isFpsEnabled) fpsVal else null,
                 onToggleExpand = { isExpanded = true },
                 onDrag = { dx, dy ->
-                    // Update window position
                     params?.let { p ->
-                        p.y = (p.y + dy.toInt()).coerceIn(0, 1000)
+                        p.y = (p.y + dy.toInt()).coerceIn(0, 2500)
+                        
+                        val dragX = dx.toInt()
+                        
+                        if (isOverlayOnRight) {
+                          
+                            p.x -= dragX 
+                            
+                            if (p.x > 500) {
+                                toggleOverlayPosition()
+                                p.x = 0 // Reset to edge
+                            }
+                        } else {
+                            p.x += dragX
+                            
+                            if (p.x > 500) {
+                                toggleOverlayPosition()
+                                p.x = 0 // Reset to edge
+                            }
+                        }
+                        
+                        if (p.x < 0) p.x = 0
+                        
                         try {
                             windowManager.updateViewLayout(overlayView, p)
                         } catch (e: Exception) {
-                            // View may not be attached
                         }
                     }
                 }
