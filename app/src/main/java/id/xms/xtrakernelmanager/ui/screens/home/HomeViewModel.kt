@@ -22,7 +22,6 @@ import kotlinx.coroutines.withContext
 class HomeViewModel : ViewModel() {
 
   private val kernelRepository = KernelRepository()
-  private val batteryRepository = BatteryRepository()
   private val powerRepository = PowerRepository()
 
   private val _cpuInfo = MutableStateFlow(CPUInfo())
@@ -65,7 +64,7 @@ class HomeViewModel : ViewModel() {
             _systemInfo.value = sys
 
             context?.let {
-              val bat = batteryRepository.getBatteryInfo(it)
+              val bat = BatteryRepository.getBatteryInfo(it)
               val pwr = powerRepository.getPowerInfo(it)
               _batteryInfo.value = bat
               _powerInfo.value = pwr

@@ -333,12 +333,16 @@ class PreferencesManager(private val context: Context) {
   fun getBatteryNotifIconType(): Flow<String> =
       context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_ICON_TYPE] ?: "circle_percent" }
 
-  suspend fun setBatteryNotifRefreshRate(seconds: Int) {
-    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE] = seconds }
+  // Changed to Long for milliseconds support (Real-time = 500ms)
+  private val BATTERY_NOTIF_REFRESH_RATE_MS =
+      androidx.datastore.preferences.core.longPreferencesKey("battery_notif_refresh_rate_ms")
+
+  suspend fun setBatteryNotifRefreshRate(ms: Long) {
+    context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE_MS] = ms }
   }
 
-  fun getBatteryNotifRefreshRate(): Flow<Int> =
-      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE] ?: 5 }
+  fun getBatteryNotifRefreshRate(): Flow<Long> =
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE_MS] ?: 1000L } // Default 1s
 
   suspend fun setBatteryNotifSecureLockScreen(enabled: Boolean) {
     context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_SECURE_LOCK_SCREEN] = enabled }

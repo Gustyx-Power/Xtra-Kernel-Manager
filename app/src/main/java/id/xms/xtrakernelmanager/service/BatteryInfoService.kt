@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 
 class BatteryInfoService : Service() {
   private val NOTIF_ID = 1001
@@ -42,6 +43,12 @@ class BatteryInfoService : Service() {
   private var cachedVoltage: Int = 0
   private var cachedHealth: String = "Unknown"
   private var cachedCurrent: Int = 0
+  private var currentIconType: String = "battery_icon"
+  private var refreshRateMs: Long = 1000 // Default 1s
+  private var isSecureLockScreen: Boolean = false
+  private var isHighPriority: Boolean = false
+  private var isForceOnTop: Boolean = false
+  private var dontUpdateScreenOff: Boolean = true // Default true
 
   // Deep sleep tracking
   private var initialDeepSleep: Long = 0L
@@ -65,8 +72,77 @@ class BatteryInfoService : Service() {
     initialDeepSleep = getSystemDeepSleepTime()
 
     createNotificationChannel()
+
+    // Initialize History Repository
+    id.xms.xtrakernelmanager.data.repository.HistoryRepository.init(applicationContext)
+
     registerReceiver()
     registerScreenReceiver()
+
+    // Observe Preference Changes
+    // Observe Preference Changes
+    val prefs = id.xms.xtrakernelmanager.data.preferences.PreferencesManager(applicationContext)
+    val scope = CoroutineScope(Dispatchers.IO)
+
+    // Master Toggle
+    scope.launch {
+        prefs.isShowBatteryNotif().collect { enabled ->
+             if (!enabled) {
+                 stopForeground(STOP_FOREGROUND_REMOVE)
+                 stopSelf()
+             }
+        }
+    }
+
+    // Icon Type
+    scope.launch {
+        prefs.getBatteryNotifIconType().collect { type ->
+            currentIconType = type
+            if (cachedLevel != -1) refreshState()
+        }
+    }
+
+    // Refresh Rate
+    scope.launch {
+        prefs.getBatteryNotifRefreshRate().collect { ms ->
+             refreshRateMs = ms
+        }
+    }
+    
+    // Secure Lock Screen
+    scope.launch {
+        prefs.getBatteryNotifSecureLockScreen().collect { enabled ->
+             isSecureLockScreen = enabled
+             if (cachedLevel != -1) refreshState()
+        }
+    }
+
+    // High Priority
+    scope.launch {
+        prefs.getBatteryNotifHighPriority().collect { enabled ->
+             isHighPriority = enabled
+             createNotificationChannel() // Recreate channel with new importance
+             if (cachedLevel != -1) refreshState()
+        }
+    }
+
+    // Force On Top
+    scope.launch {
+        prefs.getBatteryNotifForceOnTop().collect { enabled ->
+             isForceOnTop = enabled
+             if (cachedLevel != -1) refreshState()
+        }
+    }
+    
+    // Screen Off Updates
+    scope.launch {
+        prefs.getBatteryNotifDontUpdateScreenOff().collect { enabled ->
+             dontUpdateScreenOff = enabled
+        }
+    }
+    
+    // Start Native Polling for Real-time Battery Data
+    startNativePolling(scope)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -184,6 +260,10 @@ class BatteryInfoService : Service() {
             // Track battery drain
             if (lastBatteryLevel != -1 && level < lastBatteryLevel && !isCharging) {
               val drain = lastBatteryLevel - level
+
+              // Feed to History
+              id.xms.xtrakernelmanager.data.repository.HistoryRepository.addDrain(drain)
+
               if (isScreenOn) {
                 batteryDrainWhileScreenOn += drain
               } else {
@@ -210,8 +290,24 @@ class BatteryInfoService : Service() {
             cachedHealth = healthTxt
             cachedCurrent = currentNow
 
-            val notif = buildNotification(level, isCharging, temp, voltage, healthTxt, currentNow)
-            updateNotificationSafe(notif)
+            // Throttling Logic
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastUpdateTime < refreshRateMs) {
+                // Skip update if within throttle window, unless urgent (e.g. plugged status changed)
+                if (isCharging == cachedIsCharging) {
+                     return 
+                }
+            }
+            lastUpdateTime = now
+
+            // Screen Off Logic
+            if (!isScreenOn && dontUpdateScreenOff) {
+                 // Still update internal cache but skip notification? 
+                 // Actually we want to record history, just not spam notification
+                 // Let refreshState handle notification suppression
+            }
+
+            refreshState()
           }
         }
     registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -229,14 +325,23 @@ class BatteryInfoService : Service() {
                 }
                 lastScreenOnTimestamp = now
                 isScreenOn = true
+
+                // Start history tracking session
+                lastHistoryUpdateParams = now
+
+                refreshState()
               }
               Intent.ACTION_SCREEN_OFF -> {
                 val now = SystemClock.elapsedRealtime()
                 if (isScreenOn) {
                   screenOnTime += now - lastScreenOnTimestamp
+
+                  // Finalize history tracking for this session
+                  updateHistoryValues(now)
                 }
                 lastScreenOffTimestamp = now
                 isScreenOn = false
+                refreshState()
               }
             }
           }
@@ -247,6 +352,103 @@ class BatteryInfoService : Service() {
           addAction(Intent.ACTION_SCREEN_OFF)
         }
     registerReceiver(screenReceiver, filter)
+  }
+
+  private fun refreshState() {
+    if (cachedLevel == -1) return
+
+    val currentTime = SystemClock.elapsedRealtime()
+    val totalScreenOn =
+        if (isScreenOn) {
+          screenOnTime + (currentTime - lastScreenOnTimestamp)
+        } else {
+          screenOnTime
+        }
+    val totalScreenOff =
+        if (!isScreenOn) {
+          screenOffTime + (currentTime - lastScreenOffTimestamp)
+        } else {
+          screenOffTime
+        }
+
+    val deepSleepTime = getDeepSleepTime()
+
+    val activeDrainRate =
+        if (totalScreenOn > 0) {
+          (batteryDrainWhileScreenOn.toFloat() / (totalScreenOn / 3600000f))
+        } else 0f
+
+    val idleDrainRate =
+        if (totalScreenOff > 0) {
+          (batteryDrainWhileScreenOff.toFloat() / (totalScreenOff / 3600000f))
+        } else 0f
+
+    // Update Repository
+    val newState =
+        id.xms.xtrakernelmanager.data.repository.BatteryRealtimeState(
+            level = cachedLevel,
+            isCharging = cachedIsCharging,
+            temp = cachedTemp,
+            voltage = cachedVoltage,
+            currentNow = cachedCurrent,
+            health = cachedHealth,
+            screenOnTime = totalScreenOn,
+            screenOffTime = totalScreenOff,
+            deepSleepTime = deepSleepTime,
+            activeDrainRate = activeDrainRate,
+            idleDrainRate = idleDrainRate,
+            totalCapacity =
+                id.xms.xtrakernelmanager.data.repository.BatteryRepository.getCachedTotalCapacity(),
+            currentCapacity =
+                id.xms.xtrakernelmanager.data.repository.BatteryRepository
+                    .getCachedCurrentCapacity(),
+        )
+    id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
+    
+    // Record Current Flow Sample for Analytics Chart
+    CoroutineScope(Dispatchers.IO).launch {
+        id.xms.xtrakernelmanager.data.repository.CurrentFlowRepository.addSample(
+            applicationContext,
+            cachedCurrent,
+            cachedIsCharging
+        )
+    }
+
+    // Update Notification
+    // Check Screen Off preference
+    if (isScreenOn || !dontUpdateScreenOff) {
+        val notif =
+            buildNotification(
+                cachedLevel,
+                cachedIsCharging,
+                cachedTemp,
+                cachedVoltage,
+                cachedHealth,
+                cachedCurrent,
+            )
+        updateNotificationSafe(notif)
+    }
+
+    // Update history if screen is on
+    if (isScreenOn) {
+      updateHistoryValues(currentTime)
+    }
+  }
+
+  // Track last history update time to calculate deltas
+  private var lastHistoryUpdateParams: Long = 0L
+
+  private fun updateHistoryValues(now: Long) {
+    if (lastHistoryUpdateParams == 0L) {
+      lastHistoryUpdateParams = now
+      return
+    }
+
+    val delta = now - lastHistoryUpdateParams
+    if (delta > 0) {
+      id.xms.xtrakernelmanager.data.repository.HistoryRepository.incrementScreenOn(delta)
+      lastHistoryUpdateParams = now
+    }
   }
 
   private fun buildNotification(
@@ -274,7 +476,6 @@ class BatteryInfoService : Service() {
 
     // Get deep sleep time from system
     val deepSleepTime = getDeepSleepTime()
-    val awakeTime = (totalScreenOff - deepSleepTime).coerceAtLeast(0L)
 
     // Calculate drain rates (% per hour)
     val activeDrainRate =
@@ -287,64 +488,99 @@ class BatteryInfoService : Service() {
           (batteryDrainWhileScreenOff.toFloat() / (totalScreenOff / 3600000f))
         } else 0f
 
-    // Format time strings
-    val screenOnStr = formatTime(totalScreenOn)
-    val screenOffStr = formatTime(totalScreenOff)
-    val deepSleepStr = formatTime(deepSleepTime)
-    val awakeStr = formatTime(awakeTime)
+    // Format time strings (Compact: 1h 20m)
+    val screenOnStr = formatTimeCompact(totalScreenOn)
+    val screenOffStr = formatTimeCompact(totalScreenOff)
+    val deepSleepStr = formatTimeCompact(deepSleepTime)
 
-    // Build notification with detailed layout
+    // Format numbers
     val tempStr = "%.1f".format(temp / 10f)
-    val voltageStr = "%.2f".format(voltage / 1000f)
-    val activeDrainStr = "%.2f".format(activeDrainRate)
-    val idleDrainStr = "%.2f".format(idleDrainRate)
+    val activeDrainStr = "%.1f".format(activeDrainRate) // 1 decimal is enough for clean look
+    val idleDrainStr = "%.1f".format(idleDrainRate)
 
-    // Format current with proper sign
-    val currentStr =
-        if (currentNow >= 0) {
-          "+$currentNow mA"
-        } else {
-          "$currentNow mA"
-        }
+    // Calculate Watts (P = V * I)
+    // Voltage is in mV, Current is in mA
+    // Watts = (mV / 1000) * (mA / 1000)
+    val watts = (kotlin.math.abs(voltage) / 1000f) * (kotlin.math.abs(currentNow) / 1000f)
+    val wattsStr = "%.1f".format(watts)
 
-    // Calculate drain percentages
-    val totalDrain = batteryDrainWhileScreenOn + batteryDrainWhileScreenOff
-    val activeDrainPercent =
-        if (totalDrain > 0) {
-          (batteryDrainWhileScreenOn.toFloat() / totalDrain * 100)
-        } else 0f
-    val idleDrainPercent =
-        if (totalDrain > 0) {
-          (batteryDrainWhileScreenOff.toFloat() / totalDrain * 100)
-        } else 0f
+    // Format current (Always signed) with Watts if charging
+    val currentStr = "$currentNow mA"
 
+    val powerStr = if (charging && watts > 0) "($wattsStr W)" else ""
+
+    // Deep Sleep Percentage
+    val deepSleepPercent =
+        if (totalScreenOff > 0) {
+          (deepSleepTime.toFloat() / totalScreenOff * 100).toInt()
+        } else 0
+
+    // Title: 55% • +351 mA (1.4 W) • 32.6°
+    val title = "$level% • $currentStr $powerStr • $tempStr°"
+
+    // BigText Content
     val bigTextStyle =
         NotificationCompat.BigTextStyle()
-            .setBigContentTitle(
-                "Battery: $level% | $tempStr°C | $currentStr ${if(charging) "⚡" else "📉"}"
-            )
+            .setBigContentTitle(title)
             .bigText(
                 buildString {
-                  appendLine("Voltage: ${voltageStr}V | Health: $health")
-                  appendLine("Screen On: $screenOnStr | Screen Off: $screenOffStr")
-                  appendLine("Deep Sleep: $deepSleepStr | Awake: $awakeStr")
-                  append(
-                      "Active: $activeDrainStr%%/h (%.0f%%) | Idle: $idleDrainStr%%/h (%.0f%%)"
-                          .format(activeDrainPercent, idleDrainPercent)
-                  )
+                  appendLine("Screen On: $screenOnStr • $activeDrainStr%/h")
+                  appendLine("Screen Off: $screenOffStr • $idleDrainStr%/h")
+
+                  // Only show deep sleep if NOT charging
+                  if (!charging) {
+                    append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
+                  }
                 }
             )
 
     val builder =
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Battery: $level% | $tempStr°C | $currentStr")
-            .setContentText("Screen: $screenOnStr | Drain: $activeDrainStr%/h")
+            .setContentTitle(title)
+            .setContentText("Screen On: $screenOnStr • Charge: $level%") // Collapsed state
             .setStyle(bigTextStyle)
-            .setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
             .setOngoing(true)
-            .setColor(if (charging) Color.GREEN else Color.YELLOW)
+            .setColor(
+                if (charging) Color.parseColor("#4CAF50") else Color.parseColor("#FFC107")
+            ) // Material Green/Amber
             .setOnlyAlertOnce(true)
+            .setVisibility(if (isSecureLockScreen) NotificationCompat.VISIBILITY_PUBLIC else NotificationCompat.VISIBILITY_SECRET)
+            .setPriority(if (isForceOnTop) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW) // For pre-O
+
+    // Force On Top (Ongoing + High Priority usually does it)
+    if (isForceOnTop) {
+        builder.setCategory(NotificationCompat.CATEGORY_SERVICE)
+    }
+
+    // Set dynamic small icon using NotificationHelper
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val icon = NotificationHelper.generateIcon(
+            this, 
+            currentIconType, 
+            level, 
+            charging,
+            temp, 
+            currentNow, 
+            voltage
+        )
+        builder.setSmallIcon(androidx.core.graphics.drawable.IconCompat.createFromIcon(icon))
+    } else {
+        // Fallback for older APIs (though minSdk is likely higher)
+        builder.setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
+    }
+
     return builder.build()
+  }
+
+  private fun formatTimeCompact(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) {
+      "%dh %02dm".format(hours, minutes % 60)
+    } else {
+      "%dm %02ds".format(minutes, seconds % 60)
+    }
   }
 
   private fun formatTime(millis: Long): String {
@@ -536,10 +772,67 @@ class BatteryInfoService : Service() {
   override fun onBind(intent: Intent?) = null
 
   private fun createNotificationChannel() {
+    val importance = if (isHighPriority) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_LOW
     val channel =
-        NotificationChannel(CHANNEL_ID, "Battery Info", NotificationManager.IMPORTANCE_LOW)
+        NotificationChannel(CHANNEL_ID, "Battery Info", importance)
     channel.description = "Shows real-time battery status"
+    channel.setShowBadge(false)
     val notificationManager = getSystemService(NotificationManager::class.java)
     notificationManager.createNotificationChannel(channel)
+  }
+  private fun startNativePolling(scope: CoroutineScope) {
+    scope.launch(Dispatchers.IO) {
+      Log.d("BatteryInfoService", "Starting native polling with rate: ${refreshRateMs}ms")
+      while (isActive) {
+          try {
+              if (id.xms.xtrakernelmanager.domain.native.NativeLib.isAvailable()) {
+                  // Read directly from native (sysfs via JNI) - Fast & Low Overhead
+                  // Read directly from native (sysfs via JNI)
+                  var level = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryLevel() ?: -1
+                  var current = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCurrent() ?: 0
+                  var voltage = (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryVoltage()?.times(1000))?.toInt() ?: 0
+                  var temp = (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryTemp()?.times(10))?.toInt() ?: 0
+                  
+                  // Root Fallback if native fails (returns 0 or -1 continuously)
+                  if (level <= 0 || voltage == 0) {
+                      try {
+                          val rootLevel = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/capacity").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootLevel != null && rootLevel > 0) level = rootLevel
+                          
+                          val rootCurrent = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/current_now").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootCurrent != null) current = rootCurrent / 1000 // Convert uA to mA if needed, usually uA in sysfs
+
+                          val rootVoltage = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/voltage_now").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootVoltage != null) voltage = rootVoltage / 1000 // Convert uV to mV
+                          
+                          val rootTemp = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/temp").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootTemp != null) temp = rootTemp // Usually deciCelcius
+                          
+                          Log.d("BatteryInfoService", "Used Root Fallback: L=$level, C=$current, V=$voltage, T=$temp")
+                      } catch (e: Exception) {
+                          Log.e("BatteryInfoService", "Root fallback failed: ${e.message}")
+                      }
+                  }
+
+                  val isCharging = id.xms.xtrakernelmanager.domain.native.NativeLib.isCharging() ?: false
+                  val health = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryHealth() ?: "Unknown"
+
+                  // Update cache if valid read
+                  if (level != -1) cachedLevel = level
+                  cachedCurrent = current
+                  cachedVoltage = voltage
+                  cachedTemp = temp
+                  cachedIsCharging = isCharging
+                  cachedHealth = health
+                  
+                  refreshState()
+              }
+          } catch (e: Exception) {
+              Log.e("BatteryInfoService", "Error in native polling: ${e.message}")
+          }
+          
+          kotlinx.coroutines.delay(refreshRateMs)
+      }
+    }
   }
 }

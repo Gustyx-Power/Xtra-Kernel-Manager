@@ -194,8 +194,9 @@ private fun LegacyHomeContent(
     onSettingsClick: () -> Unit,
 ) {
   val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
-  
+  val isCompact =
+      dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+
   // Holiday Decoration (cached outside grid)
   val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
@@ -211,8 +212,8 @@ private fun LegacyHomeContent(
       Column(modifier = Modifier.padding(bottom = dimens.spacingTiny)) {
         // Holiday Ornament if active
         if (currentHolidayDecor != null) {
-            HolidayDecorationRow(holiday = currentHolidayDecor)
-            Spacer(modifier = Modifier.height(dimens.spacingMedium))
+          HolidayDecorationRow(holiday = currentHolidayDecor)
+          Spacer(modifier = Modifier.height(dimens.spacingMedium))
         }
 
         Row(

@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.xms.xtrakernelmanager.data.model.AppBatteryStats
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
@@ -26,7 +27,6 @@ class MiscViewModel(
     private val context: Context,
 ) : ViewModel() {
 
-  private val batteryRepository = BatteryRepository()
   private val gameControlUseCase = GameControlUseCase(context)
 
   private val _isRootAvailable = MutableStateFlow(false)
@@ -47,6 +47,37 @@ class MiscViewModel(
 
   private val _drainRate = MutableStateFlow("0%/h")
   val drainRate: StateFlow<String> = _drainRate.asStateFlow()
+
+  // Current Stats for Analytics
+  private val _minCurrent = MutableStateFlow(0)
+  val minCurrent: StateFlow<Int> = _minCurrent.asStateFlow()
+
+  private val _maxCurrent = MutableStateFlow(0)
+  val maxCurrent: StateFlow<Int> = _maxCurrent.asStateFlow()
+
+  private val _avgCurrent = MutableStateFlow(0)
+  val avgCurrent: StateFlow<Int> = _avgCurrent.asStateFlow()
+
+  private var currentSamples = 0
+  private var totalCurrent = 0L
+
+  private fun updateCurrentStats(current: Int) {
+      val absCurrent = kotlin.math.abs(current)
+      if (absCurrent == 0) return
+
+      if (_minCurrent.value == 0 || absCurrent < _minCurrent.value) {
+          _minCurrent.value = absCurrent
+      }
+      if (absCurrent > _maxCurrent.value) {
+          _maxCurrent.value = absCurrent
+      }
+
+      totalCurrent += absCurrent
+      currentSamples++
+      if (currentSamples > 0) {
+          _avgCurrent.value = (totalCurrent / currentSamples).toInt()
+      }
+  }
 
   private val _performanceMode = MutableStateFlow("balanced")
   val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
@@ -94,6 +125,13 @@ class MiscViewModel(
 
   private val _saturationApplyStatus = MutableStateFlow("")
   val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()
+
+  // App Battery Usage
+  private val _appBatteryUsage = MutableStateFlow<List<AppBatteryStats>>(emptyList())
+  val appBatteryUsage: StateFlow<List<AppBatteryStats>> = _appBatteryUsage.asStateFlow()
+
+  private val _isLoadingAppUsage = MutableStateFlow(false)
+  val isLoadingAppUsage: StateFlow<Boolean> = _isLoadingAppUsage.asStateFlow()
 
   // SELinux State
   private val _selinuxStatus = MutableStateFlow("Unknown")
@@ -161,20 +199,82 @@ class MiscViewModel(
 
   fun loadBatteryInfo(context: Context) {
     viewModelScope.launch {
-      _batteryInfo.value = batteryRepository.getBatteryInfo(context)
+      _batteryInfo.value = BatteryRepository.getBatteryInfo(context)
 
-      // Populate placeholders (Simulated for design)
-      _screenOnTime.value = "13h 17m"
-      _screenOffTime.value = "10h 27m"
-      _deepSleepTime.value = "4h 36m"
-      _drainRate.value = "-0.0%/h"
+      // Observe Realtime Stats
+      launch {
+          BatteryRepository.batteryState.collect { state ->
+              // Format times
+              _screenOnTime.value = formatTime(state.screenOnTime)
+              _screenOffTime.value = formatTime(state.screenOffTime)
+              _deepSleepTime.value = formatTime(state.deepSleepTime)
+               _drainRate.value = "%.1f%%/h".format(state.activeDrainRate)
+               
+               // Sync Realtime State to BatteryInfo for Analytics UI
+               _batteryInfo.value = _batteryInfo.value.copy(
+                   level = state.level,
+                   currentNow = state.currentNow,
+                   voltage = state.voltage,
+                   temperature = state.temp / 10f,
+                   status = if (state.isCharging) "Charging" else "Discharging"
+               )
+
+               // Update current stats
+               updateCurrentStats(state.currentNow)
+          }
+      }
+
+      // Load App Battery Usage
+      loadAppBatteryUsage(context)
     }
   }
 
-  fun setShowBatteryNotification(enabled: Boolean) {
+  private fun formatTime(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) {
+      "%dh %02dm".format(hours, minutes % 60)
+    } else {
+      "%dm".format(minutes)
+    }
+  }
+
+  fun loadAppBatteryUsage(context: Context) {
+    viewModelScope.launch {
+      _isLoadingAppUsage.value = true
+      try {
+        val stats =
+            id.xms.xtrakernelmanager.data.repository.AppBatteryRepository.getAppBatteryUsage(
+                context
+            )
+        _appBatteryUsage.value = stats
+      } catch (e: Exception) {
+        Log.e("MiscViewModel", "Failed to load app battery usage", e)
+        _appBatteryUsage.value = emptyList()
+      } finally {
+        _isLoadingAppUsage.value = false
+      }
+    }
+  }
+
+  fun setShowBatteryNotif(enabled: Boolean) {
     viewModelScope.launch {
       preferencesManager.setShowBatteryNotif(enabled)
       Log.d("MiscViewModel", "Battery notification: $enabled")
+      
+      if (enabled) {
+          try {
+              val intent = Intent(context, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java)
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                  context.startForegroundService(intent)
+              } else {
+                  context.startService(intent)
+              }
+          } catch (e: Exception) {
+              Log.e("MiscViewModel", "Failed to start BatteryInfoService: ${e.message}")
+          }
+      }
     }
   }
 
@@ -194,12 +294,12 @@ class MiscViewModel(
   val batteryNotifRefreshRate =
       preferencesManager
           .getBatteryNotifRefreshRate()
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5)
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1000L)
 
-  fun setBatteryNotifRefreshRate(seconds: Int) {
+  fun setBatteryNotifRefreshRate(ms: Long) {
     viewModelScope.launch {
-      preferencesManager.setBatteryNotifRefreshRate(seconds)
-      Log.d("MiscViewModel", "Battery notification refresh rate: $seconds")
+      preferencesManager.setBatteryNotifRefreshRate(ms)
+      Log.d("MiscViewModel", "Battery notification refresh rate set to: ${ms}ms")
     }
   }
 

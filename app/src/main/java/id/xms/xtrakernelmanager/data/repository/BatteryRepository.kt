@@ -5,23 +5,54 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
+import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 
-class BatteryRepository {
+// State for Real-time Monitor (Screen On/Off, Live Current) - Pushed by Service
+data class BatteryRealtimeState(
+    val level: Int = 0,
+    val isCharging: Boolean = false,
+    val temp: Int = 0,
+    val voltage: Int = 0,
+    val currentNow: Int = 0, // mA
+    val health: String = "Unknown",
+    val screenOnTime: Long = 0L,
+    val screenOffTime: Long = 0L,
+    val deepSleepTime: Long = 0L,
+    val activeDrainRate: Float = 0f,
+    val idleDrainRate: Float = 0f,
+    val totalCapacity: Int = 0,
+    val currentCapacity: Int = 0,
+)
 
-  companion object {
-    private const val DESIGN_CYCLES = 800f
-    private const val CYCLE_DEGRADATION_AT_DESIGN = 20f
-    private const val MAX_CYCLE_PENALTY = 35f
-    private const val CAPACITY_WEIGHT = 0.7f
-    private const val CYCLE_WEIGHT = 0.3f
+object BatteryRepository {
+
+  // Shared State for Material UI
+  private val _batteryState = MutableStateFlow(BatteryRealtimeState())
+  val batteryState: StateFlow<BatteryRealtimeState> = _batteryState.asStateFlow()
+
+  fun updateState(newState: BatteryRealtimeState) {
+    _batteryState.value = newState
   }
+
+  private const val DESIGN_CYCLES = 800f
+  private const val CYCLE_DEGRADATION_AT_DESIGN = 20f
+  private const val MAX_CYCLE_PENALTY = 35f
+  private const val CAPACITY_WEIGHT = 0.7f
+  private const val CYCLE_WEIGHT = 0.3f
 
   private var cachedTotalCapacity = 0
   private var cachedCurrentCapacity = 0
   private var cachedCycleCount = 0
+
+  fun getCachedTotalCapacity(): Int = cachedTotalCapacity
+
+  fun getCachedCurrentCapacity(): Int = cachedCurrentCapacity
 
   suspend fun getBatteryInfo(context: Context? = null): BatteryInfo =
       withContext(Dispatchers.IO) {
@@ -59,10 +90,8 @@ class BatteryRepository {
 
         // Cache capacity values (slow to read via Root, changes rarely)
         if (cachedTotalCapacity == 0 || cachedCurrentCapacity == 0) {
-          // Native first: Try using NativeLib for capacity (reads charge_full_design and
-          // charge_full internally)
-          val nativeCapacityLevel =
-              id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCapacityLevel()
+          // Native first
+          val nativeCapacityLevel = NativeLib.readBatteryCapacityLevel()
           if (nativeCapacityLevel != null && nativeCapacityLevel > 0f) {
             cachedTotalCapacity =
                 RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
@@ -96,7 +125,7 @@ class BatteryRepository {
 
           // Cycle count: Native first (fast), shell fallback
           cachedCycleCount =
-              id.xms.xtrakernelmanager.domain.native.NativeLib.readCycleCount()
+              NativeLib.readCycleCount()
                   ?: RootManager.readFile("/sys/class/power_supply/battery/cycle_count")
                       .getOrNull()
                       ?.trim()
@@ -105,7 +134,7 @@ class BatteryRepository {
         }
 
         // Current: Try fast NativeLib first, Fallback to RootManager
-        var currentNow = id.xms.xtrakernelmanager.domain.native.NativeLib.readDrainRate() ?: 0
+        var currentNow = NativeLib.readDrainRate() ?: 0
         if (currentNow == 0) {
           // Determine sign based on status
           val raw =
@@ -115,21 +144,15 @@ class BatteryRepository {
                   ?.toIntOrNull()
                   ?.div(1000) ?: 0 // uA -> mA
 
-          // Kernel conventions vary. Re-align with charging status.
           val isCharging = statusText == "Charging" || statusText == "Full"
-          currentNow =
-              if (isCharging) {
-                kotlin.math.abs(raw)
-              } else {
-                -kotlin.math.abs(raw)
-              }
+          currentNow = if (isCharging) kotlin.math.abs(raw) else -kotlin.math.abs(raw)
         }
 
         val capacityHealth =
             if (cachedTotalCapacity > 0 && cachedCurrentCapacity > 0) {
                   (cachedCurrentCapacity.toFloat() / cachedTotalCapacity.toFloat()) * 100f
                 } else {
-                  100f // Fallback if still 0
+                  100f
                 }
                 .coerceIn(0f, 100f)
 
@@ -138,24 +161,16 @@ class BatteryRepository {
               val normalizedCycles = (cachedCycleCount.toFloat() / DESIGN_CYCLES)
               val degradationFromCycles =
                   (normalizedCycles * CYCLE_DEGRADATION_AT_DESIGN).coerceAtMost(MAX_CYCLE_PENALTY)
-
               (100f - degradationFromCycles).coerceIn(0f, 100f)
             } else {
               100f
             }
 
-        // If we have actual capacity data, calculate combined health. Else show 0 or 100?
-        // User saw 0% because capacity was 0. If Root read fails, it will still be 0.
-        // But now we TRY to read it via Root.
-
         val combinedHealth =
             if (cachedTotalCapacity > 0) {
               (capacityHealth * CAPACITY_WEIGHT + cycleHealth * CYCLE_WEIGHT).coerceIn(0f, 100f)
             } else {
-              0f // Or 100f? If we can't read capacity, 0% is honest but scary.
-              // Previous code returned 100f if 0.
-              // But users prefer to see 0% "Unknown" than fake 100%.
-              // Let's stick to calculated logic. Use 0f if no data.
+              0f
             }
 
         BatteryInfo(

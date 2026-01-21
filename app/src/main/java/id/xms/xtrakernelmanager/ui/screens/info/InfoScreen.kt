@@ -290,11 +290,16 @@ private fun LegacyInfoScreen() {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
           // Contributors Carousel
-          val contributors = listOf(
-              Triple(R.drawable.team_contributor_pandu, "Ziyu", "🇮🇩"),
-              Triple(R.drawable.team_contributor_shimoku, "Shimoku", "🇺🇦"),
-              Triple(R.drawable.team_contributor_rio, R.string.team_contributor_rio to true, "🇮🇩"),
-          )
+          val contributors =
+              listOf(
+                  Triple(R.drawable.team_contributor_pandu, "Ziyu", "🇮🇩"),
+                  Triple(R.drawable.team_contributor_shimoku, "Shimoku", "🇺🇦"),
+                  Triple(
+                      R.drawable.team_contributor_rio,
+                      R.string.team_contributor_rio to true,
+                      "🇮🇩",
+                  ),
+              )
 
           val contributorPagerState = rememberPagerState(pageCount = { contributors.size })
 
@@ -304,10 +309,11 @@ private fun LegacyInfoScreen() {
               val nextPage = (contributorPagerState.currentPage + 1) % contributors.size
               contributorPagerState.animateScrollToPage(
                   page = nextPage,
-                  animationSpec = spring(
-                      dampingRatio = Spring.DampingRatioMediumBouncy,
-                      stiffness = Spring.StiffnessLow,
-                  ),
+                  animationSpec =
+                      spring(
+                          dampingRatio = Spring.DampingRatioMediumBouncy,
+                          stiffness = Spring.StiffnessLow,
+                      ),
               )
             }
           }
@@ -324,32 +330,46 @@ private fun LegacyInfoScreen() {
                 beyondViewportPageCount = 2,
             ) { page ->
               val (imageRes, nameData, country) = contributors[page]
-              val name = if (nameData is Pair<*, *>) {
-                @Suppress("UNCHECKED_CAST")
-                stringResource((nameData as Pair<Int, Boolean>).first)
-              } else {
-                nameData as String
-              }
+              val name =
+                  if (nameData is Pair<*, *>) {
+                    @Suppress("UNCHECKED_CAST")
+                    stringResource((nameData as Pair<Int, Boolean>).first)
+                  } else {
+                    nameData as String
+                  }
 
-              val pageOffset = (contributorPagerState.currentPage - page) + contributorPagerState.currentPageOffsetFraction
-              val scale by animateFloatAsState(
-                  targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.85f,
-                  animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-                  label = "scale",
-              )
-              val alpha by animateFloatAsState(
-                  targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.6f,
-                  animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
-                  label = "alpha",
-              )
+              val pageOffset =
+                  (contributorPagerState.currentPage - page) +
+                      contributorPagerState.currentPageOffsetFraction
+              val scale by
+                  animateFloatAsState(
+                      targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.85f,
+                      animationSpec =
+                          spring(
+                              dampingRatio = Spring.DampingRatioMediumBouncy,
+                              stiffness = Spring.StiffnessMedium,
+                          ),
+                      label = "scale",
+                  )
+              val alpha by
+                  animateFloatAsState(
+                      targetValue = if (kotlin.math.abs(pageOffset) < 0.5f) 1f else 0.6f,
+                      animationSpec =
+                          spring(
+                              dampingRatio = Spring.DampingRatioNoBouncy,
+                              stiffness = Spring.StiffnessMedium,
+                          ),
+                      label = "alpha",
+                  )
 
               Box(
-                  modifier = Modifier.graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    this.alpha = alpha
-                    rotationY = pageOffset * -5f
-                  },
+                  modifier =
+                      Modifier.graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        this.alpha = alpha
+                        rotationY = pageOffset * -5f
+                      },
                   contentAlignment = Alignment.Center,
               ) {
                 TeamMemberCard(
@@ -371,19 +391,24 @@ private fun LegacyInfoScreen() {
             ) {
               contributors.forEachIndexed { index, _ ->
                 val isSelected = contributorPagerState.currentPage == index
-                val indicatorSize by animateFloatAsState(
-                    targetValue = if (isSelected) 10f else 6f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-                    label = "indicator",
-                )
+                val indicatorSize by
+                    animateFloatAsState(
+                        targetValue = if (isSelected) 10f else 6f,
+                        animationSpec =
+                            spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium,
+                            ),
+                        label = "indicator",
+                    )
                 Box(
-                    modifier = Modifier
-                        .size(indicatorSize.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (isSelected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                        )
+                    modifier =
+                        Modifier.size(indicatorSize.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            )
                 )
               }
             }
@@ -428,16 +453,17 @@ private fun LegacyInfoScreen() {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
           // Testers Grid - 2 columns
-          val testers = listOf(
-              Triple(R.drawable.team_tester_achmad, R.string.team_tester_achmad, "🇮🇩"),
-              Triple(R.drawable.team_tester_hasan, R.string.team_tester_hasan, "🇮🇩"),
-              Triple(R.drawable.team_tester_reffan, R.string.team_tester_reffan, "🇮🇩"),
-              Triple(R.drawable.team_tester_wil, R.string.team_tester_wil, "🇮🇩"),
-              Triple(R.drawable.team_sm_tester, R.string.team_tester_shadow_monarch, "🇵🇰"),
-              Triple(R.drawable.team_tester_azhar, R.string.team_tester_azhar, "🇮🇩"),
-              Triple(R.drawable.team_tester_juni, R.string.team_tester_juni, "🇮🇩🇯🇵"),
-              Triple(R.drawable.team_tester_sleep, R.string.team_tester_sleep, "🇮🇩"),
-          )
+          val testers =
+              listOf(
+                  Triple(R.drawable.team_tester_achmad, R.string.team_tester_achmad, "🇮🇩"),
+                  Triple(R.drawable.team_tester_hasan, R.string.team_tester_hasan, "🇮🇩"),
+                  Triple(R.drawable.team_tester_reffan, R.string.team_tester_reffan, "🇮🇩"),
+                  Triple(R.drawable.team_tester_wil, R.string.team_tester_wil, "🇮🇩"),
+                  Triple(R.drawable.team_sm_tester, R.string.team_tester_shadow_monarch, "🇵🇰"),
+                  Triple(R.drawable.team_tester_azhar, R.string.team_tester_azhar, "🇮🇩"),
+                  Triple(R.drawable.team_tester_juni, R.string.team_tester_juni, "🇮🇩🇯🇵"),
+                  Triple(R.drawable.team_tester_sleep, R.string.team_tester_sleep, "🇮🇩"),
+              )
 
           Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             testers.chunked(2).forEach { rowTesters ->

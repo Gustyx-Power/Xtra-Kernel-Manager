@@ -250,12 +250,13 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
         exit = fadeOut() + scaleOut(targetScale = 1.5f),
     ) {
       val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-      val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
-      
+      val isCompact =
+          dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+
       val logoSize = if (isCompact) 100.dp else 140.dp
       val logoImageSize = if (isCompact) 65.dp else 90.dp
       val logoCornerRadius = if (isCompact) 24.dp else 36.dp
-      
+
       Column(
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.Center,
@@ -304,18 +305,23 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
             tonalElevation = 4.dp,
         ) {
           Column(
-              modifier = Modifier.padding(horizontal = dimens.cardPadding, vertical = dimens.spacingSmall),
+              modifier =
+                  Modifier.padding(horizontal = dimens.cardPadding, vertical = dimens.spacingSmall),
               horizontalAlignment = Alignment.CenterHorizontally,
           ) {
             Text(
                 text = "Xtra Kernel Manager",
-                style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
+                style =
+                    if (isCompact) MaterialTheme.typography.titleMedium
+                    else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             Text(
                 text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
-                style = if (isCompact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
+                style =
+                    if (isCompact) MaterialTheme.typography.labelSmall
+                    else MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
             )
           }
@@ -797,7 +803,7 @@ fun ModernLoader(isCompact: Boolean = false) {
   val primaryColor = MaterialTheme.colorScheme.primary
   val secondaryColor = MaterialTheme.colorScheme.secondary
   val tertiaryColor = MaterialTheme.colorScheme.tertiary
-  
+
   // Responsive sizes
   val boxSize = if (isCompact) 48.dp else 64.dp
   val outerRingSize = if (isCompact) 48.dp else 64.dp

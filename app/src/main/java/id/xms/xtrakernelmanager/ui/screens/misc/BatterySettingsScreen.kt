@@ -6,7 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -47,7 +47,7 @@ fun BatterySettingsScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
             },
             navigationIcon = {
               IconButton(onClick = onBack) {
-                Icon(imageVector = Icons.Rounded.ArrowBack, contentDescription = "Back")
+                Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
               }
             },
             colors =
@@ -70,12 +70,23 @@ fun BatterySettingsScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
       SettingsCategoryHeader(title = stringResource(R.string.battery_notif_category_title))
 
       SettingsGroupCard {
+        // Master Toggle
+        val isNotifEnabled by viewModel.showBatteryNotif.collectAsState(initial = true)
+        SettingsSwitchPreference(
+            title = stringResource(R.string.battery_notif_enable_title),
+            description = stringResource(R.string.battery_notif_enable_desc),
+            checked = isNotifEnabled,
+            onCheckedChange = { viewModel.setShowBatteryNotif(it) },
+        )
+      }
+
+      SettingsGroupCard {
         SettingsListPreference(
             title = stringResource(R.string.battery_notif_icon_type_title),
             currentValue = notifIconType,
             entries =
                 mapOf(
-                    "app_icon" to stringResource(R.string.battery_notif_icon_type_app_icon),
+                    "battery_icon" to stringResource(R.string.battery_notif_icon_type_app_icon),
                     "circle_percent" to
                         stringResource(R.string.battery_notif_icon_type_circle_percent),
                     "percent_only" to stringResource(R.string.battery_notif_icon_type_percent_only),
@@ -84,7 +95,6 @@ fun BatterySettingsScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
                     "current" to stringResource(R.string.battery_notif_icon_type_current),
                     "voltage" to stringResource(R.string.battery_notif_icon_type_voltage),
                     "power" to stringResource(R.string.battery_notif_icon_type_power),
-                    "transparent" to stringResource(R.string.battery_notif_icon_type_transparent),
                 ),
             onValueChange = { viewModel.setBatteryNotifIconType(it) },
         )
@@ -94,14 +104,12 @@ fun BatterySettingsScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
             currentValue = notifRefreshRate.toString(),
             entries =
                 mapOf(
-                    "1" to stringResource(R.string.battery_notif_refresh_rate_1s),
-                    "5" to stringResource(R.string.battery_notif_refresh_rate_5s),
-                    "10" to stringResource(R.string.battery_notif_refresh_rate_10s),
-                    "15" to stringResource(R.string.battery_notif_refresh_rate_15s),
-                    "30" to stringResource(R.string.battery_notif_refresh_rate_30s),
-                    "60" to stringResource(R.string.battery_notif_refresh_rate_1m),
+                    "500" to "0.5s",
+                    "1000" to "1s",
+                    "2000" to "2s",
+                    "5000" to "5s",
                 ),
-            onValueChange = { viewModel.setBatteryNotifRefreshRate(it.toInt()) },
+            onValueChange = { viewModel.setBatteryNotifRefreshRate(it.toLong()) },
         )
 
         SettingsSwitchPreference(
