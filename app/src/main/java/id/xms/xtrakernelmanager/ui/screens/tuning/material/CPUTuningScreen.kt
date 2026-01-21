@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.material
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize

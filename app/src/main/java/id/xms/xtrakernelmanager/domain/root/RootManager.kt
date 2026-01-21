@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.domain.root
 
 import android.util.Log
 import com.topjohnwu.superuser.Shell
+import id.xms.xtrakernelmanager.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -9,8 +10,24 @@ object RootManager {
 
   private const val TAG = "RootManager"
 
+  // Debug bypass untuk device tertentu (tambahkan model lain jika diperlukan)
+  private val DEBUG_BYPASS_DEVICES = setOf("I2219")
+
+  /**
+   * Check if current device is in debug bypass list.
+   * Only active in DEBUG builds.
+   */
+  fun isDebugBypassDevice(): Boolean {
+    return BuildConfig.DEBUG && android.os.Build.MODEL in DEBUG_BYPASS_DEVICES
+  }
+
   suspend fun isRootAvailable(): Boolean =
       withContext(Dispatchers.IO) {
+        // Bypass untuk debug device
+        if (isDebugBypassDevice()) {
+          Log.d(TAG, "Debug bypass active for device: ${android.os.Build.MODEL}")
+          return@withContext true
+        }
         val isRoot = Shell.getShell().isRoot
         Log.d(TAG, "Root available: $isRoot")
         isRoot

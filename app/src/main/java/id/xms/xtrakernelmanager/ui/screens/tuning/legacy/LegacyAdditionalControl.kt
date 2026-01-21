@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -25,7 +27,7 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
 @Composable
-fun AdditionalControlSection(viewModel: TuningViewModel) {
+fun LegacyAdditionalControl(viewModel: TuningViewModel) {
   val ioSchedulers by viewModel.availableIOSchedulers.collectAsState()
   val tcpCongestion by viewModel.availableTCPCongestion.collectAsState()
 

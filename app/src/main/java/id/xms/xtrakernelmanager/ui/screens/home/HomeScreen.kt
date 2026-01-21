@@ -183,10 +183,7 @@ fun HomeScreen(
   }
 }
 
-/**
- * Legacy Home Content - Playful DevCheck-like UI All cards always visible, colorful design, no
- * dropdowns
- */
+
 @SuppressLint("DefaultLocale")
 @Composable
 private fun LegacyHomeContent(
@@ -206,7 +203,7 @@ private fun LegacyHomeContent(
   LazyVerticalStaggeredGrid(
       columns = StaggeredGridCells.Fixed(2),
       modifier = Modifier.fillMaxSize().padding(horizontal = dimens.screenHorizontalPadding),
-      contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 80.dp),
+      contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 120.dp),
       horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
       verticalItemSpacing = dimens.spacingMedium,
   ) {
@@ -225,19 +222,24 @@ private fun LegacyHomeContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
           Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                  text = "Xtra Kernel ",
+                  style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
+                  fontWeight = FontWeight.ExtraBold,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              Text(
+                  text = "Manager",
+                  style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
+                  fontWeight = FontWeight.ExtraBold,
+                  color = MaterialTheme.colorScheme.primary,
+              )
+            }
             Text(
-                text = "Xtra Kernel Manager",
-                style =
-                    if (isCompact) MaterialTheme.typography.titleMedium
-                    else MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = "v${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_DATE}",
+                text = "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, 
             )
           }
 
@@ -260,31 +262,26 @@ private fun LegacyHomeContent(
       }
     }
 
-    // --- CPU CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulCPUCard(cpuInfo = cpuInfo)
+    
+    item {
+      id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(cpuInfo = cpuInfo)
     }
-
-    // --- GPU CARD (Full Width) ---
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulGPUCard(gpuInfo = gpuInfo)
+    item {
+      id.xms.xtrakernelmanager.ui.screens.home.components.CompactGPUFreqCard(gpuInfo = gpuInfo)
     }
-
-    // --- BATTERY CARD (Full Width) ---
     item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulBatteryCard(
+      id.xms.xtrakernelmanager.ui.screens.home.components.CoreStatusCard(cpuInfo = cpuInfo)
+    }
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedBatteryCard(
           batteryInfo = batteryInfo
       )
     }
-
-    // --- MEMORY & STORAGE CARD (Full Width) ---
     item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulMemoryCard(systemInfo = systemInfo)
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(systemInfo = systemInfo)
     }
-
-    // --- SYSTEM INFO CARD (Full Width) ---
     item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.PlayfulSystemCard(systemInfo = systemInfo)
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(systemInfo = systemInfo)
     }
   }
 }

@@ -1,9 +1,9 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.material
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +29,7 @@ fun WavyCircularProgressIndicator(
     amplitude: Dp = 4.dp, // Height of the wave
     frequency: Int = 12, // Number of waves around the circle
     text: String? = null,
+    subtext: String? = null,
 ) {
   Box(modifier = modifier, contentAlignment = Alignment.Center) {
     Canvas(modifier = Modifier.fillMaxSize()) {
@@ -79,13 +80,22 @@ fun WavyCircularProgressIndicator(
       }
     }
 
-    if (text != null) {
-      Text(
-          text = text,
-          style = MaterialTheme.typography.titleLarge,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      if (text != null) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+      }
+      if (subtext != null) {
+        Text(
+            text = subtext,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+      }
     }
   }
 }

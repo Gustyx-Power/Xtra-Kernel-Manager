@@ -233,6 +233,15 @@ jobs:
           cp keystore-repo/Keystore-XKM/xkm-release-key.jks $GITHUB_WORKSPACE/release.keystore
           ls -lh $GITHUB_WORKSPACE/release.keystore
 
+      - name: Print Keystore SHA1
+        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        run: |
+          keytool -list -v \
+            -keystore $GITHUB_WORKSPACE/release.keystore \
+            -alias ${{ secrets.KEY_ALIAS }} \
+            -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
+            -keypass ${{ secrets.KEY_PASSWORD }}
+
       - name: Build Signed Release APK
         if: inputs.build_type == 'release' && inputs.sign_apk == true
         run: |

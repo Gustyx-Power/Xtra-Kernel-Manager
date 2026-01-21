@@ -385,6 +385,14 @@ fun SplashScreenContent(onNavigateToMain: () -> Unit) {
 private suspend fun checkRootAccess(): Boolean =
     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
       try {
+        // Check debug bypass first
+        val model = android.os.Build.MODEL
+        val isDebugBuild = BuildConfig.DEBUG
+        if (isDebugBuild && model == "I2219") {
+            Log.d("RootCheck", "Debug bypass active for Vivo I2219")
+            return@withContext true
+        }
+
         // Use libsu Shell which properly handles Magisk 28+ root requests
         val shell = com.topjohnwu.superuser.Shell.getShell()
         val isRoot = shell.isRoot
