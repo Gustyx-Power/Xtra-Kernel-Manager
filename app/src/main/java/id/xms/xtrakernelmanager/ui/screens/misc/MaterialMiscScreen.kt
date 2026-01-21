@@ -211,24 +211,26 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
   val screenOnTime by viewModel.screenOnTime.collectAsState()
   val screenOffTime by viewModel.screenOffTime.collectAsState()
   val deepSleepTime by viewModel.deepSleepTime.collectAsState()
+  val drainRate by viewModel.drainRate.collectAsState()
 
   // Use mock values if empty for preview, or actual values
   val displayTime = if (screenOnTime.isNotEmpty()) screenOnTime else "13h 17m"
   val offTime = if (screenOffTime.isNotEmpty()) screenOffTime else "10h 27m"
   val sleepTime = if (deepSleepTime.isNotEmpty()) deepSleepTime else "4h 36m"
+  val drain = if (drainRate.isNotEmpty()) drainRate else "0.0%/h"
 
   Card(
-      modifier = Modifier.fillMaxWidth().height(240.dp),
+      modifier = Modifier.fillMaxWidth().height(300.dp), // Increased height to fit content comfortably
       shape = RoundedCornerShape(32.dp),
       colors =
           CardDefaults.cardColors(
               containerColor = Color(0xFF1E1E24)
-          ), // Darker background like reference
+          ),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
       onClick = onClick,
   ) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-      Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+      Column(verticalArrangement = Arrangement.spacedBy(20.dp)) { // Increased spacing to fill vertical space
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -239,12 +241,21 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
               verticalAlignment = Alignment.CenterVertically,
               horizontalArrangement = Arrangement.spacedBy(12.dp),
           ) {
-            Icon(
-                imageVector = Icons.Rounded.AccessTime,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp),
-            )
+            // Icon Badge
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                modifier = Modifier.size(42.dp),
+            ) {
+              Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Rounded.AccessTime,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(22.dp),
+                )
+              }
+            }
             Text(
                 text = "Power Insight",
                 style = MaterialTheme.typography.titleMedium,
@@ -274,13 +285,13 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
         // Content (Progress + Stats)
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween, // Push contents apart
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
           // Left: Wavy Progress
-          Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) {
+          Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) { // Restored to 160.dp for better fill
             id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
-                progress = 0.75f, // Placeholder
+                progress = batteryInfo.level / 100f,
                 modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.primaryContainer,
                 trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f),
@@ -288,23 +299,31 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
                 amplitude = 5.dp,
                 frequency = 8,
             )
-            Text(
-                text = displayTime,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "${batteryInfo.level}%",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "Battery",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
           }
 
           // Right: Stats Column
           Column(
-              verticalArrangement = Arrangement.spacedBy(16.dp),
-              horizontalAlignment = Alignment.Start, // Text alignment within column
-              modifier = Modifier.padding(end = 24.dp), // Shifted left by increasing end padding
+              verticalArrangement = Arrangement.spacedBy(16.dp), // Increased back to 16.dp
+              horizontalAlignment = Alignment.Start,
+              modifier = Modifier.padding(end = 16.dp),
           ) {
             InsightStatRow(icon = Icons.Rounded.WbSunny, value = displayTime, label = "Screen On")
             InsightStatRow(icon = Icons.Rounded.Smartphone, value = offTime, label = "Screen Off")
             InsightStatRow(icon = Icons.Rounded.NightsStay, value = sleepTime, label = "Deep Sleep")
+            InsightStatRow(icon = Icons.Rounded.Bolt, value = drain, label = "Drain Rate")
           }
         }
       }
@@ -322,22 +341,22 @@ fun InsightStatRow(icon: ImageVector, value: String, label: String) {
         imageVector = icon,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-        modifier = Modifier.size(24.dp), // Slightly larger icon for balance
+        modifier = Modifier.size(24.dp),
     )
     Column {
       Text(
           text = value,
-          style = MaterialTheme.typography.bodyLarge,
+          style = MaterialTheme.typography.bodyLarge, // Restored to bodyLarge
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.onSurface,
       )
       Text(
           text = label,
-          style = MaterialTheme.typography.labelSmall, // Smaller clean font
+          style = MaterialTheme.typography.labelSmall,
           color =
               MaterialTheme.colorScheme.onSurfaceVariant.copy(
                   alpha = 0.7f
-              ), // Slightly clearer hierarchy
+              ),
       )
     }
   }

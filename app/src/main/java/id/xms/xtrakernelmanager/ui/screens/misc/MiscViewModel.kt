@@ -170,14 +170,30 @@ class MiscViewModel(
     viewModelScope.launch {
       _batteryInfo.value = BatteryRepository.getBatteryInfo(context)
 
-      // Populate placeholders (Simulated for design)
-      _screenOnTime.value = "13h 17m"
-      _screenOffTime.value = "10h 27m"
-      _deepSleepTime.value = "4h 36m"
-      _drainRate.value = "-0.0%/h"
+      // Observe Realtime Stats
+      launch {
+          BatteryRepository.batteryState.collect { state ->
+              // Format times
+              _screenOnTime.value = formatTime(state.screenOnTime)
+              _screenOffTime.value = formatTime(state.screenOffTime)
+              _deepSleepTime.value = formatTime(state.deepSleepTime)
+               _drainRate.value = "%.1f%%/h".format(state.activeDrainRate)
+          }
+      }
 
       // Load App Battery Usage
       loadAppBatteryUsage(context)
+    }
+  }
+
+  private fun formatTime(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) {
+      "%dh %02dm".format(hours, minutes % 60)
+    } else {
+      "%dm".format(minutes)
     }
   }
 
