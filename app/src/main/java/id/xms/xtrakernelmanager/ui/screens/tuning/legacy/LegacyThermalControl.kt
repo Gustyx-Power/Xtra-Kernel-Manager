@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -27,7 +29,7 @@ import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThermalControlSection(viewModel: TuningViewModel) {
+fun LegacyThermalControl(viewModel: TuningViewModel) {
   val prefsThermal by
       viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
   val prefsOnBoot by

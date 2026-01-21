@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -27,7 +29,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GPUControlSection(viewModel: TuningViewModel) {
+fun LegacyGPUControl(viewModel: TuningViewModel) {
   val isMediatek by viewModel.isMediatek.collectAsState()
   val gpuInfo by viewModel.gpuInfo.collectAsState()
   val coroutineScope = rememberCoroutineScope()

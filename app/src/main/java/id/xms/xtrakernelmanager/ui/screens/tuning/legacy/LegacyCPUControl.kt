@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -30,7 +32,7 @@ import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CPUControlSection(viewModel: TuningViewModel) {
+fun LegacyCPUControl(viewModel: TuningViewModel) {
   val clusters by viewModel.cpuClusters.collectAsState()
   val clusterStates by viewModel.clusterStates.collectAsState()
   var expanded by remember { mutableStateOf(true) }
