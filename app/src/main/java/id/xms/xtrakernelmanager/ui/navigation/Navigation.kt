@@ -32,8 +32,8 @@ import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.CPUTuningScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.MemoryTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.utils.Holiday
