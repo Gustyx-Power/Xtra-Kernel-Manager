@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
 
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent

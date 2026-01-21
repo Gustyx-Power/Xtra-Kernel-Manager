@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.material
 
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -29,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

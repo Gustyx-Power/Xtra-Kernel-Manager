@@ -11,8 +11,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,16 +29,15 @@ import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsSc
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
+import id.xms.xtrakernelmanager.ui.screens.misc.MaterialGameAppSelectorScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
-import id.xms.xtrakernelmanager.ui.screens.misc.MaterialGameAppSelectorScreen
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.components.CPUSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.components.CPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -162,109 +161,107 @@ fun Navigation(preferencesManager: PreferencesManager) {
               }
           )
         }
-      composable("home") { HomeScreen(preferencesManager = preferencesManager) }
-      composable("tuning") {
-        TuningScreen(
-            preferencesManager = preferencesManager,
-            onNavigate = { route -> navController.navigate(route) },
-        )
-      }
-      composable("legacy_cpu_settings") {
+        composable("home") { HomeScreen(preferencesManager = preferencesManager) }
+        composable("tuning") {
+          TuningScreen(
+              preferencesManager = preferencesManager,
+              onNavigate = { route -> navController.navigate(route) },
+          )
+        }
+        composable("legacy_cpu_settings") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
           CPUSettingsScreen(
               viewModel = tuningViewModel,
-              onNavigateBack = { navController.popBackStack() }
-          )
-      }
-      composable("cpu_tuning") {
-        val factory = TuningViewModel.Factory(preferencesManager)
-        val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-        CPUTuningScreen(
-            viewModel = tuningViewModel,
-            onNavigateBack = { navController.popBackStack() },
-        )
-      }
-      composable("memory_tuning") {
-        val factory = TuningViewModel.Factory(preferencesManager)
-        val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-        MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
-      }
-      composable("app_picker") {
-        val context = LocalContext.current
-        val miscViewModel = remember {
-          MiscViewModel(
-              preferencesManager = preferencesManager,
-              context = context.applicationContext,
+              onNavigateBack = { navController.popBackStack() },
           )
         }
-        MaterialGameAppSelectorScreen(
-            viewModel = miscViewModel,
-            onBack = { navController.popBackStack() }
-        )
-      }
-      composable("profiles") {
-        val context = LocalContext.current
-        val miscViewModel = remember {
-          MiscViewModel(
-              preferencesManager = preferencesManager,
-              context = context.applicationContext,
+        composable("cpu_tuning") {
+          val factory = TuningViewModel.Factory(preferencesManager)
+          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+          CPUTuningScreen(
+              viewModel = tuningViewModel,
+              onNavigateBack = { navController.popBackStack() },
           )
         }
-        MiscScreen(
-            viewModel = miscViewModel,
-            onNavigateToFunctionalRom = { navController.navigate("functionalrom") },
-            onNavigateToAppPicker = { navController.navigate("app_picker") }
-        )
-      }
-
-      composable("functionalrom") {
-        val context = LocalContext.current
-        val functionalRomViewModel = remember {
-          FunctionalRomViewModel(
-              preferencesManager = preferencesManager,
-              context = context.applicationContext,
+        composable("memory_tuning") {
+          val factory = TuningViewModel.Factory(preferencesManager)
+          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+          MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
+        }
+        composable("app_picker") {
+          val context = LocalContext.current
+          val miscViewModel = remember {
+            MiscViewModel(
+                preferencesManager = preferencesManager,
+                context = context.applicationContext,
+            )
+          }
+          MaterialGameAppSelectorScreen(
+              viewModel = miscViewModel,
+              onBack = { navController.popBackStack() },
           )
         }
-        FunctionalRomScreen(
-            onNavigateBack = { navController.popBackStack() },
-            onNavigateToPlayIntegrity = { navController.navigate("playintegritysettings") },
-            onNavigateToXiaomiTouch = { navController.navigate("xiaomitouchsettings") },
-            viewModel = functionalRomViewModel,
-        )
-      }
+        composable("profiles") {
+          val context = LocalContext.current
+          val miscViewModel = remember {
+            MiscViewModel(
+                preferencesManager = preferencesManager,
+                context = context.applicationContext,
+            )
+          }
+          MiscScreen(
+              viewModel = miscViewModel,
+              onNavigateToFunctionalRom = { navController.navigate("functionalrom") },
+              onNavigateToAppPicker = { navController.navigate("app_picker") },
+          )
+        }
 
-      composable("playintegritysettings") {
-        PlayIntegritySettingsScreen(onNavigateBack = { navController.popBackStack() })
-      }
+        composable("functionalrom") {
+          val context = LocalContext.current
+          val functionalRomViewModel = remember {
+            FunctionalRomViewModel(
+                preferencesManager = preferencesManager,
+                context = context.applicationContext,
+            )
+          }
+          FunctionalRomScreen(
+              onNavigateBack = { navController.popBackStack() },
+              onNavigateToPlayIntegrity = { navController.navigate("playintegritysettings") },
+              onNavigateToXiaomiTouch = { navController.navigate("xiaomitouchsettings") },
+              viewModel = functionalRomViewModel,
+          )
+        }
 
-      composable("xiaomitouchsettings") {
-        XiaomiTouchSettingsScreen(onNavigateBack = { navController.popBackStack() })
-      }
+        composable("playintegritysettings") {
+          PlayIntegritySettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
 
-      composable("info") { InfoScreen(preferencesManager) }
+        composable("xiaomitouchsettings") {
+          XiaomiTouchSettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable("info") { InfoScreen(preferencesManager) }
+      }
+    }
+
+    // Floating Bottom Dock
+    if (currentRoute != "setup") {
+      ModernBottomBar(
+          currentRoute = currentRoute,
+          onNavigate = { route ->
+            if (currentRoute != route) {
+              navController.navigate(route) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+              }
+            }
+          },
+          items = bottomNavItems,
+          modifier =
+              Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 24.dp),
+      )
     }
   }
-
-  // Floating Bottom Dock
-  if (currentRoute != "setup") {
-    ModernBottomBar(
-        currentRoute = currentRoute,
-        onNavigate = { route ->
-          if (currentRoute != route) {
-            navController.navigate(route) {
-              popUpTo(navController.graph.startDestinationId) { saveState = true }
-              launchSingleTop = true
-              restoreState = true
-            }
-          }
-        },
-        items = bottomNavItems,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .navigationBarsPadding()
-            .padding(bottom = 24.dp)
-    )
-  }
-}
 }

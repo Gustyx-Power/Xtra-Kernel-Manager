@@ -183,7 +183,6 @@ fun HomeScreen(
   }
 }
 
-
 @SuppressLint("DefaultLocale")
 @Composable
 private fun LegacyHomeContent(
@@ -225,13 +224,17 @@ private fun LegacyHomeContent(
             Row(verticalAlignment = Alignment.CenterVertically) {
               Text(
                   text = "Xtra Kernel ",
-                  style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
+                  style =
+                      if (isCompact) MaterialTheme.typography.titleMedium
+                      else MaterialTheme.typography.headlineSmall,
                   fontWeight = FontWeight.ExtraBold,
                   color = MaterialTheme.colorScheme.onSurface,
               )
               Text(
                   text = "Manager",
-                  style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
+                  style =
+                      if (isCompact) MaterialTheme.typography.titleMedium
+                      else MaterialTheme.typography.headlineSmall,
                   fontWeight = FontWeight.ExtraBold,
                   color = MaterialTheme.colorScheme.primary,
               )
@@ -239,7 +242,7 @@ private fun LegacyHomeContent(
             Text(
                 text = "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
           }
 
@@ -262,7 +265,6 @@ private fun LegacyHomeContent(
       }
     }
 
-    
     item {
       id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(cpuInfo = cpuInfo)
     }
@@ -278,10 +280,14 @@ private fun LegacyHomeContent(
       )
     }
     item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(systemInfo = systemInfo)
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(
+          systemInfo = systemInfo
+      )
     }
     item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(systemInfo = systemInfo)
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(
+          systemInfo = systemInfo
+      )
     }
   }
 }

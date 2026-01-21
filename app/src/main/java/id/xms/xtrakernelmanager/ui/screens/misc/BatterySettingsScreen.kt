@@ -47,7 +47,10 @@ fun BatterySettingsScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
             },
             navigationIcon = {
               IconButton(onClick = onBack) {
-                Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back",
+                )
               }
             },
             colors =

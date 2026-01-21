@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
 
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -30,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)

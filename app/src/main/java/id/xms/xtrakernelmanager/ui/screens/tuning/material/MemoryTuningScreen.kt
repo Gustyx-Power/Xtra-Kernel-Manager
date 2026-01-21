@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.material
 
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -36,6 +34,7 @@ import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.domain.usecase.RAMControlUseCase
 import id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator
 import id.xms.xtrakernelmanager.ui.components.WavySlider
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

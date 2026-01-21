@@ -1,7 +1,6 @@
 package id.xms.xtrakernelmanager.ui.screens.misc.section
 
 import android.Manifest
-import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,7 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import id.xms.xtrakernelmanager.R
-import id.xms.xtrakernelmanager.service.BatteryInfoService
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
@@ -85,10 +83,7 @@ fun BatteryInfoSection(viewModel: MiscViewModel) {
 
         LottieSwitchControlled(
             checked = showBatteryNotif,
-            onCheckedChange = { checked ->
-              viewModel.setShowBatteryNotif(checked)
-            },
-
+            onCheckedChange = { checked -> viewModel.setShowBatteryNotif(checked) },
             width = 80.dp,
             height = 40.dp,
             scale = 2.2f,

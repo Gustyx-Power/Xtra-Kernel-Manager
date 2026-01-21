@@ -25,9 +25,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import java.lang.Math.PI
 import java.lang.Math.sin
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
 fun ExpandableGPUCard(viewModel: TuningViewModel) {

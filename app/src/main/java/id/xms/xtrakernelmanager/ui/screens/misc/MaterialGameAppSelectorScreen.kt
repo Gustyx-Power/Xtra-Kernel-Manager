@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.ui.screens.misc
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,14 +15,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.foundation.Image
 import id.xms.xtrakernelmanager.data.model.AppInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,9 +39,9 @@ fun MaterialGameAppSelectorScreen(
 
   // Load apps on enter
   LaunchedEffect(Unit) {
-      if (installedApps.isEmpty()) {
-          viewModel.loadInstalledApps()
-      }
+    if (installedApps.isEmpty()) {
+      viewModel.loadInstalledApps()
+    }
   }
 
   val filteredApps =
@@ -65,8 +64,7 @@ fun MaterialGameAppSelectorScreen(
             }
 
         filteredByMode.sortedWith(
-            compareByDescending<AppInfo> { viewModel.isGameApp(it.packageName) }
-                .thenBy { it.label }
+            compareByDescending<AppInfo> { viewModel.isGameApp(it.packageName) }.thenBy { it.label }
         )
       }
 
@@ -168,27 +166,27 @@ fun MaterialGameAppSelectorScreen(
       }
 
       if (isLoading) {
-          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-              CircularProgressIndicator()
-          }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+          CircularProgressIndicator()
+        }
       } else {
-          LazyColumn(
-              modifier = Modifier.fillMaxSize(),
-              contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-              verticalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            items(filteredApps, key = { it.packageName }) { app: AppInfo ->
-              val isGame = viewModel.isGameApp(app.packageName)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+          items(filteredApps, key = { it.packageName }) { app: AppInfo ->
+            val isGame = viewModel.isGameApp(app.packageName)
 
-              GameAppItem(
-                  app = app,
-                  isAdded = isGame,
-                  onToggle = { viewModel.toggleGameApp(app.packageName) },
-              )
-            }
-
-            item { Spacer(modifier = Modifier.height(80.dp)) }
+            GameAppItem(
+                app = app,
+                isAdded = isGame,
+                onToggle = { viewModel.toggleGameApp(app.packageName) },
+            )
           }
+
+          item { Spacer(modifier = Modifier.height(80.dp)) }
+        }
       }
     }
   }
@@ -223,21 +221,21 @@ fun GameAppItem(app: AppInfo, isAdded: Boolean, onToggle: () -> Unit) {
     ) {
       // App icon
       if (app.icon != null) {
-          Image(
-              bitmap = app.icon.toBitmap().asImageBitmap(),
-              contentDescription = app.label,
-              modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.large)
-          )
+        Image(
+            bitmap = app.icon.toBitmap().asImageBitmap(),
+            contentDescription = app.label,
+            modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.large),
+        )
       } else {
-          Box(
-              modifier =
-                  Modifier.size(56.dp)
-                      .clip(MaterialTheme.shapes.large)
-                      .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-              contentAlignment = Alignment.Center,
-          ) {
-              Icon(Icons.Rounded.Android, null)
-          }
+        Box(
+            modifier =
+                Modifier.size(56.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(Icons.Rounded.Android, null)
+        }
       }
 
       // App info
@@ -262,4 +260,3 @@ fun GameAppItem(app: AppInfo, isAdded: Boolean, onToggle: () -> Unit) {
     }
   }
 }
-

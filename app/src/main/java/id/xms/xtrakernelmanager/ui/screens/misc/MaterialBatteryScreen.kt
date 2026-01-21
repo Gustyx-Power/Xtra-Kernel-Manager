@@ -90,14 +90,15 @@ fun MaterialBatteryScreen(
           val screenOffTime by viewModel.screenOffTime.collectAsState()
           val deepSleepTime by viewModel.deepSleepTime.collectAsState()
           val batteryInfo by viewModel.batteryInfo.collectAsState()
-          
+
           Box(modifier = Modifier.weight(1f)) {
             CurrentSessionCard(
                 onClick = onCurrentSessionClick,
                 screenOnTime = screenOnTime,
                 screenOffTime = screenOffTime,
                 deepSleepTime = deepSleepTime,
-                chargedInfo = "${batteryInfo.level}% • ${kotlin.math.abs(batteryInfo.currentNow)} mA"
+                chargedInfo =
+                    "${batteryInfo.level}% • ${kotlin.math.abs(batteryInfo.currentNow)} mA",
             )
           }
         }

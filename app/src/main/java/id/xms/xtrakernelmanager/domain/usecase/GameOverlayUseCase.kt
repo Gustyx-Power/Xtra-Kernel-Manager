@@ -1,13 +1,12 @@
 package id.xms.xtrakernelmanager.domain.usecase
 
+import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import java.io.File
 
-import id.xms.xtrakernelmanager.domain.native.NativeLib
-
 class GameOverlayUseCase {
   private val rootManager = RootManager
-  
+
   private var lastTotal: Long = 0
   private var lastIdle: Long = 0
 
@@ -65,11 +64,12 @@ class GameOverlayUseCase {
       val diffTotal = total - lastTotal
       val diffIdle = idle - lastIdle
 
-      val load = if (diffTotal > 0 && lastTotal > 0) {
-          ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat()) * 100f
-      } else {
-          0f
-      }
+      val load =
+          if (diffTotal > 0 && lastTotal > 0) {
+            ((diffTotal - diffIdle).toFloat() / diffTotal.toFloat()) * 100f
+          } else {
+            0f
+          }
 
       lastTotal = total
       lastIdle = idle
@@ -82,11 +82,11 @@ class GameOverlayUseCase {
   }
 
   suspend fun getGPULoad(): Float {
-      // 1. Try Native JNI first (Faster)
-      val nativeBusy = NativeLib.readGpuBusy()
-      if (nativeBusy != null && nativeBusy > 0) {
-          return nativeBusy.toFloat()
-      }
+    // 1. Try Native JNI first (Faster)
+    val nativeBusy = NativeLib.readGpuBusy()
+    if (nativeBusy != null && nativeBusy > 0) {
+      return nativeBusy.toFloat()
+    }
 
     // 2. Fallback: Berbagai path GPU untuk berbagai chipset
     val gpuPaths =

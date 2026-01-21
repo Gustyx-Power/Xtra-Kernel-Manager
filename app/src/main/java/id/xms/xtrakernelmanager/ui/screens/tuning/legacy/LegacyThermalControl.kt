@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
 
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -26,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

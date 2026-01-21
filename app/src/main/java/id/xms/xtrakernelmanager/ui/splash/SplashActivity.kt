@@ -389,8 +389,8 @@ private suspend fun checkRootAccess(): Boolean =
         val model = android.os.Build.MODEL
         val isDebugBuild = BuildConfig.DEBUG
         if (isDebugBuild && model == "I2219") {
-            Log.d("RootCheck", "Debug bypass active for Vivo I2219")
-            return@withContext true
+          Log.d("RootCheck", "Debug bypass active for Vivo I2219")
+          return@withContext true
         }
 
         // Use libsu Shell which properly handles Magisk 28+ root requests

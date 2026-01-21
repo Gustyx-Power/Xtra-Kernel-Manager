@@ -26,7 +26,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.section.GameControlSection
 fun MiscScreen(
     viewModel: MiscViewModel,
     onNavigateToFunctionalRom: () -> Unit = {},
-    onNavigateToAppPicker: () -> Unit = {}
+    onNavigateToAppPicker: () -> Unit = {},
 ) {
   // Collect Layout Style Preference
   val layoutStyle by viewModel.layoutStyle.collectAsState()

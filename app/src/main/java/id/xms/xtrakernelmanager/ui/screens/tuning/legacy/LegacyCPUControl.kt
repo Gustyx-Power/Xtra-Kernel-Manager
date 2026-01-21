@@ -3,8 +3,8 @@ package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,16 +19,10 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
-fun LegacyCPUControl(
-    viewModel: TuningViewModel,
-    onClick: () -> Unit
-) {
+fun LegacyCPUControl(viewModel: TuningViewModel, onClick: () -> Unit) {
   val clusters by viewModel.cpuClusters.collectAsState()
 
-  GlassmorphicCard(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-      onClick = onClick
-  ) {
+  GlassmorphicCard(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), onClick = onClick) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -37,12 +31,12 @@ fun LegacyCPUControl(
       Row(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
-          modifier = Modifier.weight(1f)
+          modifier = Modifier.weight(1f),
       ) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
         ) {
           Box(contentAlignment = Alignment.Center) {
             Icon(
@@ -71,7 +65,7 @@ fun LegacyCPUControl(
       Icon(
           imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
           contentDescription = null,
-          tint = MaterialTheme.colorScheme.onSurfaceVariant
+          tint = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }
   }
