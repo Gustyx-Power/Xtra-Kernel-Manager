@@ -28,7 +28,8 @@ fun LegacyTuningScreen(
     isLoading: Boolean,
     detectionTimeoutReached: Boolean,
     onExportClick: () -> Unit,
-    onImportClick: () -> Unit
+    onImportClick: () -> Unit,
+    onNavigate: (String) -> Unit
 ) {
     val cpuClusters by viewModel.cpuClusters.collectAsState()
 
@@ -153,7 +154,12 @@ fun LegacyTuningScreen(
             }
         } else {
             if (cpuClusters.isNotEmpty()) {
-                item { LegacyCPUControl(viewModel = viewModel) }
+                item { 
+                    LegacyCPUControl(
+                        viewModel = viewModel,
+                        onClick = { onNavigate("legacy_cpu_settings") }
+                    ) 
+                }
             }
             item { LegacyGPUControl(viewModel = viewModel) }
             item { LegacyThermalControl(viewModel = viewModel) }

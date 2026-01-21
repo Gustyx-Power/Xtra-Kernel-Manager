@@ -151,7 +151,8 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           isLoading = isLoading,
           detectionTimeoutReached = detectionTimeoutReached,
           onExportClick = { showExportDialog = true },
-          onImportClick = { showImportDialog = true }
+          onImportClick = { showImportDialog = true },
+          onNavigate = onNavigate
       )
     }
 
