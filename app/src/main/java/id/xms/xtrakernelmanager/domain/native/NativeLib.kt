@@ -146,6 +146,15 @@ object NativeLib {
     }
   }
 
+  fun resetGpuStats() {
+    if (!isLoaded) return
+    try {
+      resetGpuStatsNative()
+    } catch (e: Exception) {
+      Log.e(TAG, "Native resetGpuStats failed: ${e.message}")
+    }
+  }
+
   /** Read battery level percentage (0-100) */
   fun readBatteryLevel(): Int? {
     if (!isLoaded) return null
@@ -195,7 +204,7 @@ object NativeLib {
   fun isCharging(): Boolean? {
     if (!isLoaded) return null
     return try {
-      isChargingNative()
+      isChargingNative() == 1
     } catch (e: Exception) {
       Log.e(TAG, "Native isCharging failed: ${e.message}")
       null
@@ -295,6 +304,8 @@ object NativeLib {
 
   private external fun readGpuBusyNative(): Int
 
+  private external fun resetGpuStatsNative()
+
   // Power Module
   private external fun readBatteryLevelNative(): Int
 
@@ -304,7 +315,7 @@ object NativeLib {
 
   private external fun readSuspendCountNative(): Int
 
-  private external fun isChargingNative(): Boolean
+  private external fun isChargingNative(): Int
 
   private external fun readBatteryTempNative(): Int
 
@@ -550,6 +561,69 @@ object NativeLib {
     } catch (e: Exception) {
       Log.e(TAG, "Native getZramOrigDataSize failed: ${e.message}")
       null
+    }
+  }
+
+  /** Get available ZRAM compression algorithms */
+  fun getAvailableZramAlgorithms(): List<String>? {
+    if (!isLoaded) return null
+    return try {
+      val json = getAvailableZramAlgorithmsNative()
+      val list = mutableListOf<String>()
+      val jsonArray = JSONArray(json)
+      for (i in 0 until jsonArray.length()) {
+        list.add(jsonArray.getString(i))
+      }
+      list
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getAvailableZramAlgorithms failed: ${e.message}")
+      null
+    }
+  }
+
+  private external fun getAvailableZramAlgorithmsNative(): String
+
+  private external fun getGpuAvailableFrequenciesNative(): String
+
+  private external fun getGpuAvailablePoliciesNative(): String
+
+  private external fun getGpuDriverInfoNative(): String
+
+  private external fun readZramDeviceStatsNative(device: Int): String
+
+  // Wrappers for new GPU functions
+  fun getGpuAvailableFrequencies(): List<Int> {
+    if (!isLoaded) return emptyList()
+    return try {
+      val jsonString = getGpuAvailableFrequenciesNative()
+      if (jsonString.isBlank() || jsonString == "[]") return emptyList()
+      val jsonArray = JSONArray(jsonString)
+      List(jsonArray.length()) { i -> jsonArray.getInt(i) }
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getGpuAvailableFrequencies failed: ${e.message}")
+      emptyList()
+    }
+  }
+
+  fun getGpuAvailablePolicies(): List<String> {
+    if (!isLoaded) return emptyList()
+    return try {
+      val jsonString = getGpuAvailablePoliciesNative()
+      if (jsonString.isBlank() || jsonString == "[]") return emptyList()
+      val jsonArray = JSONArray(jsonString)
+      List(jsonArray.length()) { i -> jsonArray.getString(i) }
+    } catch (e: Exception) {
+      Log.e(TAG, "Native getGpuAvailablePolicies failed: ${e.message}")
+      emptyList()
+    }
+  }
+
+  fun getGpuDriverInfo(): String {
+    if (!isLoaded) return "unknown"
+    return try {
+      getGpuDriverInfoNative()
+    } catch (e: Exception) {
+      "unknown"
     }
   }
 }

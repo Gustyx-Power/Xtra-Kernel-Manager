@@ -8,18 +8,27 @@ use std::sync::Mutex;
 pub struct CpuCluster {
     pub cluster_number: i32,
     pub cores: Vec<i32>,
-    pub min_freq: i32,
     pub max_freq: i32,
+    pub min_freq: i32,
+    #[serde(rename = "current_min_freq")]
+    pub cur_min_freq: i32,
+    #[serde(rename = "current_max_freq")]
+    pub cur_max_freq: i32,
     pub governor: String,
+    pub available_governors: Vec<String>,
+    pub policy_path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoreInfo {
+    #[serde(rename = "core")]
     pub core_number: i32,
     pub online: bool,
+    #[serde(rename = "freq")]
     pub current_freq: i32,
     pub min_freq: i32,
     pub max_freq: i32,
+    pub governor: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -82,13 +91,30 @@ pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
             );
             let governor = utils::read_sysfs_cached(&governor_path, 1000)
                 .unwrap_or_else(|| "unknown".to_string());
+            let available_governors = get_available_governors(first_core);
+
+            // Read scaling_min/max_freq (current limits)
+            let cur_min_path = format!(
+                "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_min_freq",
+                first_core
+            );
+            let cur_max_path = format!(
+                "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_max_freq",
+                first_core
+            );
+            let cur_min_freq = utils::read_sysfs_int(&cur_min_path, 1000).unwrap_or(min);
+            let cur_max_freq = utils::read_sysfs_int(&cur_max_path, 1000).unwrap_or(max);
 
             CpuCluster {
                 cluster_number: idx as i32,
                 cores,
-                min_freq: min,
-                max_freq: max,
+                min_freq: min, // Hardware min
+                max_freq: max, // Hardware max
+                cur_min_freq,
+                cur_max_freq,
                 governor,
+                available_governors,
+                policy_path: format!("/sys/devices/system/cpu/cpu{}/cpufreq", first_core),
             }
         })
         .collect();
@@ -137,6 +163,10 @@ pub fn read_core_data() -> String {
             "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_max_freq",
             cpu
         );
+        let gov_path = format!(
+            "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_governor",
+            cpu
+        );
 
         let core = CoreInfo {
             core_number: cpu,
@@ -144,6 +174,8 @@ pub fn read_core_data() -> String {
             current_freq,
             min_freq: utils::read_sysfs_int(&min_path, 1000).unwrap_or(0) as i32,
             max_freq: utils::read_sysfs_int(&max_path, 1000).unwrap_or(0) as i32,
+            governor: utils::read_sysfs_cached(&gov_path, 1000)
+                .unwrap_or_else(|| "unknown".to_string()),
         };
 
         cores.push(core);

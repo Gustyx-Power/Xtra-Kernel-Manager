@@ -8,21 +8,70 @@ class GPUControlUseCase {
 
   private val TAG = "GPUControlUseCase"
 
-  suspend fun getGPUInfo(): GPUInfo {
-    val gpuPaths = listOf("/sys/class/kgsl/kgsl-3d0", "/sys/kernel/gpu")
+  private var cachedStaticInfo: GPUStaticInfo? = null
 
+  data class GPUStaticInfo(
+      val vendor: String,
+      val renderer: String,
+      val openglVersion: String,
+      val minFreq: Int,
+      val maxFreq: Int,
+      val availableFreqs: List<Int>,
+      val numPwrLevels: Int,
+  )
+
+  suspend fun getGPUStaticInfo(): GPUStaticInfo {
+    cachedStaticInfo?.let {
+      return it
+    }
+
+    val gpuPaths = listOf("/sys/class/kgsl/kgsl-3d0", "/sys/kernel/gpu")
     val basePath =
         gpuPaths.firstOrNull {
           RootManager.executeCommand("[ -d $it ] && echo exists").getOrNull()?.trim() == "exists"
         } ?: gpuPaths[0]
 
     val availableFreqs =
-        RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
-            .getOrNull()
-            ?.split(" ")
-            ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
+        id.xms.xtrakernelmanager.domain.native.NativeLib.getGpuAvailableFrequencies().ifEmpty {
+          RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
+              .getOrNull()
+              ?.split(" ")
+              ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
+        }
 
-    // Use JNI for currentFreq (fast native read), fallback to shell
+    val numPwrLevels =
+        RootManager.executeCommand("cat $basePath/num_pwrlevels 2>/dev/null")
+            .getOrNull()
+            ?.trim()
+            ?.toIntOrNull() ?: availableFreqs.size.coerceAtLeast(1)
+
+    var renderer = id.xms.xtrakernelmanager.domain.native.NativeLib.getGpuModel()
+    if (renderer == null || renderer == "Unknown") {
+      renderer = id.xms.xtrakernelmanager.domain.native.NativeLib.getGpuDriverInfo()
+    }
+    if (renderer == "unknown" || renderer.isBlank()) renderer = "Unknown"
+
+    val vendor = id.xms.xtrakernelmanager.domain.native.NativeLib.getGpuVendor() ?: "Unknown"
+    val openglVersion = "Unknown"
+
+    val info =
+        GPUStaticInfo(
+            vendor = vendor,
+            renderer = renderer,
+            openglVersion = openglVersion,
+            minFreq = availableFreqs.minOrNull() ?: 0,
+            maxFreq = availableFreqs.maxOrNull() ?: 0,
+            availableFreqs = availableFreqs,
+            numPwrLevels = numPwrLevels,
+        )
+    cachedStaticInfo = info
+    return info
+  }
+
+  suspend fun getGPUDynamicInfo(): GPUInfo {
+    val staticInfo = getGPUStaticInfo()
+    val basePath = "/sys/class/kgsl/kgsl-3d0"
+
     val currentFreq =
         id.xms.xtrakernelmanager.domain.native.NativeLib.readGpuFreq()
             ?: RootManager.executeCommand("cat $basePath/gpuclk 2>/dev/null")
@@ -38,13 +87,6 @@ class GPUControlUseCase {
             ?.trim()
             ?.toIntOrNull() ?: 0
 
-    val numPwrLevels =
-        RootManager.executeCommand("cat $basePath/num_pwrlevels 2>/dev/null")
-            .getOrNull()
-            ?.trim()
-            ?.toIntOrNull() ?: availableFreqs.size.coerceAtLeast(1)
-
-    // Use JNI for gpuLoad (fast native read), fallback to shell
     val gpuLoad =
         id.xms.xtrakernelmanager.domain.native.NativeLib.readGpuBusy()
             ?: RootManager.executeCommand("cat $basePath/gpu_busy_percentage 2>/dev/null")
@@ -53,49 +95,26 @@ class GPUControlUseCase {
                 ?.toIntOrNull()
             ?: 0
 
-    // Detect GPU vendor and renderer from dumpsys SurfaceFlinger
-    val glesRaw =
-        RootManager.executeCommand("dumpsys SurfaceFlinger | grep GLES").getOrNull()?.trim() ?: ""
-    var openglVersion = "Unknown"
-    var renderer = "Unknown"
-    var vendor = "Unknown"
-
-    if (glesRaw.contains("GLES:")) {
-      val clean = glesRaw.substringAfter("GLES:").trim()
-      val parts = clean.split(",").map { it.trim() }
-      openglVersion = parts.firstOrNull { it.contains("OpenGL", ignoreCase = true) } ?: "Unknown"
-      renderer =
-          parts.firstOrNull {
-            Regex("adreno|mali|powervr|nvidia", RegexOption.IGNORE_CASE).containsMatchIn(it)
-          } ?: (parts.getOrNull(1) ?: "Unknown")
-      vendor =
-          parts.firstOrNull {
-            Regex("qualcomm|arm|nvidia|imagination", RegexOption.IGNORE_CASE).containsMatchIn(it)
-          }
-              ?: when {
-                renderer.contains("Adreno", true) -> "Qualcomm"
-                renderer.contains("Mali", true) -> "ARM"
-                renderer.contains("PowerVR", true) -> "Imagination"
-                renderer.contains("NVIDIA", true) -> "NVIDIA"
-                else -> "Unknown"
-              }
-    }
-
     val currentRenderer = detectCurrentRenderer()
 
     return GPUInfo(
-        vendor = vendor,
-        renderer = renderer,
-        openglVersion = openglVersion,
+        vendor = staticInfo.vendor,
+        renderer = staticInfo.renderer,
+        openglVersion = staticInfo.openglVersion,
         currentFreq = currentFreq,
-        minFreq = availableFreqs.minOrNull() ?: 0,
-        maxFreq = availableFreqs.maxOrNull() ?: 0,
-        availableFreqs = availableFreqs,
+        minFreq = staticInfo.minFreq,
+        maxFreq = staticInfo.maxFreq,
+        availableFreqs = staticInfo.availableFreqs,
         powerLevel = powerLevel,
-        numPwrLevels = numPwrLevels,
+        numPwrLevels = staticInfo.numPwrLevels,
         rendererType = currentRenderer,
         gpuLoad = gpuLoad,
     )
+  }
+
+  // Deprecated/Legacy wrapper
+  suspend fun getGPUInfo(): GPUInfo {
+    return getGPUDynamicInfo()
   }
 
   private suspend fun detectCurrentRenderer(): String {

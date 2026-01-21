@@ -16,6 +16,7 @@ data class SystemInfo(
     val swapFree: Long = 0,
     val availableRam: Long = 0,
     val zramSize: Long = 0,
+    val zramUsed: Long = 0,
     val totalStorage: Long = 0,
     val availableStorage: Long = 0,
 )

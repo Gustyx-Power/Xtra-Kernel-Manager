@@ -8,6 +8,14 @@ use jni::objects::{JClass, JString};
 use jni::sys::{jboolean, jfloat, jint, jlong, jstring};
 use jni::JNIEnv;
 
+#[unsafe(no_mangle)]
+pub extern "system" fn JNI_OnLoad(
+    _vm: *mut jni::sys::JavaVM,
+    _reserved: *mut std::ffi::c_void,
+) -> jint {
+    jni::sys::JNI_VERSION_1_6
+}
+
 // Helper: Safe JString creation
 #[inline]
 fn create_jstring_safe(env: &JNIEnv, s: String) -> jstring {
@@ -81,6 +89,14 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_rea
     _class: JClass,
 ) -> jint {
     gpu::read_gpu_busy()
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_resetGpuStatsNative(
+    _env: JNIEnv,
+    _class: JClass,
+) {
+    gpu::reset_gpu_stats();
 }
 
 #[unsafe(no_mangle)]
@@ -299,4 +315,56 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_get
     let key_str: String = env.get_string(&key).map(|s| s.into()).unwrap_or_default();
     let value = utils::get_system_property(&key_str).unwrap_or_default();
     create_jstring_safe(&env, value)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getGpuAvailableFrequenciesNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let freqs = gpu::get_gpu_available_frequencies();
+    let json = serde_json::to_string(&freqs).unwrap_or_else(|_| "[]".to_string());
+    create_jstring_safe(&env, json)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getGpuAvailablePoliciesNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let policies = gpu::get_gpu_available_policies();
+    let json = serde_json::to_string(&policies).unwrap_or_else(|_| "[]".to_string());
+    create_jstring_safe(&env, json)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getGpuDriverInfoNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    create_jstring_safe(&env, gpu::get_gpu_driver_info())
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_readZramDeviceStatsNative(
+    env: JNIEnv,
+    _class: JClass,
+    device: jint,
+) -> jstring {
+    if let Some(stats) = memory::read_zram_device_stats(device) {
+        let json = serde_json::to_string(&stats).unwrap_or_else(|_| "{}".to_string());
+        create_jstring_safe(&env, json)
+    } else {
+        create_jstring_safe(&env, "{}".to_string())
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_getAvailableZramAlgorithmsNative(
+    env: JNIEnv,
+    _class: JClass,
+) -> jstring {
+    let algos = memory::get_available_zram_algorithms();
+    let json = serde_json::to_string(&algos).unwrap_or_else(|_| "[]".to_string());
+    create_jstring_safe(&env, json)
 }

@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
@@ -33,7 +32,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "2.4-Dev" // dev  = debug release = stable version
+        versionName = "3.0-Dev" // dev  = debug release = stable version
 
         // Build Parsing
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -126,7 +125,7 @@ dependencies {
 
 
     // Compose BOM
-    val composeBom = platform("androidx.compose:compose-bom:2025.12.01")
+    val composeBom = platform("androidx.compose:compose-bom:2026.01.00")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -136,6 +135,8 @@ dependencies {
     
     // Material 3 Expressive
     implementation("androidx.compose.material:material-icons-extended")
+    // Simple Icons (Brands)
+    implementation("br.com.devsrsouza.compose.icons:simple-icons:1.1.1")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.9.6")
@@ -153,7 +154,7 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:nio:6.0.0")
     
     // Firebase 
-    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
     implementation("com.google.firebase:firebase-database") 
 
     // TOML Parser
@@ -168,8 +169,7 @@ dependencies {
     // Lottie for animations
     implementation("com.airbnb.android:lottie-compose:6.4.0")
 
-    // Charts
-    implementation("com.patrykandpatrick.vico:compose-m3:2.4.0-beta.1")
+    implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.2")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")

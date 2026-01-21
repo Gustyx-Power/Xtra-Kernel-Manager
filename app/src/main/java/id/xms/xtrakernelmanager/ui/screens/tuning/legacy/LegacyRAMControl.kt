@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -32,7 +34,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RAMControlSection(viewModel: TuningViewModel) {
+fun LegacyRAMControl(viewModel: TuningViewModel) {
   val persistedConfig by
       viewModel.preferencesManager.getRamConfig().collectAsState(initial = RAMConfig())
 

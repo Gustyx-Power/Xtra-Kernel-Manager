@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning
+package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 import android.app.AppOpsManager
 import android.content.Context
@@ -57,7 +59,7 @@ import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PerAppProfileSection(preferencesManager: PreferencesManager, availableGovernors: List<String>) {
+fun LegacyPerAppProfile(preferencesManager: PreferencesManager, availableGovernors: List<String>) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
 

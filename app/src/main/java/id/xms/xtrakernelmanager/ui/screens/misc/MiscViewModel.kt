@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import id.xms.xtrakernelmanager.data.model.AppBatteryStats
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
@@ -18,13 +19,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONException
 
 class MiscViewModel(
-    private val preferencesManager: PreferencesManager,
+    val preferencesManager: PreferencesManager,
     private val context: Context,
 ) : ViewModel() {
 
-  private val batteryRepository = BatteryRepository()
   private val gameControlUseCase = GameControlUseCase(context)
 
   private val _isRootAvailable = MutableStateFlow(false)
@@ -32,6 +34,50 @@ class MiscViewModel(
 
   private val _batteryInfo = MutableStateFlow(BatteryInfo())
   val batteryInfo: StateFlow<BatteryInfo> = _batteryInfo.asStateFlow()
+
+  // Placeholder Stats for Power Insight
+  private val _screenOnTime = MutableStateFlow("--h --m")
+  val screenOnTime: StateFlow<String> = _screenOnTime.asStateFlow()
+
+  private val _screenOffTime = MutableStateFlow("--h --m")
+  val screenOffTime: StateFlow<String> = _screenOffTime.asStateFlow()
+
+  private val _deepSleepTime = MutableStateFlow("--h --m")
+  val deepSleepTime: StateFlow<String> = _deepSleepTime.asStateFlow()
+
+  private val _drainRate = MutableStateFlow("0%/h")
+  val drainRate: StateFlow<String> = _drainRate.asStateFlow()
+
+  // Current Stats for Analytics
+  private val _minCurrent = MutableStateFlow(0)
+  val minCurrent: StateFlow<Int> = _minCurrent.asStateFlow()
+
+  private val _maxCurrent = MutableStateFlow(0)
+  val maxCurrent: StateFlow<Int> = _maxCurrent.asStateFlow()
+
+  private val _avgCurrent = MutableStateFlow(0)
+  val avgCurrent: StateFlow<Int> = _avgCurrent.asStateFlow()
+
+  private var currentSamples = 0
+  private var totalCurrent = 0L
+
+  private fun updateCurrentStats(current: Int) {
+      val absCurrent = kotlin.math.abs(current)
+      if (absCurrent == 0) return
+
+      if (_minCurrent.value == 0 || absCurrent < _minCurrent.value) {
+          _minCurrent.value = absCurrent
+      }
+      if (absCurrent > _maxCurrent.value) {
+          _maxCurrent.value = absCurrent
+      }
+
+      totalCurrent += absCurrent
+      currentSamples++
+      if (currentSamples > 0) {
+          _avgCurrent.value = (totalCurrent / currentSamples).toInt()
+      }
+  }
 
   private val _performanceMode = MutableStateFlow("balanced")
   val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
@@ -80,9 +126,37 @@ class MiscViewModel(
   private val _saturationApplyStatus = MutableStateFlow("")
   val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()
 
+  // App Battery Usage
+  private val _appBatteryUsage = MutableStateFlow<List<AppBatteryStats>>(emptyList())
+  val appBatteryUsage: StateFlow<List<AppBatteryStats>> = _appBatteryUsage.asStateFlow()
+
+  private val _isLoadingAppUsage = MutableStateFlow(false)
+  val isLoadingAppUsage: StateFlow<Boolean> = _isLoadingAppUsage.asStateFlow()
+
+  // SELinux State
+  private val _selinuxStatus = MutableStateFlow("Unknown")
+  val selinuxStatus: StateFlow<String> = _selinuxStatus.asStateFlow()
+
+  private val _selinuxLoading = MutableStateFlow(false)
+  val selinuxLoading: StateFlow<Boolean> = _selinuxLoading.asStateFlow()
+
+  // Game Space Mock States
+  private val _callOverlay = MutableStateFlow(true)
+  val callOverlay: StateFlow<Boolean> = _callOverlay.asStateFlow()
+
+  private val _danmakuMode = MutableStateFlow(false)
+  val danmakuMode: StateFlow<Boolean> = _danmakuMode.asStateFlow()
+
+  private val _disableAutoBrightness = MutableStateFlow(true)
+  val disableAutoBrightness: StateFlow<Boolean> = _disableAutoBrightness.asStateFlow()
+
+  private val _disableThreeFingerSwipe = MutableStateFlow(false)
+  val disableThreeFingerSwipe: StateFlow<Boolean> = _disableThreeFingerSwipe.asStateFlow()
+
   init {
     checkRoot()
     loadCurrentPerformanceMode()
+    loadSELinuxStatus()
   }
 
   private fun checkRoot() {
@@ -92,14 +166,225 @@ class MiscViewModel(
     }
   }
 
-  fun loadBatteryInfo(context: Context) {
-    viewModelScope.launch { _batteryInfo.value = batteryRepository.getBatteryInfo(context) }
+  // SELinux Functions
+  fun loadSELinuxStatus() {
+    viewModelScope.launch {
+      val result = RootManager.executeCommand("getenforce")
+      _selinuxStatus.value = result.getOrNull()?.trim() ?: "Unknown"
+      Log.d("MiscViewModel", "SELinux status: ${_selinuxStatus.value}")
+    }
   }
 
-  fun setShowBatteryNotification(enabled: Boolean) {
+  fun setSELinuxMode(enforcing: Boolean) {
+    viewModelScope.launch {
+      if (!_isRootAvailable.value) {
+        Log.e("MiscViewModel", "Cannot set SELinux: Root not available")
+        return@launch
+      }
+
+      _selinuxLoading.value = true
+      val mode = if (enforcing) "1" else "0"
+      val result = RootManager.executeCommand("setenforce $mode")
+
+      if (result.isSuccess) {
+        _selinuxStatus.value = if (enforcing) "Enforcing" else "Permissive"
+        Log.d("MiscViewModel", "SELinux set to: ${_selinuxStatus.value}")
+      } else {
+        Log.e("MiscViewModel", "Failed to set SELinux: ${result.exceptionOrNull()?.message}")
+      }
+
+      _selinuxLoading.value = false
+    }
+  }
+
+  fun loadBatteryInfo(context: Context) {
+    viewModelScope.launch {
+      _batteryInfo.value = BatteryRepository.getBatteryInfo(context)
+
+      // Observe Realtime Stats
+      launch {
+          BatteryRepository.batteryState.collect { state ->
+              // Format times
+              _screenOnTime.value = formatTime(state.screenOnTime)
+              _screenOffTime.value = formatTime(state.screenOffTime)
+              _deepSleepTime.value = formatTime(state.deepSleepTime)
+               _drainRate.value = "%.1f%%/h".format(state.activeDrainRate)
+               
+               // Sync Realtime State to BatteryInfo for Analytics UI
+               _batteryInfo.value = _batteryInfo.value.copy(
+                   level = state.level,
+                   currentNow = state.currentNow,
+                   voltage = state.voltage,
+                   temperature = state.temp / 10f,
+                   status = if (state.isCharging) "Charging" else "Discharging"
+               )
+
+               // Update current stats
+               updateCurrentStats(state.currentNow)
+          }
+      }
+
+      // Load App Battery Usage
+      loadAppBatteryUsage(context)
+    }
+  }
+
+  private fun formatTime(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return if (hours > 0) {
+      "%dh %02dm".format(hours, minutes % 60)
+    } else {
+      "%dm".format(minutes)
+    }
+  }
+
+  fun loadAppBatteryUsage(context: Context) {
+    viewModelScope.launch {
+      _isLoadingAppUsage.value = true
+      try {
+        val stats =
+            id.xms.xtrakernelmanager.data.repository.AppBatteryRepository.getAppBatteryUsage(
+                context
+            )
+        _appBatteryUsage.value = stats
+      } catch (e: Exception) {
+        Log.e("MiscViewModel", "Failed to load app battery usage", e)
+        _appBatteryUsage.value = emptyList()
+      } finally {
+        _isLoadingAppUsage.value = false
+      }
+    }
+  }
+
+  fun setShowBatteryNotif(enabled: Boolean) {
     viewModelScope.launch {
       preferencesManager.setShowBatteryNotif(enabled)
       Log.d("MiscViewModel", "Battery notification: $enabled")
+      
+      if (enabled) {
+          try {
+              val intent = Intent(context, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java)
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                  context.startForegroundService(intent)
+              } else {
+                  context.startService(intent)
+              }
+          } catch (e: Exception) {
+              Log.e("MiscViewModel", "Failed to start BatteryInfoService: ${e.message}")
+          }
+      }
+    }
+  }
+
+  // Battery Notification Settings
+  val batteryNotifIconType =
+      preferencesManager
+          .getBatteryNotifIconType()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "circle_percent")
+
+  fun setBatteryNotifIconType(type: String) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifIconType(type)
+      Log.d("MiscViewModel", "Battery notification icon type: $type")
+    }
+  }
+
+  val batteryNotifRefreshRate =
+      preferencesManager
+          .getBatteryNotifRefreshRate()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1000L)
+
+  fun setBatteryNotifRefreshRate(ms: Long) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifRefreshRate(ms)
+      Log.d("MiscViewModel", "Battery notification refresh rate set to: ${ms}ms")
+    }
+  }
+
+  val batteryNotifSecureLockScreen =
+      preferencesManager
+          .getBatteryNotifSecureLockScreen()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+  fun setBatteryNotifSecureLockScreen(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifSecureLockScreen(enabled)
+      Log.d("MiscViewModel", "Battery notification secure lock screen: $enabled")
+    }
+  }
+
+  val batteryNotifHighPriority =
+      preferencesManager
+          .getBatteryNotifHighPriority()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+  fun setBatteryNotifHighPriority(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifHighPriority(enabled)
+      Log.d("MiscViewModel", "Battery notification high priority: $enabled")
+    }
+  }
+
+  val batteryNotifForceOnTop =
+      preferencesManager
+          .getBatteryNotifForceOnTop()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+  fun setBatteryNotifForceOnTop(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifForceOnTop(enabled)
+      Log.d("MiscViewModel", "Battery notification force on top: $enabled")
+    }
+  }
+
+  val batteryNotifDontUpdateScreenOff =
+      preferencesManager
+          .getBatteryNotifDontUpdateScreenOff()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryNotifDontUpdateScreenOff(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryNotifDontUpdateScreenOff(enabled)
+      Log.d("MiscViewModel", "Battery notification don't update screen off: $enabled")
+    }
+  }
+
+  // Battery Statistics Settings
+  val batteryStatsActiveIdle =
+      preferencesManager
+          .getBatteryStatsActiveIdle()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryStatsActiveIdle(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryStatsActiveIdle(enabled)
+      Log.d("MiscViewModel", "Battery stats active/idle: $enabled")
+    }
+  }
+
+  val batteryStatsScreen =
+      preferencesManager
+          .getBatteryStatsScreen()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryStatsScreen(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryStatsScreen(enabled)
+      Log.d("MiscViewModel", "Battery stats screen: $enabled")
+    }
+  }
+
+  val batteryStatsAwakeSleep =
+      preferencesManager
+          .getBatteryStatsAwakeSleep()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+  fun setBatteryStatsAwakeSleep(enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setBatteryStatsAwakeSleep(enabled)
+      Log.d("MiscViewModel", "Battery stats awake/sleep: $enabled")
     }
   }
 
@@ -159,6 +444,37 @@ class MiscViewModel(
     } catch (e: Exception) {
       Log.e("MiscViewModel", "Failed to stop GameOverlayService: ${e.message}")
     }
+  }
+
+  fun setCallOverlay(enabled: Boolean) {
+    _callOverlay.value = enabled
+  }
+
+  fun setDanmakuMode(enabled: Boolean) {
+    _danmakuMode.value = enabled
+  }
+
+  fun setDisableAutoBrightness(enabled: Boolean) {
+    _disableAutoBrightness.value = enabled
+  }
+
+  fun setDisableThreeFingerSwipe(enabled: Boolean) {
+    _disableThreeFingerSwipe.value = enabled
+  }
+
+  // New states for expandable lists
+  private val _inGameCallAction = MutableStateFlow("no_action")
+  val inGameCallAction: StateFlow<String> = _inGameCallAction.asStateFlow()
+
+  private val _inGameRingerMode = MutableStateFlow("no_change")
+  val inGameRingerMode: StateFlow<String> = _inGameRingerMode.asStateFlow()
+
+  fun setInGameCallAction(action: String) {
+    _inGameCallAction.value = action
+  }
+
+  fun setInGameRingerMode(mode: String) {
+    _inGameRingerMode.value = mode
   }
 
   // Game Control Functions
@@ -239,6 +555,75 @@ class MiscViewModel(
   suspend fun saveGameApps(jsonString: String) {
     preferencesManager.saveGameApps(jsonString)
     Log.d("MiscViewModel", "Game apps saved: $jsonString")
+  }
+
+  fun addGameApp(packageName: String) {
+    viewModelScope.launch {
+      val currentApps =
+          try {
+            JSONArray(gameApps.value)
+          } catch (e: JSONException) {
+            JSONArray()
+          }
+
+      // Check if already exists
+      var exists = false
+      for (i in 0 until currentApps.length()) {
+        if (currentApps.optString(i) == packageName) {
+          exists = true
+          break
+        }
+      }
+
+      if (!exists) {
+        currentApps.put(packageName)
+        saveGameApps(currentApps.toString())
+      }
+    }
+  }
+
+  fun removeGameApp(packageName: String) {
+    viewModelScope.launch {
+      val currentApps =
+          try {
+            JSONArray(gameApps.value)
+          } catch (e: JSONException) {
+            JSONArray()
+          }
+
+      val newApps = JSONArray()
+      for (i in 0 until currentApps.length()) {
+        if (currentApps.optString(i) != packageName) {
+          newApps.put(currentApps.get(i))
+        }
+      }
+
+      saveGameApps(newApps.toString())
+    }
+  }
+
+  fun toggleGameApp(packageName: String) {
+    if (isGameApp(packageName)) {
+      removeGameApp(packageName)
+    } else {
+      addGameApp(packageName)
+    }
+  }
+
+  fun isGameApp(packageName: String): Boolean {
+    val currentApps =
+        try {
+          JSONArray(gameApps.value)
+        } catch (e: JSONException) {
+          JSONArray()
+        }
+
+    for (i in 0 until currentApps.length()) {
+      if (currentApps.optString(i) == packageName) {
+        return true
+      }
+    }
+    return false
   }
 
   // Display Saturation Functions

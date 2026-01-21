@@ -564,13 +564,16 @@
     <string name="xiaomi_touch_settings_desc">Touch boost untuk implementasi sentuhan Xiaomi</string>
     <string name="category_display">Layar</string>
     <string name="unlock_additional_nits">Buka kunci nits tambahan</string>
-    <string name="unlock_additional_nits_desc_enabled">Nits tambahan aktif - kecerahan maksimum ditingkatkan</string>
+    <string name="unlock_additional_nits_desc_enabled">Nits tambahan aktif - kecerahan maksimum
+        ditingkatkan</string>
     <string name="unlock_additional_nits_desc_disabled">Nits tambahan nonaktif</string>
     <string name="dynamic_refresh_rate">Refresh Rate Dinamis</string>
-    <string name="dynamic_refresh_rate_desc_enabled">Refresh rate dinamis aktif - otomatis menyesuaikan</string>
+    <string name="dynamic_refresh_rate_desc_enabled">Refresh rate dinamis aktif - otomatis
+        menyesuaikan</string>
     <string name="dynamic_refresh_rate_desc_disabled">Refresh rate dinamis nonaktif</string>
     <string name="force_refresh_rate">Paksa Refresh Rate</string>
-    <string name="force_refresh_rate_desc_enabled">Paksa refresh rate aktif - kunci ke satu kecepatan</string>
+    <string name="force_refresh_rate_desc_enabled">Paksa refresh rate aktif - kunci ke satu
+        kecepatan</string>
     <string name="force_refresh_rate_desc_disabled">Paksa refresh rate nonaktif</string>
     <string name="force_refresh_rate_value">Nilai Paksa Refresh Rate</string>
     <string name="force_refresh_rate_value_desc">Pilih nilai refresh rate</string>
@@ -578,9 +581,6 @@
     <string name="dc_dimming_desc_enabled">DC Dimming aktif - mengurangi kedipan PWM</string>
     <string name="dc_dimming_desc_disabled">DC Dimming nonaktif</string>
     <string name="category_system">Sistem</string>
-    <string name="performance_mode">Mode Performa</string>
-    <string name="performance_mode_desc_enabled">Mode performa aktif - prioritas performa maksimum</string>
-    <string name="performance_mode_desc_disabled">Mode performa nonaktif</string>
     <string name="category_charging">Pengisian Daya</string>
     <string name="bypass_charging">Bypass Pengisian</string>
     <string name="bypass_charging_desc_enabled">Bypass pengisian aktif - langsung dari adaptor</string>
@@ -601,22 +601,27 @@
     <!-- Play Integrity Settings Screen -->
     <string name="play_integrity_settings_title">Pengaturan Play Integrity</string>
     <string name="play_integrity_fix">Play Integrity Fix</string>
-    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix aktif - melewati pemeriksaan SafetyNet</string>
+    <string name="play_integrity_fix_desc_enabled">Play Integrity Fix aktif - melewati pemeriksaan
+        SafetyNet</string>
     <string name="play_integrity_fix_desc_disabled">Play Integrity Fix nonaktif</string>
     <string name="spoof_bootloader">Spoof Status Bootloader</string>
-    <string name="spoof_bootloader_desc_enabled">Bootloader dispoof terkunci - dapat melewati integritas kuat</string>
+    <string name="spoof_bootloader_desc_enabled">Bootloader dispoof terkunci - dapat melewati
+        integritas kuat</string>
     <string name="spoof_bootloader_desc_disabled">Spoof bootloader nonaktif</string>
     <string name="auto_update_pif">Auto Update PIF.apk</string>
-    <string name="auto_update_pif_desc_enabled">Otomatis update PIF.apk saat fingerprint/keybox dicabut</string>
+    <string name="auto_update_pif_desc_enabled">Otomatis update PIF.apk saat fingerprint/keybox
+        dicabut</string>
     <string name="auto_update_pif_desc_disabled">Auto update PIF.apk nonaktif</string>
     <string name="game_props">Game Props</string>
     <string name="game_props_desc_enabled">Game props aktif - membuka pengaturan grafis maksimum</string>
     <string name="game_props_desc_disabled">Game props nonaktif</string>
     <string name="unlimited_photos_backup">Backup Google Photos Unlimited</string>
-    <string name="unlimited_photos_backup_desc_enabled">Backup unlimited aktif - kualitas original tanpa batas penyimpanan</string>
+    <string name="unlimited_photos_backup_desc_enabled">Backup unlimited aktif - kualitas original
+        tanpa batas penyimpanan</string>
     <string name="unlimited_photos_backup_desc_disabled">Backup unlimited nonaktif</string>
     <string name="netflix_spoof">Netflix Spoof</string>
-    <string name="netflix_spoof_desc_enabled">Netflix spoof aktif - model perangkat dispoof untuk kompatibilitas</string>
+    <string name="netflix_spoof_desc_enabled">Netflix spoof aktif - model perangkat dispoof untuk
+        kompatibilitas</string>
     <string name="netflix_spoof_desc_disabled">Netflix spoof nonaktif</string>
 
     <!-- Xiaomi Touch Settings Screen -->

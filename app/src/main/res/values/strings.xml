@@ -611,7 +611,7 @@
     <string name="fix_dt2w_step2">Step 2: Install Fix DT2W module</string>
     <string name="fix_dt2w_complete">DT2W fix installed ✓</string>
     <string name="fix_dt2w_installing">Installing module… Device will reboot</string>
-    
+
     <!-- Fix DT2W Dialog -->
     <string name="fix_dt2w_dialog_step1_title">Install OverlayFS</string>
     <string name="fix_dt2w_dialog_step1_message">First, you need to install the OverlayFS module. This is required for the DT2W fix to work.\n\nAfter installation, your device will automatically reboot. Then return here to install the DT2W fix.</string>
@@ -619,7 +619,7 @@
     <string name="fix_dt2w_dialog_step2_message">Now install the Fix DT2W module. This will enable Double Tap to Wake functionality.\n\nAfter installation, your device will automatically reboot.</string>
     <string name="fix_dt2w_dialog_warning">⚠️ Device will reboot automatically</string>
     <string name="fix_dt2w_dialog_confirm">Install &amp; Reboot</string>
-    
+
     <!-- Fix DT2W Uninstall Dialog -->
     <string name="fix_dt2w_uninstall_title">Uninstall Fix DT2W?</string>
     <string name="fix_dt2w_uninstall_message">This will remove both Fix DT2W and OverlayFS modules.\n\nYour device will reboot automatically to apply changes.</string>
@@ -796,5 +796,43 @@
     <string name="setup_select">Select a Style</string>
     <string name="setup_root_note">By continuing, you acknowledge that this app requires root access
         and you are responsible for any changes made to your device.</string>
+
+    <!-- Battery Settings -->
+    <string name="battery_settings_title">Settings</string>
+    <string name="battery_notif_icon_type_title">Notification icon type</string>
+    <string name="battery_notif_icon_type_app_icon">Battery icon</string>
+    <string name="battery_notif_icon_type_circle_percent">Show percentage with circle</string>
+    <string name="battery_notif_icon_type_percent_only">Show percentage only</string>
+    <string name="battery_notif_icon_type_temp">Battery temperature</string>
+    <string name="battery_notif_icon_type_percent_temp">Show percentage and temperature</string>
+    <string name="battery_notif_icon_type_current">Electric current</string>
+    <string name="battery_notif_icon_type_voltage">Battery voltage</string>
+    <string name="battery_notif_icon_type_power">Power</string>
+    <string name="battery_notif_icon_type_transparent">Transparent icon</string>
+    <string name="battery_notif_refresh_rate_title">Notification refresh rate</string>
+    <string name="battery_notif_refresh_rate_1s">1s</string>
+    <string name="battery_notif_refresh_rate_5s">5s</string>
+    <string name="battery_notif_refresh_rate_10s">10s</string>
+    <string name="battery_notif_refresh_rate_15s">15s</string>
+    <string name="battery_notif_refresh_rate_30s">30s</string>
+    <string name="battery_notif_refresh_rate_1m">1m</string>
+    <string name="battery_notif_secure_lock_screen">Show on secure lock screen</string>
+    <string name="battery_notif_secure_lock_screen_desc">Set whether to show or hide notification on
+        secure lock screen</string>
+    <string name="battery_notif_high_priority">Use high priority notification</string>
+    <string name="battery_notif_high_priority_desc">Enabling this should make the notification panel
+        stay at the top</string>
+    <string name="battery_notif_force_on_top">Force notification to stay on top</string>
+    <string name="battery_notif_force_on_top_desc">Set whether to show notification on top</string>
+    <string name="battery_notif_category_title">Notification settings</string>
+    <string name="battery_notif_category_desc">Click here to configure notification priority, sound
+        and vibration</string>
+    <string name="battery_notif_enable_title">Show battery notification</string>
+    <string name="battery_notif_enable_desc">Display battery information in status bar</string>
+    <string name="battery_stats_dont_update_screen_off">Don\'t update when screen off</string>
+    <string name="battery_stats_active_idle">Show Active/Idle statistics</string>
+    <string name="battery_stats_screen">Show screen statistics</string>
+    <string name="battery_stats_awake_sleep">Show Awake/Deep sleep statistics</string>
+
 
 </resources>

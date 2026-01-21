@@ -203,12 +203,13 @@ fun FunctionalRomScreen(
     item {
       ToggleFeatureCard(
           title = stringResource(R.string.fix_dt2w),
-          description = when {
-              uiState.fixDt2wInstalling -> stringResource(R.string.fix_dt2w_installing)
-              uiState.fixDt2wStep == 0 -> stringResource(R.string.fix_dt2w_complete)
-              uiState.fixDt2wStep == 2 -> stringResource(R.string.fix_dt2w_step2)
-              else -> stringResource(R.string.fix_dt2w_step1)
-          },
+          description =
+              when {
+                uiState.fixDt2wInstalling -> stringResource(R.string.fix_dt2w_installing)
+                uiState.fixDt2wStep == 0 -> stringResource(R.string.fix_dt2w_complete)
+                uiState.fixDt2wStep == 2 -> stringResource(R.string.fix_dt2w_step2)
+                else -> stringResource(R.string.fix_dt2w_step1)
+              },
           icon = Icons.Default.TouchApp,
           checked = uiState.fixDt2wStep == 0, // ON when both modules installed
           onCheckedChange = { viewModel.setFixDt2w(it) },
@@ -395,20 +396,19 @@ fun FunctionalRomScreen(
         },
         title = {
           Text(
-              text = if (uiState.fixDt2wStep == 1) 
-                  stringResource(R.string.fix_dt2w_dialog_step1_title)
-              else 
-                  stringResource(R.string.fix_dt2w_dialog_step2_title),
+              text =
+                  if (uiState.fixDt2wStep == 1) stringResource(R.string.fix_dt2w_dialog_step1_title)
+                  else stringResource(R.string.fix_dt2w_dialog_step2_title),
               style = MaterialTheme.typography.titleLarge,
           )
         },
         text = {
           Column {
             Text(
-                text = if (uiState.fixDt2wStep == 1)
-                    stringResource(R.string.fix_dt2w_dialog_step1_message)
-                else
-                    stringResource(R.string.fix_dt2w_dialog_step2_message),
+                text =
+                    if (uiState.fixDt2wStep == 1)
+                        stringResource(R.string.fix_dt2w_dialog_step1_message)
+                    else stringResource(R.string.fix_dt2w_dialog_step2_message),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(modifier = Modifier.height(12.dp))

@@ -165,7 +165,8 @@ fun ExpressiveSplashScreen(
 @Composable
 fun ShapeMorphingLoader(modifier: Modifier = Modifier, sizeDp: Int = 96) {
   val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+  val isCompact =
+      dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
   val actualSize = if (isCompact) 72 else sizeDp
   // 1. Endless Rotation & Breathing (Independent)
   val infinite = rememberInfiniteTransition(label = "loader_effects")

@@ -58,14 +58,15 @@ class FunctionalRomUseCase {
               "/sys/class/power_supply/battery/constant_charge_current_max",
               "/sys/class/qcom-battery/restricted_current",
           )
-      
+
       // Brightness control paths for Unlock Nits feature
-      val MAX_BRIGHTNESS_PATHS = listOf(
-          "/sys/class/backlight/panel0-backlight/max_brightness",
-          "/sys/class/leds/lcd-backlight/max_brightness",
-          "/sys/class/backlight/panel/max_brightness",
-      )
-      
+      val MAX_BRIGHTNESS_PATHS =
+          listOf(
+              "/sys/class/backlight/panel0-backlight/max_brightness",
+              "/sys/class/leds/lcd-backlight/max_brightness",
+              "/sys/class/backlight/panel/max_brightness",
+          )
+
       // Brightness values: 4095 = 1000 nits (unlocked), 2047 = 500 nits (default)
       const val BRIGHTNESS_1000_NITS = 4095
       const val BRIGHTNESS_500_NITS = 2047
@@ -163,19 +164,19 @@ class FunctionalRomUseCase {
 
   /**
    * Set unlock additional nits state
+   *
    * @param enabled true to enable 1000 nits (4095), false for 500 nits (2047)
    * @param nodePath Path to max_brightness node
    */
   suspend fun setUnlockNits(enabled: Boolean, nodePath: String): Result<Unit> =
       withContext(Dispatchers.IO) {
-        val value = if (enabled) KernelNodes.BRIGHTNESS_1000_NITS else KernelNodes.BRIGHTNESS_500_NITS
+        val value =
+            if (enabled) KernelNodes.BRIGHTNESS_1000_NITS else KernelNodes.BRIGHTNESS_500_NITS
         Log.d(TAG, "Setting unlock nits: enabled=$enabled, value=$value, path=$nodePath")
         RootManager.writeToNode(nodePath, value.toString())
       }
 
-  /**
-   * Get current max brightness value
-   */
+  /** Get current max brightness value */
   suspend fun getMaxBrightnessValue(nodePath: String): Int =
       withContext(Dispatchers.IO) {
         val value = RootManager.readFromNode(nodePath)
@@ -183,9 +184,7 @@ class FunctionalRomUseCase {
         value.toIntOrNull() ?: 0
       }
 
-  /**
-   * Check if unlock nits is currently enabled (4095 = enabled)
-   */
+  /** Check if unlock nits is currently enabled (4095 = enabled) */
   suspend fun isUnlockNitsEnabled(nodePath: String): Boolean =
       withContext(Dispatchers.IO) {
         val value = getMaxBrightnessValue(nodePath)
@@ -411,19 +410,19 @@ class FunctionalRomUseCase {
   suspend fun removeFixDt2wModules(): Result<Unit> =
       withContext(Dispatchers.IO) {
         Log.d(TAG, "Removing Fix DT2W modules...")
-        
+
         // Remove fix_dt2w first
         val dt2wResult = RootManager.removeModule(ModuleConstants.FIX_DT2W_MODULE_ID)
         if (dt2wResult.isFailure) {
           Log.e(TAG, "Failed to remove fix_dt2w module")
         }
-        
+
         // Remove overlayfs
         val overlayResult = RootManager.removeModule(ModuleConstants.META_OVERLAYFS_MODULE_ID)
         if (overlayResult.isFailure) {
           Log.e(TAG, "Failed to remove overlayfs module")
         }
-        
+
         Log.d(TAG, "Modules removal complete")
         Result.success(Unit)
       }
