@@ -86,21 +86,9 @@ fun BatteryInfoSection(viewModel: MiscViewModel) {
         LottieSwitchControlled(
             checked = showBatteryNotif,
             onCheckedChange = { checked ->
-              viewModel.setShowBatteryNotification(checked)
-              scope.launch {
-                val serviceIntent = Intent(context, BatteryInfoService::class.java)
-                if (checked) {
-                  // Use startForegroundService for Android 8+ to ensure service starts properly
-                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent)
-                  } else {
-                    context.startService(serviceIntent)
-                  }
-                } else {
-                  context.stopService(serviceIntent)
-                }
-              }
+              viewModel.setShowBatteryNotif(checked)
             },
+
             width = 80.dp,
             height = 40.dp,
             scale = 2.2f,

@@ -199,10 +199,23 @@ class MiscViewModel(
     }
   }
 
-  fun setShowBatteryNotification(enabled: Boolean) {
+  fun setShowBatteryNotif(enabled: Boolean) {
     viewModelScope.launch {
       preferencesManager.setShowBatteryNotif(enabled)
       Log.d("MiscViewModel", "Battery notification: $enabled")
+      
+      if (enabled) {
+          try {
+              val intent = Intent(context, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java)
+              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                  context.startForegroundService(intent)
+              } else {
+                  context.startService(intent)
+              }
+          } catch (e: Exception) {
+              Log.e("MiscViewModel", "Failed to start BatteryInfoService: ${e.message}")
+          }
+      }
     }
   }
 

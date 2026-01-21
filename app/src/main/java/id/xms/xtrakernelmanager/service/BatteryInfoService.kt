@@ -42,6 +42,12 @@ class BatteryInfoService : Service() {
   private var cachedVoltage: Int = 0
   private var cachedHealth: String = "Unknown"
   private var cachedCurrent: Int = 0
+  private var currentIconType: String = "battery_icon"
+  private var refreshRateMs: Long = 1000 // Default 1s
+  private var isSecureLockScreen: Boolean = false
+  private var isHighPriority: Boolean = false
+  private var isForceOnTop: Boolean = false
+  private var dontUpdateScreenOff: Boolean = true // Default true
 
   // Deep sleep tracking
   private var initialDeepSleep: Long = 0L
@@ -71,6 +77,68 @@ class BatteryInfoService : Service() {
 
     registerReceiver()
     registerScreenReceiver()
+
+    // Observe Preference Changes
+    // Observe Preference Changes
+    val prefs = id.xms.xtrakernelmanager.data.preferences.PreferencesManager(applicationContext)
+    val scope = CoroutineScope(Dispatchers.IO)
+
+    // Master Toggle
+    scope.launch {
+        prefs.isShowBatteryNotif().collect { enabled ->
+             if (!enabled) {
+                 stopForeground(STOP_FOREGROUND_REMOVE)
+                 stopSelf()
+             }
+        }
+    }
+
+    // Icon Type
+    scope.launch {
+        prefs.getBatteryNotifIconType().collect { type ->
+            currentIconType = type
+            if (cachedLevel != -1) refreshState()
+        }
+    }
+
+    // Refresh Rate
+    scope.launch {
+        prefs.getBatteryNotifRefreshRate().collect { seconds ->
+             refreshRateMs = seconds * 1000L
+        }
+    }
+    
+    // Secure Lock Screen
+    scope.launch {
+        prefs.getBatteryNotifSecureLockScreen().collect { enabled ->
+             isSecureLockScreen = enabled
+             if (cachedLevel != -1) refreshState()
+        }
+    }
+
+    // High Priority
+    scope.launch {
+        prefs.getBatteryNotifHighPriority().collect { enabled ->
+             isHighPriority = enabled
+             createNotificationChannel() // Recreate channel with new importance
+             if (cachedLevel != -1) refreshState()
+        }
+    }
+
+    // Force On Top
+    scope.launch {
+        prefs.getBatteryNotifForceOnTop().collect { enabled ->
+             isForceOnTop = enabled
+             if (cachedLevel != -1) refreshState()
+        }
+    }
+    
+    // Screen Off Updates
+    scope.launch {
+        prefs.getBatteryNotifDontUpdateScreenOff().collect { enabled ->
+             dontUpdateScreenOff = enabled
+        }
+    }
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -218,6 +286,23 @@ class BatteryInfoService : Service() {
             cachedHealth = healthTxt
             cachedCurrent = currentNow
 
+            // Throttling Logic
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastUpdateTime < refreshRateMs) {
+                // Skip update if within throttle window, unless urgent (e.g. plugged status changed)
+                if (isCharging == cachedIsCharging) {
+                     return 
+                }
+            }
+            lastUpdateTime = now
+
+            // Screen Off Logic
+            if (!isScreenOn && dontUpdateScreenOff) {
+                 // Still update internal cache but skip notification? 
+                 // Actually we want to record history, just not spam notification
+                 // Let refreshState handle notification suppression
+            }
+
             refreshState()
           }
         }
@@ -317,16 +402,19 @@ class BatteryInfoService : Service() {
     id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
 
     // Update Notification
-    val notif =
-        buildNotification(
-            cachedLevel,
-            cachedIsCharging,
-            cachedTemp,
-            cachedVoltage,
-            cachedHealth,
-            cachedCurrent,
-        )
-    updateNotificationSafe(notif)
+    // Check Screen Off preference
+    if (isScreenOn || !dontUpdateScreenOff) {
+        val notif =
+            buildNotification(
+                cachedLevel,
+                cachedIsCharging,
+                cachedTemp,
+                cachedVoltage,
+                cachedHealth,
+                cachedCurrent,
+            )
+        updateNotificationSafe(notif)
+    }
 
     // Update history if screen is on
     if (isScreenOn) {
@@ -438,12 +526,36 @@ class BatteryInfoService : Service() {
             .setContentTitle(title)
             .setContentText("Screen On: $screenOnStr • Charge: $level%") // Collapsed state
             .setStyle(bigTextStyle)
-            .setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
             .setOngoing(true)
             .setColor(
                 if (charging) Color.parseColor("#4CAF50") else Color.parseColor("#FFC107")
             ) // Material Green/Amber
             .setOnlyAlertOnce(true)
+            .setVisibility(if (isSecureLockScreen) NotificationCompat.VISIBILITY_PUBLIC else NotificationCompat.VISIBILITY_SECRET)
+            .setPriority(if (isForceOnTop) NotificationCompat.PRIORITY_MAX else NotificationCompat.PRIORITY_LOW) // For pre-O
+
+    // Force On Top (Ongoing + High Priority usually does it)
+    if (isForceOnTop) {
+        builder.setCategory(NotificationCompat.CATEGORY_SERVICE)
+    }
+
+    // Set dynamic small icon using NotificationHelper
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val icon = NotificationHelper.generateIcon(
+            this, 
+            currentIconType, 
+            level, 
+            charging,
+            temp, 
+            currentNow, 
+            voltage
+        )
+        builder.setSmallIcon(androidx.core.graphics.drawable.IconCompat.createFromIcon(icon))
+    } else {
+        // Fallback for older APIs (though minSdk is likely higher)
+        builder.setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
+    }
+
     return builder.build()
   }
 
@@ -647,9 +759,11 @@ class BatteryInfoService : Service() {
   override fun onBind(intent: Intent?) = null
 
   private fun createNotificationChannel() {
+    val importance = if (isHighPriority) NotificationManager.IMPORTANCE_HIGH else NotificationManager.IMPORTANCE_LOW
     val channel =
-        NotificationChannel(CHANNEL_ID, "Battery Info", NotificationManager.IMPORTANCE_LOW)
+        NotificationChannel(CHANNEL_ID, "Battery Info", importance)
     channel.description = "Shows real-time battery status"
+    channel.setShowBadge(false)
     val notificationManager = getSystemService(NotificationManager::class.java)
     notificationManager.createNotificationChannel(channel)
   }
