@@ -48,6 +48,37 @@ class MiscViewModel(
   private val _drainRate = MutableStateFlow("0%/h")
   val drainRate: StateFlow<String> = _drainRate.asStateFlow()
 
+  // Current Stats for Analytics
+  private val _minCurrent = MutableStateFlow(0)
+  val minCurrent: StateFlow<Int> = _minCurrent.asStateFlow()
+
+  private val _maxCurrent = MutableStateFlow(0)
+  val maxCurrent: StateFlow<Int> = _maxCurrent.asStateFlow()
+
+  private val _avgCurrent = MutableStateFlow(0)
+  val avgCurrent: StateFlow<Int> = _avgCurrent.asStateFlow()
+
+  private var currentSamples = 0
+  private var totalCurrent = 0L
+
+  private fun updateCurrentStats(current: Int) {
+      val absCurrent = kotlin.math.abs(current)
+      if (absCurrent == 0) return
+
+      if (_minCurrent.value == 0 || absCurrent < _minCurrent.value) {
+          _minCurrent.value = absCurrent
+      }
+      if (absCurrent > _maxCurrent.value) {
+          _maxCurrent.value = absCurrent
+      }
+
+      totalCurrent += absCurrent
+      currentSamples++
+      if (currentSamples > 0) {
+          _avgCurrent.value = (totalCurrent / currentSamples).toInt()
+      }
+  }
+
   private val _performanceMode = MutableStateFlow("balanced")
   val performanceMode: StateFlow<String> = _performanceMode.asStateFlow()
 
@@ -178,6 +209,18 @@ class MiscViewModel(
               _screenOffTime.value = formatTime(state.screenOffTime)
               _deepSleepTime.value = formatTime(state.deepSleepTime)
                _drainRate.value = "%.1f%%/h".format(state.activeDrainRate)
+               
+               // Sync Realtime State to BatteryInfo for Analytics UI
+               _batteryInfo.value = _batteryInfo.value.copy(
+                   level = state.level,
+                   currentNow = state.currentNow,
+                   voltage = state.voltage,
+                   temperature = state.temp / 10f,
+                   status = if (state.isCharging) "Charging" else "Discharging"
+               )
+
+               // Update current stats
+               updateCurrentStats(state.currentNow)
           }
       }
 

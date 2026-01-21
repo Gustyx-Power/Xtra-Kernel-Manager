@@ -52,7 +52,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
             onBack = { showGameAppSelector = false },
         )
     showBatteryGraph ->
-        MaterialBatteryGraphScreen(viewModel = viewModel, onBack = { showBatteryGraph = false })
+        MaterialBatteryAnalyticsScreen(viewModel = viewModel, onBack = { showBatteryGraph = false })
     showBatteryDetail ->
         MaterialBatteryScreen(
             viewModel = viewModel,

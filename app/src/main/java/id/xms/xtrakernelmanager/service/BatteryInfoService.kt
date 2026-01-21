@@ -400,6 +400,15 @@ class BatteryInfoService : Service() {
                     .getCachedCurrentCapacity(),
         )
     id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
+    
+    // Record Current Flow Sample for Analytics Chart
+    CoroutineScope(Dispatchers.IO).launch {
+        id.xms.xtrakernelmanager.data.repository.CurrentFlowRepository.addSample(
+            applicationContext,
+            cachedCurrent,
+            cachedIsCharging
+        )
+    }
 
     // Update Notification
     // Check Screen Off preference
