@@ -33,24 +33,20 @@ import org.json.JSONArray
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
+  val context = LocalContext.current
   var showBatteryDetail by rememberSaveable { mutableStateOf(false) }
   var showBatterySettings by rememberSaveable { mutableStateOf(false) }
   var showBatteryGraph by rememberSaveable { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
   var showGameSpace by remember { mutableStateOf(false) }
-  var showGameAppSelector by remember { mutableStateOf(false) }
   var showPerAppProfile by remember { mutableStateOf(false) }
   var showCurrentSession by rememberSaveable { mutableStateOf(false) }
+  var showGameMonitor by rememberSaveable { mutableStateOf(false) }
 
   when {
     showBatterySettings ->
         BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
     showCurrentSession -> MaterialCurrentSessionScreen(viewModel = viewModel, onBack = { showCurrentSession = false })
-    showGameAppSelector ->
-        MaterialGameAppSelectorScreen(
-            viewModel = viewModel,
-            onBack = { showGameAppSelector = false },
-        )
     showBatteryGraph ->
         MaterialBatteryAnalyticsScreen(viewModel = viewModel, onBack = { showBatteryGraph = false })
     showBatteryDetail ->
@@ -61,13 +57,21 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
             onGraphClick = { showBatteryGraph = true },
             onCurrentSessionClick = { showCurrentSession = true },
         )
+    showGameMonitor ->
+        MaterialGameMonitorScreen(
+            viewModel = androidx.lifecycle.viewmodel.compose.viewModel {
+                GameMonitorViewModel(context, viewModel.preferencesManager)
+            },
+            onBack = { showGameMonitor = false }
+        )
     showProcessManager ->
         MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
     showGameSpace ->
         MaterialGameSpaceScreen(
             viewModel = viewModel,
             onBack = { showGameSpace = false },
-            onAddGames = { showGameAppSelector = true },
+            onAddGames = { onNavigate("app_picker") },
+            onGameMonitorClick = { showGameMonitor = true }
         )
     showPerAppProfile ->
         MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })

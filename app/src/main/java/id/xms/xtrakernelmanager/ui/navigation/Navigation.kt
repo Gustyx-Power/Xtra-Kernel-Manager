@@ -31,6 +31,7 @@ import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.MaterialGameAppSelectorScreen
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.components.CPUSettingsScreen
@@ -189,6 +190,19 @@ fun Navigation(preferencesManager: PreferencesManager) {
         val tuningViewModel: TuningViewModel = viewModel(factory = factory)
         MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
       }
+      composable("app_picker") {
+        val context = LocalContext.current
+        val miscViewModel = remember {
+          MiscViewModel(
+              preferencesManager = preferencesManager,
+              context = context.applicationContext,
+          )
+        }
+        MaterialGameAppSelectorScreen(
+            viewModel = miscViewModel,
+            onBack = { navController.popBackStack() }
+        )
+      }
       composable("profiles") {
         val context = LocalContext.current
         val miscViewModel = remember {
@@ -200,6 +214,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         MiscScreen(
             viewModel = miscViewModel,
             onNavigateToFunctionalRom = { navController.navigate("functionalrom") },
+            onNavigateToAppPicker = { navController.navigate("app_picker") }
         )
       }
 

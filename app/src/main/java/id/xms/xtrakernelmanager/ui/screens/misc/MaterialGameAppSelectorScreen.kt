@@ -19,8 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.SubcomposeAsyncImage
-import coil.request.ImageRequest
+import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.Image
+import id.xms.xtrakernelmanager.data.model.AppInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,24 +30,29 @@ fun MaterialGameAppSelectorScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
 ) {
-  val context = LocalContext.current
   val gameAppsJson by viewModel.gameApps.collectAsState()
+  val installedApps by viewModel.installedApps.collectAsState()
+  val isLoading by viewModel.isLoadingApps.collectAsState()
 
   var searchQuery by remember { mutableStateOf("") }
   var filterMode by remember { mutableStateOf("All") } // All, Added, Not Added
   var showFilterMenu by remember { mutableStateOf(false) }
 
-  // Get installed apps
-  val appProfiles = remember { getAllInstalledApps(context) }
+  // Load apps on enter
+  LaunchedEffect(Unit) {
+      if (installedApps.isEmpty()) {
+          viewModel.loadInstalledApps()
+      }
+  }
 
   val filteredApps =
-      remember(appProfiles, searchQuery, gameAppsJson, filterMode) {
+      remember(installedApps, searchQuery, gameAppsJson, filterMode) {
         val sortedApps =
             if (searchQuery.isBlank()) {
-              appProfiles
+              installedApps
             } else {
-              appProfiles.filter {
-                it.appName.contains(searchQuery, ignoreCase = true) ||
+              installedApps.filter {
+                it.label.contains(searchQuery, ignoreCase = true) ||
                     it.packageName.contains(searchQuery, ignoreCase = true)
               }
             }
@@ -58,8 +65,8 @@ fun MaterialGameAppSelectorScreen(
             }
 
         filteredByMode.sortedWith(
-            compareByDescending<AppProfile> { viewModel.isGameApp(it.packageName) }
-                .thenBy { it.appName }
+            compareByDescending<AppInfo> { viewModel.isGameApp(it.packageName) }
+                .thenBy { it.label }
         )
       }
 
@@ -160,31 +167,35 @@ fun MaterialGameAppSelectorScreen(
         }
       }
 
-      LazyColumn(
-          modifier = Modifier.fillMaxSize(),
-          contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp),
-      ) {
-        items(filteredApps, key = { it.packageName }) { app: AppProfile ->
-          val isGame = viewModel.isGameApp(app.packageName)
+      if (isLoading) {
+          Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              CircularProgressIndicator()
+          }
+      } else {
+          LazyColumn(
+              modifier = Modifier.fillMaxSize(),
+              contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+              verticalArrangement = Arrangement.spacedBy(12.dp),
+          ) {
+            items(filteredApps, key = { it.packageName }) { app: AppInfo ->
+              val isGame = viewModel.isGameApp(app.packageName)
 
-          GameAppItem(
-              app = app,
-              isAdded = isGame,
-              onToggle = { viewModel.toggleGameApp(app.packageName) },
-          )
-        }
+              GameAppItem(
+                  app = app,
+                  isAdded = isGame,
+                  onToggle = { viewModel.toggleGameApp(app.packageName) },
+              )
+            }
 
-        item { Spacer(modifier = Modifier.height(80.dp)) }
+            item { Spacer(modifier = Modifier.height(80.dp)) }
+          }
       }
     }
   }
 }
 
 @Composable
-fun GameAppItem(app: AppProfile, isAdded: Boolean, onToggle: () -> Unit) {
-  val context = LocalContext.current
-
+fun GameAppItem(app: AppInfo, isAdded: Boolean, onToggle: () -> Unit) {
   Card(
       modifier = Modifier.fillMaxWidth().clickable { onToggle() },
       shape = MaterialTheme.shapes.large,
@@ -211,46 +222,28 @@ fun GameAppItem(app: AppProfile, isAdded: Boolean, onToggle: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       // App icon
-      SubcomposeAsyncImage(
-          model =
-              ImageRequest.Builder(context)
-                  .data(getLocalAppIcon(context, app.packageName))
-                  .crossfade(true)
-                  .build(),
-          contentDescription = app.appName,
-          loading = {
-            Box(
-                modifier =
-                    Modifier.size(56.dp)
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center,
-            ) {
-              Text(
-                  app.appName.take(2).uppercase(),
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.Bold,
-              )
-            }
-          },
-          error = {
-            Box(
-                modifier =
-                    Modifier.size(56.dp)
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center,
-            ) {
+      if (app.icon != null) {
+          Image(
+              bitmap = app.icon.toBitmap().asImageBitmap(),
+              contentDescription = app.label,
+              modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.large)
+          )
+      } else {
+          Box(
+              modifier =
+                  Modifier.size(56.dp)
+                      .clip(MaterialTheme.shapes.large)
+                      .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+              contentAlignment = Alignment.Center,
+          ) {
               Icon(Icons.Rounded.Android, null)
-            }
-          },
-          modifier = Modifier.size(56.dp).clip(MaterialTheme.shapes.large),
-      )
+          }
+      }
 
       // App info
       Column(modifier = Modifier.weight(1f)) {
         Text(
-            text = app.appName,
+            text = app.label,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
@@ -270,34 +263,3 @@ fun GameAppItem(app: AppProfile, isAdded: Boolean, onToggle: () -> Unit) {
   }
 }
 
-// Duplicated local helpers since original ones were private in another file
-private fun getAllInstalledApps(context: android.content.Context): List<AppProfile> {
-  return try {
-    val pm = context.packageManager
-    val apps = pm.getInstalledApplications(android.content.pm.PackageManager.GET_META_DATA)
-    apps
-        .filter { (it.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0 }
-        .map { info ->
-          AppProfile(
-              packageName = info.packageName,
-              appName = pm.getApplicationLabel(info).toString(),
-          )
-        }
-  } catch (e: Exception) {
-    listOf(
-        AppProfile("com.example.game1", "Mock Game 1"),
-        AppProfile("com.example.game2", "Mock Game 2"),
-    )
-  }
-}
-
-private fun getLocalAppIcon(
-    context: android.content.Context,
-    packageName: String,
-): android.graphics.drawable.Drawable? {
-  return try {
-    context.packageManager.getApplicationIcon(packageName)
-  } catch (e: Exception) {
-    null
-  }
-}

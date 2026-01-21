@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
@@ -28,6 +29,7 @@ fun MaterialGameSpaceScreen(
     viewModel: MiscViewModel,
     onBack: () -> Unit,
     onAddGames: () -> Unit,
+    onGameMonitorClick: () -> Unit
 ) {
   val gameApps by viewModel.gameApps.collectAsState()
   val appCount =
@@ -98,14 +100,87 @@ fun MaterialGameSpaceScreen(
                             containerColor = MaterialTheme.colorScheme.primary
                         ),
                 ) {
-                  Icon(Icons.Rounded.Add, null, modifier = Modifier.size(18.dp))
-                  Spacer(modifier = Modifier.width(8.dp))
-                  Text("Add")
-                }
-              }
-            },
-        )
-      }
+                      Icon(Icons.Rounded.Add, null, modifier = Modifier.size(18.dp))
+                      Spacer(modifier = Modifier.width(8.dp))
+                      Text("Add")
+                    }
+                  }
+                  
+                  Spacer(Modifier.height(16.dp))
+                  
+                  // Performance Monitor Entry
+                  val context = LocalContext.current
+                  Card(
+                      modifier = Modifier.fillMaxWidth().clickable {
+                          if (!android.provider.Settings.canDrawOverlays(context)) {
+                              android.widget.Toast.makeText(context, "Please grant Overlay permission", android.widget.Toast.LENGTH_LONG).show()
+                              val intent = android.content.Intent(
+                                  android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                  android.net.Uri.parse("package:${context.packageName}")
+                              )
+                              intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                              context.startActivity(intent)
+                              return@clickable
+                          }
+
+                          // Check if Accessibility Service is enabled
+                          val componentName = android.content.ComponentName(context, id.xms.xtrakernelmanager.service.GameMonitorService::class.java)
+                          val enabledServices = android.provider.Settings.Secure.getString(
+                              context.contentResolver,
+                              android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                          )
+                          val isAccessibilityEnabled = enabledServices?.contains(componentName.flattenToString()) == true ||
+                                                       enabledServices?.contains(componentName.flattenToShortString()) == true
+
+                          if (!isAccessibilityEnabled) {
+                              android.widget.Toast.makeText(context, "Please enable XKM Game Monitor service", android.widget.Toast.LENGTH_LONG).show()
+                              val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                              intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                              context.startActivity(intent)
+                          } else {
+                              android.widget.Toast.makeText(context, "Service Active for Instant Detection", android.widget.Toast.LENGTH_SHORT).show()
+                              
+                              // Manually start overlay just to be sure/showcase
+                              val serviceIntent = android.content.Intent(context, id.xms.xtrakernelmanager.service.GameOverlayService::class.java)
+                              context.startService(serviceIntent)
+                          }
+                      },
+                      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha=0.3f)),
+                      shape = RoundedCornerShape(16.dp)
+                  ) {
+                      Row(
+                          modifier = Modifier.padding(16.dp),
+                          verticalAlignment = Alignment.CenterVertically,
+                          horizontalArrangement = Arrangement.SpaceBetween
+                      ) {
+                          Row(verticalAlignment = Alignment.CenterVertically) {
+                              Icon(
+                                  Icons.Rounded.Speed, 
+                                  null, 
+                                  tint = MaterialTheme.colorScheme.primary,
+                                  modifier = Modifier.size(24.dp)
+                              )
+                              Spacer(Modifier.width(16.dp))
+                              Column {
+                                  Text(
+                                      "Performance Monitor",
+                                      style = MaterialTheme.typography.titleMedium,
+                                      fontWeight = FontWeight.Bold,
+                                      color = Color.White
+                                  )
+                                  Text(
+                                      "Manage Permissions & Start",
+                                      style = MaterialTheme.typography.bodySmall,
+                                      color = Color.Gray
+                                  )
+                              }
+                          }
+                          Icon(Icons.Rounded.ChevronRight, null, tint = Color.Gray)
+                      }
+                  }
+                },
+            )
+        }
 
       item { Spacer(modifier = Modifier.height(8.dp)) }
 
