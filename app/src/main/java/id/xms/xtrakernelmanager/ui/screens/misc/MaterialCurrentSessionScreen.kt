@@ -33,9 +33,26 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaterialCurrentSessionScreen(onBack: () -> Unit) {
+fun MaterialCurrentSessionScreen(
+    viewModel: MiscViewModel,
+    onBack: () -> Unit
+) {
   var selectedTab by remember { mutableIntStateOf(0) } // 0 = Charging, 1 = Discharging
-
+  
+  // Collect real data
+  val batteryInfo by viewModel.batteryInfo.collectAsState()
+  val screenOnTime by viewModel.screenOnTime.collectAsState()
+  val screenOffTime by viewModel.screenOffTime.collectAsState()
+  val deepSleepTime by viewModel.deepSleepTime.collectAsState()
+  val drainRate by viewModel.drainRate.collectAsState()
+  
+  // Calculate session values
+  val isCharging = batteryInfo.status.contains("Charging", ignoreCase = true)
+  val currentMa = kotlin.math.abs(batteryInfo.currentNow)
+  val voltageV = batteryInfo.voltage / 1000f
+  val powerW = voltageV * (currentMa / 1000f)
+  val batteryLevel = batteryInfo.level
+  
   // Expressive Palette
   val surfaceColor = MaterialTheme.colorScheme.surface
   val primaryColor = MaterialTheme.colorScheme.primary
@@ -81,9 +98,9 @@ fun MaterialCurrentSessionScreen(onBack: () -> Unit) {
       ) {
         item {
           SessionHeroCard(
-              time = "1h 18m",
+              time = if (selectedTab == 0) screenOnTime else screenOffTime,
               status = if (selectedTab == 0) "Charging Time" else "Usage Time",
-              progress = 0.75f, // Mock progress
+              progress = batteryLevel / 100f,
               accentColor =
                   if (selectedTab == 0) Color(0xFF4CAF50) else Color(0xFFFF5252), // Green/Red
           )
@@ -101,19 +118,19 @@ fun MaterialCurrentSessionScreen(onBack: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
               ExpressiveStatCard(
                   title = "Rate",
-                  value = if (selectedTab == 0) "12.2%/h" else "15.0%/h",
-                  subValue = if (selectedTab == 0) "~546 mA" else "~681 mA",
+                  value = drainRate,
+                  subValue = "~$currentMa mA",
                   icon = Icons.Rounded.Speed,
                   accentColor = MaterialTheme.colorScheme.primary,
                   modifier = Modifier.weight(1f),
               )
 
               ExpressiveStatCard(
-                  title = if (selectedTab == 0) "Gained" else "Lost",
-                  value = "16%",
-                  subValue = "715 mAh",
+                  title = if (isCharging) "Gained" else "Lost",
+                  value = "$batteryLevel%",
+                  subValue = "$currentMa mA",
                   icon =
-                      if (selectedTab == 0) Icons.Rounded.BatteryChargingFull
+                      if (isCharging) Icons.Rounded.BatteryChargingFull
                       else Icons.Rounded.BatteryAlert,
                   accentColor = MaterialTheme.colorScheme.tertiary,
                   modifier = Modifier.weight(1f),
@@ -123,14 +140,14 @@ fun MaterialCurrentSessionScreen(onBack: () -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
               CompactStatCard(
                   label = "Screen On",
-                  value = "1h 02m",
+                  value = screenOnTime,
                   icon = Icons.Rounded.WbSunny,
                   containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                   modifier = Modifier.weight(1f),
               )
               CompactStatCard(
                   label = "Screen Off",
-                  value = "15m",
+                  value = screenOffTime,
                   icon = Icons.Rounded.NightsStay,
                   containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                   modifier = Modifier.weight(1f),
@@ -168,17 +185,29 @@ fun MaterialCurrentSessionScreen(onBack: () -> Unit) {
               ) {
                 DetailRowItem(
                     label = "Est. Capacity",
-                    value = "4471 mAh",
+                    value = "${batteryInfo.totalCapacity} mAh",
                     icon = Icons.Rounded.BatteryStd,
                 )
                 DetailRowItem(
-                    label = "Max Temperature",
-                    value = "38.2°C",
+                    label = "Temperature",
+                    value = "%.1f°C".format(batteryInfo.temperature),
                     icon = Icons.Rounded.Thermostat,
                 )
-                DetailRowItem(label = "Cycles Used", value = "0.08", icon = Icons.Rounded.Refresh)
-                DetailRowItem(label = "Charger Type", value = "USB-PD", icon = Icons.Rounded.Cable)
-                DetailRowItem(label = "Max Power", value = "25.4 W", icon = Icons.Rounded.FlashOn)
+                DetailRowItem(
+                    label = "Deep Sleep", 
+                    value = deepSleepTime, 
+                    icon = Icons.Rounded.Bedtime
+                )
+                DetailRowItem(
+                    label = "Voltage", 
+                    value = "%.2f V".format(voltageV), 
+                    icon = Icons.Rounded.ElectricBolt
+                )
+                DetailRowItem(
+                    label = "Power", 
+                    value = "%.1f W".format(powerW), 
+                    icon = Icons.Rounded.FlashOn
+                )
               }
             }
           }

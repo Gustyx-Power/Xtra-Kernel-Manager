@@ -45,7 +45,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   when {
     showBatterySettings ->
         BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
-    showCurrentSession -> MaterialCurrentSessionScreen(onBack = { showCurrentSession = false })
+    showCurrentSession -> MaterialCurrentSessionScreen(viewModel = viewModel, onBack = { showCurrentSession = false })
     showGameAppSelector ->
         MaterialGameAppSelectorScreen(
             viewModel = viewModel,
