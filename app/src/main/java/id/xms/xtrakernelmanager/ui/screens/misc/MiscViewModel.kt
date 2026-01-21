@@ -294,12 +294,12 @@ class MiscViewModel(
   val batteryNotifRefreshRate =
       preferencesManager
           .getBatteryNotifRefreshRate()
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5)
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1000L)
 
-  fun setBatteryNotifRefreshRate(seconds: Int) {
+  fun setBatteryNotifRefreshRate(ms: Long) {
     viewModelScope.launch {
-      preferencesManager.setBatteryNotifRefreshRate(seconds)
-      Log.d("MiscViewModel", "Battery notification refresh rate: $seconds")
+      preferencesManager.setBatteryNotifRefreshRate(ms)
+      Log.d("MiscViewModel", "Battery notification refresh rate set to: ${ms}ms")
     }
   }
 

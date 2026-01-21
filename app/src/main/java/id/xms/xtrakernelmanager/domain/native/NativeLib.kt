@@ -204,7 +204,7 @@ object NativeLib {
   fun isCharging(): Boolean? {
     if (!isLoaded) return null
     return try {
-      isChargingNative()
+      isChargingNative() == 1
     } catch (e: Exception) {
       Log.e(TAG, "Native isCharging failed: ${e.message}")
       null
@@ -315,7 +315,7 @@ object NativeLib {
 
   private external fun readSuspendCountNative(): Int
 
-  private external fun isChargingNative(): Boolean
+  private external fun isChargingNative(): Int
 
   private external fun readBatteryTempNative(): Int
 

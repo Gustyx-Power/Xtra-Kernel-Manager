@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 
 class BatteryInfoService : Service() {
   private val NOTIF_ID = 1001
@@ -103,8 +104,8 @@ class BatteryInfoService : Service() {
 
     // Refresh Rate
     scope.launch {
-        prefs.getBatteryNotifRefreshRate().collect { seconds ->
-             refreshRateMs = seconds * 1000L
+        prefs.getBatteryNotifRefreshRate().collect { ms ->
+             refreshRateMs = ms
         }
     }
     
@@ -139,6 +140,9 @@ class BatteryInfoService : Service() {
              dontUpdateScreenOff = enabled
         }
     }
+    
+    // Start Native Polling for Real-time Battery Data
+    startNativePolling(scope)
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -775,5 +779,60 @@ class BatteryInfoService : Service() {
     channel.setShowBadge(false)
     val notificationManager = getSystemService(NotificationManager::class.java)
     notificationManager.createNotificationChannel(channel)
+  }
+  private fun startNativePolling(scope: CoroutineScope) {
+    scope.launch(Dispatchers.IO) {
+      Log.d("BatteryInfoService", "Starting native polling with rate: ${refreshRateMs}ms")
+      while (isActive) {
+          try {
+              if (id.xms.xtrakernelmanager.domain.native.NativeLib.isAvailable()) {
+                  // Read directly from native (sysfs via JNI) - Fast & Low Overhead
+                  // Read directly from native (sysfs via JNI)
+                  var level = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryLevel() ?: -1
+                  var current = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCurrent() ?: 0
+                  var voltage = (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryVoltage()?.times(1000))?.toInt() ?: 0
+                  var temp = (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryTemp()?.times(10))?.toInt() ?: 0
+                  
+                  // Root Fallback if native fails (returns 0 or -1 continuously)
+                  if (level <= 0 || voltage == 0) {
+                      try {
+                          val rootLevel = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/capacity").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootLevel != null && rootLevel > 0) level = rootLevel
+                          
+                          val rootCurrent = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/current_now").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootCurrent != null) current = rootCurrent / 1000 // Convert uA to mA if needed, usually uA in sysfs
+
+                          val rootVoltage = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/voltage_now").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootVoltage != null) voltage = rootVoltage / 1000 // Convert uV to mV
+                          
+                          val rootTemp = id.xms.xtrakernelmanager.domain.root.RootManager.readFile("/sys/class/power_supply/battery/temp").getOrNull()?.replace("\n", "")?.toIntOrNull()
+                          if (rootTemp != null) temp = rootTemp // Usually deciCelcius
+                          
+                          Log.d("BatteryInfoService", "Used Root Fallback: L=$level, C=$current, V=$voltage, T=$temp")
+                      } catch (e: Exception) {
+                          Log.e("BatteryInfoService", "Root fallback failed: ${e.message}")
+                      }
+                  }
+
+                  val isCharging = id.xms.xtrakernelmanager.domain.native.NativeLib.isCharging() ?: false
+                  val health = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryHealth() ?: "Unknown"
+
+                  // Update cache if valid read
+                  if (level != -1) cachedLevel = level
+                  cachedCurrent = current
+                  cachedVoltage = voltage
+                  cachedTemp = temp
+                  cachedIsCharging = isCharging
+                  cachedHealth = health
+                  
+                  refreshState()
+              }
+          } catch (e: Exception) {
+              Log.e("BatteryInfoService", "Error in native polling: ${e.message}")
+          }
+          
+          kotlinx.coroutines.delay(refreshRateMs)
+      }
+    }
   }
 }

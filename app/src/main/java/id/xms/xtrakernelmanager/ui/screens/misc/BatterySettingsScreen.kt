@@ -104,13 +104,12 @@ fun BatterySettingsScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
             currentValue = notifRefreshRate.toString(),
             entries =
                 mapOf(
-                    "1" to "1s",
-                    "2" to "2s",
-                    "3" to "3s",
-                    "4" to "4s",
-                    "5" to "5s",
+                    "500" to "0.5s",
+                    "1000" to "1s",
+                    "2000" to "2s",
+                    "5000" to "5s",
                 ),
-            onValueChange = { viewModel.setBatteryNotifRefreshRate(it.toInt()) },
+            onValueChange = { viewModel.setBatteryNotifRefreshRate(it.toLong()) },
         )
 
         SettingsSwitchPreference(
