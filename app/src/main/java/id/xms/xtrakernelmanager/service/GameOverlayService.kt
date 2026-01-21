@@ -43,9 +43,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.viewmodel.compose.viewModel
-import id.xms.xtrakernelmanager.ui.screens.misc.GameMonitorViewModel
-import id.xms.xtrakernelmanager.ui.screens.misc.MaterialGameMonitorContent
 import kotlinx.coroutines.*
+import id.xms.xtrakernelmanager.ui.screens.misc.GameMonitorViewModel
 
 /**
  * Game Overlay Service - Redesigned
@@ -143,100 +142,45 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     lifecycleRegistry.currentState = Lifecycle.State.STARTED
   }
 
-  @Composable
-  private fun GameOverlayTheme(content: @Composable () -> Unit) {
-    // Use Material You colors on Android 12+, fallback to dark blue theme
-    val colorScheme =
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-          dynamicDarkColorScheme(LocalContext.current)
-        } else {
-          darkColorScheme(
-              primary = Color(0xFF5C6BC0), // Indigo 400
-              onPrimary = Color.White,
-              primaryContainer = Color(0xFF1A237E), // Indigo 900
-              secondary = Color(0xFF7986CB),
-              surface = Color(0xFF121212),
-              onSurface = Color.White,
-              background = Color(0xFF0D0D0D),
-          )
-        }
 
-    MaterialTheme(colorScheme = colorScheme, content = content)
-  }
 
   @Composable
   private fun GameOverlayContent() {
-    val accentColor = MaterialTheme.colorScheme.primary
-
-    val fpsValue by viewModel.fpsValue.collectAsState()
+    val context = LocalContext.current
+    var isFpsEnabled by remember { mutableStateOf(false) } // This would normally come from ViewModel/Prefs
 
     Box(
-        modifier =
-            Modifier.pointerInput(Unit) {
-              detectDragGestures { change, dragAmount ->
-                change.consume()
-                val lp = params ?: return@detectDragGestures
-                lp.x -= dragAmount.x.toInt()
-                lp.y += dragAmount.y.toInt()
-                windowManager.updateViewLayout(overlayView, lp)
-              }
-            }
+        modifier = Modifier.wrapContentSize(),
+        contentAlignment = Alignment.TopStart
     ) {
-      // Trigger Handle (collapsed state)
-      TriggerHandle(
-          fpsValue = fpsValue,
-          isExpanded = isExpanded,
-          onToggleExpanded = { isExpanded = !isExpanded },
-          onDrag = { _, dy ->
-            // Update window position when dragging
-            params?.let { p ->
-              p.y = (p.y + dy.toInt()).coerceIn(0, 800)
-              try {
-                windowManager.updateViewLayout(overlayView, p)
-              } catch (e: Exception) {
-                // View may not be attached
-              }
-            }
-          },
-          accentColor = accentColor,
-      )
-
-      // Expanded Overlay
-      AnimatedVisibility(
-          visible = isExpanded,
-          enter = fadeIn() + scaleIn(initialScale = 0.8f),
-          exit = fadeOut() + scaleOut(targetScale = 0.8f),
-      ) {
-        // Floating Window Container
-        Surface(
-            modifier = Modifier.width(320.dp).height(500.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            shadowElevation = 8.dp
-        ) {
-             // Close Button
-             Box {
-                 id.xms.xtrakernelmanager.ui.screens.misc.MaterialGameMonitorContent(
-                    viewModel = viewModel,
-                    modifier = Modifier.padding(top = 16.dp)
-                 )
-                 
-                 IconButton(
-                     onClick = { isExpanded = false },
-                     modifier = Modifier.align(Alignment.TopEnd)
-                 ) {
-                     Icon(Icons.Rounded.Close, null)
-                 }
-                 
-                 IconButton(
-                     onClick = { toggleOverlayPosition() },
-                     modifier = Modifier.align(Alignment.TopStart)
-                 ) {
-                     Icon(Icons.Rounded.SwapHoriz, null)
-                 }
-             }
+        if (isExpanded) {
+            GamePanelCard(
+                viewModel = viewModel,
+                onCollapse = { isExpanded = false },
+                onMoveSide = { toggleOverlayPosition() }
+            )
+        } else {
+            // Unified Sidebar (handles both Icon and FPS modes)
+            val fpsVal by viewModel.fpsValue.collectAsState()
+            
+            GameSidebar(
+                isExpanded = isExpanded,
+                overlayOnRight = isOverlayOnRight,
+                fps = if (isFpsEnabled) fpsVal else null, // If enabled, pass FPS to be displayed
+                onToggleExpand = { isExpanded = true },
+                onDrag = { dx, dy ->
+                    // Update window position
+                    params?.let { p ->
+                        p.y = (p.y + dy.toInt()).coerceIn(0, 1000)
+                        try {
+                            windowManager.updateViewLayout(overlayView, p)
+                        } catch (e: Exception) {
+                            // View may not be attached
+                        }
+                    }
+                }
+            )
         }
-      }
     }
   }
 
