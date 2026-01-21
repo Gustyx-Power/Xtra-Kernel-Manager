@@ -86,8 +86,19 @@ fun MaterialBatteryScreen(
           }
 
           // Right Column: Session Stats
+          val screenOnTime by viewModel.screenOnTime.collectAsState()
+          val screenOffTime by viewModel.screenOffTime.collectAsState()
+          val deepSleepTime by viewModel.deepSleepTime.collectAsState()
+          val batteryInfo by viewModel.batteryInfo.collectAsState()
+          
           Box(modifier = Modifier.weight(1f)) {
-            CurrentSessionCard(onClick = onCurrentSessionClick)
+            CurrentSessionCard(
+                onClick = onCurrentSessionClick,
+                screenOnTime = screenOnTime,
+                screenOffTime = screenOffTime,
+                deepSleepTime = deepSleepTime,
+                chargedInfo = "${batteryInfo.level}% • ${kotlin.math.abs(batteryInfo.currentNow)} mA"
+            )
           }
         }
       }
@@ -410,12 +421,18 @@ fun BatteryCapacityCard() {
 }
 
 @Composable
-fun CurrentSessionCard(onClick: () -> Unit = {}) {
+fun CurrentSessionCard(
+    onClick: () -> Unit = {},
+    screenOnTime: String = "--",
+    screenOffTime: String = "--",
+    deepSleepTime: String = "--",
+    chargedInfo: String = "0% • 0 mAh",
+) {
   Card(
       onClick = onClick,
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
-      modifier = Modifier.fillMaxWidth().height(260.dp),
+      modifier = Modifier.fillMaxWidth().height(280.dp),
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
@@ -425,13 +442,15 @@ fun CurrentSessionCard(onClick: () -> Unit = {}) {
           color = Color.White,
       )
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(20.dp))
 
-      StatRowCompact(icon = Icons.Rounded.WbSunny, label = "Screen On", value = "6m 30d")
-      Spacer(modifier = Modifier.height(20.dp))
-      StatRowCompact(icon = Icons.Rounded.NightsStay, label = "Screen Off", value = "2m 23d")
-      Spacer(modifier = Modifier.height(20.dp))
-      StatRowCompact(icon = Icons.Rounded.BatteryStd, label = "Charged", value = "0% • 41 mAh")
+      StatRowCompact(icon = Icons.Rounded.WbSunny, label = "Screen On", value = screenOnTime)
+      Spacer(modifier = Modifier.height(16.dp))
+      StatRowCompact(icon = Icons.Rounded.NightsStay, label = "Screen Off", value = screenOffTime)
+      Spacer(modifier = Modifier.height(16.dp))
+      StatRowCompact(icon = Icons.Rounded.Bedtime, label = "Deep Sleep", value = deepSleepTime)
+      Spacer(modifier = Modifier.height(16.dp))
+      StatRowCompact(icon = Icons.Rounded.BatteryStd, label = "Charged", value = chargedInfo)
     }
   }
 }
