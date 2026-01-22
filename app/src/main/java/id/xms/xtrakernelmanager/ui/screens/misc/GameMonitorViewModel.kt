@@ -42,6 +42,9 @@ class GameMonitorViewModel(
   private val _fpsValue = MutableStateFlow("60")
   val fpsValue: StateFlow<String> = _fpsValue.asStateFlow()
 
+  private val _isFpsEnabled = MutableStateFlow(false)
+  val isFpsEnabled: StateFlow<Boolean> = _isFpsEnabled.asStateFlow()
+
   private val _tempValue = MutableStateFlow("0")
   val tempValue: StateFlow<String> = _tempValue.asStateFlow()
 
@@ -105,6 +108,9 @@ class GameMonitorViewModel(
     }
     viewModelScope.launch {
       _currentPerformanceMode.value = gameControlUseCase.getCurrentPerformanceMode()
+    }
+    viewModelScope.launch {
+      _isFpsEnabled.value = preferencesManager.getBoolean("fps_enabled", false)
     }
   }
 
@@ -254,6 +260,13 @@ class GameMonitorViewModel(
       _isClearingRam.value = true
       withContext(Dispatchers.IO) { gameControlUseCase.clearRAM() }
       _isClearingRam.value = false
+    }
+  }
+
+  fun setFpsEnabled(enabled: Boolean) {
+    viewModelScope.launch {
+      _isFpsEnabled.value = enabled
+      preferencesManager.setBoolean("fps_enabled", enabled)
     }
   }
 

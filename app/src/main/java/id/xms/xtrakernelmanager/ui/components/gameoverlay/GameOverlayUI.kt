@@ -57,6 +57,7 @@ fun GameSidebar(
     fps: String? = null,
     onToggleExpand: () -> Unit,
     onDrag: (Float, Float) -> Unit,
+    onDragEnd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
   val pillColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f)
@@ -80,7 +81,9 @@ fun GameSidebar(
               .width(52.dp) // Wider for text
               .height(36.dp) // Standard button height (compact)
               .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
+                detectDragGestures(
+                    onDragEnd = onDragEnd,
+                ) { change, dragAmount ->
                   change.consume()
                   onDrag(dragAmount.x, dragAmount.y)
                 }
