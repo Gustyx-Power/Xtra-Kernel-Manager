@@ -163,13 +163,13 @@ fun LiquidTuningScreen(
           LegacyCPUControl(viewModel = viewModel, onClick = { onNavigate("legacy_cpu_settings") })
         }
       }
-      item { LegacyGPUControl(viewModel = viewModel) }
-      item { LegacyThermalControl(viewModel = viewModel) }
-      item { LegacyRAMControl(viewModel = viewModel) }
-      item { LegacyAdditionalControl(viewModel = viewModel) }
+      item { LiquidGPUControl(viewModel = viewModel) }
+      item { LiquidThermalControl(viewModel = viewModel) }
+      item { LiquidRAMControl(viewModel = viewModel) }
+      item { LiquidAdditionalControl(viewModel = viewModel) }
       item {
         val availableGovernors = cpuClusters.firstOrNull()?.availableGovernors ?: emptyList()
-        LegacyPerAppProfile(
+        LiquidPerAppProfile(
             preferencesManager = preferencesManager,
             availableGovernors = availableGovernors,
         )

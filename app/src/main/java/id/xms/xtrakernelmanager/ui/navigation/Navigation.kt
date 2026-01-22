@@ -36,7 +36,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.components.CPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.CPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.utils.Holiday
@@ -143,32 +143,9 @@ fun Navigation(preferencesManager: PreferencesManager) {
   // Get layout style early so we can use it for backdrop
   val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
 
-  // Create backdrop for liquid layout
-  val backdrop = if (layoutStyle == "liquid") rememberLayerBackdrop() else null
-  
   Box(modifier = Modifier.fillMaxSize()) {
-    // Background layer for glass effect (only for liquid layout)
-    if (layoutStyle == "liquid" && backdrop != null) {
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .background(
-            brush = Brush.verticalGradient(
-              colors = listOf(
-                MaterialTheme.colorScheme.primaryContainer,
-                MaterialTheme.colorScheme.tertiaryContainer,
-                MaterialTheme.colorScheme.background
-              )
-            )
-          )
-          .layerBackdrop(backdrop)
-      )
-    }
-    
-    // Wrap with LocalBackdrop provider for liquid layout
-    CompositionLocalProvider(LocalBackdrop provides backdrop) {
     Scaffold(
-        containerColor = if (layoutStyle == "liquid") Color.Transparent else MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
       NavHost(
           navController = navController,
