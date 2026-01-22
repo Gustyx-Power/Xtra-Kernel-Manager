@@ -19,6 +19,12 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.PillCard
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyCPUControl
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyGPUControl
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyThermalControl
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyRAMControl
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyAdditionalControl
+import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyPerAppProfile
 
 @Composable
 fun LiquidTuningScreen(
