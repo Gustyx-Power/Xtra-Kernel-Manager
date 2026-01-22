@@ -140,12 +140,9 @@ class MiscViewModel(
   private val _selinuxLoading = MutableStateFlow(false)
   val selinuxLoading: StateFlow<Boolean> = _selinuxLoading.asStateFlow()
 
-  // Game Space Mock States
+  // Game Space
   private val _callOverlay = MutableStateFlow(true)
   val callOverlay: StateFlow<Boolean> = _callOverlay.asStateFlow()
-
-  private val _danmakuMode = MutableStateFlow(false)
-  val danmakuMode: StateFlow<Boolean> = _danmakuMode.asStateFlow()
 
   private val _disableAutoBrightness = MutableStateFlow(true)
   val disableAutoBrightness: StateFlow<Boolean> = _disableAutoBrightness.asStateFlow()
@@ -452,9 +449,7 @@ class MiscViewModel(
     _callOverlay.value = enabled
   }
 
-  fun setDanmakuMode(enabled: Boolean) {
-    _danmakuMode.value = enabled
-  }
+
 
   fun setDisableAutoBrightness(enabled: Boolean) {
     _disableAutoBrightness.value = enabled

@@ -12,7 +12,7 @@ class GameControlUseCase(private val context: Context) {
     private const val TAG = "GameControlUseCase"
   }
 
-  /** Check if DND permission is granted */
+  
   fun hasDNDPermission(): Boolean {
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -23,7 +23,6 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  /** Enable Do Not Disturb mode Returns Result with specific error messages */
   suspend fun enableDND(): Result<Boolean> {
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -54,7 +53,6 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  /** Disable Do Not Disturb mode */
   suspend fun disableDND(): Result<Boolean> {
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -91,19 +89,15 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  /** Custom exception for DND permission issues */
   class DNDPermissionException(message: String) : Exception(message)
 
-  // Clear RAM with freed amount calculation
   suspend fun clearRAM(): Result<ClearRamResult> {
     return try {
-      // Get available RAM before clearing
       val memInfoBefore =
           RootManager.executeCommand("cat /proc/meminfo | grep MemAvailable").getOrNull()?.let {
             parseMemValue(it)
           } ?: 0L
 
-      // Execute clear commands
       val commands = listOf("sync", "echo 3 > /proc/sys/vm/drop_caches", "am kill-all")
 
       var success = false
@@ -112,10 +106,8 @@ class GameControlUseCase(private val context: Context) {
         if (result.isSuccess) success = true
       }
 
-      // Small delay to let system update
       kotlinx.coroutines.delay(500)
 
-      // Get available RAM after clearing
       val memInfoAfter =
           RootManager.executeCommand("cat /proc/meminfo | grep MemAvailable").getOrNull()?.let {
             parseMemValue(it)
@@ -134,7 +126,6 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  // Parse memory value from /proc/meminfo (format: "MemAvailable:    1234567 kB")
   private fun parseMemValue(line: String): Long {
     return try {
       line.split(Regex("\\s+")).getOrNull(1)?.toLongOrNull() ?: 0L
@@ -144,11 +135,11 @@ class GameControlUseCase(private val context: Context) {
   }
 
   data class ClearRamResult(
-      val freedMB: Long, // RAM yang berhasil dibersihkan (MB)
-      val availableMB: Long, // RAM tersedia sekarang (MB)
+      val freedMB: Long, 
+      val availableMB: Long, 
   )
 
-  // Performance Mode
+
   suspend fun setPerformanceMode(mode: String): Result<Boolean> {
     val governorPath = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"
 
@@ -160,7 +151,6 @@ class GameControlUseCase(private val context: Context) {
           else -> "schedutil"
         }
 
-    // Set thermal preset based on mode
     val thermalPreset =
         when (mode) {
           "performance" -> "Dynamic"
@@ -197,12 +187,10 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  /** Enable Monster Mode - Max performance with locked UI */
   suspend fun enableMonsterMode(): Result<Boolean> {
     return try {
       val commands = mutableListOf<String>()
 
-      // 1. Set all CPUs to max frequency with performance governor
       for (i in 0..7) {
         val basePath = "/sys/devices/system/cpu/cpu$i/cpufreq"
         commands.add("cat $basePath/cpuinfo_max_freq > $basePath/scaling_max_freq 2>/dev/null")
@@ -210,7 +198,6 @@ class GameControlUseCase(private val context: Context) {
         commands.add("echo performance > $basePath/scaling_governor 2>/dev/null")
       }
 
-      // 2. Max GPU frequency (Adreno/KGSL)
       commands.addAll(
           listOf(
               "echo 1 > /sys/class/kgsl/kgsl-3d0/force_clk_on 2>/dev/null",
@@ -242,16 +229,13 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  /** Disable Monster Mode - Restore balanced settings */
   suspend fun disableMonsterMode(): Result<Boolean> {
     return try {
-      // Restore schedutil governor
       for (i in 0..7) {
         val basePath = "/sys/devices/system/cpu/cpu$i/cpufreq"
         RootManager.executeCommand("echo schedutil > $basePath/scaling_governor 2>/dev/null")
       }
 
-      // Disable GPU force clocks
       RootManager.executeCommand("echo 0 > /sys/class/kgsl/kgsl-3d0/force_clk_on 2>/dev/null")
       RootManager.executeCommand("echo 0 > /sys/class/kgsl/kgsl-3d0/force_bus_on 2>/dev/null")
       RootManager.executeCommand("echo 0 > /sys/class/kgsl/kgsl-3d0/force_rail_on 2>/dev/null")
@@ -268,14 +252,9 @@ class GameControlUseCase(private val context: Context) {
   suspend fun setImmersiveMode(enabled: Boolean): Result<Boolean> {
     return try {
       if (enabled) {
-        // Lock statusbar and navigation using policy_control
-        // This is the most reliable method across Android versions
         RootManager.executeCommand("settings put global policy_control immersive.full=*")
-
-        // For MIUI/HyperOS: also disable status bar gestures
         RootManager.executeCommand("settings put global force_immersive_on_apps *")
       } else {
-        // Restore normal behavior
         RootManager.executeCommand("settings put global policy_control null")
         RootManager.executeCommand("settings put global force_immersive_on_apps null")
       }
@@ -307,17 +286,14 @@ class GameControlUseCase(private val context: Context) {
     }
   }
 
-  /** Start System Screen Recorder - MIUI/HyperOS specific first */
   suspend fun startScreenRecord(): Result<Boolean> {
     return try {
-      // Try MIUI/HyperOS first since user is on HyperOS
       val miuiResult =
           RootManager.executeCommand(
               "am start -a android.intent.action.MAIN -n com.miui.screenrecorder/com.miui.screenrecorder.ui.ScreenRecorderActivity"
           )
 
       if (miuiResult.isFailure) {
-        // Fallback: try to start via broadcast
         RootManager.executeCommand(
             "am broadcast -a com.miui.screenrecorder.action.START_SCREENRECORD"
         )
@@ -329,5 +305,106 @@ class GameControlUseCase(private val context: Context) {
       Log.e(TAG, "Error starting screen record", e)
       Result.failure(e)
     }
+  }
+
+  suspend fun setRingerMode(mode: Int): Result<Boolean> {
+    return try {
+        
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+        
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !hasDNDPermission()) {
+             val ringerVal = when(mode) {
+                 0 -> 2 // Normal
+                 1 -> 1 // Vibrate
+                 2 -> 0 // Silent
+                 else -> 2
+             }
+             val cmdVal = when(mode) {
+                 0 -> 2 // Normal -> 2
+                 1 -> 1 // Vibrate -> 1
+                 2 -> 0 // Silent -> 0
+                 else -> 2
+             }
+             return RootManager.executeCommand("settings put global mode_ringer $cmdVal").map { true }
+        }
+
+        when (mode) {
+            0 -> am.ringerMode = android.media.AudioManager.RINGER_MODE_NORMAL
+            1 -> am.ringerMode = android.media.AudioManager.RINGER_MODE_VIBRATE
+            2 -> am.ringerMode = android.media.AudioManager.RINGER_MODE_SILENT
+        }
+        Result.success(true)
+    } catch (e: Exception) {
+      Log.e(TAG, "Error setting ringer mode", e)
+      try {
+           val cmdVal = when(mode) {
+                 0 -> 2 // Normal
+                 1 -> 1 // Vibrate
+                 2 -> 0 // Silent
+                 else -> 2
+           }
+           RootManager.executeCommand("settings put global mode_ringer $cmdVal").map { true }
+      } catch (ex: Exception) {
+          Result.failure(ex)
+      }
+    }
+  }
+
+
+  suspend fun setThreeFingerSwipe(enabled: Boolean): Result<Boolean> {
+      return try {
+          val valStr = if (enabled) "1" else "0"
+          RootManager.executeCommand("settings put system three_gesture_touch $valStr")
+          
+          Result.success(true)
+      } catch (e: Exception) {
+          Result.failure(e)
+      }
+  }
+  
+  suspend fun setBrightness(value: Int): Result<Boolean> {
+      return try {
+          RootManager.executeCommand("settings put system screen_brightness $value")
+          Result.success(true)
+      } catch (e: Exception) {
+          Result.failure(e)
+      }
+  }
+
+  suspend fun getBrightness(): Int {
+      return try {
+          val result = RootManager.executeCommand("settings get system screen_brightness")
+          result.getOrNull()?.trim()?.toIntOrNull() ?: 128
+      } catch (e: Exception) {
+          128
+      }
+  }
+
+  suspend fun takeScreenshot(): Result<Boolean> {
+      return try {
+          RootManager.executeCommand("input keyevent 120") 
+          Result.success(true)
+      } catch (e: Exception) {
+          Result.failure(e)
+      }
+  }
+
+
+  suspend fun setGestureLock(enabled: Boolean): Result<Boolean> {
+      return try {
+          val value = if (enabled) "1" else "0"
+          
+          RootManager.executeCommand("settings put system gamespace_lock_gesture $value")
+          
+          val edgeValue = if (enabled) "0" else "2"
+          RootManager.executeCommand("settings put secure back_gesture_inset_scale_left $edgeValue")
+          RootManager.executeCommand("settings put secure back_gesture_inset_scale_right $edgeValue")
+          
+          Log.d(TAG, "Gesture lock: $enabled")
+          Result.success(true)
+      } catch (e: Exception) {
+          Log.e(TAG, "Error setting gesture lock", e)
+          Result.failure(e)
+      }
   }
 }
