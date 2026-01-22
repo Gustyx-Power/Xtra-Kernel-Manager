@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.layerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.rememberLayerBackdrop
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CPUInfo

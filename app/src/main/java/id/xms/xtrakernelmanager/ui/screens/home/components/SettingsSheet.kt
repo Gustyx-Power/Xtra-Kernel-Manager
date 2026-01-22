@@ -94,9 +94,9 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
         LayoutOptionCard(
             title = "Liquid Glass",
             description = "Glass inspired by iOS 26",
-            isSelected = currentLayout == "legacy",
+            isSelected = currentLayout == "liquid",
             modifier = Modifier.weight(1f),
-            onClick = { scope.launch { preferencesManager.setLayoutStyle("legacy") } },
+            onClick = { scope.launch { preferencesManager.setLayoutStyle("liquid") } },
         )
       }
     }
