@@ -1,92 +1,118 @@
 package id.xms.xtrakernelmanager.ui.components
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.ui.components.utils.LayerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.drawBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.blur
+import id.xms.xtrakernelmanager.ui.components.utils.colorControls
+import id.xms.xtrakernelmanager.ui.components.utils.lens
 import id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens
+
+val LocalBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 
 @Composable
 fun GlassmorphicCard(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    enabled: Boolean = true,
-    content: @Composable ColumnScope.() -> Unit,
+        modifier: Modifier = Modifier,
+        // backdrop param removed, use LocalBackdrop.current
+        onClick: (() -> Unit)? = null,
+        enabled: Boolean = true,
+        content: @Composable ColumnScope.() -> Unit,
 ) {
+  val backdrop = LocalBackdrop.current
   val dimens = rememberResponsiveDimens()
-  val shape = RoundedCornerShape(dimens.cornerRadiusMedium)
+  val shape = RoundedCornerShape(32.dp) // Significantly rounder corners
   val isDark = isSystemInDarkTheme()
 
-  val containerColor =
-      if (isDark) {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp)
-      } else {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
-      }
+  // Manual fallback colors
+  val glassColor =
+          if (isDark) {
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.05f)
+          } else {
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
+          }
 
-  val cardColors =
-      CardDefaults.cardColors(
-          containerColor = containerColor,
-          contentColor = MaterialTheme.colorScheme.onSurface,
-      )
+  val glassBorder =
+          if (isDark) {
+            Color.White.copy(alpha = 0.15f)
+          } else {
+            Color.White.copy(alpha = 0.4f)
+          }
+  val shadowColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
 
-  val borderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDark) 0.35f else 0.15f)
+  // Base modifier without shadow to avoid artifacts behind transparent content
+  var baseModifier =
+          modifier.fillMaxWidth()
+                  .clip(shape)
 
-  val baseModifier = modifier.fillMaxWidth().shadow(elevation = 14.dp, shape = shape, clip = false)
-
-  val elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+  // Apply Backdrop effect if available, else usage manual fallback
+  if (backdrop != null) {
+    baseModifier =
+            baseModifier.drawBackdrop(
+                    backdrop = backdrop,
+                    shape = { shape },
+                    effects = {
+                      colorControls(
+                              saturation = 0.7f, // High vibrancy
+                              brightness = 0.15f // Thicker glass look (darker interior)
+                      )
+                      blur(20.dp.toPx()) // Balanced blur
+                      lens(
+                              refractionHeight = 32.dp.toPx(), // Deep refraction (Thickness)
+                              refractionAmount = 48.dp.toPx(), // Strong distortion
+                              chromaticAberration = true,
+                              depthEffect = true
+                      )
+                    },
+                    onDrawSurface = {
+                      drawRect(glassColor)
+                      // We can render border here if needed, or via modifier.border below
+                    }
+            )
+    // Add border on top
+    baseModifier = baseModifier.border(1.dp, glassBorder, shape)
+  } else {
+    // Fallback
+    baseModifier = baseModifier.background(glassColor).border(1.dp, glassBorder, shape)
+  }
 
   if (onClick != null) {
-    Card(
-        onClick = onClick,
-        modifier = baseModifier,
-        shape = shape,
-        colors = cardColors,
-        enabled = enabled,
-        elevation = elevation,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
+    Box(modifier = baseModifier.clickable(enabled = enabled, onClick = onClick)) {
       Column(
-          modifier = Modifier.padding(dimens.cardPadding),
-          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
-      ) {
-        content()
-      }
+              modifier = Modifier.padding(dimens.cardPadding),
+              verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+      ) { content() }
     }
   } else {
-    Card(
-        modifier = baseModifier,
-        shape = shape,
-        colors = cardColors,
-        elevation = elevation,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
+    Box(modifier = baseModifier) {
       Column(
-          modifier = Modifier.padding(dimens.cardPadding),
-          verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
-      ) {
-        content()
-      }
+              modifier = Modifier.padding(dimens.cardPadding),
+              verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+      ) { content() }
     }
   }
 }
 
 @Composable
 fun EnhancedCard(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-    enabled: Boolean = true,
-    content: @Composable ColumnScope.() -> Unit,
+        modifier: Modifier = Modifier,
+        onClick: (() -> Unit)? = null,
+        enabled: Boolean = true,
+        content: @Composable ColumnScope.() -> Unit,
 ) {
   GlassmorphicCard(modifier = modifier, onClick = onClick, enabled = enabled, content = content)
 }
@@ -95,15 +121,15 @@ fun EnhancedCard(
 fun InfoRow(label: String, value: String, modifier: Modifier = Modifier) {
   Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
     Text(
-        text = label,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Text(
-        text = value,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurface,
-        fontWeight = FontWeight.Medium,
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium,
     )
   }
 }

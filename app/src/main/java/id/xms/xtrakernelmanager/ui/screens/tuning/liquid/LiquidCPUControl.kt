@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +19,7 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
-fun LegacyCPUControl(
+fun LiquidCPUControl(
     viewModel: TuningViewModel,
     onClick: () -> Unit
 ) {

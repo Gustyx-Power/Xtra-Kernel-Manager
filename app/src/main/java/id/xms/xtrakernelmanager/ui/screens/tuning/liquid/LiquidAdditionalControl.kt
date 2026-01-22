@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
@@ -27,7 +27,7 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
 @Composable
-fun LegacyAdditionalControl(viewModel: TuningViewModel) {
+fun LiquidAdditionalControl(viewModel: TuningViewModel) {
   val ioSchedulers by viewModel.availableIOSchedulers.collectAsState()
   val tcpCongestion by viewModel.availableTCPCongestion.collectAsState()
 

@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +21,7 @@ import id.xms.xtrakernelmanager.ui.components.PillCard
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
-fun LegacyTuningScreen(
+fun LiquidTuningScreen(
     viewModel: TuningViewModel,
     preferencesManager: PreferencesManager,
     isRootAvailable: Boolean,
@@ -155,19 +155,19 @@ fun LegacyTuningScreen(
         } else {
             if (cpuClusters.isNotEmpty()) {
                 item { 
-                    LegacyCPUControl(
+                    LiquidCPUControl(
                         viewModel = viewModel,
-                        onClick = { onNavigate("legacy_cpu_settings") }
+                        onClick = { onNavigate("liquid_cpu_settings") }
                     ) 
                 }
             }
-            item { LegacyGPUControl(viewModel = viewModel) }
-            item { LegacyThermalControl(viewModel = viewModel) }
-            item { LegacyRAMControl(viewModel = viewModel) }
-            item { LegacyAdditionalControl(viewModel = viewModel) }
+            item { LiquidGPUControl(viewModel = viewModel) }
+            item { LiquidThermalControl(viewModel = viewModel) }
+            item { LiquidRAMControl(viewModel = viewModel) }
+            item { LiquidAdditionalControl(viewModel = viewModel) }
             item {
                 val availableGovernors = cpuClusters.firstOrNull()?.availableGovernors ?: emptyList()
-                LegacyPerAppProfile(
+                LiquidPerAppProfile(
                     preferencesManager = preferencesManager,
                     availableGovernors = availableGovernors,
                 )

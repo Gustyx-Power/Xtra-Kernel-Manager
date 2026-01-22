@@ -628,7 +628,7 @@ class TuningViewModel(
   private suspend fun loadBlockDeviceStates() {
     _blockDeviceStates.value = loadBlockDeviceStatesParallel()
 
-    // Sync legacy flows
+    // Sync liquid flows
     val states = _blockDeviceStates.value
     val sda = states.find { it.name == "sda" } ?: states.firstOrNull()
     if (sda != null) {

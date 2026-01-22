@@ -489,8 +489,8 @@ fun LayoutSelectionPage(
           title = stringResource(R.string.layout_legacy),
           description = stringResource(R.string.layout_legacy_desc),
           icon = Icons.Rounded.BlurOn,
-          isSelected = selectedLayout == "legacy",
-          onSelect = { onLayoutSelected("legacy") },
+          isSelected = selectedLayout == "liquid",
+          onSelect = { onLayoutSelected("liquid") },
       )
 
       Spacer(modifier = Modifier.weight(1f))

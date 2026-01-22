@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy.components
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring

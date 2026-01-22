@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
@@ -29,7 +29,7 @@ import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LegacyThermalControl(viewModel: TuningViewModel) {
+fun LiquidThermalControl(viewModel: TuningViewModel) {
   val prefsThermal by
       viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
   val prefsOnBoot by

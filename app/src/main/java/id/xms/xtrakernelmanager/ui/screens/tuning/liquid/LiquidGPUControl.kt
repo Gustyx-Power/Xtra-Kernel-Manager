@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LegacyGPUControl(viewModel: TuningViewModel) {
+fun LiquidGPUControl(viewModel: TuningViewModel) {
   val isMediatek by viewModel.isMediatek.collectAsState()
   val gpuInfo by viewModel.gpuInfo.collectAsState()
   val coroutineScope = rememberCoroutineScope()

@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
@@ -59,7 +59,7 @@ import org.json.JSONObject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LegacyPerAppProfile(preferencesManager: PreferencesManager, availableGovernors: List<String>) {
+fun LiquidPerAppProfile(preferencesManager: PreferencesManager, availableGovernors: List<String>) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
 

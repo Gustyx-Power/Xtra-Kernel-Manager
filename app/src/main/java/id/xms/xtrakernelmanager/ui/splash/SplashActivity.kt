@@ -107,7 +107,7 @@ class SplashActivity : ComponentActivity() {
       XtraKernelManagerTheme {
         val context = LocalContext.current
         val prefsManager = remember { PreferencesManager(context) }
-        val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "legacy")
+        val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "liquid")
 
         val navigateToMain: () -> Unit = {
           startActivity(Intent(this, MainActivity::class.java))

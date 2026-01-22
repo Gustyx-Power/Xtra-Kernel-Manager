@@ -43,11 +43,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import id.xms.xtrakernelmanager.ui.components.utils.layerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.rememberLayerBackdrop
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.LocalBackdrop
 import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
@@ -62,136 +65,195 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    preferencesManager: PreferencesManager,
-    viewModel: HomeViewModel = viewModel(),
-    onNavigateToSettings: () -> Unit = {},
+        preferencesManager: PreferencesManager,
+        viewModel: HomeViewModel = viewModel(),
+        onNavigateToSettings: () -> Unit = {},
 ) {
-  val context = LocalContext.current
-  val scope = rememberCoroutineScope()
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
 
-  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = null)
+        val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = null)
 
-  // Data State
-  val cpuInfo by viewModel.cpuInfo.collectAsState()
-  val gpuInfo by viewModel.gpuInfo.collectAsState()
-  val batteryInfo by viewModel.batteryInfo.collectAsState()
-  val systemInfo by viewModel.systemInfo.collectAsState()
+        // Data State
+        val cpuInfo by viewModel.cpuInfo.collectAsState()
+        val gpuInfo by viewModel.gpuInfo.collectAsState()
+        val batteryInfo by viewModel.batteryInfo.collectAsState()
+        val systemInfo by viewModel.systemInfo.collectAsState()
 
-  // UI State untuk Power Menu
-  var showPowerMenu by remember { mutableStateOf(false) }
-  var activePowerAction by remember { mutableStateOf<PowerAction?>(null) }
+        // UI State untuk Power Menu
+        var showPowerMenu by remember { mutableStateOf(false) }
+        var activePowerAction by remember { mutableStateOf<PowerAction?>(null) }
 
-  // UI State untuk Settings Sheet (Legacy)
-  @OptIn(ExperimentalMaterial3Api::class) val settingsSheetState = rememberModalBottomSheetState()
-  var showSettingsBottomSheet by remember { mutableStateOf(false) }
+        // UI State untuk Settings Sheet (Legacy)
+        @OptIn(ExperimentalMaterial3Api::class)
+        val settingsSheetState = rememberModalBottomSheetState()
+        var showSettingsBottomSheet by remember { mutableStateOf(false) }
 
-  LaunchedEffect(Unit) { viewModel.loadBatteryInfo(context) }
+        LaunchedEffect(Unit) { viewModel.loadBatteryInfo(context) }
 
-  // --- DIALOGS ---
+        // --- DIALOGS ---
 
-  // 1. Power Menu Selection
-  if (showPowerMenu) {
-    PowerMenuDialog(
-        onDismiss = { showPowerMenu = false },
-        onActionSelected = { action ->
-          showPowerMenu = false
-          if (action == PowerAction.LockScreen) {
-            scope.launch { RootShell.execute(action.command) }
-          } else {
-            activePowerAction = action
-          }
-        },
-    )
-  }
-
-  // 2. Countdown Execution
-  activePowerAction?.let { action ->
-    CountdownRebootDialog(
-        action = action,
-        onCancel = { activePowerAction = null },
-        onFinished = {
-          scope.launch {
-            RootShell.execute(action.command)
-            activePowerAction = null
-          }
-        },
-    )
-  }
-
-  if (showSettingsBottomSheet) {
-    ModalBottomSheet(
-        onDismissRequest = { showSettingsBottomSheet = false },
-        sheetState = settingsSheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-      SettingsSheet(
-          preferencesManager = preferencesManager,
-          onDismiss = { showSettingsBottomSheet = false },
-      )
-    }
-  }
-
-  if (layoutStyle == null) {
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
-  } else {
-    when (layoutStyle) {
-      "material" -> {
-        // Material 3 Home Screen
-        MaterialHomeScreen(
-            preferencesManager = preferencesManager,
-            viewModel = viewModel,
-            onPowerAction = { action ->
-              if (action == PowerAction.LockScreen) {
-                scope.launch { RootShell.execute(action.command) }
-              } else {
-                activePowerAction = action
-              }
-            },
-            onSettingsClick = onNavigateToSettings,
-        )
-      }
-      else -> {
-        // Legacy Home Screen (current glassmorphic UI)
-        Scaffold(
-            floatingActionButton = {
-              FloatingActionButton(
-                  onClick = { showPowerMenu = true },
-                  containerColor = MaterialTheme.colorScheme.primaryContainer,
-                  contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                  shape = CircleShape,
-              ) {
-                Icon(
-                    imageVector = Icons.Rounded.PowerSettingsNew,
-                    contentDescription = "Power Menu",
+        // 1. Power Menu Selection
+        if (showPowerMenu) {
+                PowerMenuDialog(
+                        onDismiss = { showPowerMenu = false },
+                        onActionSelected = { action ->
+                                showPowerMenu = false
+                                if (action == PowerAction.LockScreen) {
+                                        scope.launch { RootShell.execute(action.command) }
+                                } else {
+                                        activePowerAction = action
+                                }
+                        },
                 )
-              }
-            }
-        ) { paddingValues ->
-          Box(Modifier.padding(paddingValues)) {
-            LegacyHomeContent(
-                cpuInfo = cpuInfo,
-                gpuInfo = gpuInfo,
-                batteryInfo = batteryInfo,
-                systemInfo = systemInfo,
-                onSettingsClick = { showSettingsBottomSheet = true },
-            )
-          }
         }
-      }
-    }
-  }
-}
 
+        // 2. Countdown Execution
+        activePowerAction?.let { action ->
+                CountdownRebootDialog(
+                        action = action,
+                        onCancel = { activePowerAction = null },
+                        onFinished = {
+                                scope.launch {
+                                        RootShell.execute(action.command)
+                                        activePowerAction = null
+                                }
+                        },
+                )
+        }
+
+        if (showSettingsBottomSheet) {
+                ModalBottomSheet(
+                        onDismissRequest = { showSettingsBottomSheet = false },
+                        sheetState = settingsSheetState,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                ) {
+                        SettingsSheet(
+                                preferencesManager = preferencesManager,
+                                onDismiss = { showSettingsBottomSheet = false },
+                        )
+                }
+        }
+
+        if (layoutStyle == null) {
+                Box(
+                        modifier =
+                                Modifier.fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.background)
+                )
+        } else {
+                when (layoutStyle) {
+                        "material" -> {
+                                // Material 3 Home Screen
+                                MaterialHomeScreen(
+                                        preferencesManager = preferencesManager,
+                                        viewModel = viewModel,
+                                        onPowerAction = { action ->
+                                                if (action == PowerAction.LockScreen) {
+                                                        scope.launch {
+                                                                RootShell.execute(action.command)
+                                                        }
+                                                } else {
+                                                        activePowerAction = action
+                                                }
+                                        },
+                                        onSettingsClick = onNavigateToSettings,
+                                )
+                        }
+                        else -> {
+                                // Legacy Home Screen (Liquid Glass UI)
+                                val backdrop = rememberLayerBackdrop()
+
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                        // Background Layer - Captures content for glass effect
+                                        Box(
+                                                modifier =
+                                                        Modifier.fillMaxSize()
+                                                                .background(
+                                                                        brush =
+                                                                                androidx.compose.ui
+                                                                                        .graphics
+                                                                                        .Brush
+                                                                                        .verticalGradient(
+                                                                                                colors =
+                                                                                                        listOf(
+                                                                                                                MaterialTheme
+                                                                                                                        .colorScheme
+                                                                                                                        .primaryContainer,
+                                                                                                                MaterialTheme
+                                                                                                                        .colorScheme
+                                                                                                                        .tertiaryContainer,
+                                                                                                                MaterialTheme
+                                                                                                                        .colorScheme
+                                                                                                                        .background
+                                                                                                        )
+                                                                                        )
+                                                                )
+                                                                .layerBackdrop(backdrop)
+                                        )
+
+                                        // Content Layer
+                                        CompositionLocalProvider(LocalBackdrop provides backdrop) {
+                                                Scaffold(
+                                                        containerColor =
+                                                                Color.Transparent, // Transparent to
+                                                        // show
+                                                        // background
+                                                        // layer
+                                                        floatingActionButton = {
+                                                                FloatingActionButton(
+                                                                        onClick = {
+                                                                                showPowerMenu = true
+                                                                        },
+                                                                        containerColor =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .primaryContainer,
+                                                                        contentColor =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onPrimaryContainer,
+                                                                        shape = CircleShape,
+                                                                ) {
+                                                                        Icon(
+                                                                                imageVector =
+                                                                                        Icons.Rounded
+                                                                                                .PowerSettingsNew,
+                                                                                contentDescription =
+                                                                                        "Power Menu",
+                                                                        )
+                                                                }
+                                                        }
+                                                ) { paddingValues ->
+                                                        Box(Modifier.padding(paddingValues)) {
+                                                                LegacyHomeContent(
+                                                                        cpuInfo = cpuInfo,
+                                                                        gpuInfo = gpuInfo,
+                                                                        batteryInfo = batteryInfo,
+                                                                        systemInfo = systemInfo,
+                                                                        onSettingsClick = {
+                                                                                showSettingsBottomSheet =
+                                                                                        true
+                                                                        },
+                                                                )
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+                }
+        }
+}
 
 @SuppressLint("DefaultLocale")
 @Composable
 private fun LegacyHomeContent(
-    cpuInfo: CPUInfo,
-    gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo,
-    batteryInfo: id.xms.xtrakernelmanager.data.model.BatteryInfo,
-    systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo,
-    onSettingsClick: () -> Unit,
+        cpuInfo: CPUInfo,
+        gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo,
+        batteryInfo: id.xms.xtrakernelmanager.data.model.BatteryInfo,
+        systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo,
+        onSettingsClick: () -> Unit,
 ) {
   val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
   val isCompact =
@@ -200,262 +262,358 @@ private fun LegacyHomeContent(
   // Holiday Decoration (cached outside grid)
   val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
 
-  LazyVerticalStaggeredGrid(
-      columns = StaggeredGridCells.Fixed(2),
-      modifier = Modifier.fillMaxSize().padding(horizontal = dimens.screenHorizontalPadding),
-      contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 120.dp),
-      horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
-      verticalItemSpacing = dimens.spacingMedium,
-  ) {
-    // Header Section
-    item(span = StaggeredGridItemSpan.FullLine) {
-      Column(modifier = Modifier.padding(bottom = dimens.spacingTiny)) {
-        // Holiday Ornament if active
-        if (currentHolidayDecor != null) {
-          HolidayDecorationRow(holiday = currentHolidayDecor)
-          Spacer(modifier = Modifier.height(dimens.spacingMedium))
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier =
+                        Modifier.fillMaxSize().padding(horizontal = dimens.screenHorizontalPadding),
+                contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 120.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
+                verticalItemSpacing = dimens.spacingMedium,
         ) {
-          Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(
-                  text = "Xtra Kernel ",
-                  style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
-                  fontWeight = FontWeight.ExtraBold,
-                  color = MaterialTheme.colorScheme.onSurface,
-              )
-              Text(
-                  text = "Manager",
-                  style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall, 
-                  fontWeight = FontWeight.ExtraBold,
-                  color = MaterialTheme.colorScheme.primary,
-              )
-            }
-            Text(
-                text = "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, 
-            )
-          }
+                // Header Section
+                item(span = StaggeredGridItemSpan.FullLine) {
+                        Column(modifier = Modifier.padding(bottom = dimens.spacingTiny)) {
+                                // Holiday Ornament if active
+                                if (currentHolidayDecor != null) {
+                                        HolidayDecorationRow(holiday = currentHolidayDecor)
+                                        Spacer(modifier = Modifier.height(dimens.spacingMedium))
+                                }
 
-          FilledTonalIconButton(
-              onClick = onSettingsClick,
-              modifier = Modifier.size(if (isCompact) 36.dp else 44.dp),
-              colors =
-                  IconButtonDefaults.filledTonalIconButtonColors(
-                      containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                      contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                  ),
-          ) {
-            Icon(
-                imageVector = Icons.Rounded.Settings,
-                contentDescription = "Settings",
-                modifier = Modifier.size(dimens.iconSizeMedium),
-            )
-          }
+                                Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                        Column {
+                                                Row(
+                                                        verticalAlignment =
+                                                                Alignment.CenterVertically
+                                                ) {
+                                                        Text(
+                                                                text = "Xtra Kernel ",
+                                                                style =
+                                                                        if (isCompact)
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .titleMedium
+                                                                        else
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .headlineSmall,
+                                                                fontWeight = FontWeight.ExtraBold,
+                                                                color =
+                                                                        MaterialTheme.colorScheme
+                                                                                .onSurface,
+                                                        )
+                                                        Text(
+                                                                text = "Manager",
+                                                                style =
+                                                                        if (isCompact)
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .titleMedium
+                                                                        else
+                                                                                MaterialTheme
+                                                                                        .typography
+                                                                                        .headlineSmall,
+                                                                fontWeight = FontWeight.ExtraBold,
+                                                                color =
+                                                                        MaterialTheme.colorScheme
+                                                                                .primary,
+                                                        )
+                                                }
+                                                Text(
+                                                        text =
+                                                                "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color =
+                                                                MaterialTheme.colorScheme
+                                                                        .onSurfaceVariant,
+                                                )
+                                        }
+
+                                        FilledTonalIconButton(
+                                                onClick = onSettingsClick,
+                                                modifier =
+                                                        Modifier.size(
+                                                                if (isCompact) 36.dp else 44.dp
+                                                        ),
+                                                colors =
+                                                        IconButtonDefaults
+                                                                .filledTonalIconButtonColors(
+                                                                        containerColor =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .surfaceVariant
+                                                                                        .copy(
+                                                                                                alpha =
+                                                                                                        0.5f
+                                                                                        ),
+                                                                        contentColor =
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onSurfaceVariant,
+                                                                ),
+                                        ) {
+                                                Icon(
+                                                        imageVector = Icons.Rounded.Settings,
+                                                        contentDescription = "Settings",
+                                                        modifier =
+                                                                Modifier.size(
+                                                                        dimens.iconSizeMedium
+                                                                ),
+                                                )
+                                        }
+                                }
+                        }
+                }
+
+                item {
+                        id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(
+                                cpuInfo = cpuInfo
+                        )
+                }
+                item {
+                        id.xms.xtrakernelmanager.ui.screens.home.components.CompactGPUFreqCard(
+                                gpuInfo = gpuInfo
+                        )
+                }
+                item(span = StaggeredGridItemSpan.FullLine) {
+                        id.xms.xtrakernelmanager.ui.screens.home.components.CoreStatusCard(
+                                cpuInfo = cpuInfo
+                        )
+                }
+                item(span = StaggeredGridItemSpan.FullLine) {
+                        id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedBatteryCard(
+                                batteryInfo = batteryInfo
+                        )
+                }
+                item(span = StaggeredGridItemSpan.FullLine) {
+                        id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(
+                                systemInfo = systemInfo
+                        )
+                }
+                item(span = StaggeredGridItemSpan.FullLine) {
+                        id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(
+                                systemInfo = systemInfo
+                        )
+                }
         }
-      }
-    }
-
-    
-    item {
-      id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(cpuInfo = cpuInfo)
-    }
-    item {
-      id.xms.xtrakernelmanager.ui.screens.home.components.CompactGPUFreqCard(gpuInfo = gpuInfo)
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.CoreStatusCard(cpuInfo = cpuInfo)
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedBatteryCard(
-          batteryInfo = batteryInfo
-      )
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(systemInfo = systemInfo)
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(systemInfo = systemInfo)
-    }
-  }
 }
 
 // POWER MENU & ROOT EXECUTION LOGIC
 enum class PowerAction(val labelRes: Int, val icon: ImageVector, val command: String) {
-  Reboot(R.string.reboot, Icons.Rounded.RestartAlt, "su -c reboot"),
-  PowerOff(R.string.power_off, Icons.Rounded.PowerSettingsNew, "su -c reboot -p"),
-  Recovery(R.string.recovery, Icons.Rounded.SystemSecurityUpdateWarning, "su -c reboot recovery"),
-  Bootloader(R.string.bootloader, Icons.Rounded.SettingsSystemDaydream, "su -c reboot bootloader"),
-  SystemUI(R.string.restart_ui, Icons.Rounded.Refresh, "su -c pkill -f com.android.systemui"),
-  LockScreen(
-      R.string.lockscreen,
-      Icons.Rounded.Lock,
-      "su -c input keyevent 26",
-  ); // 26 = Power Button (Toggle Screen)
+        Reboot(R.string.reboot, Icons.Rounded.RestartAlt, "su -c reboot"),
+        PowerOff(R.string.power_off, Icons.Rounded.PowerSettingsNew, "su -c reboot -p"),
+        Recovery(
+                R.string.recovery,
+                Icons.Rounded.SystemSecurityUpdateWarning,
+                "su -c reboot recovery"
+        ),
+        Bootloader(
+                R.string.bootloader,
+                Icons.Rounded.SettingsSystemDaydream,
+                "su -c reboot bootloader"
+        ),
+        SystemUI(R.string.restart_ui, Icons.Rounded.Refresh, "su -c pkill -f com.android.systemui"),
+        LockScreen(
+                R.string.lockscreen,
+                Icons.Rounded.Lock,
+                "su -c input keyevent 26",
+        ); // 26 = Power Button (Toggle Screen)
 
-  @Composable
-  fun getLabel(): String {
-    return stringResource(id = labelRes)
-  }
+        @Composable
+        fun getLabel(): String {
+                return stringResource(id = labelRes)
+        }
 }
 
 @Composable
 fun PowerAction.getLocalizedLabel(): String {
-  return stringResource(id = this.labelRes)
+        return stringResource(id = this.labelRes)
 }
 
 object RootShell {
-  suspend fun execute(command: String) =
-      withContext(Dispatchers.IO) {
-        try {
-          // Menggunakan Runtime.exec untuk menjalankan 'su'
-          val process = Runtime.getRuntime().exec("su")
-          val os = DataOutputStream(process.outputStream)
+        suspend fun execute(command: String) =
+                withContext(Dispatchers.IO) {
+                        try {
+                                // Menggunakan Runtime.exec untuk menjalankan 'su'
+                                val process = Runtime.getRuntime().exec("su")
+                                val os = DataOutputStream(process.outputStream)
 
-          // Menulis perintah
-          os.writeBytes(command + "\n")
-          os.writeBytes("exit\n")
-          os.flush()
+                                // Menulis perintah
+                                os.writeBytes(command + "\n")
+                                os.writeBytes("exit\n")
+                                os.flush()
 
-          // Menunggu proses selesai
-          process.waitFor()
-        } catch (e: Exception) {
-          e.printStackTrace()
-        }
-      }
+                                // Menunggu proses selesai
+                                process.waitFor()
+                        } catch (e: Exception) {
+                                e.printStackTrace()
+                        }
+                }
 }
 
 @Composable
 fun PowerMenuDialog(onDismiss: () -> Unit, onActionSelected: (PowerAction) -> Unit) {
-  AlertDialog(
-      onDismissRequest = onDismiss,
-      icon = { Icon(Icons.Rounded.PowerSettingsNew, null) },
-      title = { Text(text = "Power Menu", textAlign = TextAlign.Center) },
-      text = {
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-          items(PowerAction.values()) { action ->
-            FilledTonalButton(
-                onClick = { onActionSelected(action) },
-                shape = RoundedCornerShape(16.dp),
-                contentPadding = PaddingValues(vertical = 16.dp),
-                colors =
-                    ButtonDefaults.filledTonalButtonColors(
-                        containerColor =
-                            if (action == PowerAction.PowerOff)
-                                MaterialTheme.colorScheme.errorContainer
-                            else MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor =
-                            if (action == PowerAction.PowerOff)
-                                MaterialTheme.colorScheme.onErrorContainer
-                            else MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
-            ) {
-              Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(action.icon, null, modifier = Modifier.size(28.dp))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    action.getLocalizedLabel(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-              }
-            }
-          }
-        }
-      },
-      confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
-  )
+        AlertDialog(
+                onDismissRequest = onDismiss,
+                icon = { Icon(Icons.Rounded.PowerSettingsNew, null) },
+                title = { Text(text = "Power Menu", textAlign = TextAlign.Center) },
+                text = {
+                        LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                        ) {
+                                items(PowerAction.values()) { action ->
+                                        FilledTonalButton(
+                                                onClick = { onActionSelected(action) },
+                                                shape = RoundedCornerShape(16.dp),
+                                                contentPadding = PaddingValues(vertical = 16.dp),
+                                                colors =
+                                                        ButtonDefaults.filledTonalButtonColors(
+                                                                containerColor =
+                                                                        if (action ==
+                                                                                        PowerAction
+                                                                                                .PowerOff
+                                                                        )
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .errorContainer
+                                                                        else
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .secondaryContainer,
+                                                                contentColor =
+                                                                        if (action ==
+                                                                                        PowerAction
+                                                                                                .PowerOff
+                                                                        )
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onErrorContainer
+                                                                        else
+                                                                                MaterialTheme
+                                                                                        .colorScheme
+                                                                                        .onSecondaryContainer,
+                                                        ),
+                                        ) {
+                                                Column(
+                                                        horizontalAlignment =
+                                                                Alignment.CenterHorizontally
+                                                ) {
+                                                        Icon(
+                                                                action.icon,
+                                                                null,
+                                                                modifier = Modifier.size(28.dp)
+                                                        )
+                                                        Spacer(modifier = Modifier.height(8.dp))
+                                                        Text(
+                                                                action.getLocalizedLabel(),
+                                                                style =
+                                                                        MaterialTheme.typography
+                                                                                .labelMedium,
+                                                                fontWeight = FontWeight.SemiBold,
+                                                        )
+                                                }
+                                        }
+                                }
+                        }
+                },
+                confirmButton = {
+                        TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+                },
+        )
 }
 
 @Composable
 fun CountdownRebootDialog(action: PowerAction, onCancel: () -> Unit, onFinished: () -> Unit) {
-  var countdown by remember { mutableIntStateOf(5) }
-  val progress by animateFloatAsState(targetValue = countdown / 5f, label = "Countdown")
+        var countdown by remember { mutableIntStateOf(5) }
+        val progress by animateFloatAsState(targetValue = countdown / 5f, label = "Countdown")
 
-  LaunchedEffect(Unit) {
-    while (countdown > 0) {
-      delay(1000)
-      countdown--
-    }
-    onFinished()
-  }
-
-  Dialog(
-      onDismissRequest = {},
-      properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
-  ) {
-    Card(
-        shape = RoundedCornerShape(28.dp),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-        modifier = Modifier.padding(16.dp),
-    ) {
-      Column(
-          modifier = Modifier.padding(32.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.spacedBy(24.dp),
-      ) {
-        Text(
-            "${action.getLocalizedLabel()}...",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-        )
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(120.dp)) {
-          CircularProgressIndicator(
-              progress = { 1f },
-              modifier = Modifier.fillMaxSize(),
-              color = MaterialTheme.colorScheme.surfaceVariant,
-              strokeWidth = 10.dp,
-              trackColor = Color.Transparent,
-          )
-          CircularProgressIndicator(
-              progress = { progress },
-              modifier = Modifier.fillMaxSize(),
-              color =
-                  if (countdown <= 2) MaterialTheme.colorScheme.error
-                  else MaterialTheme.colorScheme.primary,
-              strokeWidth = 10.dp,
-              strokeCap = StrokeCap.Round,
-          )
-          Text(
-              text = if (countdown > 0) "$countdown" else "!",
-              style = MaterialTheme.typography.displayLarge,
-              fontWeight = FontWeight.ExtraBold,
-              color = MaterialTheme.colorScheme.onSurface,
-          )
+        LaunchedEffect(Unit) {
+                while (countdown > 0) {
+                        delay(1000)
+                        countdown--
+                }
+                onFinished()
         }
-        Text(
-            stringResource(R.string.processing_action),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Button(
-            onClick = onCancel,
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-            modifier = Modifier.fillMaxWidth(),
+
+        Dialog(
+                onDismissRequest = {},
+                properties =
+                        DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
         ) {
-          Text(stringResource(id = R.string.cancel))
+                Card(
+                        shape = RoundedCornerShape(28.dp),
+                        colors =
+                                CardDefaults.cardColors(
+                                        containerColor =
+                                                MaterialTheme.colorScheme.surfaceContainerHigh
+                                ),
+                        modifier = Modifier.padding(16.dp),
+                ) {
+                        Column(
+                                modifier = Modifier.padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(24.dp),
+                        ) {
+                                Text(
+                                        "${action.getLocalizedLabel()}...",
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.Bold,
+                                )
+                                Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.size(120.dp)
+                                ) {
+                                        CircularProgressIndicator(
+                                                progress = { 1f },
+                                                modifier = Modifier.fillMaxSize(),
+                                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                                strokeWidth = 10.dp,
+                                                trackColor = Color.Transparent,
+                                        )
+                                        CircularProgressIndicator(
+                                                progress = { progress },
+                                                modifier = Modifier.fillMaxSize(),
+                                                color =
+                                                        if (countdown <= 2)
+                                                                MaterialTheme.colorScheme.error
+                                                        else MaterialTheme.colorScheme.primary,
+                                                strokeWidth = 10.dp,
+                                                strokeCap = StrokeCap.Round,
+                                        )
+                                        Text(
+                                                text = if (countdown > 0) "$countdown" else "!",
+                                                style = MaterialTheme.typography.displayLarge,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                }
+                                Text(
+                                        stringResource(R.string.processing_action),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Button(
+                                        onClick = onCancel,
+                                        colors =
+                                                ButtonDefaults.buttonColors(
+                                                        containerColor =
+                                                                MaterialTheme.colorScheme
+                                                                        .surfaceVariant,
+                                                        contentColor =
+                                                                MaterialTheme.colorScheme
+                                                                        .onSurfaceVariant,
+                                                ),
+                                        modifier = Modifier.fillMaxWidth(),
+                                ) { Text(stringResource(id = R.string.cancel)) }
+                        }
+                }
         }
-      }
-    }
-  }
 }
 
 // COMPONENTS (Card & Visuals)
@@ -467,601 +625,716 @@ fun CountdownRebootDialog(action: PowerAction, onCancel: () -> Unit, onFinished:
 @SuppressLint("DefaultLocale")
 @Composable
 fun CPUInfoCardNoDropdown(cpuInfo: CPUInfo) {
-  var isExpanded by remember { mutableStateOf(true) }
+        var isExpanded by remember { mutableStateOf(true) }
 
-  // Arrow rotation animation
-  val arrowRotation by
-      animateFloatAsState(
-          targetValue = if (isExpanded) 180f else 0f,
-          animationSpec =
-              spring(
-                  dampingRatio = Spring.DampingRatioMediumBouncy,
-                  stiffness = Spring.StiffnessLow,
-              ),
-          label = "arrowRotation",
-      )
+        // Arrow rotation animation
+        val arrowRotation by
+                animateFloatAsState(
+                        targetValue = if (isExpanded) 180f else 0f,
+                        animationSpec =
+                                spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow,
+                                ),
+                        label = "arrowRotation",
+                )
 
-  // Icon scale animation on toggle
-  var iconPressed by remember { mutableStateOf(false) }
-  val iconScale by
-      animateFloatAsState(
-          targetValue = if (iconPressed) 0.85f else 1f,
-          animationSpec =
-              spring(
-                  dampingRatio = Spring.DampingRatioMediumBouncy,
-                  stiffness = Spring.StiffnessMedium,
-              ),
-          label = "iconScale",
-      )
+        // Icon scale animation on toggle
+        var iconPressed by remember { mutableStateOf(false) }
+        val iconScale by
+                animateFloatAsState(
+                        targetValue = if (iconPressed) 0.85f else 1f,
+                        animationSpec =
+                                spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium,
+                                ),
+                        label = "iconScale",
+                )
 
-  // Header icon glow animation
-  val headerIconScale by
-      animateFloatAsState(
-          targetValue = if (isExpanded) 1.1f else 1f,
-          animationSpec =
-              spring(
-                  dampingRatio = Spring.DampingRatioMediumBouncy,
-                  stiffness = Spring.StiffnessLow,
-              ),
-          label = "headerIconScale",
-      )
+        // Header icon glow animation
+        val headerIconScale by
+                animateFloatAsState(
+                        targetValue = if (isExpanded) 1.1f else 1f,
+                        animationSpec =
+                                spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow,
+                                ),
+                        label = "headerIconScale",
+                )
 
-  GlassmorphicCard(
-      modifier = Modifier.fillMaxWidth(),
-      onClick = {
-        iconPressed = true
-        isExpanded = !isExpanded
-      },
-  ) {
-    // Reset icon press state after animation
-    LaunchedEffect(iconPressed) {
-      if (iconPressed) {
-        delay(150)
-        iconPressed = false
-      }
-    }
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        GlassmorphicCard(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                        iconPressed = true
+                        isExpanded = !isExpanded
+                },
         ) {
-          Surface(
-              shape = MaterialTheme.shapes.medium,
-              color = MaterialTheme.colorScheme.primaryContainer,
-              tonalElevation = 2.dp,
-              modifier = Modifier.scale(headerIconScale),
-          ) {
-            Icon(
-                Icons.Default.Memory,
-                null,
-                modifier = Modifier.padding(8.dp).size(24.dp),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-          }
-          Text(
-              stringResource(R.string.cpu_information),
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-          )
-        }
-        IconButton(
-            onClick = {
-              iconPressed = true
-              isExpanded = !isExpanded
-            },
-            modifier = Modifier.scale(iconScale),
-        ) {
-          Icon(
-              Icons.Default.KeyboardArrowDown,
-              null,
-              modifier = Modifier.graphicsLayer { rotationZ = arrowRotation },
-          )
-        }
-      }
-      AnimatedVisibility(
-          visible = isExpanded,
-          enter =
-              expandVertically(
-                  animationSpec =
-                      spring(
-                          dampingRatio = Spring.DampingRatioLowBouncy,
-                          stiffness = Spring.StiffnessMediumLow,
-                      ),
-                  expandFrom = Alignment.Top,
-              ) +
-                  fadeIn(animationSpec = tween(200)) +
-                  slideInVertically(
-                      animationSpec =
-                          spring(
-                              dampingRatio = Spring.DampingRatioLowBouncy,
-                              stiffness = Spring.StiffnessMediumLow,
-                          ),
-                      initialOffsetY = { -it / 4 },
-                  ),
-          exit = shrinkVertically(animationSpec = tween(150)) + fadeOut(animationSpec = tween(100)),
-          label = "CPU",
-      ) {
-        Column(
-            modifier = Modifier.padding(top = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            InfoChipCompact(Icons.Default.Thermostat, "${cpuInfo.temperature}°C")
-            InfoChipCompact(
-                Icons.Default.Speed,
-                stringResource(R.string.load, String.format(Locale.US, "%.0f", cpuInfo.totalLoad)),
-            )
-            InfoChipCompact(
-                Icons.Default.Dashboard,
-                cpuInfo.cores.firstOrNull()?.governor ?: stringResource(R.string.unknown),
-            )
-          }
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                stringResource(R.string.clockspeed_per_core),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            val rows = cpuInfo.cores.chunked(4)
-            val maxFreq = cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0
-            rows.forEach { rowCores ->
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-              ) {
-                rowCores.forEach { core ->
-                  val isHot = core.isOnline && core.currentFreq == maxFreq
-                  FreqItemCompact(
-                      freq = core.currentFreq,
-                      label = "CPU${core.coreNumber}",
-                      isActive = isHot,
-                      isOffline = !core.isOnline,
-                  )
+                // Reset icon press state after animation
+                LaunchedEffect(iconPressed) {
+                        if (iconPressed) {
+                                delay(150)
+                                iconPressed = false
+                        }
                 }
-              }
-            }
-          }
-          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Text(
-                text =
-                    "Active Cores: ${cpuInfo.cores.count { it.isOnline }} / ${cpuInfo.cores.size}",
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-          }
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                                Row(
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                        Surface(
+                                                shape = MaterialTheme.shapes.medium,
+                                                color = MaterialTheme.colorScheme.primaryContainer,
+                                                tonalElevation = 2.dp,
+                                                modifier = Modifier.scale(headerIconScale),
+                                        ) {
+                                                Icon(
+                                                        Icons.Default.Memory,
+                                                        null,
+                                                        modifier =
+                                                                Modifier.padding(8.dp).size(24.dp),
+                                                        tint =
+                                                                MaterialTheme.colorScheme
+                                                                        .onPrimaryContainer,
+                                                )
+                                        }
+                                        Text(
+                                                stringResource(R.string.cpu_information),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                        )
+                                }
+                                IconButton(
+                                        onClick = {
+                                                iconPressed = true
+                                                isExpanded = !isExpanded
+                                        },
+                                        modifier = Modifier.scale(iconScale),
+                                ) {
+                                        Icon(
+                                                Icons.Default.KeyboardArrowDown,
+                                                null,
+                                                modifier =
+                                                        Modifier.graphicsLayer {
+                                                                rotationZ = arrowRotation
+                                                        },
+                                        )
+                                }
+                        }
+                        AnimatedVisibility(
+                                visible = isExpanded,
+                                enter =
+                                        expandVertically(
+                                                animationSpec =
+                                                        spring(
+                                                                dampingRatio =
+                                                                        Spring.DampingRatioLowBouncy,
+                                                                stiffness =
+                                                                        Spring.StiffnessMediumLow,
+                                                        ),
+                                                expandFrom = Alignment.Top,
+                                        ) +
+                                                fadeIn(animationSpec = tween(200)) +
+                                                slideInVertically(
+                                                        animationSpec =
+                                                                spring(
+                                                                        dampingRatio =
+                                                                                Spring.DampingRatioLowBouncy,
+                                                                        stiffness =
+                                                                                Spring.StiffnessMediumLow,
+                                                                ),
+                                                        initialOffsetY = { -it / 4 },
+                                                ),
+                                exit =
+                                        shrinkVertically(animationSpec = tween(150)) +
+                                                fadeOut(animationSpec = tween(100)),
+                                label = "CPU",
+                        ) {
+                                Column(
+                                        modifier = Modifier.padding(top = 8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                                ) {
+                                        Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceEvenly
+                                        ) {
+                                                InfoChipCompact(
+                                                        Icons.Default.Thermostat,
+                                                        "${cpuInfo.temperature}°C"
+                                                )
+                                                InfoChipCompact(
+                                                        Icons.Default.Speed,
+                                                        stringResource(
+                                                                R.string.load,
+                                                                String.format(
+                                                                        Locale.US,
+                                                                        "%.0f",
+                                                                        cpuInfo.totalLoad
+                                                                )
+                                                        ),
+                                                )
+                                                InfoChipCompact(
+                                                        Icons.Default.Dashboard,
+                                                        cpuInfo.cores.firstOrNull()?.governor
+                                                                ?: stringResource(R.string.unknown),
+                                                )
+                                        }
+                                        HorizontalDivider(
+                                                color =
+                                                        MaterialTheme.colorScheme.outlineVariant
+                                                                .copy(alpha = 0.5f)
+                                        )
+                                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                Text(
+                                                        stringResource(
+                                                                R.string.clockspeed_per_core
+                                                        ),
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color =
+                                                                MaterialTheme.colorScheme
+                                                                        .onSurfaceVariant,
+                                                )
+                                                val rows = cpuInfo.cores.chunked(4)
+                                                val maxFreq =
+                                                        cpuInfo.cores.maxOfOrNull { it.currentFreq }
+                                                                ?: 0
+                                                rows.forEach { rowCores ->
+                                                        Row(
+                                                                modifier = Modifier.fillMaxWidth(),
+                                                                horizontalArrangement =
+                                                                        Arrangement.SpaceBetween,
+                                                        ) {
+                                                                rowCores.forEach { core ->
+                                                                        val isHot =
+                                                                                core.isOnline &&
+                                                                                        core.currentFreq ==
+                                                                                                maxFreq
+                                                                        FreqItemCompact(
+                                                                                freq =
+                                                                                        core.currentFreq,
+                                                                                label =
+                                                                                        "CPU${core.coreNumber}",
+                                                                                isActive = isHot,
+                                                                                isOffline =
+                                                                                        !core.isOnline,
+                                                                        )
+                                                                }
+                                                        }
+                                                }
+                                        }
+                                        Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.End
+                                        ) {
+                                                Text(
+                                                        text =
+                                                                "Active Cores: ${cpuInfo.cores.count { it.isOnline }} / ${cpuInfo.cores.size}",
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.primary,
+                                                )
+                                        }
+                                }
+                        }
+                }
         }
-      }
-    }
-  }
 }
 
 @Composable
 private fun InfoChipCompact(
-    icon: ImageVector,
-    text: String,
-    modifier: Modifier = Modifier,
-    isSingleLine: Boolean = true,
+        icon: ImageVector,
+        text: String,
+        modifier: Modifier = Modifier,
+        isSingleLine: Boolean = true,
 ) {
-  Surface(
-      modifier = modifier,
-      color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
-      shape = RoundedCornerShape(8.dp),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
-  ) {
-    Row(
-        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-      Icon(icon, null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
-      Text(
-          text,
-          style = MaterialTheme.typography.labelSmall,
-          fontWeight = FontWeight.Medium,
-          maxLines = if (isSingleLine) 1 else 3,
-          overflow = TextOverflow.Ellipsis,
-      )
-    }
-  }
+        Surface(
+                modifier = modifier,
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+                shape = RoundedCornerShape(8.dp),
+                border =
+                        BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                        ),
+        ) {
+                Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                        Icon(
+                                icon,
+                                null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                                text,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = if (isSingleLine) 1 else 3,
+                                overflow = TextOverflow.Ellipsis,
+                        )
+                }
+        }
 }
 
 @Composable
 private fun FreqItemCompact(
-    freq: Int,
-    label: String,
-    isActive: Boolean,
-    isOffline: Boolean = false,
+        freq: Int,
+        label: String,
+        isActive: Boolean,
+        isOffline: Boolean = false,
 ) {
-  Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(70.dp)) {
-    Box(
-        modifier =
-            Modifier.size(8.dp)
-                .clip(CircleShape)
-                .background(
-                    when {
-                      isOffline -> MaterialTheme.colorScheme.outline
-                      isActive -> MaterialTheme.colorScheme.primary
-                      else -> MaterialTheme.colorScheme.surfaceVariant
-                    }
+        Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(70.dp)
+        ) {
+                Box(
+                        modifier =
+                                Modifier.size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                                when {
+                                                        isOffline ->
+                                                                MaterialTheme.colorScheme.outline
+                                                        isActive ->
+                                                                MaterialTheme.colorScheme.primary
+                                                        else ->
+                                                                MaterialTheme.colorScheme
+                                                                        .surfaceVariant
+                                                }
+                                        )
                 )
-    )
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-        "$freq",
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
-        color =
-            if (isActive) MaterialTheme.colorScheme.onSurface
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Text(
-        label,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.outline,
-    )
-  }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                        "$freq",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
+                        color =
+                                if (isActive) MaterialTheme.colorScheme.onSurface
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                        label,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline,
+                )
+        }
 }
 
 @Composable
 fun BatteryStatItemVertical(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    modifier: Modifier = Modifier,
+        icon: ImageVector,
+        label: String,
+        value: String,
+        modifier: Modifier = Modifier,
 ) {
-  Surface(
-      modifier = modifier,
-      color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
-      shape = RoundedCornerShape(12.dp),
-  ) {
-    Column(
-        modifier = Modifier.padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      Icon(icon, null, modifier = Modifier.size(24.dp), tint = MaterialTheme.colorScheme.primary)
-      Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-        Text(
-            label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-      }
-    }
-  }
+        Surface(
+                modifier = modifier,
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp),
+                shape = RoundedCornerShape(12.dp),
+        ) {
+                Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                        Icon(
+                                icon,
+                                null,
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                        value,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                        label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                )
+                        }
+                }
+        }
 }
 
 @Composable
 fun LinearUsageItemDetailed(
-    title: String,
-    used: String,
-    total: String,
-    progress: Float,
-    color: Color,
+        title: String,
+        used: String,
+        total: String,
+        progress: Float,
+        color: Color,
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-          title,
-          style = MaterialTheme.typography.labelMedium,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
-      Text(
-          "$used / $total",
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-    LinearProgressIndicator(
-        progress = { progress },
-        modifier = Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(50)),
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        strokeCap = StrokeCap.Round,
-    )
-    Text(
-        "${(progress * 100).toInt()}% Used",
-        style = MaterialTheme.typography.bodySmall,
-        color = color,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.align(Alignment.End),
-    )
-  }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                ) {
+                        Text(
+                                title,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                                "$used / $total",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                }
+                LinearProgressIndicator(
+                        progress = { progress },
+                        modifier =
+                                Modifier.fillMaxWidth().height(12.dp).clip(RoundedCornerShape(50)),
+                        color = color,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        strokeCap = StrokeCap.Round,
+                )
+                Text(
+                        "${(progress * 100).toInt()}% Used",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = color,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.align(Alignment.End),
+                )
+        }
 }
 
 @Composable
 private fun InfoCard(
-    title: String,
-    icon: ImageVector,
-    defaultExpanded: Boolean = true,
-    content: @Composable ColumnScope.() -> Unit,
+        title: String,
+        icon: ImageVector,
+        defaultExpanded: Boolean = true,
+        content: @Composable ColumnScope.() -> Unit,
 ) {
-  var isExpanded by remember { mutableStateOf(defaultExpanded) }
+        var isExpanded by remember { mutableStateOf(defaultExpanded) }
 
-  // Arrow rotation animation
-  val arrowRotation by
-      animateFloatAsState(
-          targetValue = if (isExpanded) 180f else 0f,
-          animationSpec =
-              spring(
-                  dampingRatio = Spring.DampingRatioMediumBouncy,
-                  stiffness = Spring.StiffnessLow,
-              ),
-          label = "arrowRotation",
-      )
+        // Arrow rotation animation
+        val arrowRotation by
+                animateFloatAsState(
+                        targetValue = if (isExpanded) 180f else 0f,
+                        animationSpec =
+                                spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow,
+                                ),
+                        label = "arrowRotation",
+                )
 
-  // Icon scale animation on toggle
-  var iconPressed by remember { mutableStateOf(false) }
-  val iconScale by
-      animateFloatAsState(
-          targetValue = if (iconPressed) 0.85f else 1f,
-          animationSpec =
-              spring(
-                  dampingRatio = Spring.DampingRatioMediumBouncy,
-                  stiffness = Spring.StiffnessMedium,
-              ),
-          label = "iconScale",
-      )
+        // Icon scale animation on toggle
+        var iconPressed by remember { mutableStateOf(false) }
+        val iconScale by
+                animateFloatAsState(
+                        targetValue = if (iconPressed) 0.85f else 1f,
+                        animationSpec =
+                                spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium,
+                                ),
+                        label = "iconScale",
+                )
 
-  // Header icon glow animation
-  val headerIconScale by
-      animateFloatAsState(
-          targetValue = if (isExpanded) 1.1f else 1f,
-          animationSpec =
-              spring(
-                  dampingRatio = Spring.DampingRatioMediumBouncy,
-                  stiffness = Spring.StiffnessLow,
-              ),
-          label = "headerIconScale",
-      )
+        // Header icon glow animation
+        val headerIconScale by
+                animateFloatAsState(
+                        targetValue = if (isExpanded) 1.1f else 1f,
+                        animationSpec =
+                                spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow,
+                                ),
+                        label = "headerIconScale",
+                )
 
-  GlassmorphicCard(
-      modifier = Modifier.fillMaxWidth(),
-      onClick = {
-        iconPressed = true
-        isExpanded = !isExpanded
-      },
-  ) {
-    // Reset icon press state after animation
-    LaunchedEffect(iconPressed) {
-      if (iconPressed) {
-        delay(150)
-        iconPressed = false
-      }
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Row(
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            color =
-                if (isExpanded) MaterialTheme.colorScheme.primaryContainer
-                else MaterialTheme.colorScheme.secondaryContainer,
-            tonalElevation = 2.dp,
-            modifier = Modifier.scale(headerIconScale),
+        GlassmorphicCard(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                        iconPressed = true
+                        isExpanded = !isExpanded
+                },
         ) {
-          Icon(
-              icon,
-              null,
-              modifier = Modifier.padding(8.dp).size(24.dp),
-              tint =
-                  if (isExpanded) MaterialTheme.colorScheme.onPrimaryContainer
-                  else MaterialTheme.colorScheme.onSecondaryContainer,
-          )
+                // Reset icon press state after animation
+                LaunchedEffect(iconPressed) {
+                        if (iconPressed) {
+                                delay(150)
+                                iconPressed = false
+                        }
+                }
+
+                Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                ) {
+                        Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                                Surface(
+                                        shape = MaterialTheme.shapes.medium,
+                                        color =
+                                                if (isExpanded)
+                                                        MaterialTheme.colorScheme.primaryContainer
+                                                else MaterialTheme.colorScheme.secondaryContainer,
+                                        tonalElevation = 2.dp,
+                                        modifier = Modifier.scale(headerIconScale),
+                                ) {
+                                        Icon(
+                                                icon,
+                                                null,
+                                                modifier = Modifier.padding(8.dp).size(24.dp),
+                                                tint =
+                                                        if (isExpanded)
+                                                                MaterialTheme.colorScheme
+                                                                        .onPrimaryContainer
+                                                        else
+                                                                MaterialTheme.colorScheme
+                                                                        .onSecondaryContainer,
+                                        )
+                                }
+                                Text(
+                                        title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                )
+                        }
+                        IconButton(
+                                onClick = {
+                                        iconPressed = true
+                                        isExpanded = !isExpanded
+                                },
+                                modifier = Modifier.scale(iconScale),
+                        ) {
+                                Icon(
+                                        Icons.Default.KeyboardArrowDown,
+                                        null,
+                                        modifier =
+                                                Modifier.graphicsLayer {
+                                                        rotationZ = arrowRotation
+                                                },
+                                )
+                        }
+                }
+                AnimatedVisibility(
+                        visible = isExpanded,
+                        enter =
+                                expandVertically(
+                                        animationSpec =
+                                                spring(
+                                                        dampingRatio = Spring.DampingRatioLowBouncy,
+                                                        stiffness = Spring.StiffnessMediumLow,
+                                                ),
+                                        expandFrom = Alignment.Top,
+                                ) +
+                                        fadeIn(animationSpec = tween(200)) +
+                                        slideInVertically(
+                                                animationSpec =
+                                                        spring(
+                                                                dampingRatio =
+                                                                        Spring.DampingRatioLowBouncy,
+                                                                stiffness =
+                                                                        Spring.StiffnessMediumLow,
+                                                        ),
+                                                initialOffsetY = { -it / 4 },
+                                        ),
+                        exit =
+                                shrinkVertically(animationSpec = tween(150)) +
+                                        fadeOut(animationSpec = tween(100)),
+                ) {
+                        Column(
+                                modifier = Modifier.padding(top = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) { content() }
+                }
         }
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-      }
-      IconButton(
-          onClick = {
-            iconPressed = true
-            isExpanded = !isExpanded
-          },
-          modifier = Modifier.scale(iconScale),
-      ) {
-        Icon(
-            Icons.Default.KeyboardArrowDown,
-            null,
-            modifier = Modifier.graphicsLayer { rotationZ = arrowRotation },
-        )
-      }
-    }
-    AnimatedVisibility(
-        visible = isExpanded,
-        enter =
-            expandVertically(
-                animationSpec =
-                    spring(
-                        dampingRatio = Spring.DampingRatioLowBouncy,
-                        stiffness = Spring.StiffnessMediumLow,
-                    ),
-                expandFrom = Alignment.Top,
-            ) +
-                fadeIn(animationSpec = tween(200)) +
-                slideInVertically(
-                    animationSpec =
-                        spring(
-                            dampingRatio = Spring.DampingRatioLowBouncy,
-                            stiffness = Spring.StiffnessMediumLow,
-                        ),
-                    initialOffsetY = { -it / 4 },
-                ),
-        exit = shrinkVertically(animationSpec = tween(150)) + fadeOut(animationSpec = tween(100)),
-    ) {
-      Column(
-          modifier = Modifier.padding(top = 16.dp),
-          verticalArrangement = Arrangement.spacedBy(8.dp),
-      ) {
-        content()
-      }
-    }
-  }
 }
 
 @Composable
 fun InfoIconRow(icon: ImageVector, label: String, value: String) {
-  Row(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.SpaceBetween,
-  ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Icon(
-          icon,
-          null,
-          modifier = Modifier.size(16.dp),
-          tint = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      Spacer(modifier = Modifier.width(8.dp))
-      Text(
-          label,
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-    Text(
-        value,
-        style = MaterialTheme.typography.bodyMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurface,
-    )
-  }
+        Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                                icon,
+                                null,
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                                label,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                }
+                Text(
+                        value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                )
+        }
 }
 
 @Composable
 private fun BatteryLevelIndicator(level: Int, status: String, modifier: Modifier = Modifier) {
-  val clamped = level.coerceIn(0, 100)
-  val fillColor =
-      when {
-        clamped <= 15 -> MaterialTheme.colorScheme.error
-        clamped <= 40 -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.primary
-      }
-  Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-    Box(
-        modifier =
-            Modifier.width(24.dp)
-                .height(6.dp)
-                .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                .background(MaterialTheme.colorScheme.outlineVariant)
-    )
-    Spacer(modifier = Modifier.height(2.dp))
-    Box(modifier = Modifier.width(40.dp).height(70.dp), contentAlignment = Alignment.BottomCenter) {
-      Box(
-          modifier =
-              Modifier.matchParentSize()
-                  .border(2.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-      )
-      Box(
-          modifier =
-              Modifier.padding(4.dp)
-                  .fillMaxWidth()
-                  .fillMaxHeight(clamped / 100f)
-                  .clip(RoundedCornerShape(4.dp))
-                  .background(fillColor)
-      )
-      if (status.contains("Charging")) {
-        Icon(
-            Icons.Default.Bolt,
-            null,
-            tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.align(Alignment.Center),
-        )
-      }
-    }
-  }
+        val clamped = level.coerceIn(0, 100)
+        val fillColor =
+                when {
+                        clamped <= 15 -> MaterialTheme.colorScheme.error
+                        clamped <= 40 -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.primary
+                }
+        Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                        modifier =
+                                Modifier.width(24.dp)
+                                        .height(6.dp)
+                                        .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
+                                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Box(
+                        modifier = Modifier.width(40.dp).height(70.dp),
+                        contentAlignment = Alignment.BottomCenter
+                ) {
+                        Box(
+                                modifier =
+                                        Modifier.matchParentSize()
+                                                .border(
+                                                        2.dp,
+                                                        MaterialTheme.colorScheme.outlineVariant,
+                                                        RoundedCornerShape(8.dp)
+                                                )
+                        )
+                        Box(
+                                modifier =
+                                        Modifier.padding(4.dp)
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(clamped / 100f)
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .background(fillColor)
+                        )
+                        if (status.contains("Charging")) {
+                                Icon(
+                                        Icons.Default.Bolt,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.align(Alignment.Center),
+                                )
+                        }
+                }
+        }
 }
 
 @Composable
 private fun MemoryTagChip(icon: ImageVector, label: String, value: String) {
-  InfoChipCompact(icon = icon, text = "$label: $value")
+        InfoChipCompact(icon = icon, text = "$label: $value")
 }
 
 /** Holiday decoration row with animated emojis */
 @Composable
 private fun HolidayDecorationRow(holiday: Holiday) {
-  val infiniteTransition = rememberInfiniteTransition(label = "holiday_decor")
+        val infiniteTransition = rememberInfiniteTransition(label = "holiday_decor")
 
-  val bounce by
-      infiniteTransition.animateFloat(
-          initialValue = 0f,
-          targetValue = 8f,
-          animationSpec =
-              infiniteRepeatable(
-                  animation = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-                  repeatMode = RepeatMode.Reverse,
-              ),
-          label = "bounce",
-      )
+        val bounce by
+                infiniteTransition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = 8f,
+                        animationSpec =
+                                infiniteRepeatable(
+                                        animation =
+                                                tween(
+                                                        durationMillis = 600,
+                                                        easing = FastOutSlowInEasing
+                                                ),
+                                        repeatMode = RepeatMode.Reverse,
+                                ),
+                        label = "bounce",
+                )
 
-  val (emojis, colors) =
-      when (holiday) {
-        Holiday.CHRISTMAS ->
-            Pair(
-                listOf("🎅", "❄️", "🎄", "🎁", "⛄", "❄️", "🎄", "🎅"),
-                listOf(Color(0xFFE53935), Color(0xFFFFFFFF), Color(0xFF43A047)),
-            )
-        Holiday.NEW_YEAR ->
-            Pair(
-                listOf("🎆", "✨", "🎇", "🥳", "🎉", "✨", "🎆", "🎊"),
-                listOf(Color(0xFFFFD700), Color(0xFFFF6B6B), Color(0xFF4ECDC4)),
-            )
-        Holiday.RAMADAN ->
-            Pair(
-                listOf("🌙", "⭐", "🕌", "✨", "🤲", "⭐", "🌙", "🕋"),
-                listOf(Color(0xFFFFD700), Color(0xFF4CAF50), Color(0xFF2196F3)),
-            )
-        Holiday.EID_FITR ->
-            Pair(
-                listOf("🎉", "🕌", "✨", "🤲", "🎊", "✨", "🕌", "🎉"),
-                listOf(Color(0xFF4CAF50), Color(0xFFFFD700), Color(0xFF8BC34A)),
-            )
-      }
+        val (emojis, colors) =
+                when (holiday) {
+                        Holiday.CHRISTMAS ->
+                                Pair(
+                                        listOf("🎅", "❄️", "🎄", "🎁", "⛄", "❄️", "🎄", "🎅"),
+                                        listOf(
+                                                Color(0xFFE53935),
+                                                Color(0xFFFFFFFF),
+                                                Color(0xFF43A047)
+                                        ),
+                                )
+                        Holiday.NEW_YEAR ->
+                                Pair(
+                                        listOf("🎆", "✨", "🎇", "🥳", "🎉", "✨", "🎆", "🎊"),
+                                        listOf(
+                                                Color(0xFFFFD700),
+                                                Color(0xFFFF6B6B),
+                                                Color(0xFF4ECDC4)
+                                        ),
+                                )
+                        Holiday.RAMADAN ->
+                                Pair(
+                                        listOf("🌙", "⭐", "🕌", "✨", "🤲", "⭐", "🌙", "🕋"),
+                                        listOf(
+                                                Color(0xFFFFD700),
+                                                Color(0xFF4CAF50),
+                                                Color(0xFF2196F3)
+                                        ),
+                                )
+                        Holiday.EID_FITR ->
+                                Pair(
+                                        listOf("🎉", "🕌", "✨", "🤲", "🎊", "✨", "🕌", "🎉"),
+                                        listOf(
+                                                Color(0xFF4CAF50),
+                                                Color(0xFFFFD700),
+                                                Color(0xFF8BC34A)
+                                        ),
+                                )
+                }
 
-  Surface(
-      modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(16.dp),
-      color = colors[0].copy(alpha = 0.1f),
-      border = BorderStroke(1.dp, colors[0].copy(alpha = 0.3f)),
-  ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      emojis.forEachIndexed { index, emoji ->
-        val offset = if (index % 2 == 0) bounce else -bounce
-        Text(text = emoji, fontSize = 24.sp, modifier = Modifier.offset(y = offset.dp))
-      }
-    }
-  }
+        Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = colors[0].copy(alpha = 0.1f),
+                border = BorderStroke(1.dp, colors[0].copy(alpha = 0.3f)),
+        ) {
+                Row(
+                        modifier =
+                                Modifier.fillMaxWidth()
+                                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                ) {
+                        emojis.forEachIndexed { index, emoji ->
+                                val offset = if (index % 2 == 0) bounce else -bounce
+                                Text(
+                                        text = emoji,
+                                        fontSize = 24.sp,
+                                        modifier = Modifier.offset(y = offset.dp)
+                                )
+                        }
+                }
+        }
 }

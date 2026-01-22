@@ -27,252 +27,257 @@ fun PlayfulInfoCard(
     icon: ImageVector,
     accentColor: Color,
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-  val dimens = rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
+    val dimens = rememberResponsiveDimens()
+    val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
 
-  // Subtle pulse animation for the icon
-  val infiniteTransition = rememberInfiniteTransition(label = "iconPulse")
-  val iconScale by
-      infiniteTransition.animateFloat(
-          initialValue = 1f,
-          targetValue = 1.05f,
-          animationSpec =
-              infiniteRepeatable(
-                  animation = tween(2000, easing = EaseInOutSine),
-                  repeatMode = RepeatMode.Reverse,
-              ),
-          label = "iconScale",
-      )
+    // Subtle pulse animation for the icon
+    val infiniteTransition = rememberInfiniteTransition(label = "iconPulse")
+    val iconScale by
+            infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.05f,
+                    animationSpec =
+                            infiniteRepeatable(
+                                    animation = tween(2000, easing = EaseInOutSine),
+                                    repeatMode = RepeatMode.Reverse
+                            ),
+                    label = "iconScale"
+            )
 
-  Card(
-      modifier = modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(dimens.cornerRadiusMedium),
-      colors =
-          CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.surfaceContainer,
-          ),
-      elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-  ) {
-    Column(
-        modifier = Modifier.padding(dimens.cardPadding),
-        verticalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
+    id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+            modifier = modifier.fillMaxWidth(),
     ) {
-      // Header with themed icon
-      Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
-      ) {
-        // Icon with Material You container
-        Surface(
-            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
-            color = accentColor.copy(alpha = 0.1f),
-            modifier = Modifier.scale(iconScale),
+        Column(
+                modifier = Modifier.padding(dimens.cardPadding),
+                verticalArrangement = Arrangement.spacedBy(dimens.spacingMedium)
         ) {
-          Icon(
-              imageVector = icon,
-              contentDescription = null,
-              modifier = Modifier.padding(dimens.spacingSmall).size(dimens.iconSizeMedium),
-              tint = accentColor,
-          )
-        }
-        Text(
-            text = title,
-            style =
-                if (isCompact) MaterialTheme.typography.titleSmall
-                else MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-      }
+            // Header with themed icon
+            Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium)
+            ) {
+                // Icon with Material You container
+                Surface(
+                        shape = RoundedCornerShape(dimens.cornerRadiusSmall),
+                        color = accentColor.copy(alpha = 0.1f),
+                        modifier = Modifier.scale(iconScale)
+                ) {
+                    Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier =
+                                    Modifier.padding(dimens.spacingSmall)
+                                            .size(dimens.iconSizeMedium),
+                            tint = accentColor
+                    )
+                }
+                Text(
+                        text = title,
+                        style =
+                                if (isCompact) MaterialTheme.typography.titleMedium
+                                else MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                )
+            }
 
-      // Content - always visible
-      content()
+            // Content - always visible
+            content()
+        }
     }
-  }
 }
 
 /** Stat Chip - Material You styled */
 @Composable
 fun StatChip(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-  val dimens = rememberResponsiveDimens()
+    val dimens = rememberResponsiveDimens()
 
-  Surface(
-      modifier = modifier,
-      shape = RoundedCornerShape(dimens.cornerRadiusSmall),
-      color = MaterialTheme.colorScheme.surfaceContainerHigh,
-  ) {
-    Column(
-        modifier =
-            Modifier.padding(horizontal = dimens.cardPaddingSmall, vertical = dimens.spacingSmall),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Surface(
+            modifier = modifier,
+            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-      Text(
-          text = value,
-          style = MaterialTheme.typography.titleSmall,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
-      Text(
-          text = label,
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
+        Column(
+                modifier =
+                        Modifier.padding(
+                                horizontal = dimens.cardPaddingSmall,
+                                vertical = dimens.spacingSmall
+                        ),
+                horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
-  }
 }
 
 /** Progress bar with label - Material You styled */
 @Composable
 fun ProgressBarWithLabel(
-    label: String,
-    progress: Float,
-    usedText: String,
-    totalText: String,
-    color: Color,
-    modifier: Modifier = Modifier,
+        label: String,
+        progress: Float,
+        usedText: String,
+        totalText: String,
+        color: Color,
+        modifier: Modifier = Modifier
 ) {
-  val dimens = rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
+    val dimens = rememberResponsiveDimens()
+    val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
 
-  Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-          text = label,
-          style =
-              if (isCompact) MaterialTheme.typography.labelSmall
-              else MaterialTheme.typography.labelMedium,
-          fontWeight = FontWeight.SemiBold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
-      Surface(
-          color = MaterialTheme.colorScheme.surfaceContainerHigh,
-          shape = RoundedCornerShape(dimens.cornerRadiusSmall),
-      ) {
-        Text(
-            text = "$usedText / $totalText",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier =
-                Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingTiny),
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)) {
+        Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                    text = label,
+                    style =
+                            if (isCompact) MaterialTheme.typography.labelMedium
+                            else MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+            )
+            Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(dimens.cornerRadiusSmall)
+            ) {
+                Text(
+                        text = "$usedText / $totalText",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier =
+                                Modifier.padding(
+                                        horizontal = dimens.spacingSmall,
+                                        vertical = dimens.spacingTiny
+                                )
+                )
+            }
+        }
+        LinearProgressIndicator(
+                progress = { progress.coerceIn(0f, 1f) },
+                modifier =
+                        Modifier.fillMaxWidth()
+                                .height(if (isCompact) 6.dp else 10.dp)
+                                .clip(RoundedCornerShape(if (isCompact) 3.dp else 5.dp)),
+                color = color,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
         )
-      }
     }
-    LinearProgressIndicator(
-        progress = { progress.coerceIn(0f, 1f) },
-        modifier =
-            Modifier.fillMaxWidth()
-                .height(if (isCompact) 6.dp else 10.dp)
-                .clip(RoundedCornerShape(if (isCompact) 3.dp else 5.dp)),
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    )
-  }
 }
 
 /** Core frequency item for CPU grid */
 @Composable
 fun CoreFreqItem(
-    coreNumber: Int,
-    frequency: Int,
-    isOnline: Boolean,
-    isHot: Boolean,
-    modifier: Modifier = Modifier,
+        coreNumber: Int,
+        frequency: Int,
+        isOnline: Boolean,
+        isHot: Boolean,
+        modifier: Modifier = Modifier
 ) {
-  val dimens = rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
+    val dimens = rememberResponsiveDimens()
+    val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
 
-  val bgColor =
-      when {
-        !isOnline -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
-        isHot -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surfaceContainerHigh
-      }
+    val bgColor =
+            when {
+                !isOnline -> MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
+                isHot -> MaterialTheme.colorScheme.primaryContainer
+                else -> MaterialTheme.colorScheme.surfaceContainerHigh
+            }
 
-  val textColor =
-      when {
-        !isOnline -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-        isHot -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurface
-      }
+    val textColor =
+            when {
+                !isOnline -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                isHot -> MaterialTheme.colorScheme.onPrimaryContainer
+                else -> MaterialTheme.colorScheme.onSurface
+            }
 
-  Surface(
-      modifier = modifier,
-      shape = RoundedCornerShape(dimens.cornerRadiusSmall),
-      color = bgColor,
-  ) {
-    Column(
-        modifier =
-            Modifier.padding(horizontal = dimens.spacingSmall, vertical = dimens.spacingSmall),
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Surface(
+            modifier = modifier,
+            shape = RoundedCornerShape(dimens.cornerRadiusSmall),
+            color = bgColor
     ) {
-      Text(
-          text = "CPU$coreNumber",
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      Text(
-          text = if (isOnline) "${frequency}MHz" else "OFF",
-          style =
-              if (isCompact) MaterialTheme.typography.labelSmall
-              else MaterialTheme.typography.labelMedium,
-          fontWeight = FontWeight.Bold,
-          color = textColor,
-      )
+        Column(
+                modifier =
+                        Modifier.padding(
+                                horizontal = dimens.spacingSmall,
+                                vertical = dimens.spacingSmall
+                        ),
+                horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                    text = "CPU$coreNumber",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                    text = if (isOnline) "${frequency}MHz" else "OFF",
+                    style =
+                            if (isCompact) MaterialTheme.typography.labelMedium
+                            else MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+            )
+        }
     }
-  }
 }
 
 /** Mini stat item with icon - Material You styled */
 @Composable
 fun MiniStatItem(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    color: Color = MaterialTheme.colorScheme.primary,
-    modifier: Modifier = Modifier,
+        icon: ImageVector,
+        label: String,
+        value: String,
+        color: Color = MaterialTheme.colorScheme.primary,
+        modifier: Modifier = Modifier
 ) {
-  val dimens = rememberResponsiveDimens()
-  val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
+    val dimens = rememberResponsiveDimens()
+    val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
 
-  Row(
-      modifier = modifier,
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall),
-  ) {
-    Surface(
-        shape = CircleShape,
-        color = color.copy(alpha = 0.1f),
-        modifier = Modifier.size(if (isCompact) 24.dp else 32.dp),
+    Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
     ) {
-      Box(contentAlignment = Alignment.Center) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(dimens.iconSizeSmall),
-            tint = color,
-        )
-      }
+        Surface(
+                shape = CircleShape,
+                color = color.copy(alpha = 0.1f),
+                modifier = Modifier.size(if (isCompact) 24.dp else 32.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(dimens.iconSizeSmall),
+                        tint = color
+                )
+            }
+        }
+        Column {
+            Text(
+                    text = value,
+                    style =
+                            if (isCompact) MaterialTheme.typography.titleSmall
+                            else MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
-    Column {
-      Text(
-          text = value,
-          style =
-              if (isCompact) MaterialTheme.typography.labelMedium
-              else MaterialTheme.typography.titleSmall,
-          fontWeight = FontWeight.SemiBold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
-      Text(
-          text = label,
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-  }
 }

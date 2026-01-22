@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.tuning.legacy
+package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
@@ -34,7 +34,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LegacyRAMControl(viewModel: TuningViewModel) {
+fun LiquidRAMControl(viewModel: TuningViewModel) {
   val persistedConfig by
       viewModel.preferencesManager.getRamConfig().collectAsState(initial = RAMConfig())
 
