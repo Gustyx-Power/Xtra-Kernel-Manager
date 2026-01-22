@@ -83,3 +83,11 @@ val GlassLight = Color(0x40FFFFFF)
 val GlassDark = Color(0x30FFFFFF)
 val GlassBorderLight = Color(0x60FFFFFF)
 val GlassBorderDark = Color(0x40FFFFFF)
+
+// Neon Colors for Liquid UI
+val NeonGreen = Color(0xFF34D399)
+val NeonPurple = Color(0xFFA78BFA)
+val NeonBlue = Color(0xFF60A5FA)
+val NeonRose = Color(0xFFFB7185)
+val NeonYellow = Color(0xFFFBBF24)
+
