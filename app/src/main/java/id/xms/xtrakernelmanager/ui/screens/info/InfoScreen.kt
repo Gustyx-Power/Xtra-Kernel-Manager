@@ -42,7 +42,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun InfoScreen(preferencesManager: id.xms.xtrakernelmanager.data.preferences.PreferencesManager) {
-  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
+  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
   if (layoutStyle == "material") {
     MaterialAboutScreen()
   } else {
