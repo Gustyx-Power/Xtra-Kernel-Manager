@@ -533,6 +533,16 @@ class PreferencesManager(private val context: Context) {
     syncPrefs.edit().putString(key, value).apply()
   }
 
+  /** Get int value synchronously */
+  fun getInt(key: String, defaultValue: Int): Int {
+    return syncPrefs.getInt(key, defaultValue)
+  }
+
+  /** Set int value synchronously */
+  fun setInt(key: String, value: Int) {
+    syncPrefs.edit().putInt(key, value).apply()
+  }
+
   // ==================== Functional ROM Preferences ====================
 
   suspend fun setFunctionalRomUnlockNits(enabled: Boolean) {

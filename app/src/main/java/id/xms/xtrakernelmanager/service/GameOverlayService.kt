@@ -98,6 +98,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
   private fun createOverlay() {
     // Load overlay position preference (default: right)
     isOverlayOnRight = preferencesManager.getBoolean("overlay_position_right", true)
+    val savedY = preferencesManager.getInt("overlay_y_pos", 100)
 
     params =
         WindowManager.LayoutParams(
@@ -111,7 +112,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             .apply {
               gravity = Gravity.TOP or if (isOverlayOnRight) Gravity.END else Gravity.START
               x = 0
-              y = 100
+              y = savedY
             }
 
     overlayView =
@@ -127,16 +128,14 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
   @Composable
   private fun GameOverlayContent() {
     val context = LocalContext.current
-    var isFpsEnabled by remember {
-      mutableStateOf(false)
-    } // This would normally come from ViewModel/Prefs
+    val isFpsEnabled by viewModel.isFpsEnabled.collectAsState()
 
     Box(modifier = Modifier.wrapContentSize(), contentAlignment = Alignment.TopStart) {
       if (isExpanded) {
         GamePanelCard(
             viewModel = viewModel,
             isFpsEnabled = isFpsEnabled,
-            onFpsToggle = { isFpsEnabled = !isFpsEnabled },
+            onFpsToggle = { viewModel.setFpsEnabled(!isFpsEnabled) },
             onCollapse = { isExpanded = false },
             onMoveSide = { toggleOverlayPosition() },
         )
@@ -178,6 +177,11 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 } catch (e: Exception) {}
               }
             },
+            onDragEnd = {
+                params?.let { p ->
+                    preferencesManager.setInt("overlay_y_pos", p.y)
+                }
+            }
         )
       }
     }
@@ -197,7 +201,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         // View may not be attached
       }
     }
-    showToast(if (isOverlayOnRight) "Posisi: Kanan" else "Posisi: Kiri")
+    // Toast removed as requested
   }
 
   override fun onDestroy() {
