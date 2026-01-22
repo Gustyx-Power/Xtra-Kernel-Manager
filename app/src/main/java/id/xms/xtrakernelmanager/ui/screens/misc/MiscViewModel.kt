@@ -62,21 +62,21 @@ class MiscViewModel(
   private var totalCurrent = 0L
 
   private fun updateCurrentStats(current: Int) {
-      val absCurrent = kotlin.math.abs(current)
-      if (absCurrent == 0) return
+    val absCurrent = kotlin.math.abs(current)
+    if (absCurrent == 0) return
 
-      if (_minCurrent.value == 0 || absCurrent < _minCurrent.value) {
-          _minCurrent.value = absCurrent
-      }
-      if (absCurrent > _maxCurrent.value) {
-          _maxCurrent.value = absCurrent
-      }
+    if (_minCurrent.value == 0 || absCurrent < _minCurrent.value) {
+      _minCurrent.value = absCurrent
+    }
+    if (absCurrent > _maxCurrent.value) {
+      _maxCurrent.value = absCurrent
+    }
 
-      totalCurrent += absCurrent
-      currentSamples++
-      if (currentSamples > 0) {
-          _avgCurrent.value = (totalCurrent / currentSamples).toInt()
-      }
+    totalCurrent += absCurrent
+    currentSamples++
+    if (currentSamples > 0) {
+      _avgCurrent.value = (totalCurrent / currentSamples).toInt()
+    }
   }
 
   private val _performanceMode = MutableStateFlow("balanced")
@@ -203,25 +203,26 @@ class MiscViewModel(
 
       // Observe Realtime Stats
       launch {
-          BatteryRepository.batteryState.collect { state ->
-              // Format times
-              _screenOnTime.value = formatTime(state.screenOnTime)
-              _screenOffTime.value = formatTime(state.screenOffTime)
-              _deepSleepTime.value = formatTime(state.deepSleepTime)
-               _drainRate.value = "%.1f%%/h".format(state.activeDrainRate)
-               
-               // Sync Realtime State to BatteryInfo for Analytics UI
-               _batteryInfo.value = _batteryInfo.value.copy(
-                   level = state.level,
-                   currentNow = state.currentNow,
-                   voltage = state.voltage,
-                   temperature = state.temp / 10f,
-                   status = if (state.isCharging) "Charging" else "Discharging"
-               )
+        BatteryRepository.batteryState.collect { state ->
+          // Format times
+          _screenOnTime.value = formatTime(state.screenOnTime)
+          _screenOffTime.value = formatTime(state.screenOffTime)
+          _deepSleepTime.value = formatTime(state.deepSleepTime)
+          _drainRate.value = "%.1f%%/h".format(state.activeDrainRate)
 
-               // Update current stats
-               updateCurrentStats(state.currentNow)
-          }
+          // Sync Realtime State to BatteryInfo for Analytics UI
+          _batteryInfo.value =
+              _batteryInfo.value.copy(
+                  level = state.level,
+                  currentNow = state.currentNow,
+                  voltage = state.voltage,
+                  temperature = state.temp / 10f,
+                  status = if (state.isCharging) "Charging" else "Discharging",
+              )
+
+          // Update current stats
+          updateCurrentStats(state.currentNow)
+        }
       }
 
       // Load App Battery Usage
@@ -262,18 +263,19 @@ class MiscViewModel(
     viewModelScope.launch {
       preferencesManager.setShowBatteryNotif(enabled)
       Log.d("MiscViewModel", "Battery notification: $enabled")
-      
+
       if (enabled) {
-          try {
-              val intent = Intent(context, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java)
-              if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                  context.startForegroundService(intent)
-              } else {
-                  context.startService(intent)
-              }
-          } catch (e: Exception) {
-              Log.e("MiscViewModel", "Failed to start BatteryInfoService: ${e.message}")
+        try {
+          val intent =
+              Intent(context, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java)
+          if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            context.startForegroundService(intent)
+          } else {
+            context.startService(intent)
           }
+        } catch (e: Exception) {
+          Log.e("MiscViewModel", "Failed to start BatteryInfoService: ${e.message}")
+        }
       }
     }
   }
@@ -674,6 +676,49 @@ class MiscViewModel(
     viewModelScope.launch {
       preferencesManager.setLayoutStyle(style)
       Log.d("MiscViewModel", "Layout style set to: $style")
+    }
+  }
+
+  // App Picker State
+  private val _installedApps =
+      MutableStateFlow<List<id.xms.xtrakernelmanager.data.model.AppInfo>>(emptyList())
+  val installedApps: StateFlow<List<id.xms.xtrakernelmanager.data.model.AppInfo>> =
+      _installedApps.asStateFlow()
+
+  private val _isLoadingApps = MutableStateFlow(false)
+  val isLoadingApps: StateFlow<Boolean> = _isLoadingApps.asStateFlow()
+
+  fun loadInstalledApps() {
+    viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+      _isLoadingApps.value = true
+      try {
+        val pm = context.packageManager
+        val apps =
+            pm.getInstalledPackages(0)
+                .filter {
+                  val appInfo = it.applicationInfo
+                  appInfo != null &&
+                      (appInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM == 0 ||
+                          (appInfo.flags and
+                              android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0)
+                }
+                .map { pkg ->
+                  val appInfo = pkg.applicationInfo
+                  id.xms.xtrakernelmanager.data.model.AppInfo(
+                      packageName = pkg.packageName,
+                      label = appInfo?.loadLabel(pm)?.toString() ?: pkg.packageName,
+                      icon = appInfo?.loadIcon(pm),
+                      isSelected = isGameApp(pkg.packageName),
+                  )
+                }
+                .sortedBy { it.label.lowercase() }
+
+        _installedApps.value = apps
+      } catch (e: Exception) {
+        Log.e("MiscViewModel", "Failed to load installed apps", e)
+      } finally {
+        _isLoadingApps.value = false
+      }
     }
   }
 

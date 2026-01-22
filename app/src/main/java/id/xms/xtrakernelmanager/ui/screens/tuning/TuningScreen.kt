@@ -42,9 +42,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
   var showImportDialog by remember { mutableStateOf(false) }
   var showSOCWarning by remember { mutableStateOf(false) }
   var socWarningMessage by remember { mutableStateOf("") }
-  var pendingImportConfig by remember {
-    mutableStateOf<TuningConfig?>(null)
-  }
+  var pendingImportConfig by remember { mutableStateOf<TuningConfig?>(null) }
   var isImporting by remember { mutableStateOf(false) }
   var detectionTimeoutReached by remember { mutableStateOf(false) }
 
@@ -55,7 +53,8 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
         uri?.let {
           scope.launch {
             try {
-              viewModel.getExportFileName() // Assuming usage for file name generaton logic inside VM
+              viewModel
+                  .getExportFileName() // Assuming usage for file name generaton logic inside VM
               val success = viewModel.exportConfigToUri(context, it)
               Toast.makeText(
                       context,
@@ -152,7 +151,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           detectionTimeoutReached = detectionTimeoutReached,
           onExportClick = { showExportDialog = true },
           onImportClick = { showImportDialog = true },
-          onNavigate = onNavigate
+          onNavigate = onNavigate,
       )
     }
 

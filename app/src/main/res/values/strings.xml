@@ -562,6 +562,9 @@
     <string name="game_control_remove">Remove</string>
     <string name="game_control_grant_overlay">Grant Overlay Permission (Required)</string>
 
+    <string name="game_monitor_service_label">XKM Game Monitor</string>
+    <string name="accessibility_service_description">Automatically detects game launches to show the XKM performance overlay.</string>
+
     <!-- Display Settings -->
     <string name="display_settings">Display Settings</string>
     <string name="display_saturation">Screen Saturation</string>

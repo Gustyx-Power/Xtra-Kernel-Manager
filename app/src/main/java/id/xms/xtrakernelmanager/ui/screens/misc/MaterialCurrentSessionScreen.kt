@@ -33,26 +33,23 @@ import kotlin.math.sin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaterialCurrentSessionScreen(
-    viewModel: MiscViewModel,
-    onBack: () -> Unit
-) {
+fun MaterialCurrentSessionScreen(viewModel: MiscViewModel, onBack: () -> Unit) {
   var selectedTab by remember { mutableIntStateOf(0) } // 0 = Charging, 1 = Discharging
-  
+
   // Collect real data
   val batteryInfo by viewModel.batteryInfo.collectAsState()
   val screenOnTime by viewModel.screenOnTime.collectAsState()
   val screenOffTime by viewModel.screenOffTime.collectAsState()
   val deepSleepTime by viewModel.deepSleepTime.collectAsState()
   val drainRate by viewModel.drainRate.collectAsState()
-  
+
   // Calculate session values
   val isCharging = batteryInfo.status.contains("Charging", ignoreCase = true)
   val currentMa = kotlin.math.abs(batteryInfo.currentNow)
   val voltageV = batteryInfo.voltage / 1000f
   val powerW = voltageV * (currentMa / 1000f)
   val batteryLevel = batteryInfo.level
-  
+
   // Expressive Palette
   val surfaceColor = MaterialTheme.colorScheme.surface
   val primaryColor = MaterialTheme.colorScheme.primary
@@ -194,19 +191,19 @@ fun MaterialCurrentSessionScreen(
                     icon = Icons.Rounded.Thermostat,
                 )
                 DetailRowItem(
-                    label = "Deep Sleep", 
-                    value = deepSleepTime, 
-                    icon = Icons.Rounded.Bedtime
+                    label = "Deep Sleep",
+                    value = deepSleepTime,
+                    icon = Icons.Rounded.Bedtime,
                 )
                 DetailRowItem(
-                    label = "Voltage", 
-                    value = "%.2f V".format(voltageV), 
-                    icon = Icons.Rounded.ElectricBolt
+                    label = "Voltage",
+                    value = "%.2f V".format(voltageV),
+                    icon = Icons.Rounded.ElectricBolt,
                 )
                 DetailRowItem(
-                    label = "Power", 
-                    value = "%.1f W".format(powerW), 
-                    icon = Icons.Rounded.FlashOn
+                    label = "Power",
+                    value = "%.1f W".format(powerW),
+                    icon = Icons.Rounded.FlashOn,
                 )
               }
             }

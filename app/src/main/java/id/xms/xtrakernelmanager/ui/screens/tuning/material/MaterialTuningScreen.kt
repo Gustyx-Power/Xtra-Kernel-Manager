@@ -28,136 +28,134 @@ fun MaterialTuningScreen(
     onImportConfig: () -> Unit = {},
 ) {
 
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    var networkCardExpanded by remember { mutableStateOf(false) }
-    var thermalCardExpanded by remember { mutableStateOf(false) }
-    // cpuCardExpanded was unused
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  var networkCardExpanded by remember { mutableStateOf(false) }
+  var thermalCardExpanded by remember { mutableStateOf(false) }
+  // cpuCardExpanded was unused
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.offset(y = (-24).dp),
-                title = { Text(text = "Tuning", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
-                actions = {
-                    var showMenu by remember { mutableStateOf(false) }
+  Scaffold(
+      modifier = Modifier.fillMaxSize(),
+      topBar = {
+        TopAppBar(
+            modifier = Modifier.offset(y = (-24).dp),
+            title = { Text(text = "Tuning", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
+            actions = {
+              var showMenu by remember { mutableStateOf(false) }
 
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            shape = RoundedCornerShape(12.dp),
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Import Profile") },
-                                onClick = {
-                                    showMenu = false
-                                    onImportConfig()
-                                },
-                                leadingIcon = { Icon(Icons.Rounded.FolderOpen, contentDescription = null) },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Export Profile") },
-                                onClick = {
-                                    showMenu = false
-                                    onExportConfig()
-                                },
-                                leadingIcon = { Icon(Icons.Rounded.Save, contentDescription = null) },
-                            )
-                        }
-                    }
-                },
-                colors =
+              Box {
+                IconButton(onClick = { showMenu = true }) {
+                  Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
+                }
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    shape = RoundedCornerShape(12.dp),
+                ) {
+                  DropdownMenuItem(
+                      text = { Text("Import Profile") },
+                      onClick = {
+                        showMenu = false
+                        onImportConfig()
+                      },
+                      leadingIcon = { Icon(Icons.Rounded.FolderOpen, contentDescription = null) },
+                  )
+                  DropdownMenuItem(
+                      text = { Text("Export Profile") },
+                      onClick = {
+                        showMenu = false
+                        onExportConfig()
+                      },
+                      leadingIcon = { Icon(Icons.Rounded.Save, contentDescription = null) },
+                  )
+                }
+              }
+            },
+            colors =
                 TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
-            )
-        },
-    ) { paddingValues ->
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
-            verticalItemSpacing = 16.dp,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp),
-        ) {
-            // 1. Hero Card
-            item(span = StaggeredGridItemSpan.FullLine) { HeroDeviceCard(viewModel) }
+        )
+      },
+  ) { paddingValues ->
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
+        verticalItemSpacing = 16.dp,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        contentPadding = PaddingValues(bottom = 24.dp),
+    ) {
+      // 1. Hero Card
+      item(span = StaggeredGridItemSpan.FullLine) { HeroDeviceCard(viewModel) }
 
-            if (thermalCardExpanded) {
-                item(span = StaggeredGridItemSpan.FullLine, key = "thermal_card") {
-                    ExpandableThermalCard(
-                        viewModel = viewModel,
-                        expanded = true,
-                        onExpandChange = { thermalCardExpanded = it },
-                        onClickNav = { onNavigate("thermal_tuning") },
-                        topLeftContent = {
-                            ExpandableCPUCard(
-                                viewModel = viewModel,
-                                onClickNav = { onNavigate("cpu_tuning") },
-                            )
-                        },
-                    )
-                }
-            } else {
-                item(key = "cpu_card") {
-                    ExpandableCPUCard(
-                        viewModel = viewModel,
-                        onClickNav = { onNavigate("cpu_tuning") },
-                    )
-                }
-                item(key = "thermal_card") {
-                    ExpandableThermalCard(
-                        viewModel = viewModel,
-                        expanded = false,
-                        onExpandChange = { thermalCardExpanded = it },
-                        onClickNav = { onNavigate("thermal_tuning") },
-                    )
-                }
-            }
-
-            item(span = StaggeredGridItemSpan.FullLine) { DashboardProfileCard(viewModel) }
-            item(span = StaggeredGridItemSpan.FullLine) { ExpandableGPUCard(viewModel = viewModel) }
-
-            if (networkCardExpanded) {
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    ExpandableNetworkCard(
-                        viewModel = viewModel,
-                        expanded = true,
-                        onExpandChange = {
-                            networkCardExpanded = it // Toggle
-                        },
-                        onClickNav = { onNavigate("network_tuning") },
-                        topRightContent = {
-                            DashboardMemoryCard(
-                                onClickNav = { onNavigate("memory_tuning") },
-                            )
-                        },
-                    )
-                }
-            } else {
-                item(span = StaggeredGridItemSpan.SingleLane) {
-                    ExpandableNetworkCard(
-                        viewModel = viewModel,
-                        expanded = false,
-                        onExpandChange = { networkCardExpanded = it },
-                        onClickNav = { onNavigate("network_tuning") },
-                    )
-                }
-                item(span = StaggeredGridItemSpan.SingleLane) {
-                    DashboardMemoryCard(
-                        onClickNav = { onNavigate("memory_tuning") },
-                    )
-                }
-            }
-            
-            // Add Additional Control Card at the bottom
-            item(span = StaggeredGridItemSpan.FullLine) {
-                AdditionalControlCard(viewModel = viewModel)
-            }
+      if (thermalCardExpanded) {
+        item(span = StaggeredGridItemSpan.FullLine, key = "thermal_card") {
+          ExpandableThermalCard(
+              viewModel = viewModel,
+              expanded = true,
+              onExpandChange = { thermalCardExpanded = it },
+              onClickNav = { onNavigate("thermal_tuning") },
+              topLeftContent = {
+                ExpandableCPUCard(
+                    viewModel = viewModel,
+                    onClickNav = { onNavigate("cpu_tuning") },
+                )
+              },
+          )
         }
+      } else {
+        item(key = "cpu_card") {
+          ExpandableCPUCard(
+              viewModel = viewModel,
+              onClickNav = { onNavigate("cpu_tuning") },
+          )
+        }
+        item(key = "thermal_card") {
+          ExpandableThermalCard(
+              viewModel = viewModel,
+              expanded = false,
+              onExpandChange = { thermalCardExpanded = it },
+              onClickNav = { onNavigate("thermal_tuning") },
+          )
+        }
+      }
+
+      item(span = StaggeredGridItemSpan.FullLine) { DashboardProfileCard(viewModel) }
+      item(span = StaggeredGridItemSpan.FullLine) { ExpandableGPUCard(viewModel = viewModel) }
+
+      if (networkCardExpanded) {
+        item(span = StaggeredGridItemSpan.FullLine) {
+          ExpandableNetworkCard(
+              viewModel = viewModel,
+              expanded = true,
+              onExpandChange = {
+                networkCardExpanded = it // Toggle
+              },
+              onClickNav = { onNavigate("network_tuning") },
+              topRightContent = {
+                DashboardMemoryCard(
+                    onClickNav = { onNavigate("memory_tuning") },
+                )
+              },
+          )
+        }
+      } else {
+        item(span = StaggeredGridItemSpan.SingleLane) {
+          ExpandableNetworkCard(
+              viewModel = viewModel,
+              expanded = false,
+              onExpandChange = { networkCardExpanded = it },
+              onClickNav = { onNavigate("network_tuning") },
+          )
+        }
+        item(span = StaggeredGridItemSpan.SingleLane) {
+          DashboardMemoryCard(
+              onClickNav = { onNavigate("memory_tuning") },
+          )
+        }
+      }
+
+      // Add Additional Control Card at the bottom
+      item(span = StaggeredGridItemSpan.FullLine) { AdditionalControlCard(viewModel = viewModel) }
     }
+  }
 }

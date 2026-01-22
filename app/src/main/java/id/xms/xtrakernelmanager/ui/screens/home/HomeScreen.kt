@@ -279,126 +279,81 @@ private fun LegacyHomeContent(
                                         Spacer(modifier = Modifier.height(dimens.spacingMedium))
                                 }
 
-                                Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                        Column {
-                                                Row(
-                                                        verticalAlignment =
-                                                                Alignment.CenterVertically
-                                                ) {
-                                                        Text(
-                                                                text = "Xtra Kernel ",
-                                                                style =
-                                                                        if (isCompact)
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .titleMedium
-                                                                        else
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .headlineSmall,
-                                                                fontWeight = FontWeight.ExtraBold,
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .onSurface,
-                                                        )
-                                                        Text(
-                                                                text = "Manager",
-                                                                style =
-                                                                        if (isCompact)
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .titleMedium
-                                                                        else
-                                                                                MaterialTheme
-                                                                                        .typography
-                                                                                        .headlineSmall,
-                                                                fontWeight = FontWeight.ExtraBold,
-                                                                color =
-                                                                        MaterialTheme.colorScheme
-                                                                                .primary,
-                                                        )
-                                                }
-                                                Text(
-                                                        text =
-                                                                "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color =
-                                                                MaterialTheme.colorScheme
-                                                                        .onSurfaceVariant,
-                                                )
-                                        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Text(
+                  text = "Xtra Kernel ",
+                  style =
+                      if (isCompact) MaterialTheme.typography.titleMedium
+                      else MaterialTheme.typography.headlineSmall,
+                  fontWeight = FontWeight.ExtraBold,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              Text(
+                  text = "Manager",
+                  style =
+                      if (isCompact) MaterialTheme.typography.titleMedium
+                      else MaterialTheme.typography.headlineSmall,
+                  fontWeight = FontWeight.ExtraBold,
+                  color = MaterialTheme.colorScheme.primary,
+              )
+            }
+            Text(
+                text = "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
 
-                                        FilledTonalIconButton(
-                                                onClick = onSettingsClick,
-                                                modifier =
-                                                        Modifier.size(
-                                                                if (isCompact) 36.dp else 44.dp
-                                                        ),
-                                                colors =
-                                                        IconButtonDefaults
-                                                                .filledTonalIconButtonColors(
-                                                                        containerColor =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .surfaceVariant
-                                                                                        .copy(
-                                                                                                alpha =
-                                                                                                        0.5f
-                                                                                        ),
-                                                                        contentColor =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onSurfaceVariant,
-                                                                ),
-                                        ) {
-                                                Icon(
-                                                        imageVector = Icons.Rounded.Settings,
-                                                        contentDescription = "Settings",
-                                                        modifier =
-                                                                Modifier.size(
-                                                                        dimens.iconSizeMedium
-                                                                ),
-                                                )
-                                        }
-                                }
-                        }
-                }
-
-                item {
-                        id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(
-                                cpuInfo = cpuInfo
-                        )
-                }
-                item {
-                        id.xms.xtrakernelmanager.ui.screens.home.components.CompactGPUFreqCard(
-                                gpuInfo = gpuInfo
-                        )
-                }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                        id.xms.xtrakernelmanager.ui.screens.home.components.CoreStatusCard(
-                                cpuInfo = cpuInfo
-                        )
-                }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                        id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedBatteryCard(
-                                batteryInfo = batteryInfo
-                        )
-                }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                        id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(
-                                systemInfo = systemInfo
-                        )
-                }
-                item(span = StaggeredGridItemSpan.FullLine) {
-                        id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(
-                                systemInfo = systemInfo
-                        )
-                }
+          FilledTonalIconButton(
+              onClick = onSettingsClick,
+              modifier = Modifier.size(if (isCompact) 36.dp else 44.dp),
+              colors =
+                  IconButtonDefaults.filledTonalIconButtonColors(
+                      containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                      contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                  ),
+          ) {
+            Icon(
+                imageVector = Icons.Rounded.Settings,
+                contentDescription = "Settings",
+                modifier = Modifier.size(dimens.iconSizeMedium),
+            )
+          }
         }
+      }
+    }
+
+    item {
+      id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(cpuInfo = cpuInfo)
+    }
+    item {
+      id.xms.xtrakernelmanager.ui.screens.home.components.CompactGPUFreqCard(gpuInfo = gpuInfo)
+    }
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.CoreStatusCard(cpuInfo = cpuInfo)
+    }
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedBatteryCard(
+          batteryInfo = batteryInfo
+      )
+    }
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(
+          systemInfo = systemInfo
+      )
+    }
+    item(span = StaggeredGridItemSpan.FullLine) {
+      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(
+          systemInfo = systemInfo
+      )
+    }
+  }
 }
 
 // POWER MENU & ROOT EXECUTION LOGIC

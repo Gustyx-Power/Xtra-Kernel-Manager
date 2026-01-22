@@ -1,7 +1,5 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
-import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -25,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
 fun LiquidAdditionalControl(viewModel: TuningViewModel) {

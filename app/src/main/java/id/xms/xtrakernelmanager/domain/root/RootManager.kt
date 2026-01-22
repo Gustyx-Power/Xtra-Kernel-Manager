@@ -13,10 +13,7 @@ object RootManager {
   // Debug bypass untuk device tertentu (tambahkan model lain jika diperlukan)
   private val DEBUG_BYPASS_DEVICES = setOf("I2219")
 
-  /**
-   * Check if current device is in debug bypass list.
-   * Only active in DEBUG builds.
-   */
+  /** Check if current device is in debug bypass list. Only active in DEBUG builds. */
   fun isDebugBypassDevice(): Boolean {
     return BuildConfig.DEBUG && android.os.Build.MODEL in DEBUG_BYPASS_DEVICES
   }
