@@ -48,6 +48,10 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
 fun Navigation(preferencesManager: PreferencesManager) {
@@ -315,3 +319,4 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
 }
+

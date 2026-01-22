@@ -506,6 +506,32 @@ class PreferencesManager(private val context: Context) {
   fun isLockBrightnessEnabled(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[LOCK_BRIGHTNESS_ENABLED] ?: false }
 
+  // New Features: Ringer, Call Mode, Gestures
+  private val RINGER_MODE = intPreferencesKey("ringer_mode") 
+  private val CALL_MODE = intPreferencesKey("call_mode") 
+  private val THREE_FINGER_SWIPE_ENABLED = booleanPreferencesKey("three_finger_swipe_enabled")
+
+  suspend fun setRingerMode(mode: Int) {
+    context.dataStore.edit { prefs -> prefs[RINGER_MODE] = mode }
+  }
+
+  fun getRingerMode(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[RINGER_MODE] ?: 0 }
+
+  suspend fun setCallMode(mode: Int) {
+    context.dataStore.edit { prefs -> prefs[CALL_MODE] = mode }
+  }
+
+  fun getCallMode(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[CALL_MODE] ?: 0 }
+
+  suspend fun setThreeFingerSwipeEnabled(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[THREE_FINGER_SWIPE_ENABLED] = enabled }
+  }
+
+  fun isThreeFingerSwipeEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[THREE_FINGER_SWIPE_ENABLED] ?: true } // Default ON
+
   // ==================== SYNC PREFERENCES ====================
   // Using SharedPreferences for simple synchronous access
 
@@ -531,6 +557,16 @@ class PreferencesManager(private val context: Context) {
   /** Set string value synchronously */
   fun setString(key: String, value: String) {
     syncPrefs.edit().putString(key, value).apply()
+  }
+
+  /** Get int value synchronously */
+  fun getInt(key: String, defaultValue: Int): Int {
+    return syncPrefs.getInt(key, defaultValue)
+  }
+
+  /** Set int value synchronously */
+  fun setInt(key: String, value: Int) {
+    syncPrefs.edit().putInt(key, value).apply()
   }
 
   // ==================== Functional ROM Preferences ====================

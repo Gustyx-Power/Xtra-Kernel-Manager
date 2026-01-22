@@ -54,21 +54,30 @@ fun GameOverlayTheme(content: @Composable () -> Unit) {
 fun GameSidebar(
     isExpanded: Boolean,
     overlayOnRight: Boolean,
+    isDockedToEdge: Boolean = true, // NEW: Controls shape
     fps: String? = null,
     onToggleExpand: () -> Unit,
     onDrag: (Float, Float) -> Unit,
+    onDragEnd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
   val pillColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.95f)
-  val contentColor = MaterialTheme.colorScheme.primary // Fixed: Consistent Monet color
+  val contentColor = MaterialTheme.colorScheme.primary
 
-  // Shape: Half-rounded rect attached to side
-  val shape =
+  // Shape: Half-rounded when docked to edge, Circle when floating
+  val shape = if (isDockedToEdge) {
       if (overlayOnRight) {
         RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp)
       } else {
         RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp)
       }
+  } else {
+      CircleShape // Full circle when floating in the middle
+  }
+
+  // Size: Wider when docked, Square when floating (circle)
+  val width = if (isDockedToEdge) 52.dp else 40.dp
+  val height = if (isDockedToEdge) 36.dp else 40.dp
 
   Surface(
       color = pillColor,
@@ -77,10 +86,12 @@ fun GameSidebar(
       shadowElevation = 4.dp,
       modifier =
           modifier
-              .width(52.dp) // Wider for text
-              .height(36.dp) // Standard button height (compact)
+              .width(width)
+              .height(height)
               .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
+                detectDragGestures(
+                    onDragEnd = onDragEnd,
+                ) { change, dragAmount ->
                   change.consume()
                   onDrag(dragAmount.x, dragAmount.y)
                 }
@@ -115,7 +126,6 @@ fun GameSidebar(
   }
 }
 
-// --- EXPRESSIVE PANEL (Bento Style) ---
 @Composable
 fun GamePanelCard(
     viewModel: GameMonitorViewModel,
@@ -123,6 +133,8 @@ fun GamePanelCard(
     onFpsToggle: () -> Unit,
     onCollapse: () -> Unit,
     onMoveSide: () -> Unit,
+    onDrag: (Float, Float) -> Unit,
+    onDragEnd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
   val time by
@@ -159,12 +171,19 @@ fun GamePanelCard(
       Row(
           verticalAlignment = Alignment.CenterVertically,
           modifier =
-              Modifier.fillMaxWidth().clickable(
-                  interactionSource = remember { MutableInteractionSource() },
-                  indication = null, // No ripple
-              ) {
-                onCollapse()
-              },
+              Modifier.fillMaxWidth()
+                  .pointerInput(Unit) {
+                      detectDragGestures(onDragEnd = onDragEnd) { change, dragAmount ->
+                          change.consume()
+                          onDrag(dragAmount.x, dragAmount.y)
+                      }
+                  }
+                  .clickable(
+                      interactionSource = remember { MutableInteractionSource() },
+                      indication = null, // No ripple
+                  ) {
+                    onCollapse()
+                  },
       ) {
         // Big Bold Clock (Smaller)
         Text(
@@ -186,7 +205,7 @@ fun GamePanelCard(
       }
 
       // 2. BRIGHTNESS (Compact slider)
-      BrightnessControlExpressive()
+      BrightnessControlExpressive(viewModel)
 
       // 3. PERFORMANCE WIDGET (Bento Box)
       PerformanceBento(fps, cpuLoad, gpuLoad)
@@ -342,28 +361,37 @@ fun ExpressiveModeSelector(viewModel: GameMonitorViewModel) {
 }
 
 @Composable
-fun BrightnessControlExpressive() {
-  var sliderPosition by remember { mutableFloatStateOf(0.5f) }
+fun BrightnessControlExpressive(viewModel: GameMonitorViewModel) {
+  val vmBrightness by viewModel.brightness.collectAsStateWithLifecycle()
+  var localSliderValue by remember { mutableFloatStateOf(0f) }
+  var isDragging by remember { mutableStateOf(false) }
+  val displayValue = if (isDragging) localSliderValue else vmBrightness
 
-  // Thick Expressive Slider
   Surface(
       color = MaterialTheme.colorScheme.surfaceContainerHigh,
       shape = CircleShape,
-      modifier = Modifier.fillMaxWidth().height(44.dp), // Reduced height
+      modifier = Modifier.fillMaxWidth().height(44.dp),
   ) {
     Box(contentAlignment = Alignment.CenterStart) {
       // Track Fill
       Box(
           modifier =
-              Modifier.fillMaxWidth(sliderPosition)
+              Modifier.fillMaxWidth(displayValue.coerceIn(0.01f, 1f))
                   .fillMaxHeight()
                   .background(MaterialTheme.colorScheme.tertiary, CircleShape)
       )
 
       // Interaction overlay (invisible slider)
       Slider(
-          value = sliderPosition,
-          onValueChange = { sliderPosition = it },
+          value = displayValue,
+          onValueChange = { 
+              isDragging = true
+              localSliderValue = it
+          },
+          onValueChangeFinished = {
+              viewModel.setBrightness(localSliderValue) 
+              isDragging = false 
+          },
           colors =
               SliderDefaults.colors(
                   thumbColor = Color.Transparent,
@@ -373,13 +401,11 @@ fun BrightnessControlExpressive() {
           modifier = Modifier.fillMaxWidth(),
       )
 
-      // Icon Overlay
       Row(
           modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
       ) {
-        // Fixed: Uniform tinting using theme content colors
         Icon(
             Icons.Rounded.BrightnessLow,
             null,
@@ -397,7 +423,6 @@ fun BrightnessControlExpressive() {
   }
 }
 
-// SLIDABLE TOOLS
 @Composable
 fun ToolsGridExpressive(
     viewModel: GameMonitorViewModel,
@@ -405,9 +430,10 @@ fun ToolsGridExpressive(
     onFpsToggle: () -> Unit,
 ) {
   val dnd by viewModel.doNotDisturb.collectAsStateWithLifecycle()
-  val touchGuard by viewModel.touchGuard.collectAsStateWithLifecycle()
+  val ringerMode by viewModel.ringerMode.collectAsStateWithLifecycle()
+  val callMode by viewModel.callMode.collectAsStateWithLifecycle()
+  val threeFingerSwipe by viewModel.threeFingerSwipe.collectAsStateWithLifecycle()
 
-  // Use LazyRow for slidable behavior
   androidx.compose.foundation.lazy.LazyRow(
       modifier = Modifier.fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -423,6 +449,48 @@ fun ToolsGridExpressive(
       }
     }
     item {
+        val (icon, label) = when(ringerMode) {
+             1 -> Icons.Rounded.Vibration to "Vibrate"
+             2 -> Icons.Rounded.NotificationsOff to "Silent"
+             else -> Icons.Rounded.Notifications to "Ring"
+        }
+        ToolButtonExpressive(
+            icon = icon,
+            label = label,
+            isActive = ringerMode != 0, // Active color if not Normal
+        ) {
+            viewModel.cycleRingerMode()
+        }
+    }
+    item {
+        val (icon, label) = when(callMode) {
+             1 -> Icons.Rounded.NotificationsPaused to "No HeadsUp"
+             2 -> Icons.Rounded.CallEnd to "Reject" // or PhoneDisabled
+             else -> Icons.Rounded.Call to "Call"
+        }
+        ToolButtonExpressive(
+            icon = icon,
+            label = label,
+            isActive = callMode != 0,
+        ) {
+            viewModel.cycleCallMode()
+        }
+    }
+
+    item {
+        val isActive = threeFingerSwipe
+        val icon = if (isActive) Icons.Rounded.TouchApp else Icons.Rounded.DoNotDisturb // or Block
+        ToolButtonExpressive(
+            icon = icon,
+            label = if (isActive) "Swipe On" else "Swipe Off",
+            isActive = isActive,
+        ) {
+            viewModel.toggleThreeFingerSwipe()
+        }
+    }
+
+
+    item {
       ToolButtonExpressive(
           icon = Icons.Rounded.DoNotDisturb,
           label = "DND",
@@ -431,33 +499,39 @@ fun ToolsGridExpressive(
         viewModel.setDND(!dnd)
       }
     }
+
+    item {
+        val isTouchGuard by viewModel.touchGuard.collectAsStateWithLifecycle()
+        ToolButtonExpressive(
+            icon = if (isTouchGuard) Icons.Rounded.BackHand else Icons.Rounded.PanTool, // Hand icon
+            label = "Disable Gesture", 
+            isActive = isTouchGuard,
+        ) {
+            viewModel.setTouchGuard(!isTouchGuard)
+        }
+    }
+
     item {
       ToolButtonExpressive(
-          icon = Icons.Rounded.RocketLaunch, // Changed from CleaningServices
+          icon = Icons.Rounded.RocketLaunch,
           label = "Boost",
           isActive = false,
       ) {
         viewModel.clearRAM()
       }
     }
-    item {
-      ToolButtonExpressive(
-          icon = Icons.Rounded.TouchApp,
-          label = "Gesture", // Renamed from Block
-          isActive = touchGuard,
-      ) {
-        viewModel.setTouchGuard(!touchGuard)
-      }
-    }
+
     item {
       ToolButtonExpressive(
           icon = Icons.Rounded.Screenshot,
-          label = "Screenshot", // Renamed from Shot
+          label = "Screenshot",
           isActive = false,
-      ) { /* TODO */
+      ) { 
+        viewModel.takeScreenshot()
       }
     }
-    // Additional items can be added here easily
+
+
   }
 }
 
@@ -482,12 +556,12 @@ fun ToolButtonExpressive(
   ) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(18.dp), // Squircle
+        shape = RoundedCornerShape(18.dp), 
         color = bgColor,
-        modifier = Modifier.size(56.dp).aspectRatio(1f), // Reduced size from 64dp
+        modifier = Modifier.size(56.dp).aspectRatio(1f), 
     ) {
       Box(contentAlignment = Alignment.Center) {
-        Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp)) // Reduced icon size
+        Icon(icon, null, tint = iconColor, modifier = Modifier.size(24.dp)) 
       }
     }
     Text(

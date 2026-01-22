@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,6 +42,9 @@ class GameMonitorViewModel(
 
   private val _fpsValue = MutableStateFlow("60")
   val fpsValue: StateFlow<String> = _fpsValue.asStateFlow()
+
+  private val _isFpsEnabled = MutableStateFlow(false)
+  val isFpsEnabled: StateFlow<Boolean> = _isFpsEnabled.asStateFlow()
 
   private val _tempValue = MutableStateFlow("0")
   val tempValue: StateFlow<String> = _tempValue.asStateFlow()
@@ -104,7 +108,28 @@ class GameMonitorViewModel(
       preferencesManager.isLockBrightnessEnabled().collect { _lockBrightness.value = it }
     }
     viewModelScope.launch {
+        preferencesManager.getRingerMode().collect { _ringerMode.value = it }
+    }
+    viewModelScope.launch {
+        preferencesManager.getCallMode().collect { _callMode.value = it }
+    }
+    viewModelScope.launch {
+        preferencesManager.isThreeFingerSwipeEnabled().collect { _threeFingerSwipe.value = it }
+    }
+    viewModelScope.launch {
+        val sysBrightness = withContext(Dispatchers.IO) { gameControlUseCase.getBrightness() }
+        _brightness.value = (sysBrightness / 255f).coerceIn(0f, 1f)
+    }
+    viewModelScope.launch {
       _currentPerformanceMode.value = gameControlUseCase.getCurrentPerformanceMode()
+    }
+    viewModelScope.launch {
+      _isFpsEnabled.value = preferencesManager.getBoolean("fps_enabled", false)
+    }
+
+    viewModelScope.launch {
+        val sysVal = withContext(Dispatchers.IO) { gameControlUseCase.getBrightness() }
+        _brightness.value = (sysVal / 255f).coerceIn(0f, 1f)
     }
   }
 
@@ -230,6 +255,10 @@ class GameMonitorViewModel(
     viewModelScope.launch {
       _touchGuard.value = enabled
       preferencesManager.setTouchGuard(enabled)
+      
+      withContext(Dispatchers.IO) {
+          gameControlUseCase.setGestureLock(enabled)
+      }
     }
   }
 
@@ -247,6 +276,8 @@ class GameMonitorViewModel(
     }
   }
 
+
+
   fun clearRAM() {
     if (_isClearingRam.value) return
 
@@ -255,6 +286,83 @@ class GameMonitorViewModel(
       withContext(Dispatchers.IO) { gameControlUseCase.clearRAM() }
       _isClearingRam.value = false
     }
+  }
+
+  fun setFpsEnabled(enabled: Boolean) {
+    viewModelScope.launch {
+      _isFpsEnabled.value = enabled
+      preferencesManager.setBoolean("fps_enabled", enabled)
+    }
+  }
+
+  private val _ringerMode = MutableStateFlow(0)
+  val ringerMode: StateFlow<Int> = _ringerMode.asStateFlow()
+
+  fun cycleRingerMode() {
+      val nextMode = (_ringerMode.value + 1) % 3
+      viewModelScope.launch {
+          _ringerMode.value = nextMode
+          withContext(Dispatchers.IO) { gameControlUseCase.setRingerMode(nextMode) }
+          preferencesManager.setRingerMode(nextMode)
+      }
+  }
+
+  private val _callMode = MutableStateFlow(0)
+  val callMode: StateFlow<Int> = _callMode.asStateFlow()
+
+  fun cycleCallMode() {
+      val nextMode = (_callMode.value + 1) % 3
+      viewModelScope.launch {
+          _callMode.value = nextMode
+          preferencesManager.setCallMode(nextMode)
+          
+          when (nextMode) {
+              0 -> { // Default
+                  setBlockNotifications(false)
+                  setAutoRejectCalls(false)
+              }
+              1 -> { // No Heads Up
+                  setBlockNotifications(true)
+                  setAutoRejectCalls(false)
+              }
+              2 -> { // Reject
+                  setBlockNotifications(true) 
+                  setAutoRejectCalls(true)
+              }
+          }
+      }
+  }
+
+  
+  private val _threeFingerSwipe = MutableStateFlow(true)
+  val threeFingerSwipe: StateFlow<Boolean> = _threeFingerSwipe.asStateFlow()
+
+  fun toggleThreeFingerSwipe() {
+      val newState = !_threeFingerSwipe.value
+      viewModelScope.launch {
+          _threeFingerSwipe.value = newState
+          withContext(Dispatchers.IO) { gameControlUseCase.setThreeFingerSwipe(newState) }
+          preferencesManager.setThreeFingerSwipeEnabled(newState)
+      }
+  }
+
+  private val _brightness = MutableStateFlow(0.5f)
+  val brightness: StateFlow<Float> = _brightness.asStateFlow()
+
+  fun setBrightness(value: Float) {
+      _brightness.value = value
+      viewModelScope.launch {
+          val sysVal = (value * 255).toInt().coerceIn(0, 255)
+          withContext(Dispatchers.IO) { gameControlUseCase.setBrightness(sysVal) }
+      }
+  }
+  private val _screenshotTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0)
+  val screenshotTrigger = _screenshotTrigger.asSharedFlow()
+
+  fun takeScreenshot() {
+      viewModelScope.launch {
+          _screenshotTrigger.emit(Unit)
+      }
   }
 
   override fun onCleared() {

@@ -30,18 +30,10 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.*
+import androidx.lifecycle.lifecycleScope
 import id.xms.xtrakernelmanager.ui.screens.misc.GameMonitorViewModel
 import kotlinx.coroutines.*
 
-/**
- * Game Overlay Service - Redesigned
- *
- * Features:
- * - Sidebar navigation with Performance Panel and Game Tools tabs
- * - Quick Apps with floating window capability
- * - Material You / Monet dynamic colors with dark blue fallback
- * - Glassmorphic UI design
- */
 class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
   private lateinit var windowManager: WindowManager
@@ -62,6 +54,8 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
   // States
   private var isExpanded by mutableStateOf(false)
   private var isOverlayOnRight by mutableStateOf(true)
+  private var isDockedToEdge by mutableStateOf(true)
+  private var screenWidth = 0
 
   override val lifecycle: Lifecycle
     get() = lifecycleRegistry
@@ -86,7 +80,35 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     // Initialize ViewModel
     viewModel = GameMonitorViewModel(application, preferencesManager)
 
+    // Observe Screenshot Trigger
+    lifecycleScope.launch {
+        viewModel.screenshotTrigger.collect {
+            performHiddenScreenshot()
+        }
+    }
+
     createOverlay()
+  }
+
+  private fun performHiddenScreenshot() {
+      lifecycleScope.launch(Dispatchers.Main) {
+          // 1. Hide Overlay
+          overlayView?.visibility = View.INVISIBLE
+          
+          // 2. Wait for UI update (150ms)
+          delay(150)
+          
+          // 3. Take Screenshot (Background thread)
+          withContext(Dispatchers.IO) {
+              gameControlUseCase.takeScreenshot()
+          }
+          
+          // 4. Wait for system capture (500ms)
+          delay(500)
+          
+          // 5. Restore Overlay
+          overlayView?.visibility = View.VISIBLE
+      }
   }
 
   private fun showToast(message: String) {
@@ -95,9 +117,15 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
   }
 
+  private var dragAccumulatorX = 0f
+  private var dragAccumulatorY = 0f
+
   private fun createOverlay() {
-    // Load overlay position preference (default: right)
+    val metrics = windowManager.maximumWindowMetrics
+    screenWidth = metrics.bounds.width()
+
     isOverlayOnRight = preferencesManager.getBoolean("overlay_position_right", true)
+    val savedY = preferencesManager.getInt("overlay_y_pos", 100)
 
     params =
         WindowManager.LayoutParams(
@@ -111,7 +139,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             .apply {
               gravity = Gravity.TOP or if (isOverlayOnRight) Gravity.END else Gravity.START
               x = 0
-              y = 100
+              y = savedY
             }
 
     overlayView =
@@ -127,18 +155,54 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
   @Composable
   private fun GameOverlayContent() {
     val context = LocalContext.current
-    var isFpsEnabled by remember {
-      mutableStateOf(false)
-    } // This would normally come from ViewModel/Prefs
+    val isFpsEnabled by viewModel.isFpsEnabled.collectAsState()
 
     Box(modifier = Modifier.wrapContentSize(), contentAlignment = Alignment.TopStart) {
       if (isExpanded) {
         GamePanelCard(
             viewModel = viewModel,
             isFpsEnabled = isFpsEnabled,
-            onFpsToggle = { isFpsEnabled = !isFpsEnabled },
+            onFpsToggle = { viewModel.setFpsEnabled(!isFpsEnabled) },
             onCollapse = { isExpanded = false },
             onMoveSide = { toggleOverlayPosition() },
+            onDrag = { dx, dy ->
+              params?.let { p ->
+                // Accumulate drag deltas
+                dragAccumulatorX += dx
+                dragAccumulatorY += dy
+                
+                val moveY = dragAccumulatorY.toInt()
+                val moveX = dragAccumulatorX.toInt()
+                
+                if (moveY != 0) {
+                   p.y = (p.y + moveY).coerceIn(0, 2500)
+                   dragAccumulatorY -= moveY // Keep remainder
+                }
+
+                if (moveX != 0) {
+                    val actualMoveX = if (isOverlayOnRight) -moveX else moveX
+                    p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
+                    dragAccumulatorX -= moveX // Keep remainder
+                }
+                
+                val snapThreshold = 60
+                isDockedToEdge = p.x < snapThreshold
+                
+                if (p.x > screenWidth / 3) {
+                    toggleOverlayPosition()
+                    p.x = 0
+                    isDockedToEdge = true
+                    dragAccumulatorX = 0f // Reset
+                }
+
+                try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
+              }
+            },
+            onDragEnd = {
+                params?.let { p ->
+                    preferencesManager.setInt("overlay_y_pos", p.y)
+                }
+            },
         )
       } else {
         val fpsVal by viewModel.fpsValue.collectAsState()
@@ -146,38 +210,58 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         GameSidebar(
             isExpanded = isExpanded,
             overlayOnRight = isOverlayOnRight,
+            isDockedToEdge = isDockedToEdge,
             fps = if (isFpsEnabled) fpsVal else null,
             onToggleExpand = { isExpanded = true },
             onDrag = { dx, dy ->
               params?.let { p ->
-                p.y = (p.y + dy.toInt()).coerceIn(0, 2500)
-
-                val dragX = dx.toInt()
-
-                if (isOverlayOnRight) {
-
-                  p.x -= dragX
-
-                  if (p.x > 500) {
-                    toggleOverlayPosition()
-                    p.x = 0 // Reset to edge
-                  }
-                } else {
-                  p.x += dragX
-
-                  if (p.x > 500) {
-                    toggleOverlayPosition()
-                    p.x = 0 // Reset to edge
-                  }
+                // Accumulate drag deltas
+                dragAccumulatorX += dx
+                dragAccumulatorY += dy
+                
+                val moveY = dragAccumulatorY.toInt()
+                val moveX = dragAccumulatorX.toInt()
+                
+                if (moveY != 0) {
+                    p.y = (p.y + moveY).coerceIn(0, 2500)
+                    dragAccumulatorY -= moveY
                 }
 
-                if (p.x < 0) p.x = 0
+                if (moveX != 0) {
+                    val actualMoveX = if (isOverlayOnRight) -moveX else moveX
+                    p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
+                    dragAccumulatorX -= moveX
+                }
+                
+                // Auto-snap threshold: 60px from edge
+                val snapThreshold = 60
+                isDockedToEdge = p.x < snapThreshold
+                
+                // If dragged far enough, switch sides
+                if (p.x > screenWidth / 3) {
+                    toggleOverlayPosition()
+                    p.x = 0
+                    isDockedToEdge = true
+                    dragAccumulatorX = 0f
+                }
 
                 try {
                   windowManager.updateViewLayout(overlayView, p)
                 } catch (e: Exception) {}
               }
             },
+            onDragEnd = {
+                params?.let { p ->
+                    // Auto-snap to edge if close
+                    val snapThreshold = 100
+                    if (p.x < snapThreshold) {
+                        p.x = 0
+                        isDockedToEdge = true
+                        try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
+                    }
+                    preferencesManager.setInt("overlay_y_pos", p.y)
+                }
+            }
         )
       }
     }
@@ -197,7 +281,6 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         // View may not be attached
       }
     }
-    showToast(if (isOverlayOnRight) "Posisi: Kanan" else "Posisi: Kiri")
   }
 
   override fun onDestroy() {
