@@ -29,9 +29,9 @@ class DampedDragAnimation(
 ) {
 
     private val valueAnimationSpec =
-        spring(1f, 1000f, visibilityThreshold)
+        spring(0.8f, 250f, visibilityThreshold)
     private val velocityAnimationSpec =
-        spring(0.5f, 300f, visibilityThreshold * 10f)
+        spring(0.5f, 250f, visibilityThreshold * 10f)
     private val pressProgressAnimationSpec =
         spring(1f, 1000f, 0.001f)
     private val scaleXAnimationSpec =
@@ -117,7 +117,7 @@ class DampedDragAnimation(
             mutatorMutex.mutate {
                 press()
                 val targetValue = value.coerceIn(valueRange)
-                launch { valueAnimation.animateTo(targetValue, valueAnimationSpec) }
+                launch { valueAnimation.animateTo(targetValue, valueAnimationSpec) }.join()
                 if (velocity != 0f) {
                     launch { velocityAnimation.animateTo(0f, velocityAnimationSpec) }
                 }
