@@ -31,7 +31,7 @@ fun rememberLayerBackdrop(
 }
 
 @Stable
-class LayerBackdrop internal constructor(
+open class LayerBackdrop internal constructor(
     val graphicsLayer: GraphicsLayer,
     internal val onDraw: ContentDrawScope.() -> Unit
 ) : Backdrop {
