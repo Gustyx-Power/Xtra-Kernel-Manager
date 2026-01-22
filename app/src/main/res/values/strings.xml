@@ -763,9 +763,9 @@
 
     <!-- Layout Style -->
     <string name="layout_style">Layout Style</string>
-    <string name="layout_style_desc">Choose between classic glassmorphic or pure Material 3 design</string>
-    <string name="layout_legacy">Legacy</string>
-    <string name="layout_legacy_desc">Glassmorphic design with visual effects</string>
+    <string name="layout_style_desc">Choose between classic Liquid Glass or pure Material 3 design</string>
+    <string name="layout_legacy">Liquid Glass</string>
+    <string name="layout_legacy_desc">Liquid Glass design with visual effects</string>
     <string name="layout_material">Material</string>
     <string name="layout_material_desc">Pure Material 3 design, clean and simple</string>
 
