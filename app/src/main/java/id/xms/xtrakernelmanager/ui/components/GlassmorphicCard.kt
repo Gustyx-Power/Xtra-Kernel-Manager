@@ -16,11 +16,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.kyant.backdrop.backdrops.LayerBackdrop
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.colorControls
-import com.kyant.backdrop.effects.lens
+import id.xms.xtrakernelmanager.ui.components.utils.LayerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.drawBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.blur
+import id.xms.xtrakernelmanager.ui.components.utils.colorControls
+import id.xms.xtrakernelmanager.ui.components.utils.lens
 import id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens
 
 val LocalBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }

@@ -24,16 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.colorControls
-import com.kyant.backdrop.effects.lens
+import id.xms.xtrakernelmanager.ui.components.utils.drawBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.blur
+import id.xms.xtrakernelmanager.ui.components.utils.colorControls
+import id.xms.xtrakernelmanager.ui.components.utils.lens
+import id.xms.xtrakernelmanager.ui.components.utils.DampedDragAnimation
 
 @Composable
 fun LiquidBottomBar(
@@ -43,7 +45,6 @@ fun LiquidBottomBar(
     isVisible: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    val localDensity = androidx.compose.ui.platform.LocalDensity.current
     AnimatedVisibility(
         visible = isVisible,
         enter = slideInVertically { it },
@@ -52,56 +53,37 @@ fun LiquidBottomBar(
     ) {
         val backdrop = LocalBackdrop.current
         val isDark = isSystemInDarkTheme()
-        val shape = RoundedCornerShape(percent = 50) // Capsule shape
+        val shape = RoundedCornerShape(percent = 50) 
+        val localDensity = androidx.compose.ui.platform.LocalDensity.current
 
-        // Base modifier for the glass container
         var containerModifier = Modifier
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .height(88.dp) // Adjusted height
+            .height(64.dp) 
             .clip(shape)
 
-        // Manual fallback color
-        val fallbackColor = if (isDark) {
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.1f)
-        } else {
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
-        }
+        val containerColor = if (isDark) Color(0xFF121212).copy(alpha = 0.4f) else Color(0xFFFAFAFA).copy(alpha = 0.4f)
+        val fallbackColor = if (isDark) MaterialTheme.colorScheme.surface.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+        val glassBorder = if (isDark) Color.White.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.3f)
 
-        val glassBorder = if (isDark) {
-            Color.White.copy(alpha = 0.2f)
-        } else {
-            Color.White.copy(alpha = 0.4f)
-        }
-        
-        // Container Glass Effect
         if (backdrop != null) {
              containerModifier = containerModifier.drawBackdrop(
                  backdrop = backdrop,
                  shape = { shape },
                  effects = {
-                      colorControls(
-                              saturation = 0.7f,
-                              brightness = 0.15f
-                      )
-                      blur(20.dp.toPx())
-                      lens(
-                              refractionHeight = 32.dp.toPx(),
-                              refractionAmount = 48.dp.toPx(),
-                              chromaticAberration = true,
-                              depthEffect = true
-                      )
-                 }
+                      colorControls(saturation = 1.0f)
+                      blur(8.dp.toPx())
+                      lens(24.dp.toPx(), 24.dp.toPx())
+                 },
+                 onDrawSurface = { drawRect(containerColor) }
              )
         } else {
             containerModifier = containerModifier.background(fallbackColor)
         }
         
-        // State for drag
-        var selectedIndex = items.indexOfFirst { it.route == currentRoute }.takeIf { it != -1 } ?: 0
-        // Use a state for the drag offset
-        var dragOffset by remember { mutableFloatStateOf(0f) }
-        var isDragging by remember { mutableStateOf(false) }
+        // Determine current index
+        val selectedIndex = items.indexOfFirst { it.route == currentRoute }.takeIf { it != -1 } ?: 0
+        val selectedIndexFloat = selectedIndex.toFloat()
 
         BoxWithConstraints(
             modifier = containerModifier
@@ -111,86 +93,147 @@ fun LiquidBottomBar(
         ) {
             val totalWidth = maxWidth
             val itemWidth = totalWidth / items.size
+            val trackWidthPx = with(localDensity) { totalWidth.toPx() }
             
-            // Calculate target offset based on selection or drag
-            val targetOffset = if (isDragging) {
-                // Determine base offset for current index + drag
-                (selectedIndex * itemWidth.value) + dragOffset
-            } else {
-                (selectedIndex * itemWidth.value).toFloat()
+            // Animation State
+            val animationScope = rememberCoroutineScope()
+            // We use a local state to drive the animation target
+            var targetIndex by remember { mutableFloatStateOf(selectedIndexFloat) }
+            
+            // Sync with external route changes
+            LaunchedEffect(selectedIndexFloat) {
+                targetIndex = selectedIndexFloat
             }
-            
-            // Animate offset when not dragging
-            val animatedOffset by animateFloatAsState(
-                targetValue = if (isDragging) (selectedIndex * itemWidth.value) + dragOffset else (selectedIndex * itemWidth.value),
-                animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = 0.7f),
-                label = "pillOffset"
-            )
 
-            // 1. The Glass Pill (Background - Interactive)
-            val pillShape = RoundedCornerShape(50)
-            var pillModifier = Modifier
-                .offset(x = (if (isDragging) (selectedIndex * itemWidth.value) + dragOffset else animatedOffset).dp)
-                .width(itemWidth)
-                .padding(4.dp)
-                .fillMaxHeight()
-                .clip(pillShape)
-                .draggable( // Draggable moves to the pill itself!
-                    orientation = androidx.compose.foundation.gestures.Orientation.Horizontal,
-                    state = androidx.compose.foundation.gestures.rememberDraggableState { delta ->
-                        isDragging = true
-                        dragOffset += (delta / localDensity.density)
-                    },
+            val dampedDragAnimation = remember(animationScope) {
+                DampedDragAnimation(
+                    animationScope = animationScope,
+                    initialValue = selectedIndexFloat,
+                    valueRange = 0f..(items.size - 1).toFloat(),
+                    visibilityThreshold = 0.01f,
+                    initialScale = 1f,
+                    pressedScale = 1.05f, // Subtle scale up
+                    onDragStarted = {},
                     onDragStopped = {
-                         isDragging = false
-                         // Snap logic
-                         val finalOffset = (selectedIndex * itemWidth.value) + dragOffset
-                         val newIndex = (finalOffset / itemWidth.value).roundToInt().coerceIn(0, items.size - 1)
-                         if (newIndex != selectedIndex) {
-                              onNavigate(items[newIndex].route)
+                        // Snap logic on release
+                         val nearestIndex = value.roundToInt().coerceIn(0, items.size - 1)
+                         // Navigate only if changed
+                         if (nearestIndex != selectedIndex) {
+                             onNavigate(items[nearestIndex].route)
+                         } else {
+                             // Snap back to current if didn't change enough
+                             animateToValue(nearestIndex.toFloat())
                          }
-                         dragOffset = 0f
+                    },
+                    onDrag = { _, dragAmount ->
+                        // Calculate delta in "index units"
+                        // dragAmount.x is pixels. 
+                        // 1.0 index = itemWidth pixels = (trackWidthPx / items.size)
+                        val itemWidthPx = trackWidthPx / items.size
+                        val deltaIndex = dragAmount.x / itemWidthPx
+                        
+                        // Update the internal animation value instantly (dragging)
+                        // We use a "hack": update targetValue to (current + delta) and animate immediately? 
+                        // DampedDragAnimation usually expects `onValueChange` to drive it.
+                        // Here, we can manipulate `targetIndex`? 
+                        // Actually, looking at LiquidSlider:
+                        // val delta = ... 
+                        // onValueChange(targetValue + delta)
+                        // And LaunchedEffect syncs DampedDragAnimation.updateValue(value)
+                        
+                        targetIndex = (targetIndex + deltaIndex).coerceIn(0f, (items.size - 1).toFloat())
                     }
                 )
+            }
+            
+            // Sync DampedDragAnimation with our local targetIndex
+            LaunchedEffect(targetIndex) {
+                // Use updateValue to smoothly spring to the new target (or track drag)
+                dampedDragAnimation.updateValue(targetIndex)
+            }
+            // IMPORTANT: Also sync if selectedIndex changes externally (handled by first LaunchedEffect but we need to update targetIndex)
 
-            // Pill Glass Effect ("Solid Glass")
-            val pillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+            // 1. The Glass Pill
+            val pillShape = RoundedCornerShape(50)
+            
+            // Calculate translation from physics value
+            val currentPillIndex = dampedDragAnimation.value
+            val itemWidthPx = with(localDensity) { itemWidth.toPx() }
+
+            // Pill colors - WHITE for dark theme, BLACK for light theme (matching catalog)
+            val pillSurfaceColor = if (isDark) Color.White.copy(alpha = 0.1f) else Color.Black.copy(alpha = 0.1f)
+            
+            // Build pill modifier - use graphicsLayer for translation like catalog does
+            var pillModifier = Modifier
+                .padding(horizontal = 4.dp)
+                .graphicsLayer {
+                    // Use translationX for smooth animated movement
+                    translationX = currentPillIndex * itemWidthPx
+                }
+                .then(dampedDragAnimation.modifier) // Gesture modifier BEFORE drawBackdrop
+            
             if (backdrop != null) {
                 pillModifier = pillModifier.drawBackdrop(
                     backdrop = backdrop,
                     shape = { pillShape },
                     effects = {
-                        colorControls(saturation = 1.0f, brightness = 0.3f)
-                        blur(10.dp.toPx())
+                        val progress = dampedDragAnimation.pressProgress
                         lens(
-                             refractionHeight = 24.dp.toPx(),
-                             refractionAmount = 16.dp.toPx(),
-                             chromaticAberration = true,
-                             depthEffect = true
+                             refractionHeight = 10.dp.toPx() * progress,
+                             refractionAmount = 14.dp.toPx() * progress,
+                             chromaticAberration = true
                         )
+                    },
+                    highlight = {
+                        val progress = dampedDragAnimation.pressProgress
+                        id.xms.xtrakernelmanager.ui.components.utils.Highlight.Default.copy(alpha = progress)
+                    },
+                    shadow = {
+                        val progress = dampedDragAnimation.pressProgress
+                        id.xms.xtrakernelmanager.ui.components.utils.Shadow(alpha = progress)
+                    },
+                    innerShadow = {
+                        val progress = dampedDragAnimation.pressProgress
+                        id.xms.xtrakernelmanager.ui.components.utils.InnerShadow(
+                            radius = 8.dp * progress,
+                            alpha = progress
+                        )
+                    },
+                    layerBlock = {
+                        // Velocity-based Squish & Stretch
+                        scaleX = dampedDragAnimation.scaleX
+                        scaleY = dampedDragAnimation.scaleY
+                        val velocity = dampedDragAnimation.velocity / 10f
+                        val stretch = (velocity * 0.75f).coerceIn(-0.2f, 0.2f)
+                        val squash = (velocity * 0.25f).coerceIn(-0.2f, 0.2f)
+                        scaleX /= 1f - stretch
+                        scaleY *= 1f - squash
+                    },
+                    onDrawSurface = {
+                        val progress = dampedDragAnimation.pressProgress
+                        // Subtle white overlay at rest (glass look), darker when pressed
+                        drawRect(pillSurfaceColor, alpha = 1f - progress)
+                        drawRect(Color.Black.copy(alpha = 0.03f * progress))
                     }
                 )
-            } else {
-                pillModifier = pillModifier.background(pillColor)
             }
 
+            // Pill box with explicit size matching catalog
             Box(
                 modifier = pillModifier
-                    .background(pillColor)
-                    .border(1.dp, Color.White.copy(alpha = 0.3f), pillShape)
+                    .height(56.dp)
+                    .fillMaxWidth(1f / items.size)
             )
 
-            // 2. The Items (Foreground - Clickable)
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
+            // 2. The Items
+            Row(modifier = Modifier.fillMaxSize()) {
                 items.forEachIndexed { index, item ->
                      val isSelected = index == selectedIndex
                      LiquidDockNavItem(
                          item = item,
                          isSelected = isSelected,
                          textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                         onClick = { onNavigate(item.route) },
+                         onClick = { onNavigate(item.route) }, 
                          modifier = Modifier.weight(1f)
                      )
                 }
@@ -198,6 +241,7 @@ fun LiquidBottomBar(
         }
     }
 }
+
 
 @Composable
 private fun LiquidDockNavItem(
