@@ -1,140 +1,102 @@
 package id.xms.xtrakernelmanager.service
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
-import android.app.usage.UsageEvents
-import android.app.usage.UsageStatsManager
-import android.content.Context
+import android.accessibilityservice.AccessibilityService
 import android.content.Intent
-import android.content.pm.ServiceInfo
-import android.os.Build
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
-import android.provider.Settings
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import id.xms.xtrakernelmanager.R
+import android.view.accessibility.AccessibilityEvent
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.first
 import org.json.JSONArray
 
-/**
- * Service that monitors foreground apps and shows game overlay when a game from the user's game
- * list is opened.
- */
-class GameMonitorService : Service() {
+class GameMonitorService : AccessibilityService() {
 
   companion object {
     private const val TAG = "GameMonitorService"
-    private const val CHANNEL_ID = "game_monitor_channel"
-    private const val NOTIFICATION_ID = 3001
-    private const val POLL_INTERVAL = 1500L // Check every 1.5 seconds
   }
 
   private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
   private lateinit var preferencesManager: PreferencesManager
-
-  private var lastForegroundPackage: String? = null
-  private var pollingJob: Job? = null
   private var enabledGamePackages: Set<String> = emptySet()
-  private var isGameOverlayActive = false
-  private val mainHandler = Handler(Looper.getMainLooper())
 
-  override fun onCreate() {
-    super.onCreate()
-    Log.d(TAG, "onCreate called")
+  // Cache last package to avoid redundant checks/logs
+  private var lastPackageName: String = ""
+
+  override fun onServiceConnected() {
+    super.onServiceConnected()
+    Log.d(TAG, "Accessibility Service Connected")
     preferencesManager = PreferencesManager(applicationContext)
 
-    createNotificationChannel()
-    // SDK 34+ requires foreground service type
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-      startForeground(
-          NOTIFICATION_ID,
-          createNotification(),
-          ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+    // Load initial games list
+    serviceScope.launch { loadGameList() }
+  }
+
+  private var stopJob: Job? = null
+
+  // Whitelist of system packages that shouldn't unwantedly kill the overlay
+  private val ignoredPackages =
+      setOf(
+          "com.android.systemui",
+          "android",
+          "com.google.android.inputmethod.latin", // Gboard
+          "com.google.android.permissioncontroller",
+          "com.android.permissioncontroller",
+          "com.google.android.packageinstaller",
+          "com.android.packageinstaller",
+          "com.google.android.gms",
+          "com.google.android.play.games",
+          "com.android.vending",
+          "com.google.android.webview",
+          "com.xiaomi.xmsf", // Xiaomi service framework
+          "com.miui.securitycenter", // MIUI Security
+          "id.xms.xtrakernelmanager", // Self
+          "id.xms.xtrakernelmanager.dev", // Self (debug)
       )
-    } else {
-      startForeground(NOTIFICATION_ID, createNotification())
+
+  override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+    if (event == null) return
+
+    if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+      val packageName = event.packageName?.toString() ?: return
+
+      if (packageName == lastPackageName) return
+      lastPackageName = packageName
+
+      Log.d(TAG, "Window changed: $packageName")
+
+      if (enabledGamePackages.contains(packageName)) {
+        Log.d(TAG, "Game detected: $packageName. Ensuring Overlay is ON.")
+        stopJob?.cancel()
+        stopJob = null
+        startGameOverlay()
+      } else if (ignoredPackages.contains(packageName) || packageName.contains("inputmethod")) {
+        // Ignore system UI, keyboards, Google services
+        Log.d(TAG, "Ignoring system/transient package: $packageName")
+        stopJob?.cancel()
+        stopJob = null
+      } else {
+        // Potential exit - Stopping immediately as requested
+        Log.d(TAG, "Non-game package detected: $packageName. Stopping overlay.")
+
+        stopJob?.cancel()
+        stopJob = null
+        stopGameOverlay()
+      }
     }
-
-    startPolling()
   }
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.d(TAG, "onStartCommand called")
-    return START_STICKY
+  override fun onInterrupt() {
+    Log.d(TAG, "Accessibility Service Interrupted")
   }
 
-  private fun createNotificationChannel() {
-    val channel =
-        NotificationChannel(CHANNEL_ID, "Game Monitor", NotificationManager.IMPORTANCE_LOW).apply {
-          description = "Monitors games for overlay"
-          setShowBadge(false)
-        }
-    val manager = getSystemService(NotificationManager::class.java)
-    manager.createNotificationChannel(channel)
-  }
-
-  private fun createNotification(): Notification {
-    return NotificationCompat.Builder(this, CHANNEL_ID)
-        .setContentTitle("Game Monitor")
-        .setContentText("Monitoring for games...")
-        .setSmallIcon(R.drawable.ic_tile_performance)
-        .setOngoing(true)
-        .setPriority(NotificationCompat.PRIORITY_LOW)
-        .build()
-  }
-
-  private fun startPolling() {
-    pollingJob?.cancel()
-    pollingJob =
-        serviceScope.launch {
-          while (isActive) {
-            try {
-              // Load enabled game packages
-              val gameAppsJson = preferencesManager.getGameApps().first()
-              enabledGamePackages = parseEnabledGamePackages(gameAppsJson)
-
-              if (enabledGamePackages.isEmpty()) {
-                // No enabled games, stop overlay if active
-                if (isGameOverlayActive) {
-                  stopGameOverlay()
-                }
-                delay(POLL_INTERVAL)
-                continue
-              }
-
-              // Check foreground app
-              val foregroundPackage = getForegroundPackage()
-
-              if (foregroundPackage != null && foregroundPackage != lastForegroundPackage) {
-                Log.d(TAG, "Foreground app changed to: $foregroundPackage")
-                lastForegroundPackage = foregroundPackage
-
-                // Check if this is an enabled game
-                if (enabledGamePackages.contains(foregroundPackage)) {
-                  if (!isGameOverlayActive) {
-                    Log.d(TAG, "Enabled game detected: $foregroundPackage, starting overlay")
-                    startGameOverlay()
-                  }
-                } else {
-                  if (isGameOverlayActive) {
-                    Log.d(TAG, "Leaving game, stopping overlay")
-                    stopGameOverlay()
-                  }
-                }
-              }
-            } catch (e: Exception) {
-              Log.e(TAG, "Error in polling: ${e.message}", e)
-            }
-
-            delay(POLL_INTERVAL)
-          }
-        }
+  private suspend fun loadGameList() {
+    try {
+      preferencesManager.getGameApps().collect { json ->
+        enabledGamePackages = parseEnabledGamePackages(json)
+        Log.d(TAG, "Updated game list: ${enabledGamePackages.size} games")
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Error collecting game list", e)
+    }
   }
 
   private fun parseEnabledGamePackages(json: String): Set<String> {
@@ -142,10 +104,14 @@ class GameMonitorService : Service() {
       val jsonArray = JSONArray(json)
       val packages = mutableSetOf<String>()
       for (i in 0 until jsonArray.length()) {
-        val obj = jsonArray.getJSONObject(i)
-        val enabled = obj.optBoolean("enabled", true)
-        if (enabled) {
-          packages.add(obj.getString("packageName"))
+        val item = jsonArray.opt(i)
+        if (item is String) {
+          packages.add(item)
+        } else if (item is org.json.JSONObject) {
+          val enabled = item.optBoolean("enabled", true)
+          if (enabled) {
+            packages.add(item.optString("packageName"))
+          }
         }
       }
       packages
@@ -155,72 +121,29 @@ class GameMonitorService : Service() {
     }
   }
 
-  private fun getForegroundPackage(): String? {
-    return try {
-      val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-      val endTime = System.currentTimeMillis()
-      val beginTime = endTime - 5000 // Last 5 seconds
-
-      val usageEvents = usageStatsManager.queryEvents(beginTime, endTime)
-      var lastPackage: String? = null
-
-      while (usageEvents.hasNextEvent()) {
-        val event = UsageEvents.Event()
-        usageEvents.getNextEvent(event)
-
-        if (
-            event.eventType == UsageEvents.Event.ACTIVITY_RESUMED ||
-                event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND
-        ) {
-          lastPackage = event.packageName
-        }
-      }
-
-      lastPackage
-    } catch (e: Exception) {
-      Log.e(TAG, "Error getting foreground package: ${e.message}")
-      null
-    }
-  }
-
   private fun startGameOverlay() {
-    if (!Settings.canDrawOverlays(applicationContext)) {
-      Log.w(TAG, "Cannot start game overlay: no overlay permission")
-      return
-    }
-
     try {
       val intent = Intent(applicationContext, GameOverlayService::class.java)
-      applicationContext.startService(intent)
-      isGameOverlayActive = true
-      Log.d(TAG, "Game overlay started")
+      startService(intent)
     } catch (e: Exception) {
-      Log.e(TAG, "Failed to start game overlay: ${e.message}")
+      Log.e(TAG, "Failed to start overlay service", e)
     }
   }
 
   private fun stopGameOverlay() {
     try {
       val intent = Intent(applicationContext, GameOverlayService::class.java)
-      applicationContext.stopService(intent)
-      isGameOverlayActive = false
-      Log.d(TAG, "Game overlay stopped")
+      stopService(intent)
     } catch (e: Exception) {
-      Log.e(TAG, "Failed to stop game overlay: ${e.message}")
+      // Ignore if not running
+      Log.e(TAG, "Failed to stop overlay service", e)
     }
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    pollingJob?.cancel()
     serviceScope.cancel()
-
-    if (isGameOverlayActive) {
-      stopGameOverlay()
-    }
-
-    Log.d(TAG, "GameMonitorService stopped")
+    stopGameOverlay()
+    Log.d(TAG, "Service Destroyed")
   }
-
-  override fun onBind(intent: Intent?): IBinder? = null
 }

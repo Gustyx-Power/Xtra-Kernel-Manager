@@ -19,9 +19,7 @@ fn get_primary_thermal_zone() -> i32 {
             let zone_type = get_thermal_zone_type(zone); // Return String directly
             let type_lower = zone_type.to_lowercase();
 
-            if type_lower.contains("cpu") ||
-               type_lower.contains("tsens") ||
-               type_lower == "pa" {
+            if type_lower.contains("cpu") || type_lower.contains("tsens") || type_lower == "pa" {
                 return zone;
             }
         }
@@ -58,19 +56,29 @@ pub fn get_thermal_zone_type(zone: i32) -> String {
         .unwrap_or_else(|| format!("zone{}", zone))
 }
 
-/// List all valid thermal zones
+use serde::Serialize;
+
+#[derive(Serialize)]
+struct ThermalZoneData {
+    name: String,
+    temp: f32,
+}
+
 pub fn read_thermal_zones() -> String {
     let mut zones = Vec::new();
 
-    for zone in 0..84 { // Max zones on modern devices
+    for zone in 0..84 {
         let temp = read_thermal_zone(zone);
         if temp > 0.0 {
             let zone_type = get_thermal_zone_type(zone);
-            zones.push(format!("{}:{}:{:.1}", zone, zone_type, temp));
+            zones.push(ThermalZoneData {
+                name: format!("{}:{}", zone, zone_type),
+                temp,
+            });
         }
     }
 
-    zones.join(",")
+    serde_json::to_string(&zones).unwrap_or_else(|_| "[]".to_string())
 }
 
 /// Get hottest thermal zone

@@ -23,7 +23,11 @@ import id.xms.xtrakernelmanager.ui.screens.misc.section.DisplaySection
 import id.xms.xtrakernelmanager.ui.screens.misc.section.GameControlSection
 
 @Composable
-fun MiscScreen(viewModel: MiscViewModel, onNavigateToFunctionalRom: () -> Unit = {}) {
+fun MiscScreen(
+    viewModel: MiscViewModel,
+    onNavigateToFunctionalRom: () -> Unit = {},
+    onNavigateToAppPicker: () -> Unit = {},
+) {
   // Collect Layout Style Preference
   val layoutStyle by viewModel.layoutStyle.collectAsState()
 
@@ -31,7 +35,12 @@ fun MiscScreen(viewModel: MiscViewModel, onNavigateToFunctionalRom: () -> Unit =
   if (layoutStyle == "material") {
     MaterialMiscScreen(
         viewModel = viewModel,
-        onNavigate = { route -> if (route == "functional_rom") onNavigateToFunctionalRom() },
+        onNavigate = { route ->
+          when (route) {
+            "functional_rom" -> onNavigateToFunctionalRom()
+            "app_picker" -> onNavigateToAppPicker()
+          }
+        },
     )
   } else {
     LegacyMiscScreen(viewModel, onNavigateToFunctionalRom)

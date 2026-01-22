@@ -33,24 +33,21 @@ import org.json.JSONArray
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
+  val context = LocalContext.current
   var showBatteryDetail by rememberSaveable { mutableStateOf(false) }
   var showBatterySettings by rememberSaveable { mutableStateOf(false) }
   var showBatteryGraph by rememberSaveable { mutableStateOf(false) }
   var showProcessManager by remember { mutableStateOf(false) }
   var showGameSpace by remember { mutableStateOf(false) }
-  var showGameAppSelector by remember { mutableStateOf(false) }
   var showPerAppProfile by remember { mutableStateOf(false) }
   var showCurrentSession by rememberSaveable { mutableStateOf(false) }
+  var showGameMonitor by rememberSaveable { mutableStateOf(false) }
 
   when {
     showBatterySettings ->
         BatterySettingsScreen(viewModel = viewModel, onBack = { showBatterySettings = false })
-    showCurrentSession -> MaterialCurrentSessionScreen(viewModel = viewModel, onBack = { showCurrentSession = false })
-    showGameAppSelector ->
-        MaterialGameAppSelectorScreen(
-            viewModel = viewModel,
-            onBack = { showGameAppSelector = false },
-        )
+    showCurrentSession ->
+        MaterialCurrentSessionScreen(viewModel = viewModel, onBack = { showCurrentSession = false })
     showBatteryGraph ->
         MaterialBatteryAnalyticsScreen(viewModel = viewModel, onBack = { showBatteryGraph = false })
     showBatteryDetail ->
@@ -61,13 +58,22 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
             onGraphClick = { showBatteryGraph = true },
             onCurrentSessionClick = { showCurrentSession = true },
         )
+    showGameMonitor ->
+        MaterialGameMonitorScreen(
+            viewModel =
+                androidx.lifecycle.viewmodel.compose.viewModel {
+                  GameMonitorViewModel(context, viewModel.preferencesManager)
+                },
+            onBack = { showGameMonitor = false },
+        )
     showProcessManager ->
         MaterialProcessManagerScreen(viewModel = viewModel, onBack = { showProcessManager = false })
     showGameSpace ->
         MaterialGameSpaceScreen(
             viewModel = viewModel,
             onBack = { showGameSpace = false },
-            onAddGames = { showGameAppSelector = true },
+            onAddGames = { onNavigate("app_picker") },
+            onGameMonitorClick = { showGameMonitor = true },
         )
     showPerAppProfile ->
         MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })
@@ -220,17 +226,17 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
   val drain = if (drainRate.isNotEmpty()) drainRate else "0.0%/h"
 
   Card(
-      modifier = Modifier.fillMaxWidth().height(300.dp), // Increased height to fit content comfortably
+      modifier =
+          Modifier.fillMaxWidth().height(300.dp), // Increased height to fit content comfortably
       shape = RoundedCornerShape(32.dp),
-      colors =
-          CardDefaults.cardColors(
-              containerColor = Color(0xFF1E1E24)
-          ),
+      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24)),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
       onClick = onClick,
   ) {
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-      Column(verticalArrangement = Arrangement.spacedBy(20.dp)) { // Increased spacing to fill vertical space
+      Column(
+          verticalArrangement = Arrangement.spacedBy(20.dp)
+      ) { // Increased spacing to fill vertical space
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -289,7 +295,10 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
             verticalAlignment = Alignment.CenterVertically,
         ) {
           // Left: Wavy Progress
-          Box(contentAlignment = Alignment.Center, modifier = Modifier.size(160.dp)) { // Restored to 160.dp for better fill
+          Box(
+              contentAlignment = Alignment.Center,
+              modifier = Modifier.size(160.dp),
+          ) { // Restored to 160.dp for better fill
             id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator(
                 progress = batteryInfo.level / 100f,
                 modifier = Modifier.fillMaxSize(),
@@ -300,17 +309,17 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
                 frequency = 8,
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "${batteryInfo.level}%",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = "Battery",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+              Text(
+                  text = "${batteryInfo.level}%",
+                  style = MaterialTheme.typography.titleLarge,
+                  fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              Text(
+                  text = "Battery",
+                  style = MaterialTheme.typography.labelSmall,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
             }
           }
 
@@ -353,10 +362,7 @@ fun InsightStatRow(icon: ImageVector, value: String, label: String) {
       Text(
           text = label,
           style = MaterialTheme.typography.labelSmall,
-          color =
-              MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                  alpha = 0.7f
-              ),
+          color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
       )
     }
   }

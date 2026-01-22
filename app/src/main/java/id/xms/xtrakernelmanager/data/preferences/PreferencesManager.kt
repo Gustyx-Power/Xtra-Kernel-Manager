@@ -342,7 +342,9 @@ class PreferencesManager(private val context: Context) {
   }
 
   fun getBatteryNotifRefreshRate(): Flow<Long> =
-      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_REFRESH_RATE_MS] ?: 1000L } // Default 1s
+      context.dataStore.data.map { prefs ->
+        prefs[BATTERY_NOTIF_REFRESH_RATE_MS] ?: 1000L
+      } // Default 1s
 
   suspend fun setBatteryNotifSecureLockScreen(enabled: Boolean) {
     context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_SECURE_LOCK_SCREEN] = enabled }
