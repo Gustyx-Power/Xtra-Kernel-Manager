@@ -117,11 +117,11 @@ class MiscViewModel(
           .getDisplaySaturation()
           .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1.0f)
 
-  // Layout style (legacy = glassmorphic, material = pure M3)
+  // Layout style (liquid = glassmorphic, material = pure M3)
   val layoutStyle =
       preferencesManager
           .getLayoutStyle()
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "legacy")
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "liquid")
 
   private val _saturationApplyStatus = MutableStateFlow("")
   val saturationApplyStatus: StateFlow<String> = _saturationApplyStatus.asStateFlow()

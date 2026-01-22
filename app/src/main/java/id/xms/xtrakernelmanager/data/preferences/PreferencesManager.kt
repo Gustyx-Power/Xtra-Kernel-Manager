@@ -90,7 +90,7 @@ class PreferencesManager(private val context: Context) {
   private val DISPLAY_SATURATION =
       androidx.datastore.preferences.core.floatPreferencesKey("display_saturation")
 
-  // Layout style (legacy = glassmorphic, material = pure M3)
+  // Layout style (liquid = glassmorphic, material = pure M3)
   private val LAYOUT_STYLE = stringPreferencesKey("layout_style")
 
   // GPU Lock State preferences
@@ -295,7 +295,7 @@ class PreferencesManager(private val context: Context) {
   }
 
   fun getLayoutStyle(): Flow<String> =
-      context.dataStore.data.map { prefs -> prefs[LAYOUT_STYLE] ?: "legacy" }
+      context.dataStore.data.map { prefs -> prefs[LAYOUT_STYLE] ?: "liquid" }
 
   // Holiday Celebration Functions
   suspend fun setChristmasShownYear(year: Int) {
