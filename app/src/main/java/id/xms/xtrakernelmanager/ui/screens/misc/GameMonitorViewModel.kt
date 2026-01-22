@@ -365,13 +365,6 @@ class GameMonitorViewModel(
       }
   }
 
-  fun setFpsEnabled(enabled: Boolean) {
-    viewModelScope.launch {
-      _isFpsEnabled.value = enabled
-      preferencesManager.setBoolean("fps_enabled", enabled)
-    }
-  }
-
   override fun onCleared() {
     super.onCleared()
     pollingJob?.cancel()
