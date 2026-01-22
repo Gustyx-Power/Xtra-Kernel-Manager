@@ -22,6 +22,7 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.BottomNavItem
 import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
+import id.xms.xtrakernelmanager.ui.components.LiquidBottomBar
 import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
@@ -232,24 +233,46 @@ fun Navigation(preferencesManager: PreferencesManager) {
   }
 
   // Floating Bottom Dock
+  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
+
   if (currentRoute != "setup") {
-    ModernBottomBar(
-        currentRoute = currentRoute,
-        onNavigate = { route ->
-          if (currentRoute != route) {
-            navController.navigate(route) {
-              popUpTo(navController.graph.startDestinationId) { saveState = true }
-              launchSingleTop = true
-              restoreState = true
-            }
-          }
-        },
-        items = bottomNavItems,
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .navigationBarsPadding()
-            .padding(bottom = 24.dp)
-    )
+    if (layoutStyle == "legacy") {
+        LiquidBottomBar(
+            currentRoute = currentRoute,
+            onNavigate = { route ->
+              if (currentRoute != route) {
+                navController.navigate(route) {
+                  popUpTo(navController.graph.startDestinationId) { saveState = true }
+                  launchSingleTop = true
+                  restoreState = true
+                }
+              }
+            },
+            items = bottomNavItems,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 24.dp)
+        )
+    } else {
+        ModernBottomBar(
+            currentRoute = currentRoute,
+            onNavigate = { route ->
+              if (currentRoute != route) {
+                navController.navigate(route) {
+                  popUpTo(navController.graph.startDestinationId) { saveState = true }
+                  launchSingleTop = true
+                  restoreState = true
+                }
+              }
+            },
+            items = bottomNavItems,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 24.dp)
+        )
+    }
   }
-}
+  }
 }
