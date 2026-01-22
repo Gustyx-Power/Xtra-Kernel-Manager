@@ -20,7 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.TuningConfig
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
-import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.LegacyTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -36,7 +36,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
   val isLoading by viewModel.isLoading.collectAsState()
 
   val lifecycleOwner = LocalLifecycleOwner.current
-  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
+  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
   var resumeKey by remember { mutableStateOf(0) }
   var showExportDialog by remember { mutableStateOf(false) }
   var showImportDialog by remember { mutableStateOf(false) }
@@ -135,7 +135,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
   }
 
   Box(modifier = Modifier.fillMaxSize()) {
-    if (layoutStyle != "legacy") {
+    if (layoutStyle != "liquid") {
       MaterialTuningScreen(
           viewModel = viewModel,
           preferencesManager = preferencesManager,
@@ -144,7 +144,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           onImportConfig = { showImportDialog = true },
       )
     } else {
-      LegacyTuningScreen(
+      LiquidTuningScreen(
           viewModel = viewModel,
           preferencesManager = preferencesManager,
           isRootAvailable = isRootAvailable,
