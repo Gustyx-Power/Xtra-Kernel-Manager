@@ -245,7 +245,7 @@ fun CoreFreqItemMaterial(
                     color = onSurfaceVariant,
             )
             Text(
-                    text = if (isOnline) "$frequency" else "OFF",
+                    text = if (isOnline) "${frequency / 1000}" else "OFF",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = textColor,
@@ -1184,7 +1184,7 @@ private fun CoreStatusItem(
                     color = labelColor
             )
             Text(
-                    text = if (isOnline) "$frequency" else "OFF",
+                    text = if (isOnline) "${frequency / 1000}" else "OFF",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = textColor
