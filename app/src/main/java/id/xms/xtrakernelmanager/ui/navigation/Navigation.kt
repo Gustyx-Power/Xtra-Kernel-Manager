@@ -22,8 +22,14 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.BottomNavItem
 import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
-import id.xms.xtrakernelmanager.ui.components.LiquidBottomBar
 import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidBottomTabs
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidBottomTab
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
@@ -247,21 +253,59 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
     // Floating Bottom Dock
     if (currentRoute != "setup") {
-      ModernBottomBar(
-          currentRoute = currentRoute,
-          onNavigate = { route ->
-            if (currentRoute != route) {
-              navController.navigate(route) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-              }
+      val selectedIndex = bottomNavItems.indexOfFirst { it.route == currentRoute }.coerceAtLeast(0)
+      val navigateToRoute: (String) -> Unit = { route ->
+        if (currentRoute != route) {
+          navController.navigate(route) {
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
+          }
+        }
+      }
+
+      if (layoutStyle == "liquid") {
+        val isDark = isSystemInDarkTheme()
+        val contentColor = if (isDark) androidx.compose.ui.graphics.Color.White 
+                           else androidx.compose.ui.graphics.Color.Black
+        
+        LiquidBottomTabs(
+            selectedTabIndex = { selectedIndex },
+            onTabSelected = { index -> navigateToRoute(bottomNavItems[index].route) },
+            tabsCount = bottomNavItems.size,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 24.dp)
+        ) {
+          bottomNavItems.forEachIndexed { index, item ->
+            LiquidBottomTab(onClick = { navigateToRoute(item.route) }) {
+              Icon(
+                  imageVector = item.icon,
+                  contentDescription = stringResource(item.label),
+                  tint = contentColor,
+                  modifier = Modifier.size(26.dp)
+              )
+              Text(
+                  text = stringResource(item.label),
+                  style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                  color = contentColor
+              )
             }
-          },
-          items = bottomNavItems,
-          modifier =
-              Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(bottom = 24.dp),
-      )
+          }
+        }
+      } else {
+        ModernBottomBar(
+            currentRoute = currentRoute,
+            onNavigate = navigateToRoute,
+            items = bottomNavItems,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 24.dp),
+        )
+      }
     }
   }
 }
