@@ -158,7 +158,9 @@ fun Navigation(preferencesManager: PreferencesManager) {
       NavHost(
           navController = navController,
           startDestination = startDest,
-          modifier = Modifier.padding(paddingValues).padding(bottom = 100.dp),
+          modifier = Modifier
+              .padding(paddingValues)
+              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 100.dp),
       ) {
         composable("setup") {
           SetupScreen(
@@ -284,7 +286,11 @@ fun Navigation(preferencesManager: PreferencesManager) {
                 .padding(bottom = 24.dp)
         ) {
           bottomNavItems.forEachIndexed { index, item ->
-            LiquidBottomTab(onClick = { navigateToRoute(item.route) }) {
+            LiquidBottomTab(
+                onClick = { navigateToRoute(item.route) },
+                onPress = { press() },
+                onRelease = { release() }
+            ) {
               Icon(
                   imageVector = item.icon,
                   contentDescription = stringResource(item.label),

@@ -1,5 +1,11 @@
 package id.xms.xtrakernelmanager.ui.screens.home
 
+import androidx.compose.ui.draw.blur
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ViewModule
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Folder
+
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -12,10 +18,13 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +32,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.SdStorage
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -162,7 +174,7 @@ fun HomeScreen(
                                 )
                         }
                         else -> {
-                                // Legacy Home Screen (Liquid Glass UI)
+                                // Liquid Home Screen (Formerly Legacy/Glass UI)
                                 val backdrop = rememberLayerBackdrop()
 
                                 Box(modifier = Modifier.fillMaxSize()) {
@@ -196,38 +208,10 @@ fun HomeScreen(
                                         // Content Layer
                                         CompositionLocalProvider(LocalBackdrop provides backdrop) {
                                                 Scaffold(
-                                                        containerColor =
-                                                                Color.Transparent, // Transparent to
-                                                        // show
-                                                        // background
-                                                        // layer
-                                                        floatingActionButton = {
-                                                                FloatingActionButton(
-                                                                        onClick = {
-                                                                                showPowerMenu = true
-                                                                        },
-                                                                        containerColor =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .primaryContainer,
-                                                                        contentColor =
-                                                                                MaterialTheme
-                                                                                        .colorScheme
-                                                                                        .onPrimaryContainer,
-                                                                        shape = CircleShape,
-                                                                ) {
-                                                                        Icon(
-                                                                                imageVector =
-                                                                                        Icons.Rounded
-                                                                                                .PowerSettingsNew,
-                                                                                contentDescription =
-                                                                                        "Power Menu",
-                                                                        )
-                                                                }
-                                                        }
+                                                        containerColor = Color.Transparent, 
                                                 ) { paddingValues ->
                                                         Box(Modifier.padding(paddingValues)) {
-                                                                LegacyHomeContent(
+                                                                LiquidHomeScreen(
                                                                         cpuInfo = cpuInfo,
                                                                         gpuInfo = gpuInfo,
                                                                         batteryInfo = batteryInfo,
@@ -236,6 +220,9 @@ fun HomeScreen(
                                                                                 showSettingsBottomSheet =
                                                                                         true
                                                                         },
+                                                                        onPowerClick = {
+                                                                                showPowerMenu = true
+                                                                        }
                                                                 )
                                                         }
                                                 }
@@ -244,116 +231,6 @@ fun HomeScreen(
                         }
                 }
         }
-}
-
-@SuppressLint("DefaultLocale")
-@Composable
-private fun LegacyHomeContent(
-        cpuInfo: CPUInfo,
-        gpuInfo: id.xms.xtrakernelmanager.data.model.GPUInfo,
-        batteryInfo: id.xms.xtrakernelmanager.data.model.BatteryInfo,
-        systemInfo: id.xms.xtrakernelmanager.data.model.SystemInfo,
-        onSettingsClick: () -> Unit,
-) {
-  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-  val isCompact =
-      dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
-
-  // Holiday Decoration (cached outside grid)
-  val currentHolidayDecor = remember { HolidayChecker.getCurrentHolidayForDecoration() }
-
-        LazyVerticalStaggeredGrid(
-                columns = StaggeredGridCells.Fixed(2),
-                modifier =
-                        Modifier.fillMaxSize().padding(horizontal = dimens.screenHorizontalPadding),
-                contentPadding = PaddingValues(top = dimens.spacingLarge, bottom = 120.dp),
-                horizontalArrangement = Arrangement.spacedBy(dimens.spacingMedium),
-                verticalItemSpacing = dimens.spacingMedium,
-        ) {
-                // Header Section
-                item(span = StaggeredGridItemSpan.FullLine) {
-                        Column(modifier = Modifier.padding(bottom = dimens.spacingTiny)) {
-                                // Holiday Ornament if active
-                                if (currentHolidayDecor != null) {
-                                        HolidayDecorationRow(holiday = currentHolidayDecor)
-                                        Spacer(modifier = Modifier.height(dimens.spacingMedium))
-                                }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Text(
-                  text = "Xtra Kernel ",
-                  style =
-                      if (isCompact) MaterialTheme.typography.titleMedium
-                      else MaterialTheme.typography.headlineSmall,
-                  fontWeight = FontWeight.ExtraBold,
-                  color = MaterialTheme.colorScheme.onSurface,
-              )
-              Text(
-                  text = "Manager",
-                  style =
-                      if (isCompact) MaterialTheme.typography.titleMedium
-                      else MaterialTheme.typography.headlineSmall,
-                  fontWeight = FontWeight.ExtraBold,
-                  color = MaterialTheme.colorScheme.primary,
-              )
-            }
-            Text(
-                text = "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
-
-          FilledTonalIconButton(
-              onClick = onSettingsClick,
-              modifier = Modifier.size(if (isCompact) 36.dp else 44.dp),
-              colors =
-                  IconButtonDefaults.filledTonalIconButtonColors(
-                      containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                      contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                  ),
-          ) {
-            Icon(
-                imageVector = Icons.Rounded.Settings,
-                contentDescription = "Settings",
-                modifier = Modifier.size(dimens.iconSizeMedium),
-            )
-          }
-        }
-      }
-    }
-
-    item {
-      id.xms.xtrakernelmanager.ui.screens.home.components.CompactCPULoadCard(cpuInfo = cpuInfo)
-    }
-    item {
-      id.xms.xtrakernelmanager.ui.screens.home.components.CompactGPUFreqCard(gpuInfo = gpuInfo)
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.CoreStatusCard(cpuInfo = cpuInfo)
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedBatteryCard(
-          batteryInfo = batteryInfo
-      )
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedMemoryCard(
-          systemInfo = systemInfo
-      )
-    }
-    item(span = StaggeredGridItemSpan.FullLine) {
-      id.xms.xtrakernelmanager.ui.screens.home.components.RedesignedSystemCard(
-          systemInfo = systemInfo
-      )
-    }
-  }
 }
 
 // POWER MENU & ROOT EXECUTION LOGIC

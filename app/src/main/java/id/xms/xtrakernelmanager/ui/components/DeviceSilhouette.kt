@@ -36,6 +36,7 @@ fun DeviceSilhouette(
     modifier: Modifier = Modifier,
     color: Color? = null,
     showWallpaper: Boolean = false,
+    customSize: androidx.compose.ui.unit.DpSize? = null,
 ) {
   val dimens = rememberResponsiveDimens()
 
@@ -47,31 +48,42 @@ fun DeviceSilhouette(
   val cameraSize: Dp
   val cameraPadding: Dp
 
-  when (dimens.screenSizeClass) {
-    ScreenSizeClass.COMPACT -> {
-      phoneWidth = 64.dp
-      phoneHeight = 82.dp
-      cornerRadius = 12.dp
-      innerCornerRadius = 8.dp
-      cameraSize = 6.dp
-      cameraPadding = 4.dp
-    }
-    ScreenSizeClass.MEDIUM -> {
-      phoneWidth = 76.dp
-      phoneHeight = 97.dp
-      cornerRadius = 14.dp
-      innerCornerRadius = 10.dp
-      cameraSize = 7.dp
-      cameraPadding = 5.dp
-    }
-    ScreenSizeClass.EXPANDED -> {
-      phoneWidth = 86.dp
-      phoneHeight = 110.dp
-      cornerRadius = 16.dp
-      innerCornerRadius = 12.dp
-      cameraSize = 8.dp
-      cameraPadding = 6.dp
-    }
+  if (customSize != null) {
+      phoneWidth = customSize.width
+      phoneHeight = customSize.height
+      // Scale other dims proportionally roughly based on width relative to base 76.dp
+      val scale = phoneWidth.value / 76f
+      cornerRadius = 14.dp * scale
+      innerCornerRadius = 10.dp * scale
+      cameraSize = 7.dp * scale
+      cameraPadding = 5.dp * scale
+  } else {
+      when (dimens.screenSizeClass) {
+        ScreenSizeClass.COMPACT -> {
+          phoneWidth = 64.dp
+          phoneHeight = 82.dp
+          cornerRadius = 12.dp
+          innerCornerRadius = 8.dp
+          cameraSize = 6.dp
+          cameraPadding = 4.dp
+        }
+        ScreenSizeClass.MEDIUM -> {
+          phoneWidth = 76.dp
+          phoneHeight = 97.dp
+          cornerRadius = 14.dp
+          innerCornerRadius = 10.dp
+          cameraSize = 7.dp
+          cameraPadding = 5.dp
+        }
+        ScreenSizeClass.EXPANDED -> {
+          phoneWidth = 86.dp
+          phoneHeight = 110.dp
+          cornerRadius = 16.dp
+          innerCornerRadius = 12.dp
+          cameraSize = 8.dp
+          cameraPadding = 6.dp
+        }
+      }
   }
 
   var wallpaperBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
