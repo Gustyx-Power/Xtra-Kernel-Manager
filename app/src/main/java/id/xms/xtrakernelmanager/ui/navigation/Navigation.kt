@@ -12,6 +12,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.CompositionLocalProvider
+import id.xms.xtrakernelmanager.ui.components.LocalBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.rememberLayerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.layerBackdrop
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -34,7 +41,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.legacy.components.CPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.CPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
@@ -140,9 +147,35 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
 
+  // Get layout style early so we can use it for backdrop
+  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
+
+  // Create backdrop for liquid layout
+  val backdrop = if (layoutStyle == "liquid") rememberLayerBackdrop() else null
+  
   Box(modifier = Modifier.fillMaxSize()) {
+    // Background layer for glass effect (only for liquid layout)
+    if (layoutStyle == "liquid" && backdrop != null) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(
+            brush = Brush.verticalGradient(
+              colors = listOf(
+                MaterialTheme.colorScheme.primaryContainer,
+                MaterialTheme.colorScheme.tertiaryContainer,
+                MaterialTheme.colorScheme.background
+              )
+            )
+          )
+          .layerBackdrop(backdrop)
+      )
+    }
+    
+    // Wrap with LocalBackdrop provider for liquid layout
+    CompositionLocalProvider(LocalBackdrop provides backdrop) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = if (layoutStyle == "liquid") Color.Transparent else MaterialTheme.colorScheme.background,
     ) { paddingValues ->
       NavHost(
           navController = navController,
@@ -169,7 +202,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
             onNavigate = { route -> navController.navigate(route) },
         )
       }
-      composable("legacy_cpu_settings") {
+      composable("liquid_cpu_settings") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
           CPUSettingsScreen(
@@ -231,12 +264,11 @@ fun Navigation(preferencesManager: PreferencesManager) {
       composable("info") { InfoScreen(preferencesManager) }
     }
   }
+  } // Close CompositionLocalProvider
 
   // Floating Bottom Dock
-  val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "legacy")
-
   if (currentRoute != "setup") {
-    if (layoutStyle == "legacy") {
+    if (layoutStyle == "liquid") {
         LiquidBottomBar(
             currentRoute = currentRoute,
             onNavigate = { route ->
