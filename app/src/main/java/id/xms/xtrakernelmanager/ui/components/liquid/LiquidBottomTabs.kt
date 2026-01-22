@@ -20,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -66,13 +67,18 @@ private fun Int.fastCoerceIn(min: Int, max: Int): Int =
 private fun Float.fastRoundToInt(): Int =
     (this + 0.5f).toInt()
 
+interface LiquidBottomTabsScope : RowScope {
+    fun press()
+    fun release()
+}
+
 @Composable
 fun LiquidBottomTabs(
     selectedTabIndex: () -> Int,
     onTabSelected: (index: Int) -> Unit,
     tabsCount: Int,
     modifier: Modifier = Modifier,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable LiquidBottomTabsScope.() -> Unit
 ) {
     val backdrop = LocalBackdrop.current
     val isLightTheme = !isSystemInDarkTheme()
@@ -107,9 +113,10 @@ fun LiquidBottomTabs(
 
         val isLtr = LocalLayoutDirection.current == LayoutDirection.Ltr
         val animationScope = rememberCoroutineScope()
-        var currentIndex by remember(selectedTabIndex) {
+        var currentIndex by remember {
             mutableIntStateOf(selectedTabIndex())
         }
+        var isFromDrag by remember { mutableStateOf(false) }
         val dampedDragAnimation = remember(animationScope) {
             DampedDragAnimation(
                 animationScope = animationScope,
@@ -121,6 +128,7 @@ fun LiquidBottomTabs(
                 onDragStarted = {},
                 onDragStopped = {
                     val targetIndex = targetValue.fastRoundToInt().fastCoerceIn(0, tabsCount - 1)
+                    isFromDrag = true
                     currentIndex = targetIndex
                     animateToValue(targetIndex.toFloat())
                     animationScope.launch {
@@ -152,7 +160,10 @@ fun LiquidBottomTabs(
                 .drop(1)
                 .collectLatest { index ->
                     dampedDragAnimation.animateToValue(index.toFloat())
-                    onTabSelected(index)
+                    if (isFromDrag) {
+                        onTabSelected(index)
+                        isFromDrag = false
+                    }
                 }
         }
 
@@ -204,9 +215,14 @@ fun LiquidBottomTabs(
             containerModifier
                 .border(1.5.dp, glassBorder, shape)
                 .then(interactiveHighlight.modifier),
-            verticalAlignment = Alignment.CenterVertically,
-            content = content
-        )
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val scope = object : LiquidBottomTabsScope, RowScope by this {
+                override fun press() = dampedDragAnimation.press()
+                override fun release() = dampedDragAnimation.release()
+            }
+            scope.content()
+        }
 
         // Hidden tabs layer for combined backdrop effect
         CompositionLocalProvider(
@@ -249,9 +265,14 @@ fun LiquidBottomTabs(
 
             Row(
                 hiddenRowModifier.then(interactiveHighlight.modifier),
-                verticalAlignment = Alignment.CenterVertically,
-                content = content
-            )
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val scope = object : LiquidBottomTabsScope, RowScope by this {
+                    override fun press() = dampedDragAnimation.press()
+                    override fun release() = dampedDragAnimation.release()
+                }
+                scope.content()
+            }
         }
 
         // Pill indicator
@@ -264,6 +285,12 @@ fun LiquidBottomTabs(
                 translationX =
                     if (isLtr) dampedDragAnimation.value * tabWidth + panelOffset
                     else size.width - (dampedDragAnimation.value + 1f) * tabWidth + panelOffset
+                
+                scaleX = dampedDragAnimation.scaleX
+                scaleY = dampedDragAnimation.scaleY
+                val velocity = dampedDragAnimation.velocity / 10f
+                scaleX /= 1f - (velocity * 1.2f).fastCoerceIn(-0.4f, 0.4f)
+                scaleY *= 1f - (velocity * 0.4f).fastCoerceIn(-0.2f, 0.2f)
             }
             .then(interactiveHighlight.gestureModifier)
             .then(dampedDragAnimation.modifier)
@@ -278,8 +305,8 @@ fun LiquidBottomTabs(
                 effects = {
                     val progress = dampedDragAnimation.pressProgress
                     lens(
-                        10f.dp.toPx() * progress,
-                        14f.dp.toPx() * progress,
+                        16f.dp.toPx() * progress,
+                        24f.dp.toPx() * progress,
                         chromaticAberration = true
                     )
                 },
@@ -298,13 +325,7 @@ fun LiquidBottomTabs(
                         alpha = progress
                     )
                 },
-                layerBlock = {
-                    scaleX = dampedDragAnimation.scaleX
-                    scaleY = dampedDragAnimation.scaleY
-                    val velocity = dampedDragAnimation.velocity / 10f
-                    scaleX /= 1f - (velocity * 0.75f).fastCoerceIn(-0.2f, 0.2f)
-                    scaleY *= 1f - (velocity * 0.25f).fastCoerceIn(-0.2f, 0.2f)
-                },
+                layerBlock = {},
                 onDrawSurface = {
                     val progress = dampedDragAnimation.pressProgress
                     drawRect(pillSurfaceColor, alpha = 1f - progress)
