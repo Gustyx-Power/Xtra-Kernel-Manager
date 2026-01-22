@@ -139,8 +139,6 @@ fun Navigation(preferencesManager: PreferencesManager) {
       navController.navigate("home") { popUpTo("setup") { inclusive = true } }
     }
   }
-
-  // Get layout style early so we can use it for backdrop
   val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
 
   Box(modifier = Modifier.fillMaxSize()) {
@@ -159,8 +157,6 @@ fun Navigation(preferencesManager: PreferencesManager) {
                   preferencesManager.setLayoutStyle(layoutStyle)
                   preferencesManager.setSetupComplete(true)
                 }
-                // Navigation will be handled by LaunchedEffect monitoring isSetupCompleteState
-                // or we can force it here
                 navController.navigate("home") { popUpTo("setup") { inclusive = true } }
               }
           )
