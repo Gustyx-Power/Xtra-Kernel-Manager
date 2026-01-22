@@ -232,16 +232,7 @@ fun MaterialGameSpaceScreen(
                   onCheckedChange = { viewModel.setCallOverlay(it) },
               )
               Spacer(modifier = Modifier.height(16.dp))
-              GameSpaceSwitchRow(
-                  title = "Danmaku Notification mode",
-                  subtitle =
-                      "Show notification as danmaku aka bullet comments while game is active",
-                  icon = Icons.Rounded.Comment,
-                  checked = viewModel.danmakuMode.collectAsState().value,
-                  onCheckedChange = { viewModel.setDanmakuMode(it) },
-              )
-              Spacer(modifier = Modifier.height(16.dp))
-              Spacer(modifier = Modifier.height(16.dp))
+
 
               val callAction = viewModel.inGameCallAction.collectAsState().value
               GameSpaceExpandableRow(
