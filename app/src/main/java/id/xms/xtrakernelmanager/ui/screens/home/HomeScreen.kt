@@ -179,31 +179,48 @@ fun HomeScreen(
 
                                 Box(modifier = Modifier.fillMaxSize()) {
                                         // Background Layer - Captures content for glass effect
-                                        Box(
-                                                modifier =
-                                                        Modifier.fillMaxSize()
+                                        Box(modifier = Modifier.fillMaxSize()) {
+                                                // Base gradient background
+                                                Box(
+                                                        modifier = Modifier.fillMaxSize()
                                                                 .background(
-                                                                        brush =
-                                                                                androidx.compose.ui
-                                                                                        .graphics
-                                                                                        .Brush
-                                                                                        .verticalGradient(
-                                                                                                colors =
-                                                                                                        listOf(
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .primaryContainer,
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .tertiaryContainer,
-                                                                                                                MaterialTheme
-                                                                                                                        .colorScheme
-                                                                                                                        .background
-                                                                                                        )
+                                                                        brush = androidx.compose.ui
+                                                                                .graphics
+                                                                                .Brush
+                                                                                .verticalGradient(
+                                                                                        colors = listOf(
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .primaryContainer,
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .tertiaryContainer,
+                                                                                                MaterialTheme
+                                                                                                        .colorScheme
+                                                                                                        .background
                                                                                         )
+                                                                                )
                                                                 )
-                                                                .layerBackdrop(backdrop)
-                                        )
+                                                )
+                                                
+                                                // Wavy blob ornament overlay with Monet colors
+                                                id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        colors = listOf(
+                                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.45f),
+                                                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                                                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
+                                                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+                                                        ),
+                                                        strokeColor = Color.Black.copy(alpha = 0.6f),
+                                                        blobAlpha = 0.55f
+                                                )
+                                                
+                                                // Capture layer for backdrop
+                                                Box(modifier = Modifier.fillMaxSize().layerBackdrop(backdrop))
+                                        }
+
 
                                         // Content Layer
                                         CompositionLocalProvider(LocalBackdrop provides backdrop) {
