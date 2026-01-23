@@ -31,11 +31,13 @@ fun GlassmorphicCard(
         // backdrop param removed, use LocalBackdrop.current
         onClick: (() -> Unit)? = null,
         enabled: Boolean = true,
+        shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(32.dp),
+        contentPadding: PaddingValues? = null,
         content: @Composable ColumnScope.() -> Unit,
 ) {
   val backdrop = LocalBackdrop.current
   val dimens = rememberResponsiveDimens()
-  val shape = RoundedCornerShape(32.dp) // Significantly rounder corners
+  val finalPadding = contentPadding ?: PaddingValues(dimens.cardPadding)
   val isDark = isSystemInDarkTheme()
 
   // Manual fallback colors
@@ -93,14 +95,14 @@ fun GlassmorphicCard(
   if (onClick != null) {
     Box(modifier = baseModifier.clickable(enabled = enabled, onClick = onClick)) {
       Column(
-              modifier = Modifier.padding(dimens.cardPadding),
+              modifier = Modifier.padding(finalPadding),
               verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
       ) { content() }
     }
   } else {
     Box(modifier = baseModifier) {
       Column(
-              modifier = Modifier.padding(dimens.cardPadding),
+              modifier = Modifier.padding(finalPadding),
               verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
       ) { content() }
     }
