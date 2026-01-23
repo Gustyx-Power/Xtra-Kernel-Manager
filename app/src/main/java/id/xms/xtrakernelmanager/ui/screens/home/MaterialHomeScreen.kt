@@ -56,6 +56,8 @@ import id.xms.xtrakernelmanager.ui.screens.home.components.ExpandablePowerFab
 import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import java.util.Locale
 import kotlinx.coroutines.delay
+import id.xms.xtrakernelmanager.ui.model.PowerAction
+import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
 
 /** Material Home Screen - Restored Layout with Dynamic Colors (Material You) */
 @SuppressLint("DefaultLocale")
