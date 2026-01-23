@@ -72,6 +72,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import id.xms.xtrakernelmanager.ui.model.PowerAction
+import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
+import id.xms.xtrakernelmanager.utils.RootShell
 
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +83,9 @@ fun HomeScreen(
         preferencesManager: PreferencesManager,
         viewModel: HomeViewModel = viewModel(),
         onNavigateToSettings: () -> Unit = {},
+        tuningViewModel: id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel = viewModel(
+                factory = id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel.Factory(preferencesManager)
+        )
 ) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
@@ -228,19 +234,21 @@ fun HomeScreen(
                                                         containerColor = Color.Transparent, 
                                                 ) { paddingValues ->
                                                         Box(Modifier.padding(paddingValues)) {
-                                                                LiquidHomeScreen(
-                                                                        cpuInfo = cpuInfo,
-                                                                        gpuInfo = gpuInfo,
-                                                                        batteryInfo = batteryInfo,
-                                                                        systemInfo = systemInfo,
-                                                                        onSettingsClick = {
-                                                                                showSettingsBottomSheet =
-                                                                                        true
-                                                                        },
-                                                                        onPowerClick = {
-                                                                                showPowerMenu = true
-                                                                        }
-                                                                )
+                LiquidHomeScreen(
+                        cpuInfo = cpuInfo,
+                        gpuInfo = gpuInfo,
+                        batteryInfo = batteryInfo,
+                        systemInfo = systemInfo,
+                        currentProfile = tuningViewModel.selectedProfile.collectAsState().value,
+                        onProfileChange = { tuningViewModel.applyGlobalProfile(it) },
+                        onSettingsClick = {
+                                showSettingsBottomSheet =
+                                        true
+                        },
+                        onPowerAction = { action ->
+                                activePowerAction = action
+                        }
+                )
                                                         }
                                                 }
                                         }
@@ -251,57 +259,7 @@ fun HomeScreen(
 }
 
 // POWER MENU & ROOT EXECUTION LOGIC
-enum class PowerAction(val labelRes: Int, val icon: ImageVector, val command: String) {
-        Reboot(R.string.reboot, Icons.Rounded.RestartAlt, "su -c reboot"),
-        PowerOff(R.string.power_off, Icons.Rounded.PowerSettingsNew, "su -c reboot -p"),
-        Recovery(
-                R.string.recovery,
-                Icons.Rounded.SystemSecurityUpdateWarning,
-                "su -c reboot recovery"
-        ),
-        Bootloader(
-                R.string.bootloader,
-                Icons.Rounded.SettingsSystemDaydream,
-                "su -c reboot bootloader"
-        ),
-        SystemUI(R.string.restart_ui, Icons.Rounded.Refresh, "su -c pkill -f com.android.systemui"),
-        LockScreen(
-                R.string.lockscreen,
-                Icons.Rounded.Lock,
-                "su -c input keyevent 26",
-        ); // 26 = Power Button (Toggle Screen)
 
-        @Composable
-        fun getLabel(): String {
-                return stringResource(id = labelRes)
-        }
-}
-
-@Composable
-fun PowerAction.getLocalizedLabel(): String {
-        return stringResource(id = this.labelRes)
-}
-
-object RootShell {
-        suspend fun execute(command: String) =
-                withContext(Dispatchers.IO) {
-                        try {
-                                // Menggunakan Runtime.exec untuk menjalankan 'su'
-                                val process = Runtime.getRuntime().exec("su")
-                                val os = DataOutputStream(process.outputStream)
-
-                                // Menulis perintah
-                                os.writeBytes(command + "\n")
-                                os.writeBytes("exit\n")
-                                os.flush()
-
-                                // Menunggu proses selesai
-                                process.waitFor()
-                        } catch (e: Exception) {
-                                e.printStackTrace()
-                        }
-                }
-}
 
 @Composable
 fun PowerMenuDialog(onDismiss: () -> Unit, onActionSelected: (PowerAction) -> Unit) {
