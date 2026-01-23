@@ -49,7 +49,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
         // Update loop
         while (true) {
             uptime = calculateUptime()
-            // deepSleep = calculateDeepSleep() 
+            
+            // Format Deep Sleep
+            val deepSleepMillis = systemInfo.deepSleep
+            val seconds = deepSleepMillis / 1000
+            val hours = seconds / 3600
+            val minutes = (seconds % 3600) / 60
+            deepSleep = "${hours}h ${minutes}m"
+            
             delay(60000)
         }
     }
