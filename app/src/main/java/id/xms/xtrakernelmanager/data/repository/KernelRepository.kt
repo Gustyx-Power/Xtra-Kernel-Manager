@@ -113,6 +113,16 @@ class KernelRepository {
               ?.split(" ")
               ?.filter { it.isNotBlank() }
               ?: listOf("schedutil", "performance", "powersave", "ondemand", "conservative")
+      val availableFreqs =
+          RootManager.executeCommand(
+                  "cat $basePath/cpufreq/scaling_available_frequencies 2>/dev/null"
+              )
+              .getOrNull()
+              ?.trim()
+              ?.split("\\s+".toRegex())
+              ?.mapNotNull { it.toIntOrNull()?.div(1000) }
+              ?: emptyList()
+
       val policyPath = "/sys/devices/system/cpu/cpufreq/policy${firstCore}"
       clusters.add(
           ClusterInfo(
@@ -124,6 +134,7 @@ class KernelRepository {
               currentMaxFreq = currentMax / 1000,
               governor = governor,
               availableGovernors = availableGovs,
+              availableFrequencies = availableFreqs,
               policyPath = policyPath,
           )
       )
@@ -547,6 +558,7 @@ class KernelRepository {
             availableStorage = availableStorage,
             swapTotal = swapTotalBytes,
             swapFree = swapFreeBytes,
+            deepSleep = android.os.SystemClock.elapsedRealtime() - android.os.SystemClock.uptimeMillis(),
         )
       }
 }
