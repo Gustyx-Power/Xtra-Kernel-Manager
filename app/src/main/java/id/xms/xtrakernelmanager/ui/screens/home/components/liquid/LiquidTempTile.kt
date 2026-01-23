@@ -21,6 +21,7 @@ fun LiquidTempTile(
     modifier: Modifier = Modifier,
     cpuTemp: String,
     gpuTemp: String,
+    pmicTemp: String,
     thermalTemp: String,
     color: Color
 ) {
@@ -73,6 +74,7 @@ fun LiquidTempTile(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 TempRow("CPU", cpuTemp)
                 TempRow("GPU", gpuTemp)
+                TempRow("PMIC", pmicTemp)
                 TempRow("Thermal", thermalTemp)
             }
         }
