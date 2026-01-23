@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.data.model.SystemInfo
-import id.xms.xtrakernelmanager.ui.components.DeviceSilhouette
 import id.xms.xtrakernelmanager.ui.theme.NeonBlue
 import id.xms.xtrakernelmanager.ui.theme.NeonGreen
 import id.xms.xtrakernelmanager.ui.theme.NeonPurple
@@ -176,17 +175,18 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                 }
             }
 
-            // 3. Mockup Layer
+            // 3. Futuristic Phone Mockup Layer
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterEnd) 
-                    .offset(x = 80.dp, y = 60.dp) 
-                    .rotate(-15f)
+                    .offset(x = 60.dp, y = 40.dp)
             ) {
-                 DeviceSilhouette(
-                    color = Color.White.copy(alpha = 0.1f),
-                    showWallpaper = true, 
-                    customSize = androidx.compose.ui.unit.DpSize(160.dp, 340.dp) 
+                LiquidDeviceMockup(
+                    size = androidx.compose.ui.unit.DpSize(140.dp, 280.dp),
+                    rotation = -15f,
+                    showWallpaper = true,
+                    glowColor = NeonBlue,
+                    accentColor = NeonPurple
                 )
             }
         }
