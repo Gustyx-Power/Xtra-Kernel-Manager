@@ -34,8 +34,10 @@ fun LiquidHomeScreen(
     gpuInfo: GPUInfo,
     batteryInfo: BatteryInfo,
     systemInfo: SystemInfo,
+    currentProfile: String,
+    onProfileChange: (String) -> Unit,
     onSettingsClick: () -> Unit,
-    onPowerClick: () -> Unit,
+    onPowerAction: (id.xms.xtrakernelmanager.ui.model.PowerAction) -> Unit,
 ) {
     val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
     val isCompact =
@@ -108,17 +110,18 @@ fun LiquidHomeScreen(
              LiquidStatTile(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 icon = Icons.Rounded.Memory,
-                label = "Load",
-                value = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
-                subValue = "${cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0} MHz",
+                label = "CPU",
+                value = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
+                subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
                 color = id.xms.xtrakernelmanager.ui.theme.NeonGreen,
-                badgeText = "CPU"
+                badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%"
              )
              
              LiquidTempTile(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 cpuTemp = "${cpuInfo.temperature.toInt()}°C",
                 gpuTemp = "${gpuInfo.temperature.toInt()}°C",
+                pmicTemp = "${batteryInfo.pmicTemp.toInt()}°C",
                 thermalTemp = "${batteryInfo.temperature.toInt()}°C",
                 color = id.xms.xtrakernelmanager.ui.theme.NeonPurple
              )
@@ -169,19 +172,22 @@ fun LiquidHomeScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            LiquidActionCard(
-               icon = Icons.Default.PowerSettingsNew,
-               color = Color(0xFFF87171), 
-               backgroundColor = Color(0xFFEF4444), 
-               onClick = onPowerClick, 
-               modifier = Modifier.weight(1f).height(80.dp)
+            LiquidPowerMenu(
+                onAction = onPowerAction,
+                modifier = Modifier.weight(1f).height(140.dp)
             )
-             LiquidActionCard(
-               icon = Icons.Default.MoreVert, 
-               color = Color.Gray,
-               backgroundColor = Color.White,
-               onClick = { },
-               modifier = Modifier.weight(1f).height(80.dp)
+             
+            LiquidProfileCard(
+                currentProfile = currentProfile,
+                onNextProfile = {
+                    val next = when (currentProfile) {
+                        "Balance" -> "Performance"
+                        "Performance" -> "Battery"
+                        else -> "Balance"
+                    }
+                    onProfileChange(next)
+                },
+                modifier = Modifier.weight(1f).height(140.dp)
             )
         }
 
