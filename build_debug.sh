@@ -110,13 +110,31 @@ if [ ! -f "$APK_PATH" ]; then
 fi
 
 echo -e "${YELLOW}📦 Installing APK ($APK_PATH)...${NC}"
-adb install -r "$APK_PATH"
+
+# ColorOS 16 fix: Use push + pm install instead of adb install (which hangs)
+APK_NAME=$(basename "$APK_PATH")
+REMOTE_PATH="/data/local/tmp/$APK_NAME"
+
+echo -e "${YELLOW}📤 Pushing APK to device...${NC}"
+adb push "$APK_PATH" "$REMOTE_PATH"
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}❌ Push Failed!${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}📲 Installing via pm install (root)...${NC}"
+adb shell "su -c 'pm install -r -d $REMOTE_PATH'"
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Installation Failed!${NC}"
+    # Cleanup temp file
+    adb shell "rm -f $REMOTE_PATH"
     exit 1
 else
     echo -e "${GREEN}✅ Installed Successfully!${NC}"
+    # Cleanup temp file
+    adb shell "rm -f $REMOTE_PATH"
     
     echo -e "${YELLOW}🚀 Launching App...${NC}"
     # Try to launch using monkey (generic) or specific intent
