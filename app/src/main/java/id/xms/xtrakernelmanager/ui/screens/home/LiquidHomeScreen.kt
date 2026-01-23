@@ -115,14 +115,12 @@ fun LiquidHomeScreen(
                 badgeText = "CPU"
              )
              
-             LiquidStatTile(
+             LiquidTempTile(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
-                icon = Icons.Rounded.Videocam,
-                label = "Freq",
-                value = "${gpuInfo.currentFreq}",
-                subValue = "MHz",
-                color = id.xms.xtrakernelmanager.ui.theme.NeonPurple,
-                badgeText = "GPU"
+                cpuTemp = "${cpuInfo.temperature.toInt()}°C",
+                gpuTemp = "${gpuInfo.temperature.toInt()}°C",
+                thermalTemp = "${batteryInfo.temperature.toInt()}°C",
+                color = id.xms.xtrakernelmanager.ui.theme.NeonPurple
              )
         }
 
