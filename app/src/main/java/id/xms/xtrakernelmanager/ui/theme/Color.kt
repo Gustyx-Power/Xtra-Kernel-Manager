@@ -88,6 +88,7 @@ val GlassBorderDark = Color(0x40FFFFFF)
 val NeonGreen = Color(0xFF34D399)
 val NeonPurple = Color(0xFFA78BFA)
 val NeonBlue = Color(0xFF60A5FA)
+val NeonCyan = Color(0xFF22D3EE)
 val NeonRose = Color(0xFFFB7185)
 val NeonYellow = Color(0xFFFBBF24)
 
