@@ -38,7 +38,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import id.xms.xtrakernelmanager.ui.screens.home.PowerAction
+import id.xms.xtrakernelmanager.ui.model.PowerAction
 
 @Composable
 fun ExpandablePowerFab(onPowerAction: (PowerAction) -> Unit) {
