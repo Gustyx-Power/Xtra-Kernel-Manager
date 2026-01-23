@@ -20,9 +20,11 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /**
- * Animated cleaner WavyBlobOrnament implementation.
- * Draws large, organic, liquid-like shapes with Monet gradients and black strokes.
- * The shapes subtly morph and breathe to create a "live" liquid effect.
+ * Animated cleaner WavyBlobOrnament implementation with Liquid Glass effect.
+ * Draws large, organic shapes with:
+ * - Volume gradients (Radial) for 3D liquid feel
+ * - Specular highlights (Glossy reflection)
+ * - Subtle morphing animation
  */
 @Composable
 fun WavyBlobOrnament(
@@ -30,7 +32,7 @@ fun WavyBlobOrnament(
     colors: List<Color>? = null,
     strokeColor: Color = Color.Black.copy(alpha = 0.8f),
     strokeWidth: Dp = 2.5.dp,
-    blobAlpha: Float = 0.6f
+    blobAlpha: Float = 0.75f // Slightly higher alpha for glass volume
 ) {
     val colorScheme = MaterialTheme.colorScheme
     
@@ -74,28 +76,47 @@ fun WavyBlobOrnament(
         val h = size.height
         
         // Dynamic animation offsets based on screen size
-        // Use simpler math to keep performance high
         fun waveOffset(phase: Float, mult: Float = 1f): Float {
-            return sin(phase) * (w * 0.03f * mult) // ~3% of screen width movement
+            return sin(phase) * (w * 0.03f * mult)
         }
         
         fun waveCosOffset(phase: Float, mult: Float = 1f): Float {
-            return cos(phase) * (h * 0.02f * mult) // ~2% of screen height movement
+            return cos(phase) * (h * 0.02f * mult)
         }
 
-        // Helper to draw a shape
-        fun drawOrganicShape(path: Path, color: Color) {
+        // Helper to draw a LIQUID shape
+        fun drawLiquidShape(path: Path, color: Color, centerX: Float, centerY: Float) {
+            
+            // 1. Volume Fill (Radial Gradient for 3D effect)
+            // Center is slightly offset to give direction to the volume
             drawPath(
                 path = path,
-                brush = Brush.verticalGradient(
+                brush = Brush.radialGradient(
                     colors = listOf(
-                        color.copy(alpha = blobAlpha),
-                        color.copy(alpha = blobAlpha * 0.7f)
+                        color.copy(alpha = blobAlpha),      // Center: Pure color
+                        color.copy(alpha = blobAlpha * 0.3f) // Edge: Translucent
                     ),
-                    startY = 0f,
-                    endY = h
+                    center = Offset(centerX, centerY),
+                    radius = w * 0.6f // Large radius for soft falloff
                 )
             )
+
+            // 2. Specular Highlight (Glossy Reflection)
+            // White gradient overlay from top-left (assuming light source)
+            drawPath(
+                path = path,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.35f), // Shiny reflection
+                        Color.Transparent,
+                        Color.Transparent
+                    ),
+                    start = Offset(centerX - w * 0.2f, centerY - h * 0.2f),
+                    end = Offset(centerX + w * 0.2f, centerY + h * 0.2f)
+                )
+            )
+
+            // 3. Rim Stroke (Dark Outline)
             drawPath(
                 path = path,
                 color = strokeColor,
@@ -108,7 +129,6 @@ fun WavyBlobOrnament(
             moveTo(w, 0f)
             lineTo(w * 0.2f, 0f)
             
-            // Animating control points
             val p1x = w * 0.25f + waveOffset(phase1)
             val p1y = h * 0.15f + waveCosOffset(phase1)
             val p2x = w * 0.5f + waveOffset(phase2, 0.5f)
@@ -126,7 +146,7 @@ fun WavyBlobOrnament(
             cubicTo(p3x, p3y, p4x, p4y, w, h * 0.45f)
             close()
         }
-        drawOrganicShape(topRightPath, palette.getOrElse(0) { Color.Gray })
+        drawLiquidShape(topRightPath, palette.getOrElse(0) { Color.Gray }, w * 0.8f, h * 0.2f)
 
 
         // 2. MIDDLE LEFT: Animated
@@ -150,7 +170,7 @@ fun WavyBlobOrnament(
             cubicTo(p3x, p3y, p4x, p4y, 0f, h * 0.7f)
             close()
         }
-        drawOrganicShape(midLeftPath, palette.getOrElse(1) { Color.Gray })
+        drawLiquidShape(midLeftPath, palette.getOrElse(1) { Color.Gray }, w * 0.2f, h * 0.4f)
         
         
         // 3. BOTTOM RIGHT: Animated
@@ -175,7 +195,7 @@ fun WavyBlobOrnament(
             cubicTo(p3x, p3y, p4x, p4y, w, h * 0.6f)
             close()
         }
-        drawOrganicShape(bottomRightPath, palette.getOrElse(2) { Color.Gray })
+        drawLiquidShape(bottomRightPath, palette.getOrElse(2) { Color.Gray }, w * 0.8f, h * 0.8f)
 
         
         // 4. CENTER FLOATING BLOB: More movement
@@ -201,6 +221,7 @@ fun WavyBlobOrnament(
             )
             close()
         }
-        drawOrganicShape(centerBlobPath, palette.getOrElse(3) { Color.Gray })
+        // Floating blob gets center position for radial effect
+        drawLiquidShape(centerBlobPath, palette.getOrElse(3) { Color.Gray }, w * 0.75f, h * 0.6f)
     }
 }
