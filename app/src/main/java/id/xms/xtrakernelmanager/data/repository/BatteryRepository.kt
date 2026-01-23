@@ -185,6 +185,10 @@ object BatteryRepository {
             status = statusText,
             technology = technology,
             healthPercent = combinedHealth,
+            pmicTemp = NativeLib.readThermalZones().find { zone ->
+                val name = zone.name.lowercase()
+                name.contains("pmic") || name.contains("pm8") || name.contains("vbat")
+            }?.temp ?: 0f
         )
       }
 }

@@ -12,4 +12,5 @@ data class BatteryInfo(
     val status: String = "Unknown",
     val technology: String = "Unknown",
     val healthPercent: Float = 100f, // Kesehatan presentase
+    val pmicTemp: Float = 0f,
 )
