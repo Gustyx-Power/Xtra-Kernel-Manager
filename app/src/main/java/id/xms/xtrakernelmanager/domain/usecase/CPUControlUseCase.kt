@@ -15,7 +15,25 @@ class CPUControlUseCase {
     val nativeClusters = NativeLib.detectCpuClusters()
     if (nativeClusters != null && nativeClusters.isNotEmpty()) {
       Log.d(TAG, "Using native cluster detection: ${nativeClusters.size} clusters")
-      return nativeClusters
+      
+      // Enrich with available frequencies if missing
+      return nativeClusters.map { cluster ->
+        if (cluster.availableFrequencies.isEmpty()) {
+          val firstCore = cluster.cores.firstOrNull() ?: 0
+          val freqs =
+              RootManager.executeCommand(
+                      "cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_available_frequencies 2>/dev/null"
+                  )
+                  .getOrNull()
+                  ?.trim()
+                  ?.split("\\s+".toRegex())
+                  ?.mapNotNull { it.toIntOrNull()?.div(1000) }
+                  ?: emptyList()
+          cluster.copy(availableFrequencies = freqs)
+        } else {
+          cluster
+        }
+      }
     }
 
     // Fallback to shell-based detection
@@ -86,6 +104,16 @@ class CPUControlUseCase {
               ?.split(" ")
               ?.filter { it.isNotBlank() }
               ?: listOf("schedutil", "performance", "powersave", "ondemand", "conservative")
+      val availableFreqs =
+          RootManager.executeCommand(
+                  "cat $basePath/cpufreq/scaling_available_frequencies 2>/dev/null"
+              )
+              .getOrNull()
+              ?.trim()
+              ?.split(" ")
+              ?.mapNotNull { it.toIntOrNull()?.div(1000) }
+              ?: emptyList()
+
       val policyPath = "/sys/devices/system/cpu/cpufreq/policy${firstCore}"
       clusters.add(
           ClusterInfo(
@@ -97,6 +125,7 @@ class CPUControlUseCase {
               currentMaxFreq = currentMax / 1000,
               governor = governor,
               availableGovernors = availableGovs,
+              availableFrequencies = availableFreqs,
               policyPath = policyPath,
           )
       )
