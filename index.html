@@ -1,366 +1,128 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
-
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xtra Kernel - Liquid Home Fixed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xtra Kernel Manager v3.0 - Evolution</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['monospace'],
-                    },
-                    colors: {
-                        'neon-green': '#34D399',
-                        'neon-purple': '#A78BFA',
-                        'neon-blue': '#60A5FA',
-                        'neon-rose': '#FB7185',
-                        'neon-yellow': '#FBBF24',
-                    },
-                    boxShadow: {
-                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
-                        'glow-green': '0 0 20px rgba(52, 211, 153, 0.3)',
-                        'glow-purple': '0 0 20px rgba(167, 139, 250, 0.3)',
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
-        /* Animasi Orb */
-        .ambient-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            /* Blur tinggi agar halus */
-            opacity: 0.5;
-            z-index: -1;
-            pointer-events: none;
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Background Grid Pattern */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+        
+        /* Metallic Text Gradient */
+        .text-silver {
+            background: linear-gradient(to bottom, #ffffff, #d1d5db, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .orb-1 {
-            top: -10%;
-            left: -10%;
-            width: 300px;
-            height: 300px;
-            background: #34D399;
-            animation: float 15s infinite ease-in-out;
-        }
-
-        .orb-2 {
-            bottom: 10%;
-            right: -5%;
-            width: 350px;
-            height: 350px;
-            background: #A78BFA;
-            animation: float 18s infinite ease-in-out reverse;
-        }
-
-        .orb-3 {
-            top: 40%;
-            left: 30%;
-            width: 250px;
-            height: 250px;
-            background: #60A5FA;
-            opacity: 0.3;
-            animation: float 20s infinite ease-in-out 5s;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translate(0, 0) scale(1);
-            }
-
-            50% {
-                transform: translate(30px, -30px) scale(1.05);
-            }
-        }
-
-        /* Glass Module Style */
-        .glass-module {
-            background: rgba(255, 255, 255, 0.05);
-            /* Transparan Putih 5% */
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+        .glass-card {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            overflow: hidden;
-            transition: transform 0.1s;
-        }
-
-        .glass-module:active {
-            transform: scale(0.98);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        /* Custom Scrollbar Hide */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
         }
     </style>
 </head>
+<body class="bg-black text-zinc-300 min-h-screen relative overflow-x-hidden selection:bg-blue-500/30">
 
-<body
-    class="bg-[#05050A] text-white min-h-screen relative overflow-x-hidden pb-32 font-sans selection:bg-neon-green/30">
+    <div class="fixed inset-0 bg-grid z-0 opacity-20 pointer-events-none"></div>
+    <div class="fixed top-0 left-0 w-full h-full bg-gradient-to-b from-zinc-900/50 to-black pointer-events-none z-0"></div>
 
-    <div class="ambient-orb orb-1"></div>
-    <div class="ambient-orb orb-2"></div>
-    <div class="ambient-orb orb-3"></div>
+    <div class="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center justify-center min-h-screen p-6 py-12 space-y-8">
 
-    <header class="px-6 pt-12 pb-6 flex justify-between items-center z-10 relative">
-        <div>
-            <h1 class="text-2xl font-extrabold tracking-tight flex items-center gap-3">
-                <i class="fas fa-cube text-neon-green drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]"></i>
-                Xtra Kernel
+        <div class="flex justify-center">
+            <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-zinc-900 border border-zinc-700 shadow-lg backdrop-blur-md">
+                <span class="relative flex h-2 w-2 mr-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                <span class="text-xs font-semibold text-zinc-100 tracking-wide uppercase">Official Announcement</span>
+            </div>
+        </div>
+
+        <div class="text-center space-y-3">
+            <h1 class="text-5xl md:text-7xl font-black tracking-tighter text-white drop-shadow-2xl">
+                XKM <span class="text-silver">3.0</span>
             </h1>
-            <p class="text-xs text-gray-400 font-medium ml-8 tracking-wider opacity-80">CONTROL DECK</p>
-        </div>
-        <button
-            class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-md active:scale-90 transition shadow-lg">
-            <i class="fas fa-cog text-gray-300"></i>
-        </button>
-    </header>
-
-    <main class="px-4 grid grid-cols-4 gap-3 relative z-10">
-
-        <div class="glass-module col-span-2 row-span-2 p-5 flex flex-col justify-between group">
-            <div class="flex justify-between items-start">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-neon-green/20 flex items-center justify-center text-neon-green">
-                        <i class="fas fa-microchip"></i>
-                    </div>
-                    <span class="font-bold text-sm">CPU</span>
-                </div>
-                <span
-                    class="text-[9px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-neon-green border border-neon-green/20">walt</span>
-            </div>
-
-            <div class="text-center">
-                <span class="text-4xl font-black tracking-tighter text-white drop-shadow-md">12<span
-                        class="text-lg text-gray-400 font-normal">%</span></span>
-                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-1">Total Load</p>
-            </div>
-
-            <div class="space-y-1.5 pt-2 border-t border-white/5">
-                <div class="flex justify-between text-[10px] items-center">
-                    <span class="text-gray-400">Temp</span>
-                    <span class="font-mono text-neon-rose font-bold">39.6°C</span>
-                </div>
-                <div class="flex justify-between text-[10px] items-center">
-                    <span class="text-gray-400">Active</span>
-                    <span class="font-mono text-neon-green font-bold">8/8</span>
-                </div>
-            </div>
+            <p class="text-lg md:text-xl text-zinc-400 font-medium max-w-2xl mx-auto leading-relaxed">
+                The architecture of performance. Redesigned.
+            </p>
+            <p class="text-sm text-zinc-600 italic">Arsitektur performa. Didesain ulang.</p>
         </div>
 
-        <div class="glass-module col-span-2 row-span-2 p-5 flex flex-col justify-between group">
-            <div class="flex justify-between items-start">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-xl bg-neon-purple/20 flex items-center justify-center text-neon-purple">
-                        <i class="fas fa-gamepad"></i>
-                    </div>
-                    <span class="font-bold text-sm">GPU</span>
+        <div class="w-full bg-red-950/20 border border-red-900/40 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-sm">
+            <div class="flex items-start sm:items-center gap-4">
+                <div class="p-2 bg-red-500/10 rounded-lg shrink-0">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 </div>
-                <span
-                    class="text-[9px] font-mono bg-white/10 px-1.5 py-0.5 rounded text-neon-purple border border-neon-purple/20">Adreno</span>
-            </div>
-
-            <div class="text-center">
-                <div class="flex items-baseline justify-center gap-1">
-                    <span class="text-4xl font-black tracking-tighter text-white drop-shadow-md">680</span>
-                    <span class="text-xs text-gray-400 font-medium">MHz</span>
-                </div>
-                <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-1">Frequency</p>
-            </div>
-
-            <div class="pt-2">
-                <div class="flex justify-between text-[10px] mb-1.5">
-                    <span class="text-gray-400">Load</span>
-                    <span class="text-neon-purple font-bold">85%</span>
-                </div>
-                <div class="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
-                    <div class="h-full bg-neon-purple w-[85%] rounded-full shadow-[0_0_8px_rgba(167,139,250,0.6)]">
-                    </div>
+                <div class="text-sm">
+                    <p class="text-red-200 font-semibold">Legacy Support Ended (v2.x)</p>
+                    <p class="text-red-400/60 leading-snug">Versions 2.0 - 2.3 are now EOL. <span class="italic text-red-400/40 sm:ml-1 block sm:inline">Versi lawas tidak lagi didukung.</span></p>
                 </div>
             </div>
+            <span class="text-[10px] font-mono text-red-500/50 border border-red-500/20 px-2 py-1 rounded shrink-0 self-start sm:self-center">DEPRECATED</span>
         </div>
 
-        <div class="glass-module col-span-4 p-4 flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
-            <div class="flex gap-2">
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-gray-400 h-[40%] rounded-full"></div>
-                    </div>
-                    <span class="text-[8px] text-gray-500 mt-1 font-mono">0</span>
-                </div>
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-gray-400 h-[45%] rounded-full"></div>
-                    </div>
-                    <span class="text-[8px] text-gray-500 mt-1 font-mono">1</span>
-                </div>
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-gray-400 h-[38%] rounded-full"></div>
-                    </div>
-                    <span class="text-[8px] text-gray-500 mt-1 font-mono">2</span>
-                </div>
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-gray-400 h-[42%] rounded-full"></div>
-                    </div>
-                    <span class="text-[8px] text-gray-500 mt-1 font-mono">3</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            
+            <div class="glass-card rounded-2xl p-6 md:col-span-2 relative overflow-hidden group min-h-[180px] flex flex-col">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-zinc-700/10 rounded-full blur-3xl -mr-10 -mt-10 transition-all group-hover:bg-zinc-600/20"></div>
+                <h3 class="text-xl font-bold text-white mb-2">Total Rewrite Engine</h3>
+                <p class="text-zinc-400 text-sm leading-relaxed mb-4">
+                    We skipped v2.4 to bring you a completely new codebase built for modern kernels. Faster execution, lower latency.
+                </p>
+                <div class="border-t border-zinc-700/50 pt-3 mt-auto">
+                    <p class="text-xs text-zinc-500 italic">Kami melompati v2.4 demi basis kode yang benar-benar baru. Eksekusi lebih cepat, latensi lebih rendah.</p>
                 </div>
             </div>
 
-            <div class="h-6 w-px bg-white/10 mx-2"></div>
-
-            <div class="flex gap-2">
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-neon-green h-[80%] rounded-full shadow-[0_0_6px_rgba(52,211,153,0.6)]">
-                        </div>
-                    </div>
-                    <span class="text-[8px] text-neon-green mt-1 font-mono">4</span>
+            <div class="glass-card rounded-2xl p-6 flex flex-col justify-center min-h-[160px]">
+                <div class="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center mb-4 border border-zinc-700">
+                    <svg class="w-5 h-5 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
                 </div>
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-neon-green h-[85%] rounded-full shadow-[0_0_6px_rgba(52,211,153,0.6)]">
-                        </div>
-                    </div>
-                    <span class="text-[8px] text-neon-green mt-1 font-mono">5</span>
-                </div>
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-neon-green h-[75%] rounded-full shadow-[0_0_6px_rgba(52,211,153,0.6)]">
-                        </div>
-                    </div>
-                    <span class="text-[8px] text-neon-green mt-1 font-mono">6</span>
-                </div>
-                <div class="flex flex-col items-center w-8">
-                    <div class="h-8 w-1.5 bg-gray-800 rounded-full overflow-hidden flex items-end">
-                        <div class="w-full bg-neon-green h-[90%] rounded-full shadow-[0_0_6px_rgba(52,211,153,0.6)]">
-                        </div>
-                    </div>
-                    <span class="text-[8px] text-neon-green mt-1 font-mono">7</span>
-                </div>
+                <h3 class="font-bold text-white">New Interface</h3>
+                <p class="text-xs text-zinc-500 mt-1 italic">Antarmuka Modern</p>
             </div>
+
+            <div class="glass-card rounded-2xl p-6 flex flex-col justify-center min-h-[160px]">
+                <div class="w-10 h-10 bg-zinc-800 rounded-lg flex items-center justify-center mb-4 border border-zinc-700">
+                    <svg class="w-5 h-5 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h3 class="font-bold text-white">Smart Profiles</h3>
+                <p class="text-xs text-zinc-500 mt-1 italic">Profil Cerdas</p>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 md:col-span-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h3 class="font-bold text-white">Universal Compatibility</h3>
+                    <p class="text-xs text-zinc-500 mt-1 italic">Kompatibilitas Universal untuk perangkat lebih luas.</p>
+                </div>
+                <div class="hidden sm:block h-8 w-px bg-zinc-700 mx-4"></div>
+                <span class="text-xs font-mono text-zinc-400 border border-zinc-700/50 rounded px-2 py-1">KERNELSU / MAGISK / APATCH</span>
+            </div>
+
         </div>
 
-        <div class="glass-module col-span-2 p-3 flex flex-col justify-between relative">
-            <div class="flex justify-between items-start z-10">
-                <div class="flex items-center gap-1.5">
-                    <i class="fas fa-bolt text-neon-yellow text-xs"></i>
-                    <span class="text-xs font-bold">Baterai</span>
-                </div>
-                <span
-                    class="text-[8px] text-neon-yellow bg-neon-yellow/10 px-1.5 py-0.5 rounded border border-neon-yellow/20">Drain</span>
+        <div class="pt-8 flex flex-col items-center pb-8">
+            <p class="text-zinc-500 text-xs uppercase tracking-widest mb-3">Release Timeline</p>
+            <div class="flex items-center gap-2 sm:gap-3">
+                <span class="px-3 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-600 text-[10px] sm:text-xs line-through">v2.3</span>
+                <div class="w-4 sm:w-8 h-px bg-zinc-800"></div>
+                <span class="px-3 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-600 text-[10px] sm:text-xs line-through">v2.4</span>
+                <div class="w-4 sm:w-8 h-px bg-zinc-600"></div>
+                <span class="px-4 py-1.5 rounded bg-zinc-100 text-black text-[10px] sm:text-xs font-bold shadow-lg shadow-white/10 whitespace-nowrap">v3.0 SOON</span>
             </div>
-            <div class="z-10 mt-1">
-                <span class="text-2xl font-black">38<span class="text-xs font-bold text-gray-400">%</span></span>
-            </div>
-            <div class="z-10 flex gap-3 text-[9px] text-gray-400 mt-1">
-                <span>0mA</span>
-                <span>3.7V</span>
-            </div>
-
-            <div class="absolute bottom-0 left-0 h-1.5 bg-neon-yellow w-[38%] shadow-[0_0_10px_rgba(251,191,36,0.5)]">
-            </div>
+            <p class="mt-8 text-[10px] text-zinc-700">Designed for enthusiasts. Crafted for performance.</p>
         </div>
 
-        <div class="glass-module col-span-1 p-1 flex flex-col items-center justify-center relative">
-            <div class="relative w-10 h-10 flex items-center justify-center mb-1">
-                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path class="text-gray-700" stroke-width="4" fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path class="text-neon-blue" stroke-width="4" stroke-dasharray="60, 100" stroke-linecap="round"
-                        fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <i class="fas fa-memory text-[10px] text-neon-blue absolute"></i>
-            </div>
-            <span class="text-[10px] font-bold">4G</span>
-        </div>
-
-        <div class="glass-module col-span-1 p-1 flex flex-col items-center justify-center relative">
-            <div class="relative w-10 h-10 flex items-center justify-center mb-1">
-                <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <path class="text-gray-700" stroke-width="4" fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path class="text-neon-purple" stroke-width="4" stroke-dasharray="45, 100" stroke-linecap="round"
-                        fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                </svg>
-                <i class="fas fa-hdd text-[10px] text-neon-purple absolute"></i>
-            </div>
-            <span class="text-[10px] font-bold">124G</span>
-        </div>
-
-        <div class="glass-module col-span-2 p-3 flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                <i class="fab fa-android text-neon-green text-lg"></i>
-            </div>
-            <div class="leading-tight">
-                <h3 class="text-xs font-bold text-white">vivo I2219</h3>
-                <p class="text-[9px] text-gray-400 font-mono mt-0.5">K: 5.10.233</p>
-            </div>
-        </div>
-
-        <button
-            class="glass-module col-span-1 flex items-center justify-center bg-red-500/10 border-red-500/20 active:bg-red-500/20">
-            <i class="fas fa-power-off text-red-400"></i>
-        </button>
-        <button class="glass-module col-span-1 flex items-center justify-center active:bg-white/10">
-            <i class="fas fa-ellipsis-h text-gray-400"></i>
-        </button>
-
-    </main>
-
-    <div class="fixed bottom-6 left-0 right-0 px-6 flex justify-center z-50">
-        <nav
-            class="flex items-center justify-between w-full max-w-[320px] px-2 py-2 rounded-[24px] border border-white/10 bg-black/60 backdrop-blur-xl shadow-2xl">
-            <button class="flex-1 flex flex-col items-center gap-1 group">
-                <div
-                    class="h-9 w-14 rounded-full flex items-center justify-center bg-neon-green/20 text-neon-green shadow-[0_0_10px_rgba(52,211,153,0.3)]">
-                    <i class="fas fa-home text-lg"></i>
-                </div>
-                <span class="text-[10px] font-medium text-neon-green">Beranda</span>
-            </button>
-            <button class="flex-1 flex flex-col items-center gap-1 group opacity-50 hover:opacity-100 transition">
-                <div class="h-9 w-14 rounded-full flex items-center justify-center text-gray-400">
-                    <i class="fas fa-sliders-h text-lg"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-400">Tuning</span>
-            </button>
-            <button class="flex-1 flex flex-col items-center gap-1 group opacity-50 hover:opacity-100 transition">
-                <div class="h-9 w-14 rounded-full flex items-center justify-center text-gray-400">
-                    <i class="fas fa-toolbox text-lg"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-400">Alat</span>
-            </button>
-            <button class="flex-1 flex flex-col items-center gap-1 group opacity-50 hover:opacity-100 transition">
-                <div class="h-9 w-14 rounded-full flex items-center justify-center text-gray-400">
-                    <i class="fas fa-info-circle text-lg"></i>
-                </div>
-                <span class="text-[10px] font-medium text-gray-400">Info</span>
-            </button>
-        </nav>
     </div>
 
 </body>
-
 </html>
