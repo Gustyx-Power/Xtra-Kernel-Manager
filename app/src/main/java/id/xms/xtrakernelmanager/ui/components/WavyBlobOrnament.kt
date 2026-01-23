@@ -1,9 +1,11 @@
 package id.xms.xtrakernelmanager.ui.components
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -14,10 +16,13 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
- * cleaner WavyBlobOrnament implementation.
+ * Animated cleaner WavyBlobOrnament implementation.
  * Draws large, organic, liquid-like shapes with Monet gradients and black strokes.
+ * The shapes subtly morph and breathe to create a "live" liquid effect.
  */
 @Composable
 fun WavyBlobOrnament(
@@ -39,13 +44,47 @@ fun WavyBlobOrnament(
 
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
 
+    // --- Animation State ---
+    val transition = rememberInfiniteTransition(label = "liquid_ornament")
+    
+    // Phase 1: Slow breathing cycle (12 seconds)
+    val phase1 by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * Math.PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(12000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase1"
+    )
+
+    // Phase 2: Slightly faster, offset cycle (7 seconds) for complexity
+    val phase2 by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f * Math.PI.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(17000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "phase2"
+    )
+
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
         
-        // Helper to draw a shape with gradient fill and stroke
+        // Dynamic animation offsets based on screen size
+        // Use simpler math to keep performance high
+        fun waveOffset(phase: Float, mult: Float = 1f): Float {
+            return sin(phase) * (w * 0.03f * mult) // ~3% of screen width movement
+        }
+        
+        fun waveCosOffset(phase: Float, mult: Float = 1f): Float {
+            return cos(phase) * (h * 0.02f * mult) // ~2% of screen height movement
+        }
+
+        // Helper to draw a shape
         fun drawOrganicShape(path: Path, color: Color) {
-            // Fill with subtle gradient for depth
             drawPath(
                 path = path,
                 brush = Brush.verticalGradient(
@@ -57,7 +96,6 @@ fun WavyBlobOrnament(
                     endY = h
                 )
             )
-            // Stroke outline
             drawPath(
                 path = path,
                 color = strokeColor,
@@ -65,79 +103,101 @@ fun WavyBlobOrnament(
             )
         }
 
-        // 1. TOP RIGHT: Large flowing wave coming from top-right corner
+        // 1. TOP RIGHT: Animated
         val topRightPath = Path().apply {
-            moveTo(w, 0f)             // Start top right
-            lineTo(w * 0.2f, 0f)      // Go left along top edge
-            cubicTo(
-                w * 0.25f, h * 0.15f, // Control 1
-                w * 0.5f, h * 0.05f,  // Control 2
-                w * 0.6f, h * 0.2f    // End of first curve
-            )
-            cubicTo(
-                w * 0.7f, h * 0.35f,  // Control 1
-                w * 0.9f, h * 0.3f,   // Control 2
-                w, h * 0.45f          // Hit right edge
-            )
+            moveTo(w, 0f)
+            lineTo(w * 0.2f, 0f)
+            
+            // Animating control points
+            val p1x = w * 0.25f + waveOffset(phase1)
+            val p1y = h * 0.15f + waveCosOffset(phase1)
+            val p2x = w * 0.5f + waveOffset(phase2, 0.5f)
+            val p2y = h * 0.05f + waveCosOffset(phase2, 0.5f)
+            val end1x = w * 0.6f + waveOffset(phase1 + 1f)
+            val end1y = h * 0.2f + waveCosOffset(phase1 + 1f)
+            
+            cubicTo(p1x, p1y, p2x, p2y, end1x, end1y)
+            
+            val p3x = w * 0.7f + waveOffset(phase2 + 2f)
+            val p3y = h * 0.35f + waveCosOffset(phase2 + 2f)
+            val p4x = w * 0.9f + waveOffset(phase1 + 3f)
+            val p4y = h * 0.3f + waveCosOffset(phase1 + 3f)
+            
+            cubicTo(p3x, p3y, p4x, p4y, w, h * 0.45f)
             close()
         }
         drawOrganicShape(topRightPath, palette.getOrElse(0) { Color.Gray })
 
 
-        // 2. MIDDLE LEFT: Large wave flowing from left side
+        // 2. MIDDLE LEFT: Animated
         val midLeftPath = Path().apply {
             moveTo(0f, h * 0.25f)
-            cubicTo(
-                w * 0.3f, h * 0.2f,
-                w * 0.5f, h * 0.35f,
-                w * 0.4f, h * 0.5f
-            )
-            cubicTo(
-                w * 0.3f, h * 0.65f,
-                w * 0.15f, h * 0.6f,
-                0f, h * 0.7f
-            )
+            
+            val p1x = w * 0.3f + waveOffset(phase2)
+            val p1y = h * 0.2f + waveCosOffset(phase2)
+            val p2x = w * 0.5f + waveOffset(phase1, 1.2f)
+            val p2y = h * 0.35f + waveCosOffset(phase1)
+            val end1x = w * 0.4f + waveOffset(phase2 + 1f)
+            val end1y = h * 0.5f + waveCosOffset(phase2 + 1f)
+            
+            cubicTo(p1x, p1y, p2x, p2y, end1x, end1y)
+            
+            val p3x = w * 0.3f + waveOffset(phase1 + 2f)
+            val p3y = h * 0.65f + waveCosOffset(phase1 + 2f)
+            val p4x = w * 0.15f + waveOffset(phase2 + 3f)
+            val p4y = h * 0.6f + waveCosOffset(phase2 + 3f)
+            
+            cubicTo(p3x, p3y, p4x, p4y, 0f, h * 0.7f)
             close()
         }
         drawOrganicShape(midLeftPath, palette.getOrElse(1) { Color.Gray })
         
         
-        // 3. BOTTOM RIGHT: Large wave flowing from bottom right
+        // 3. BOTTOM RIGHT: Animated
         val bottomRightPath = Path().apply {
             moveTo(w, h)
             lineTo(w * 0.4f, h)
-            cubicTo(
-                w * 0.45f, h * 0.85f,
-                w * 0.6f, h * 0.9f,
-                w * 0.7f, h * 0.8f
-            )
-            cubicTo(
-                w * 0.8f, h * 0.7f,
-                w * 0.95f, h * 0.75f,
-                w, h * 0.6f
-            )
+            
+            val p1x = w * 0.45f + waveOffset(phase1 + 0.5f)
+            val p1y = h * 0.85f + waveCosOffset(phase1 + 0.5f)
+            val p2x = w * 0.6f + waveOffset(phase2 + 0.5f)
+            val p2y = h * 0.9f + waveCosOffset(phase2 + 0.5f)
+            val end1x = w * 0.7f + waveOffset(phase1 + 2.5f)
+            val end1y = h * 0.8f + waveCosOffset(phase1 + 2.5f)
+
+            cubicTo(p1x, p1y, p2x, p2y, end1x, end1y)
+            
+            val p3x = w * 0.8f + waveOffset(phase2 + 3.5f)
+            val p3y = h * 0.7f + waveCosOffset(phase2 + 3.5f)
+            val p4x = w * 0.95f + waveOffset(phase1 + 4.5f)
+            val p4y = h * 0.75f + waveCosOffset(phase1 + 4.5f)
+            
+            cubicTo(p3x, p3y, p4x, p4y, w, h * 0.6f)
             close()
         }
         drawOrganicShape(bottomRightPath, palette.getOrElse(2) { Color.Gray })
 
         
-        // 4. CENTER FLOATING BLOB (Optional, for depth)
-        // Positioned in the empty space between the other shapes
+        // 4. CENTER FLOATING BLOB: More movement
         val centerBlobPath = Path().apply {
-            val cx = w * 0.75f
-            val cy = h * 0.6f
-            val r = w * 0.15f // Radius-ish
+            // Center point moves slightly
+            val cx = w * 0.75f + waveOffset(phase2, 0.5f)
+            val cy = h * 0.6f + waveCosOffset(phase1, 0.5f)
+            val r = w * 0.15f
             
-            moveTo(cx, cy - r)
+            // Breathing radius
+            val breath = r + sin(phase1 * 2f) * (r * 0.05f) 
+            
+            moveTo(cx, cy - breath)
             cubicTo(
-                cx + r, cy - r,
-                cx + r * 1.5f, cy + r,
-                cx, cy + r
+                cx + breath, cy - breath,
+                cx + breath * 1.5f, cy + breath,
+                cx, cy + breath
             )
             cubicTo(
-                cx - r * 1.2f, cy + r * 0.8f,
-                cx - r, cy - r * 0.5f,
-                cx, cy - r
+                cx - breath * 1.2f, cy + breath * 0.8f,
+                cx - breath, cy - breath * 0.5f,
+                cx, cy - breath
             )
             close()
         }
