@@ -51,53 +51,13 @@ fun LiquidHomeScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp)) 
-
-        // 1. Header (Standard Liquid Header)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Xtra Kernel ",
-                        style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "Manager",
-                        style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                Text(
-                    text = "v${BuildConfig.VERSION_NAME} • ${BuildConfig.BUILD_DATE}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            FilledTonalIconButton(
-                onClick = onSettingsClick,
-                modifier = Modifier.size(if (isCompact) 36.dp else 44.dp),
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Settings,
-                    contentDescription = "Settings",
-                    modifier = Modifier.size(dimens.iconSizeMedium),
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(4.dp)) // Reduced top spacing
+ 
+        // 1. Header (Redesigned Liquid Header)
+        LiquidHeader(
+            onSettingsClick = onSettingsClick,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
         // 2. Liquid Device Card
         LiquidDeviceCard(systemInfo = systemInfo, modifier = Modifier.fillMaxWidth())
