@@ -26,5 +26,6 @@ data class ClusterInfo(
     val currentMaxFreq: Int,
     val governor: String,
     val availableGovernors: List<String>,
+    val availableFrequencies: List<Int> = emptyList(),
     val policyPath: String,
 )
