@@ -362,6 +362,13 @@ class KernelRepository {
                     ?.toIntOrNull()
                 ?: 0
 
+        // GPU Temperature: Scan thermal zones
+        val thermalZones = NativeLib.readThermalZones()
+        val gpuTemp = thermalZones.find { zone ->
+            val name = zone.name.lowercase()
+            name.contains("gpu") || name.contains("adreno") || name.contains("mali") || name.contains("3d")
+        }?.temp ?: 0f
+
         GPUInfo(
             vendor = vendor ?: "Unknown",
             renderer = renderer ?: "Unknown",
@@ -371,6 +378,7 @@ class KernelRepository {
             maxFreq = maxFreq,
             availableFreqs = availableFreqs,
             gpuLoad = gpuLoad,
+            temperature = gpuTemp,
         )
       }
 
