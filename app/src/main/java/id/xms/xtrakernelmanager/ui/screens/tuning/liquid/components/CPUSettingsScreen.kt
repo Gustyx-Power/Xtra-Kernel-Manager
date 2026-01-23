@@ -216,6 +216,7 @@ private fun ModernClusterCard(
               label = stringResource(R.string.min_frequency),
               value = minFreqSlider,
               range = cluster.minFreq.toFloat()..cluster.maxFreq.toFloat(),
+              availableFrequencies = cluster.availableFrequencies,
               color = MaterialTheme.colorScheme.primary,
               onValueChange = {
                 minFreqSlider = it
@@ -234,6 +235,7 @@ private fun ModernClusterCard(
               label = stringResource(R.string.max_frequency),
               value = maxFreqSlider,
               range = cluster.minFreq.toFloat()..cluster.maxFreq.toFloat(),
+              availableFrequencies = cluster.availableFrequencies,
               color = MaterialTheme.colorScheme.tertiary,
               onValueChange = {
                 maxFreqSlider = it
@@ -281,6 +283,7 @@ private fun FrequencyControl(
     label: String,
     value: Float,
     range: ClosedFloatingPointRange<Float>,
+    availableFrequencies: List<Int>,
     color: Color,
     onValueChange: (Float) -> Unit,
     onValueChangeFinished: () -> Unit,
@@ -304,19 +307,49 @@ private fun FrequencyControl(
           color = color,
       )
     }
-    Slider(
-        value = value,
-        onValueChange = onValueChange,
-        onValueChangeFinished = onValueChangeFinished,
-        valueRange = range,
-        steps = 10,
-        colors =
-            SliderDefaults.colors(
-                thumbColor = color,
-                activeTrackColor = color,
-                inactiveTrackColor = color.copy(alpha = 0.2f),
-            ),
-    )
+
+    if (availableFrequencies.isNotEmpty()) {
+      // Discrete Slider for available frequencies
+      val sortedFreqs = remember(availableFrequencies) { availableFrequencies.sorted() }
+      // Find closest index for current value
+      val currentIndex =
+          remember(value, sortedFreqs) {
+            val idx = sortedFreqs.indexOfFirst { it >= value }
+            if (idx == -1) sortedFreqs.lastIndex else idx
+          }
+
+      Slider(
+          value = currentIndex.toFloat(),
+          onValueChange = { index ->
+            val freq = sortedFreqs.getOrElse(index.toInt()) { sortedFreqs.last() }
+            onValueChange(freq.toFloat())
+          },
+          onValueChangeFinished = onValueChangeFinished,
+          valueRange = 0f..(sortedFreqs.size - 1).toFloat(),
+          steps = if (sortedFreqs.size > 1) sortedFreqs.size - 2 else 0,
+          colors =
+              SliderDefaults.colors(
+                  thumbColor = color,
+                  activeTrackColor = color,
+                  inactiveTrackColor = color.copy(alpha = 0.2f),
+              ),
+      )
+    } else {
+      // Continuous Slider fallback
+      Slider(
+          value = value,
+          onValueChange = onValueChange,
+          onValueChangeFinished = onValueChangeFinished,
+          valueRange = range,
+          steps = 10,
+          colors =
+              SliderDefaults.colors(
+                  thumbColor = color,
+                  activeTrackColor = color,
+                  inactiveTrackColor = color.copy(alpha = 0.2f),
+              ),
+      )
+    }
   }
 }
 
