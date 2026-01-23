@@ -12,4 +12,5 @@ data class GPUInfo(
     val numPwrLevels: Int = 8,
     val rendererType: String = "OpenGL",
     val gpuLoad: Int = 0, // GPU busy percentage (0-100)
+    val temperature: Float = 0f,
 )
