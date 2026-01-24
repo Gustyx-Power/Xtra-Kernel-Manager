@@ -5,12 +5,19 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import id.xms.xtrakernelmanager.data.model.CPULockState
+import id.xms.xtrakernelmanager.data.model.CpuClusterLockConfig
+import id.xms.xtrakernelmanager.data.model.LockPolicyType
+import id.xms.xtrakernelmanager.data.model.OriginalFreqConfig
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 private val Context.dataStore: DataStore<Preferences> by
     preferencesDataStore(name = "xtra_settings")
@@ -97,6 +104,18 @@ class PreferencesManager(private val context: Context) {
   private val GPU_FREQUENCY_LOCKED = booleanPreferencesKey("gpu_frequency_locked")
   private val GPU_LOCKED_MIN_FREQ = intPreferencesKey("gpu_locked_min_freq")
   private val GPU_LOCKED_MAX_FREQ = intPreferencesKey("gpu_locked_max_freq")
+
+  // CPU Lock State preferences
+  private val CPU_FREQUENCY_LOCKED = booleanPreferencesKey("cpu_frequency_locked")
+  private val CPU_LOCKED_CLUSTERS = stringPreferencesKey("cpu_locked_clusters") // JSON
+  private val CPU_LOCK_POLICY_TYPE = stringPreferencesKey("cpu_lock_policy_type")
+  private val CPU_LOCK_THERMAL_POLICY = stringPreferencesKey("cpu_lock_thermal_policy")
+  private val CPU_LOCK_ORIGINAL_FREQS = stringPreferencesKey("cpu_lock_original_freqs") // JSON
+  private val CPU_LOCK_THERMAL_OVERRIDE = booleanPreferencesKey("cpu_lock_thermal_override")
+  private val CPU_LOCK_LAST_UPDATE = longPreferencesKey("cpu_lock_last_update")
+  private val CPU_LOCK_RETRY_COUNT = intPreferencesKey("cpu_lock_retry_count")
+  private val CPU_LOCK_LAST_RETRY_TIME = longPreferencesKey("cpu_lock_last_retry_time")
+  private val CPU_LOCK_LAST_TEMPERATURE = floatPreferencesKey("cpu_lock_last_temperature")
 
   // Holiday celebration preferences
   private val CHRISTMAS_SHOWN_YEAR = intPreferencesKey("christmas_shown_year")
@@ -273,6 +292,128 @@ class PreferencesManager(private val context: Context) {
 
   fun getGpuLockedMaxFreq(): Flow<Int> =
       context.dataStore.data.map { prefs -> prefs[GPU_LOCKED_MAX_FREQ] ?: 0 }
+
+  // CPU Lock State Functions
+  suspend fun setCpuLockState(
+      locked: Boolean,
+      clusterConfigs: Map<Int, CpuClusterLockConfig>,
+      policyType: LockPolicyType,
+      thermalPolicy: String,
+      originalFreqs: Map<Int, OriginalFreqConfig>
+  ) {
+    context.dataStore.edit { prefs ->
+      prefs[CPU_FREQUENCY_LOCKED] = locked
+      prefs[CPU_LOCKED_CLUSTERS] = Json.encodeToString(clusterConfigs)
+      prefs[CPU_LOCK_POLICY_TYPE] = policyType.name
+      prefs[CPU_LOCK_THERMAL_POLICY] = thermalPolicy
+      prefs[CPU_LOCK_ORIGINAL_FREQS] = Json.encodeToString(originalFreqs)
+      prefs[CPU_LOCK_LAST_UPDATE] = System.currentTimeMillis()
+      prefs[CPU_LOCK_THERMAL_OVERRIDE] = false
+    }
+  }
+
+  suspend fun clearCpuLockState() {
+    context.dataStore.edit { prefs ->
+      prefs[CPU_FREQUENCY_LOCKED] = false
+      prefs[CPU_LOCKED_CLUSTERS] = "{}"
+      prefs[CPU_LOCK_POLICY_TYPE] = LockPolicyType.MANUAL.name
+      prefs[CPU_LOCK_THERMAL_POLICY] = "PolicyB"
+      prefs[CPU_LOCK_ORIGINAL_FREQS] = "{}"
+      prefs[CPU_LOCK_THERMAL_OVERRIDE] = false
+      prefs[CPU_LOCK_RETRY_COUNT] = 0
+      prefs[CPU_LOCK_LAST_RETRY_TIME] = 0L
+      prefs[CPU_LOCK_LAST_UPDATE] = 0L
+      prefs[CPU_LOCK_LAST_TEMPERATURE] = 0f
+    }
+  }
+
+  suspend fun updateCpuLockThermalOverride(overrideActive: Boolean) {
+    context.dataStore.edit { prefs ->
+      prefs[CPU_LOCK_THERMAL_OVERRIDE] = overrideActive
+    }
+  }
+
+  suspend fun updateCpuLockTemperature(temperature: Float) {
+    context.dataStore.edit { prefs ->
+      prefs[CPU_LOCK_LAST_TEMPERATURE] = temperature
+    }
+  }
+
+  suspend fun incrementCpuLockRetry() {
+    context.dataStore.edit { prefs ->
+      val currentCount = prefs[CPU_LOCK_RETRY_COUNT] ?: 0
+      val lastRetryTime = prefs[CPU_LOCK_LAST_RETRY_TIME] ?: 0L
+      val now = System.currentTimeMillis()
+      
+      // Reset count if more than an hour has passed
+      if (now - lastRetryTime > 3600_000L) {
+        prefs[CPU_LOCK_RETRY_COUNT] = 1
+      } else {
+        prefs[CPU_LOCK_RETRY_COUNT] = currentCount + 1
+      }
+      prefs[CPU_LOCK_LAST_RETRY_TIME] = now
+    }
+  }
+
+  fun isCpuFrequencyLocked(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[CPU_FREQUENCY_LOCKED] ?: false }
+
+  fun getCpuLockState(): Flow<CPULockState> =
+      context.dataStore.data.map { prefs ->
+        try {
+          val locked = prefs[CPU_FREQUENCY_LOCKED] ?: false
+          val clusterConfigsJson = prefs[CPU_LOCKED_CLUSTERS] ?: "{}"
+          val policyType = prefs[CPU_LOCK_POLICY_TYPE] ?: LockPolicyType.MANUAL.name
+          val thermalPolicy = prefs[CPU_LOCK_THERMAL_POLICY] ?: "PolicyB"
+          val originalFreqsJson = prefs[CPU_LOCK_ORIGINAL_FREQS] ?: "{}"
+          val thermalOverride = prefs[CPU_LOCK_THERMAL_OVERRIDE] ?: false
+          val lastUpdate = prefs[CPU_LOCK_LAST_UPDATE] ?: 0L
+          val lastTemperature = prefs[CPU_LOCK_LAST_TEMPERATURE] ?: 0f
+          val retryCount = prefs[CPU_LOCK_RETRY_COUNT] ?: 0
+          val lastRetryTime = prefs[CPU_LOCK_LAST_RETRY_TIME] ?: 0L
+
+          val clusterConfigs = Json.decodeFromString<Map<Int, CpuClusterLockConfig>>(clusterConfigsJson)
+          val originalFreqs = Json.decodeFromString<Map<Int, OriginalFreqConfig>>(originalFreqsJson)
+
+          CPULockState(
+              isLocked = locked,
+              clusterConfigs = clusterConfigs,
+              policyType = LockPolicyType.valueOf(policyType),
+              thermalPolicy = thermalPolicy,
+              lastUpdate = lastUpdate,
+              lastTemperature = lastTemperature,
+              isThermalOverrideActive = thermalOverride,
+              originalFrequencies = originalFreqs,
+              retryCount = retryCount,
+              lastRetryTime = lastRetryTime
+          )
+        } catch (e: Exception) {
+          // Return default state on error
+          CPULockState()
+        }
+      }
+
+  fun getCpuLockRetryCount(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[CPU_LOCK_RETRY_COUNT] ?: 0 }
+
+  fun getCpuLockLastRetryTime(): Flow<Long> =
+      context.dataStore.data.map { prefs -> prefs[CPU_LOCK_LAST_RETRY_TIME] ?: 0L }
+
+  fun getCpuLockLastTemperature(): Flow<Float> =
+      context.dataStore.data.map { prefs -> prefs[CPU_LOCK_LAST_TEMPERATURE] ?: 0f }
+
+  fun getCpuLockPolicyType(): Flow<LockPolicyType> =
+      context.dataStore.data.map { prefs ->
+        val policyName = prefs[CPU_LOCK_POLICY_TYPE] ?: LockPolicyType.MANUAL.name
+        try {
+          LockPolicyType.valueOf(policyName)
+        } catch (e: Exception) {
+          LockPolicyType.MANUAL
+        }
+      }
+
+  fun getCpuLockThermalPolicy(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[CPU_LOCK_THERMAL_POLICY] ?: "PolicyB" }
 
   // Game Apps (apps that trigger game overlay)
   suspend fun saveGameApps(jsonString: String) {
