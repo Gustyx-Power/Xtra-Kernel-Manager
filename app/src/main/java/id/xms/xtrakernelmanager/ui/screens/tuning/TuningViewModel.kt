@@ -5,10 +5,12 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.model.*
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.preferences.TomlConfigManager
+import id.xms.xtrakernelmanager.domain.SmartCPULocker
 import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import id.xms.xtrakernelmanager.domain.usecase.*
@@ -21,9 +23,14 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,6 +47,9 @@ class TuningViewModel(
     private val kernelRepository: id.xms.xtrakernelmanager.data.repository.KernelRepository =
         id.xms.xtrakernelmanager.data.repository.KernelRepository(),
 ) : ViewModel() {
+
+  // CPU Lock State - Smart CPU Locker instance
+  private val smartCpuLocker = SmartCPULocker(cpuUseCase, thermalUseCase)
 
   class Factory(private val preferencesManager: PreferencesManager) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -347,8 +357,29 @@ class TuningViewModel(
   val lockedGpuMaxFreq: StateFlow<Int>
     get() = _lockedGpuMaxFreq.asStateFlow()
 
+  // CPU Lock State - persists across UI changes
+  private val _isCpuFrequencyLocked = MutableStateFlow(false)
+  val isCpuFrequencyLocked: StateFlow<Boolean>
+    get() = _isCpuFrequencyLocked.asStateFlow()
+
+  private val _cpuLockStatus = MutableStateFlow<LockStatus?>(null)
+  val cpuLockStatus: StateFlow<LockStatus?>
+    get() = _cpuLockStatus.asStateFlow()
+
+  private val _thermalEvents = MutableStateFlow<ThermalEvent?>(null)
+  val thermalEvents: StateFlow<ThermalEvent?>
+    get() = _thermalEvents.asStateFlow()
+
+  // User notifications
+  private val _cpuLockNotifications = MutableStateFlow<String?>(null)
+  val cpuLockNotifications: StateFlow<String?>
+    get() = _cpuLockNotifications.asStateFlow()
+
   // Auto-refresh control
   private val _isRefreshEnabled = MutableStateFlow(true)
+
+  // User interaction control to prevent refresh conflicts
+  private val _isUserAdjusting = MutableStateFlow(false)
 
   // Static data cache flags
   private var staticDataLoaded = false
@@ -379,6 +410,9 @@ class TuningViewModel(
 
       // Load saved GPU lock state
       loadGpuLockState()
+
+      // Load CPU lock state
+      loadCpuLockState()
 
       checkRootAndLoadData()
       applySavedCoreStates()
@@ -481,8 +515,14 @@ class TuningViewModel(
 
   // Lightweight refresh - only dynamic data (called every 5s)
   private suspend fun refreshDynamicValues() {
+    // Skip refresh if user is currently adjusting values
+    if (_isUserAdjusting.value) {
+      return
+    }
+    
     val updatedClusters = cpuUseCase.detectClusters()
     _cpuClusters.value = updatedClusters
+    Log.d("TuningViewModel", "Refreshed clusters: ${updatedClusters.size} clusters")
 
     if (!_isMediatek.value) {
       _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
@@ -726,12 +766,13 @@ class TuningViewModel(
 
   fun disableCPUCore(core: Int, disable: Boolean) {
     viewModelScope.launch {
-      Log.d("TuningViewModel", "Set core $core online = ${!disable}")
-      val result = cpuUseCase.setCoreOnline(core, !disable)
-      Log.d("TuningViewModel", "Result of setCoreOnline for core $core: $result")
       preferencesManager.setCpuCoreEnabled(core, !disable)
-      delay(500)
-      refreshCurrentValues()
+    }
+  }
+
+  fun setCpuCoreEnabled(core: Int, enabled: Boolean) {
+    viewModelScope.launch {
+      preferencesManager.setCpuCoreEnabled(core, enabled)
     }
   }
 
@@ -1137,15 +1178,210 @@ class TuningViewModel(
     monitoringJob = null
   }
 
-  override fun onCleared() {
-    super.onCleared()
-    stopRealTimeMonitoring()
-  }
+
 
   fun refreshData() {
     // Force a full refresh
     viewModelScope.launch { refreshCurrentValues() }
   }
+
+  // CPU Lock State Management
+  private suspend fun loadCpuLockState() {
+    val lockState = preferencesManager.getCpuLockState().first()
+    
+    // Subscribe to smart locker events
+    viewModelScope.launch {
+      smartCpuLocker.thermalEvents.collect { event ->
+        _thermalEvents.value = event
+        // Update preferences with thermal override status
+        preferencesManager.updateCpuLockThermalOverride(
+          event.type in listOf(ThermalEventType.EMERGENCY, ThermalEventType.CRITICAL)
+        )
+        preferencesManager.updateCpuLockTemperature(event.temperature)
+      }
+    }
+    
+    viewModelScope.launch {
+      smartCpuLocker.lockState.collect { state ->
+        _cpuLockStatus.value = smartCpuLocker.getLockStatus()
+      }
+    }
+    
+    if (lockState.isLocked) {
+      _isCpuFrequencyLocked.value = true
+      
+      // Restore lock state to system
+      val clusterConfigs = lockState.clusterConfigs.mapValues { (_, config) ->
+        config
+      }
+      val result = smartCpuLocker.lockCpuFrequencies(
+        clusterConfigs,
+        lockState.policyType,
+        lockState.thermalPolicy
+      )
+      
+      when (result) {
+        is SmartLockResult.Success,
+        is SmartLockResult.SuccessWithWarning -> {
+          _cpuLockStatus.value = smartCpuLocker.getLockStatus()
+          Log.d("TuningViewModel", "CPU lock state restored successfully")
+        }
+        is SmartLockResult.Error -> {
+          Log.e("TuningViewModel", "Failed to restore CPU lock", result.throwable)
+          // Clear invalid state
+          preferencesManager.clearCpuLockState()
+          _isCpuFrequencyLocked.value = false
+        }
+        is SmartLockResult.PartialSuccess -> {
+          _cpuLockStatus.value = smartCpuLocker.getLockStatus()
+          Log.w("TuningViewModel", "CPU lock partially restored: ${result.successClusters}")
+        }
+        else -> { /* Handle other cases */ }
+      }
+    }
+  }
+
+  fun lockCpuFrequencies(
+    clusterConfigs: Map<Int, CpuClusterLockConfig>,
+    policyType: LockPolicyType = LockPolicyType.MANUAL,
+    thermalPolicy: String = "PolicyB"
+  ) {
+    viewModelScope.launch {
+      val result = smartCpuLocker.lockCpuFrequencies(
+        clusterConfigs,
+        policyType,
+        thermalPolicy
+      )
+      
+      when (result) {
+        is SmartLockResult.Success,
+        is SmartLockResult.SuccessWithWarning -> {
+          _isCpuFrequencyLocked.value = true
+          
+          // Save to preferences
+          val originalFreqs = getCurrentFrequencies()
+          preferencesManager.setCpuLockState(
+            locked = true,
+            clusterConfigs = clusterConfigs,
+            policyType = policyType,
+            thermalPolicy = thermalPolicy,
+            originalFreqs = originalFreqs
+          )
+          
+          _cpuLockStatus.value = smartCpuLocker.getLockStatus()
+          Log.d("TuningViewModel", "CPU frequencies locked successfully")
+        }
+        is SmartLockResult.Error -> {
+          Log.e("TuningViewModel", "CPU lock failed", result.throwable)
+          // Could show user notification here
+        }
+        is SmartLockResult.AlreadyLocked -> {
+          Log.d("TuningViewModel", "CPU already locked")
+        }
+        is SmartLockResult.PartialSuccess -> {
+          _isCpuFrequencyLocked.value = true
+          // Save partial state
+          val successfulConfigs = clusterConfigs.filterKeys { it !in result.failedClusters }
+          val originalFreqs = getCurrentFrequencies()
+          preferencesManager.setCpuLockState(
+            locked = true,
+            clusterConfigs = successfulConfigs,
+            policyType = policyType,
+            thermalPolicy = thermalPolicy,
+            originalFreqs = originalFreqs
+          )
+          Log.w("TuningViewModel", "CPU lock partially successful: ${result.successClusters}")
+        }
+        is SmartLockResult.RetryExceeded -> {
+          Log.w("TuningViewModel", "CPU lock retry exceeded: ${result.retryCount}")
+          preferencesManager.incrementCpuLockRetry()
+        }
+        else -> { /* Handle other cases */ }
+      }
+      
+      // Refresh UI state
+      refreshDynamicValues()
+    }
+  }
+
+  fun unlockCpuFrequencies() {
+    viewModelScope.launch {
+      val result = smartCpuLocker.unlockCpuFrequencies()
+      
+      when (result) {
+        is SmartLockResult.Success,
+        is SmartLockResult.SuccessWithWarning -> {
+          _isCpuFrequencyLocked.value = false
+          preferencesManager.clearCpuLockState()
+          _cpuLockStatus.value = null
+          Log.d("TuningViewModel", "CPU frequencies unlocked successfully")
+        }
+        is SmartLockResult.Error -> {
+          Log.e("TuningViewModel", "CPU unlock failed", result.throwable)
+        }
+        is SmartLockResult.NotLocked -> {
+          Log.d("TuningViewModel", "CPU not locked")
+        }
+        else -> { /* Handle other cases */ }
+      }
+      
+      // Refresh UI state
+      refreshDynamicValues()
+    }
+  }
+
+  private suspend fun getCurrentFrequencies(): Map<Int, OriginalFreqConfig> {
+    val clusters = cpuUseCase.detectClusters()
+    return clusters.associate { cluster ->
+      cluster.clusterNumber to OriginalFreqConfig(
+        minFreq = cluster.currentMinFreq,
+        maxFreq = cluster.currentMaxFreq,
+        governor = cluster.governor
+      )
+    }
+  }
+
+  fun getCpuLockPolicyType(): StateFlow<LockPolicyType> {
+    return preferencesManager.getCpuLockPolicyType()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LockPolicyType.MANUAL)
+  }
+
+  fun getCpuLockThermalPolicy(): StateFlow<String> {
+    return preferencesManager.getCpuLockThermalPolicy()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+  }
+
+  fun getCpuLockRetryCount(): StateFlow<Int> {
+    val flow = preferencesManager.getCpuLockRetryCount()
+    return flow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+  }
+
+  // User interaction control methods
+  fun startUserAdjusting() {
+    _isUserAdjusting.value = true
+  }
+
+  fun endUserAdjusting() {
+    _isUserAdjusting.value = false
+    // Refresh once after user finishes adjusting
+    viewModelScope.launch {
+      delay(500) // Wait a bit for hardware to apply
+      refreshDynamicValues()
+    }
+  }
+
+  fun isUserAdjusting(): StateFlow<Boolean> = _isUserAdjusting.asStateFlow()
+
+  // Notification methods
+  fun showCpuLockNotification(message: String) {
+    _cpuLockNotifications.value = message
+  }
+
+  fun clearCpuLockNotification() {
+    _cpuLockNotifications.value = null
+  }
+
+
 }
 
 sealed class ImportResult {
