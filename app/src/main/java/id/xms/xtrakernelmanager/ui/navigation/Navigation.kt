@@ -42,7 +42,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.CPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.utils.Holiday
@@ -183,7 +183,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         composable("legacy_cpu_settings") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          CPUSettingsScreen(
+          LiquidCPUSettingsScreen(
               viewModel = tuningViewModel,
               onNavigateBack = { navController.popBackStack() },
           )
