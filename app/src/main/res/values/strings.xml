@@ -27,6 +27,19 @@
     <string name="cpu_load">Load</string>
     <string name="load">%1$s%% Load</string>
 
+    <!-- CPU Lock Messages -->
+    <string name="cpu_lock_success">CPU frequencies locked successfully</string>
+    <string name="cpu_lock_failed">Failed to lock CPU: %s</string>
+    <string name="cpu_lock_governor_incompatible">Governor %s is not compatible with frequency locking</string>
+    <string name="cpu_lock_thermal_override">Thermal override activated for safety</string>
+    <string name="cpu_lock_thermal_restored">Lock restored after cooldown</string>
+    <string name="cpu_lock_governor_changed">Governor changed to %s for locking</string>
+    <string name="cpu_lock_verify_failed">Lock verification failed - retrying...</string>
+    <string name="cpu_lock_retry_exceeded">Maximum retry attempts exceeded. Please try again later.</string>
+    <string name="cpu_lock_incompatible_governors">Current governors (%s) are not compatible with frequency locking</string>
+    <string name="cpu_lock_smart_mode_activated">Smart Mode activated with thermal monitoring</string>
+    <string name="tap_to_dismiss">Tap to dismiss</string>
+
     <!-- GPU Information -->
     <string name="gpu_info">GPU Information</string>
     <string name="gpu_information">GPU Information</string>
