@@ -1,8 +1,10 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -21,7 +23,13 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.TuningConfig
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidGPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidRAMSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidAdditionalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -45,6 +53,14 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
   var pendingImportConfig by remember { mutableStateOf<TuningConfig?>(null) }
   var isImporting by remember { mutableStateOf(false) }
   var detectionTimeoutReached by remember { mutableStateOf(false) }
+  
+  // Internal Navigation State
+  var currentRoute by remember { mutableStateOf("main") }
+
+  // Handle Back Press
+  BackHandler(enabled = currentRoute != "main") {
+      currentRoute = "main"
+  }
 
   val exportLauncher =
       rememberLauncherForActivityResult(
@@ -53,8 +69,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
         uri?.let {
           scope.launch {
             try {
-              viewModel
-                  .getExportFileName() // Assuming usage for file name generaton logic inside VM
+              viewModel.getExportFileName() 
               val success = viewModel.exportConfigToUri(context, it)
               Toast.makeText(
                       context,
@@ -143,16 +158,44 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           onImportConfig = { showImportDialog = true },
       )
     } else {
-      LiquidTuningScreen(
-          viewModel = viewModel,
-          preferencesManager = preferencesManager,
-          isRootAvailable = isRootAvailable,
-          isLoading = isLoading,
-          detectionTimeoutReached = detectionTimeoutReached,
-          onExportClick = { showExportDialog = true },
-          onImportClick = { showImportDialog = true },
-          onNavigate = onNavigate,
-      )
+      // Internal Navigation Handling
+      AnimatedContent(
+          targetState = currentRoute,
+          transitionSpec = {
+              if (targetState != "main") {
+                  slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+              } else {
+                  slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+              }
+          }
+      ) { route ->
+          when (route) {
+              "main" -> LiquidTuningScreen(
+                  viewModel = viewModel,
+                  preferencesManager = preferencesManager,
+                  isRootAvailable = isRootAvailable,
+                  isLoading = isLoading,
+                  detectionTimeoutReached = detectionTimeoutReached,
+                  onExportClick = { showExportDialog = true },
+                  onImportClick = { showImportDialog = true },
+                  onNavigate = { dest ->
+                      // Check if it's one of our internal routes
+                      if (dest.startsWith("liquid_")) {
+                          currentRoute = dest
+                      } else {
+                          onNavigate(dest) // Pass up if unknown (e.g. legacy)
+                      }
+                  },
+              )
+              // Detail Screens
+              "liquid_cpu_settings" -> LiquidCPUSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_gpu_settings" -> LiquidGPUSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_ram_settings" -> LiquidRAMSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_thermal_settings" -> LiquidThermalSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_additional_settings" -> LiquidAdditionalSettingsScreen(viewModel, preferencesManager) { currentRoute = "main" }
+              else -> Text("Unknown route: $route")
+          }
+      }
     }
 
     // Export Confirmation Dialog
