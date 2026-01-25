@@ -104,11 +104,11 @@ fun LiquidTuningScreen(
         
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(horizontal = 48.dp),
+            contentPadding = PaddingValues(horizontal = 32.dp),
             pageSpacing = 16.dp,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(550.dp)
+                .height(650.dp)
         ) { page ->
             
             val pageOffset = (
