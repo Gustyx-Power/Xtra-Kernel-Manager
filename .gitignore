@@ -102,3 +102,11 @@ google-services.json
 .last-build-commit
 keystore-repo/
 build.sh
+
+# Additional folders to ignore
+.kiro/
+.github/
+.vscode/
+.kotlin/
+.gradle/
+pico.save
