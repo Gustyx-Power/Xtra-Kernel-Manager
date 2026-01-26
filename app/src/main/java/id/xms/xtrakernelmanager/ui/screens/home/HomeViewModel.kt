@@ -65,7 +65,32 @@ class HomeViewModel : ViewModel() {
 
             context?.let {
               val bat = BatteryRepository.getBatteryInfo(it)
-              val pwr = powerRepository.getPowerInfo(it)
+              val pwrRepo = powerRepository.getPowerInfo(it)
+              
+              // Prefer Service-tracked real-time data if available (no permission needed)
+              val serviceState = BatteryRepository.batteryState.value
+              val useServiceData = serviceState.screenOnTime > 0 || serviceState.screenOffTime > 0
+              
+              val pwr = if (useServiceData) {
+                  pwrRepo.copy(
+                      screenOnTime = serviceState.screenOnTime,
+                      screenOffTime = serviceState.screenOffTime,
+                      deepSleepPercentage = 
+                          if (serviceState.screenOnTime + serviceState.screenOffTime > 0) 
+                              (serviceState.deepSleepTime.toFloat() / serviceState.screenOffTime.coerceAtLeast(1) * 100f).coerceIn(0f, 100f)
+                          else 0f,
+                      activeDrainRate = serviceState.activeDrainRate,
+                      idleDrainRate = serviceState.idleDrainRate,
+                      drainRate = serviceState.currentNow, // Uses native mA
+                      batteryLevel = serviceState.level,
+                      batteryTemp = serviceState.temp / 10f,
+                      batteryVoltage = serviceState.voltage / 1000f,
+                      isCharging = serviceState.isCharging
+                  )
+              } else {
+                  pwrRepo
+              }
+              
               _batteryInfo.value = bat
               _powerInfo.value = pwr
             }

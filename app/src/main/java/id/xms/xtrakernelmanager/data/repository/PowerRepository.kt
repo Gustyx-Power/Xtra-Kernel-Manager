@@ -21,7 +21,12 @@ class PowerRepository {
   /** Get complete power information */
   suspend fun getPowerInfo(context: Context): PowerInfo =
       withContext(Dispatchers.IO) {
-        val (screenOnTime, screenOffTime) = getScreenOnOffTime(context)
+        val hasPermission = hasUsageStatsPermission(context)
+        val (screenOnTime, screenOffTime) = if (hasPermission) {
+             getScreenOnOffTime(context)
+        } else {
+             Pair(0L, 0L)
+        }
 
         val drainRate = NativeLib.readDrainRate() ?: 0
         val batteryLevel = NativeLib.readBatteryLevel() ?: 0
@@ -65,6 +70,7 @@ class PowerRepository {
             deepSleepPercentage = deepSleepPercentage,
             activeDrainRate = activeDrainRate,
             idleDrainRate = idleDrainRate,
+            isUsageStatsPermissionGranted = hasPermission,
         )
       }
 
@@ -96,12 +102,6 @@ class PowerRepository {
       var screenOffTime = 0L
       var lastEventTime = startTime
 
-      // We need to determine initial state. This is hard without previous event.
-      // But we can iterate first to find the first event.
-      // A safer heuristic: If first event is SCREEN_OFF, it implies it was ON before.
-      // If first event is SCREEN_ON, it implies it was OFF before.
-      // For simplicity and to avoid "24h" bug, we start counting ONLY after first event?
-      // Or we assume OFF initially.
       var isScreenOn = false
 
       val event = UsageEvents.Event()

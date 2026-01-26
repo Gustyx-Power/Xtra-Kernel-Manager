@@ -14,6 +14,7 @@ data class PowerInfo(
     val deepSleepPercentage: Float = 0f, // Percentage of time in deep sleep
     val activeDrainRate: Float = 0f, // %/hour drain while screen on
     val idleDrainRate: Float = 0f, // %/hour drain while screen off
+    val isUsageStatsPermissionGranted: Boolean = false,
 ) {
   /** Format screen on time as human readable string */
   fun formatScreenOnTime(): String {
