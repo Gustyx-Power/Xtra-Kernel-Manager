@@ -1,9 +1,12 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.liquid
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FolderOpen
@@ -22,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
+import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
+import id.xms.xtrakernelmanager.ui.screens.home.components.liquid.LiquidHeader
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.*
 import kotlin.math.absoluteValue
@@ -46,59 +51,88 @@ fun LiquidTuningScreen(
     // 5 Cards: CPU, GPU, Thermal, RAM, Additional
     val pagerState = rememberPagerState(pageCount = { 5 })
 
-    Scaffold(
+    // Box container with WavyBlobOrnament background
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Background Layer
+        WavyBlobOrnament(
+            modifier = Modifier.fillMaxSize()
+        )
+        
+        // Foreground Layer
+        Scaffold(
         modifier = Modifier.fillMaxSize(),
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         topBar = {
-            TopAppBar(
-                title = { 
+            id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                shape = CircleShape,
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Title
                     Text(
-                        text = "Tuning", 
-                        fontWeight = FontWeight.SemiBold, 
-                        fontSize = 24.sp
-                    ) 
-                },
-                actions = {
-                    var showMenu by remember { mutableStateOf(false) }
-
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false },
-                            shape = RoundedCornerShape(12.dp),
+                        text = "Tuning",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    // Action buttons
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Import button
+                        Surface(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("Import Profile") },
-                                onClick = {
-                                    showMenu = false
-                                    onImportClick()
-                                },
-                                leadingIcon = { Icon(Icons.Rounded.FolderOpen, contentDescription = null) },
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Export Profile") },
-                                onClick = {
-                                    showMenu = false
-                                    onExportClick()
-                                },
-                                leadingIcon = { Icon(Icons.Rounded.Save, contentDescription = null) },
-                            )
+                            IconButton(onClick = onImportClick) {
+                                Icon(
+                                    imageVector = Icons.Rounded.FolderOpen,
+                                    contentDescription = "Import Profile",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                        
+                        // Export button
+                        Surface(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            IconButton(onClick = onExportClick) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Save,
+                                    contentDescription = "Export Profile",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            )
+                }
+            }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.Center,
+                .padding(paddingValues)
+                .padding(top = 8.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
         
@@ -158,5 +192,6 @@ fun LiquidTuningScreen(
             }
         }
         }
+    }
     }
 }

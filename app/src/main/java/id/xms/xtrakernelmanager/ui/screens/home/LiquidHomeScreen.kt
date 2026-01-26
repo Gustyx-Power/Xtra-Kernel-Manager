@@ -24,6 +24,7 @@ import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.data.model.GPUInfo
 import id.xms.xtrakernelmanager.data.model.SystemInfo
+import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.screens.home.components.liquid.*
 import java.util.Locale
 
@@ -152,5 +153,5 @@ fun LiquidHomeScreen(
         }
 
         Spacer(modifier = Modifier.height(100.dp))
-    }
+        }
 }
