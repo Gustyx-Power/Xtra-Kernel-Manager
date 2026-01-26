@@ -87,6 +87,10 @@ class TuningViewModel(
   val cpuClusters: StateFlow<List<ClusterInfo>>
     get() = _cpuClusters.asStateFlow()
 
+  private val _cpuInfo = MutableStateFlow(id.xms.xtrakernelmanager.data.model.CPUInfo())
+  val cpuInfo: StateFlow<id.xms.xtrakernelmanager.data.model.CPUInfo>
+    get() = _cpuInfo.asStateFlow()
+
   private val _gpuInfo = MutableStateFlow(GPUInfo())
   val gpuInfo: StateFlow<GPUInfo>
     get() = _gpuInfo.asStateFlow()
@@ -509,6 +513,7 @@ class TuningViewModel(
 
     // Load CPU load/temp (can be slow, but UI is already visible)
     val cpuInfo = kernelRepository.getCPUInfo()
+    _cpuInfo.value = cpuInfo
     _cpuLoad.value = cpuInfo.totalLoad
     _cpuTemperature.value = cpuInfo.temperature
   }
@@ -531,8 +536,10 @@ class TuningViewModel(
     // Update temperature
     _cpuTemperature.value = overlayUseCase.getTemperature()
 
-    // Update CPU load - use KernelRepository like MaterialHomeScreen (proper delta calc)
-    _cpuLoad.value = kernelRepository.getCPUInfo().totalLoad
+    // Update CPU load and info - use KernelRepository like MaterialHomeScreen (proper delta calc)
+    val cpuInfo = kernelRepository.getCPUInfo()
+    _cpuInfo.value = cpuInfo
+    _cpuLoad.value = cpuInfo.totalLoad
 
     val states = mutableMapOf<Int, ClusterUIState>()
     updatedClusters.forEach { cluster ->

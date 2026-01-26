@@ -29,13 +29,51 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 @Composable
 fun RecentCPUCard(
     clusters: List<ClusterInfo>,
+    cpuInfo: id.xms.xtrakernelmanager.data.model.CPUInfo,
+    temperature: Float,
+    cpuLoad: Float,
     onClick: () -> Unit
 ) {
     val emeraldColor = Color(0xFF10B981)
     val totalCores = clusters.sumOf { it.cores.size }
-    val primaryCluster = clusters.firstOrNull()
-    val currentFreq = primaryCluster?.currentMaxFreq?.div(1000) ?: 0
-    val maxFreq = primaryCluster?.maxFreq?.div(1000) ?: 0
+    val onlineCores = cpuInfo.cores.count { it.isOnline }
+    
+    // Cluster 0 is the performance cluster (CPU7 - highest frequency core)
+    val performanceCluster = clusters.firstOrNull { it.clusterNumber == 0 }
+    
+    // Get actual running frequency from online cores in performance cluster (cluster 0)
+    // Find the highest running frequency among all online cores in cluster 0
+    val performanceCores = cpuInfo.cores.filter { core -> 
+        core.isOnline && performanceCluster?.cores?.contains(core.coreNumber) == true 
+    }
+    val highestRunningFreq = performanceCores.maxOfOrNull { it.currentFreq } ?: 0
+    
+    // ClusterInfo frequencies are in MHz (already converted from KHz)
+    // CoreInfo frequencies are in KHz (raw from system)
+    // Convert both to GHz for display
+    val currentFreqGHz = highestRunningFreq.toFloat() / 1000000f  // KHz to GHz
+    val maxFreqGHz = (performanceCluster?.maxFreq?.toFloat() ?: 0f) / 1000f  // MHz to GHz
+    
+    // Format to 1 decimal place
+    val currentFreqText = String.format("%.1f", currentFreqGHz)
+    val maxFreqText = String.format("%.1f", maxFreqGHz)
+    
+    // Temperature status and color
+    val (tempStatus, tempColor) = when {
+        temperature < 40f -> "Cool" to Color(0xFF3B82F6) // Blue
+        temperature < 60f -> "Normal" to emeraldColor // Green
+        temperature < 75f -> "Warm" to Color(0xFFF59E0B) // Orange
+        else -> "Hot" to Color(0xFFEF4444) // Red
+    }
+    
+    // Get SOC information
+    val socPlatform = id.xms.xtrakernelmanager.domain.native.NativeLib.getSystemProperty("ro.board.platform") ?: "Unknown"
+    val socChipname = id.xms.xtrakernelmanager.domain.native.NativeLib.getSystemProperty("ro.hardware.chipname")
+        ?: id.xms.xtrakernelmanager.domain.native.NativeLib.getSystemProperty("ro.soc.model")
+        ?: socPlatform
+    
+    // Determine process node based on SOC
+    val processNode = getProcessNode(socPlatform.lowercase(), socChipname.lowercase())
     
     GlassmorphicCard(
         modifier = Modifier
@@ -87,7 +125,7 @@ fun RecentCPUCard(
                 color = emeraldColor.copy(alpha = 0.15f)
             ) {
                 Text(
-                    text = primaryCluster?.governor?.uppercase() ?: "WALT",
+                    text = performanceCluster?.governor?.uppercase() ?: "WALT",
                     color = emeraldColor,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -103,16 +141,28 @@ fun RecentCPUCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Cores
+            // Cores Online/Total
             Column {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = "$onlineCores",
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = emeraldColor
+                    )
+                    Text(
+                        text = "/$totalCores",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
                 Text(
-                    text = "$totalCores",
-                    style = MaterialTheme.typography.displayLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = emeraldColor
-                )
-                Text(
-                    text = "Cores Active",
+                    text = "Cores Online",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -125,13 +175,13 @@ fun RecentCPUCard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "$currentFreq",
+                        text = currentFreqText,
                         style = MaterialTheme.typography.displayLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "MHz",
+                        text = "GHz",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -159,7 +209,7 @@ fun RecentCPUCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Max $maxFreq MHz",
+                    text = "Max $maxFreqText GHz",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
@@ -177,7 +227,7 @@ fun RecentCPUCard(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(
-                            if (maxFreq > 0) currentFreq.toFloat() / maxFreq else 0.5f
+                            if (maxFreqGHz > 0) currentFreqGHz / maxFreqGHz else 0.5f
                         )
                         .clip(RoundedCornerShape(4.dp))
                         .background(
@@ -199,10 +249,11 @@ fun RecentCPUCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // CPU Load
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = emeraldColor.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -216,18 +267,59 @@ fun RecentCPUCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${primaryCluster?.availableGovernors?.size ?: 0}",
+                        text = "${cpuLoad.toInt()}%",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = emeraldColor
                     )
                     Text(
-                        text = "Governors",
+                        text = "CPU Load",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
             
+            // Temperature with status
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = tempColor.copy(alpha = 0.1f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Thermostat,
+                        contentDescription = null,
+                        tint = tempColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${temperature.toInt()}°C",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = tempColor
+                    )
+                    Text(
+                        text = tempStatus,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // Additional Info Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Clusters count
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
@@ -238,19 +330,120 @@ fun RecentCPUCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Thermostat,
+                        imageVector = Icons.Default.Layers,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${clusters.size}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Clusters",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Governors count
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${performanceCluster?.availableGovernors?.size ?: 0}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Governors",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        // SOC and Process Node Row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // SOC Hardware
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = emeraldColor.copy(alpha = 0.05f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.DeveloperBoard,
                         contentDescription = null,
                         tint = emeraldColor,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Normal",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        text = socChipname.uppercase().take(10),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = emeraldColor,
+                        maxLines = 1
                     )
                     Text(
-                        text = "Temp",
+                        text = "SOC",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Process Node
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = emeraldColor.copy(alpha = 0.05f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Memory,
+                        contentDescription = null,
+                        tint = emeraldColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = processNode,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = emeraldColor
+                    )
+                    Text(
+                        text = "Process",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1107,5 +1300,83 @@ fun RecentAdditionalCard(
                 )
             }
         }
+    }
+}
+
+
+// Helper function to determine process node based on SOC
+private fun getProcessNode(platform: String, chipname: String): String {
+    return when {
+        // Snapdragon 8 Gen 3 - 4nm
+        platform.contains("pineapple") || chipname.contains("8650") || chipname.contains("sm8650") -> "4nm"
+        
+        // Snapdragon 8 Gen 2 - 4nm
+        platform.contains("kalama") || chipname.contains("8550") || chipname.contains("sm8550") -> "4nm"
+        
+        // Snapdragon 8 Gen 1 - 4nm
+        platform.contains("taro") || chipname.contains("8475") || chipname.contains("sm8475") -> "4nm"
+        platform.contains("waipio") || chipname.contains("8450") || chipname.contains("sm8450") -> "4nm"
+        
+        // Snapdragon 888 - 5nm
+        platform.contains("lahaina") || chipname.contains("888") || chipname.contains("sm8350") -> "5nm"
+        
+        // Snapdragon 870/865 - 7nm
+        platform.contains("kona") || chipname.contains("865") || chipname.contains("870") || chipname.contains("sm8250") -> "7nm"
+        
+        // Snapdragon 855 - 7nm
+        platform.contains("msmnile") || chipname.contains("855") || chipname.contains("sm8150") -> "7nm"
+        
+        // Snapdragon 845 - 10nm
+        platform.contains("sdm845") || chipname.contains("845") -> "10nm"
+        
+        // Snapdragon 7 series Gen 3 - 4nm
+        platform.contains("parrot") || chipname.contains("7s") && chipname.contains("gen3") -> "4nm"
+        
+        // Snapdragon 7 series Gen 2 - 4nm
+        chipname.contains("7+") && chipname.contains("gen2") -> "4nm"
+        chipname.contains("7") && chipname.contains("gen2") -> "4nm"
+        
+        // Snapdragon 7 series Gen 1 - 4nm
+        chipname.contains("7+") && chipname.contains("gen1") -> "4nm"
+        chipname.contains("7") && chipname.contains("gen1") -> "4nm"
+        
+        // Snapdragon 6 series - 4nm/6nm
+        chipname.contains("6") && chipname.contains("gen1") -> "4nm"
+        chipname.contains("695") || chipname.contains("690") -> "6nm"
+        chipname.contains("680") || chipname.contains("685") -> "6nm"
+        
+        // MediaTek Dimensity 9000 series - 4nm
+        chipname.contains("mt6985") || chipname.contains("9300") -> "4nm"
+        chipname.contains("mt6983") || chipname.contains("9200") -> "4nm"
+        chipname.contains("mt6893") || chipname.contains("9000") -> "4nm"
+        
+        // MediaTek Dimensity 8000 series - 4nm/6nm
+        chipname.contains("mt6895") || chipname.contains("8200") -> "4nm"
+        chipname.contains("mt6891") || chipname.contains("8100") -> "5nm"
+        chipname.contains("mt6877") || chipname.contains("8050") -> "6nm"
+        
+        // MediaTek Dimensity 7000 series - 4nm/6nm
+        chipname.contains("mt6879") || chipname.contains("7050") -> "6nm"
+        chipname.contains("mt6878") || chipname.contains("7200") -> "4nm"
+        
+        // MediaTek Dimensity 6000 series - 6nm/7nm
+        chipname.contains("mt6833") || chipname.contains("6020") -> "7nm"
+        chipname.contains("mt6835") || chipname.contains("6080") -> "6nm"
+        
+        // Exynos 2400/2200 - 4nm
+        chipname.contains("s5e9945") || chipname.contains("2400") -> "4nm"
+        chipname.contains("s5e9925") || chipname.contains("2200") -> "4nm"
+        
+        // Exynos 2100/990 - 5nm/7nm
+        chipname.contains("s5e9840") || chipname.contains("2100") -> "5nm"
+        chipname.contains("s5e9830") || chipname.contains("990") -> "7nm"
+        
+        // Tensor G3/G2/G1 - 4nm/5nm
+        chipname.contains("gs201") || chipname.contains("tensor") && chipname.contains("g3") -> "4nm"
+        chipname.contains("gs101") || chipname.contains("tensor") && chipname.contains("g2") -> "5nm"
+        chipname.contains("tensor") -> "5nm"
+        
+        // Default fallback
+        else -> "N/A"
     }
 }

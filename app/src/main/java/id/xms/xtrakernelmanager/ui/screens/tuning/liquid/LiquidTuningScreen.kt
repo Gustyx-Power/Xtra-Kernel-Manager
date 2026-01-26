@@ -44,6 +44,9 @@ fun LiquidTuningScreen(
     onNavigate: (String) -> Unit,
 ) {
     val cpuClusters by viewModel.cpuClusters.collectAsState()
+    val cpuInfo by viewModel.cpuInfo.collectAsState()
+    val cpuTemperature by viewModel.cpuTemperature.collectAsState()
+    val cpuLoad by viewModel.cpuLoad.collectAsState()
     val gpuInfo by viewModel.gpuInfo.collectAsState()
     val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
     val ramConfig by viewModel.preferencesManager.getRamConfig().collectAsState(initial = RAMConfig())
@@ -171,6 +174,9 @@ fun LiquidTuningScreen(
                 when (page) {
                     0 -> RecentCPUCard(
                         clusters = cpuClusters,
+                        cpuInfo = cpuInfo,
+                        temperature = cpuTemperature,
+                        cpuLoad = cpuLoad,
                         onClick = { onNavigate("liquid_cpu_settings") }
                     )
                     1 -> RecentGPUCard(
