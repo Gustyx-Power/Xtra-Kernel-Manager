@@ -774,12 +774,16 @@ class TuningViewModel(
   fun disableCPUCore(core: Int, disable: Boolean) {
     viewModelScope.launch {
       preferencesManager.setCpuCoreEnabled(core, !disable)
+      // Apply immediately to system
+      cpuUseCase.setCoreOnline(core, !disable)
     }
   }
 
   fun setCpuCoreEnabled(core: Int, enabled: Boolean) {
     viewModelScope.launch {
       preferencesManager.setCpuCoreEnabled(core, enabled)
+      // Apply immediately to system
+      cpuUseCase.setCoreOnline(core, enabled)
     }
   }
 
