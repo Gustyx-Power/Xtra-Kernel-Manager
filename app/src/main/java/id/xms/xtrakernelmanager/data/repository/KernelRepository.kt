@@ -11,6 +11,8 @@ class KernelRepository {
 
   private val TAG = "KernelRepository"
   private var cachedClusters: List<ClusterInfo>? = null
+  private var cachedGpuFreqPath: String? = null
+  private var cachedGpuBusyPath: String? = null
 
   suspend fun getCPUInfo(): CPUInfo =
       withContext(Dispatchers.IO) {
@@ -336,24 +338,41 @@ class KernelRepository {
         // GPU frequency: Native first (fast), shell fallback
         var currentFreq = NativeLib.readGpuFreq() ?: 0
         if (currentFreq == 0) {
-          val freqPaths =
-              listOf(
-                  "/sys/class/kgsl/kgsl-3d0/gpuclk",
-                  "$basePath/gpuclk",
-                  "$basePath/clock_mhz",
-                  "/sys/kernel/gpu/gpu_clock",
-                  "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq",
-              )
-          for (path in freqPaths) {
-            val rawValue = RootManager.executeCommand("cat $path").getOrNull()?.trim()
-            val valueLong = rawValue?.toLongOrNull() ?: continue
-            currentFreq =
-                when {
-                  valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
-                  valueLong > 1_000 -> (valueLong / 1_000).toInt()
-                  else -> valueLong.toInt()
+          if (cachedGpuFreqPath != null) {
+             val rawValue = RootManager.executeCommand("cat $cachedGpuFreqPath").getOrNull()?.trim()
+             val valueLong = rawValue?.toLongOrNull()
+             if (valueLong != null) {
+                 currentFreq = when {
+                    valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
+                    valueLong > 1_000 -> (valueLong / 1_000).toInt()
+                    else -> valueLong.toInt()
+                 }
+             }
+          } else {
+              val freqPaths =
+                  listOf(
+                      "/sys/class/kgsl/kgsl-3d0/gpuclk",
+                      "$basePath/gpuclk",
+                      "$basePath/clock_mhz",
+                      "/sys/kernel/gpu/gpu_clock",
+                      "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq",
+                      "/sys/class/devfreq/gpufreq/cur_freq"
+                  )
+              for (path in freqPaths) {
+                val rawValue = RootManager.executeCommand("cat $path").getOrNull()?.trim()
+                val valueLong = rawValue?.toLongOrNull() ?: continue
+                val foundFreq =
+                    when {
+                      valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
+                      valueLong > 1_000 -> (valueLong / 1_000).toInt()
+                      else -> valueLong.toInt()
+                    }
+                if (foundFreq > 0) {
+                    currentFreq = foundFreq
+                    cachedGpuFreqPath = path
+                    break
                 }
-            if (currentFreq > 0) break
+              }
           }
         }
 
@@ -361,17 +380,28 @@ class KernelRepository {
         val minFreq = availableFreqs.minOrNull() ?: 0
 
         // GPU load: Native first (fast), shell fallback
-        val gpuLoad =
-            NativeLib.readGpuBusy()
-                ?: RootManager.executeCommand(
-                        "cat /sys/class/kgsl/kgsl-3d0/gpu_busy_percentage 2>/dev/null"
-                    )
-                    .getOrNull()
-                    ?.trim()
-                    ?.split(" ")
-                    ?.firstOrNull()
-                    ?.toIntOrNull()
-                ?: 0
+        var gpuLoad = NativeLib.readGpuBusy() ?: 0
+        if (gpuLoad == 0) {
+             if (cachedGpuBusyPath != null) {
+                  gpuLoad = RootManager.executeCommand("cat $cachedGpuBusyPath 2>/dev/null")
+                        .getOrNull()?.trim()?.split(" ")?.firstOrNull()?.toIntOrNull() ?: 0
+             } else {
+                 val loadPaths = listOf(
+                     "/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage",
+                     "$basePath/gpu_busy_percentage",
+                     "/sys/kernel/gpu/gpu_busy"
+                 )
+                 for (path in loadPaths) {
+                      val loadVal = RootManager.executeCommand("cat $path 2>/dev/null")
+                            .getOrNull()?.trim()?.split(" ")?.firstOrNull()?.toIntOrNull()
+                      if (loadVal != null) {
+                          gpuLoad = loadVal
+                          cachedGpuBusyPath = path
+                          break
+                      }
+                 }
+             }
+        }
 
         // GPU Temperature: Scan thermal zones
         val thermalZones = NativeLib.readThermalZones()
