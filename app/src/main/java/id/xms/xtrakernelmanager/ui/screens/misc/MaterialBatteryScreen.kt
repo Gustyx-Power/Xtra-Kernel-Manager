@@ -378,6 +378,8 @@ fun BatteryCapacityCard() {
   // Mock capacity if 0 (native/root failure fallback)
   val design = if (state.totalCapacity > 0) state.totalCapacity else 5000
   val current = if (state.currentCapacity > 0) state.currentCapacity else 4500
+  // Calculate Health
+  val healthPercent = ((current.toFloat() / design.toFloat()) * 100).toInt().coerceIn(0, 100)
 
   Card(
       shape = RoundedCornerShape(24.dp),
@@ -392,31 +394,20 @@ fun BatteryCapacityCard() {
     ) {
       Column {
         Text(
-            text = "Capacity",
+            text = "Battery Health",
             style = MaterialTheme.typography.labelMedium,
             color = Color.White.copy(alpha = 0.6f),
         )
         Spacer(modifier = Modifier.height(2.dp))
         Text(
-            text = "$current mAh",
+            text = "$healthPercent%",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = Color.White,
         )
       }
 
-      // Design Capacity Pill
-      Surface(
-          color = Color(0xFF2C2D35),
-          shape = RoundedCornerShape(12.dp),
-      ) {
-        Text(
-            text = "/ $design",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.5f),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        )
-      }
+
     }
   }
 }
@@ -433,7 +424,7 @@ fun CurrentSessionCard(
       onClick = onClick,
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1F24)),
-      modifier = Modifier.fillMaxWidth().height(280.dp),
+      modifier = Modifier.fillMaxWidth().height(260.dp),
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
@@ -703,3 +694,4 @@ fun AppUsageItem(app: AppBatteryStats) {
     )
   }
 }
+
