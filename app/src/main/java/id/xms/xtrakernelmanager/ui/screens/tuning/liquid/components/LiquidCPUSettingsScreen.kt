@@ -26,6 +26,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,7 +52,11 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LiquidCPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Unit) {
+fun LiquidCPUSettingsScreen(
+    viewModel: TuningViewModel, 
+    onNavigateBack: () -> Unit,
+    onNavigateToSmartLock: () -> Unit
+) {
   val clusters by viewModel.cpuClusters.collectAsState()
   val clusterStates by viewModel.clusterStates.collectAsState()
 
@@ -96,6 +101,16 @@ fun LiquidCPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
           if (clusters.isEmpty()) {
             item { EmptyState() }
           } else {
+            // Smart Frequency Lock Section (Global)
+            item {
+              SmartFrequencyLockSection(
+                  clusters = clusters,
+                  viewModel = viewModel,
+                  onNavigateToConfig = onNavigateToSmartLock
+              )
+            }
+            
+            // Cluster Cards
             items(clusters.size) { index ->
               val cluster = clusters[index]
               ModernClusterCard(
@@ -135,6 +150,623 @@ private fun EmptyState() {
         color = MaterialTheme.colorScheme.outline,
         textAlign = TextAlign.Center,
     )
+  }
+}
+
+@Composable
+private fun SmartFrequencyLockSection(
+    clusters: List<ClusterInfo>,
+    viewModel: TuningViewModel,
+    onNavigateToConfig: () -> Unit
+) {
+  val isLocked by viewModel.isCpuFrequencyLocked.collectAsState()
+  val lockStatus by viewModel.cpuLockStatus.collectAsState()
+  
+  GlassmorphicCard(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(24.dp),
+      contentPadding = PaddingValues(24.dp)
+  ) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+      // Header
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+      ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+          Box(
+              modifier = Modifier
+                  .size(48.dp)
+                  .clip(CircleShape)
+                  .background(
+                      if (isLocked) MaterialTheme.colorScheme.primaryContainer
+                      else MaterialTheme.colorScheme.surfaceVariant
+                  ),
+              contentAlignment = Alignment.Center
+          ) {
+            Icon(
+                imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
+                contentDescription = null,
+                tint = if (isLocked) MaterialTheme.colorScheme.onPrimaryContainer
+                       else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+          }
+          
+          Column {
+            Text(
+                text = "Smart Frequency Lock",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = if (isLocked) "Active" else "Inactive",
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isLocked) MaterialTheme.colorScheme.primary
+                       else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+          }
+        }
+      }
+      
+      // Status Info
+      if (isLocked && lockStatus != null) {
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
+        
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+          // Policy Type
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+                text = "Policy Type",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer
+            ) {
+              Text(
+                  text = lockStatus!!.policyType.name.replace("_", " "),
+                  style = MaterialTheme.typography.bodyMedium,
+                  fontWeight = FontWeight.Medium,
+                  color = MaterialTheme.colorScheme.onSecondaryContainer,
+                  modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+              )
+            }
+          }
+          
+          // Thermal Policy
+          if (lockStatus!!.policyType == LockPolicyType.SMART) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+              Text(
+                  text = "Thermal Policy",
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+              Surface(
+                  shape = RoundedCornerShape(8.dp),
+                  color = MaterialTheme.colorScheme.tertiaryContainer
+              ) {
+                Text(
+                    text = lockStatus!!.thermalPolicy,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+              }
+            }
+          }
+          
+          // Locked Clusters
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+                text = "Locked Clusters",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "${lockStatus!!.clusterCount} cluster(s)",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+          }
+        }
+      }
+      
+      HorizontalDivider(
+          color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+      )
+      
+      // Action Buttons
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(12.dp)
+      ) {
+        if (isLocked) {
+          // Unlock Button
+          Button(
+              onClick = { viewModel.unlockCpuFrequencies() },
+              modifier = Modifier.weight(1f),
+              colors = ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.error
+              ),
+              shape = RoundedCornerShape(16.dp)
+          ) {
+            Icon(
+                imageVector = Icons.Default.LockOpen,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Unlock",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+          }
+          
+          // Reconfigure Button
+          Button(
+              onClick = onNavigateToConfig,
+              modifier = Modifier.weight(1f),
+              colors = ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.secondary
+              ),
+              shape = RoundedCornerShape(16.dp)
+          ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Edit",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+          }
+        } else {
+          // Configure Lock Button
+          Button(
+              onClick = onNavigateToConfig,
+              modifier = Modifier.fillMaxWidth(),
+              colors = ButtonDefaults.buttonColors(
+                  containerColor = MaterialTheme.colorScheme.primary
+              ),
+              shape = RoundedCornerShape(16.dp)
+          ) {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "Configure Lock",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+private fun SmartFrequencyLockDialog(
+    clusters: List<ClusterInfo>,
+    selectedPolicy: LockPolicyType,
+    selectedThermalPolicy: String,
+    onPolicySelected: (LockPolicyType) -> Unit,
+    onThermalPolicySelected: (String) -> Unit,
+    onConfirm: (Map<Int, CpuClusterLockConfig>) -> Unit,
+    onDismiss: () -> Unit
+) {
+  // State for each cluster's frequency
+  val clusterFrequencies = remember {
+    mutableStateMapOf<Int, Pair<Int, Int>>().apply {
+      clusters.forEach { cluster ->
+        put(cluster.clusterNumber, Pair(cluster.currentMinFreq, cluster.currentMaxFreq))
+      }
+    }
+  }
+  
+  var selectedClusterForFreq by remember { mutableStateOf<ClusterInfo?>(null) }
+  var isSelectingMin by remember { mutableStateOf(true) }
+  
+  LiquidDialog(
+      onDismissRequest = onDismiss,
+      title = "Smart Frequency Lock",
+      content = {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+          // Cluster Frequency Settings
+          item {
+            Text(
+                text = "Cluster Frequencies",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+          }
+          
+          items(clusters.size) { index ->
+            val cluster = clusters[index]
+            val (minFreq, maxFreq) = clusterFrequencies[cluster.clusterNumber] 
+                ?: Pair(cluster.currentMinFreq, cluster.currentMaxFreq)
+            
+            ClusterFrequencyCard(
+                clusterIndex = index,
+                clusterName = when (index) {
+                  0 -> "Performance"
+                  1 -> "Efficiency"
+                  else -> "Cluster $index"
+                },
+                minFreq = minFreq,
+                maxFreq = maxFreq,
+                onMinClick = {
+                  selectedClusterForFreq = cluster
+                  isSelectingMin = true
+                },
+                onMaxClick = {
+                  selectedClusterForFreq = cluster
+                  isSelectingMin = false
+                }
+            )
+          }
+          
+          item {
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+            )
+          }
+          
+          // Policy Selection
+          item {
+            Text(
+                text = "Lock Policy",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+          }
+          
+          items(LockPolicyType.values().size) { index ->
+            val policy = LockPolicyType.values()[index]
+            PolicySelectionCard(
+                policy = policy,
+                isSelected = policy == selectedPolicy,
+                onSelect = { onPolicySelected(policy) }
+            )
+          }
+          
+          // Thermal Policy (only for SMART)
+          if (selectedPolicy == LockPolicyType.SMART) {
+            item {
+              HorizontalDivider(
+                  color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+              )
+            }
+            
+            item {
+              Text(
+                  text = "Thermal Policy",
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.SemiBold,
+                  color = MaterialTheme.colorScheme.onSurface
+              )
+            }
+            
+            items(ThermalPolicyPresets.getAllPolicies().size) { index ->
+              val policy = ThermalPolicyPresets.getAllPolicies()[index]
+              ThermalPolicyCard(
+                  policy = policy,
+                  isSelected = policy.name == selectedThermalPolicy,
+                  onSelect = { onThermalPolicySelected(policy.name) }
+              )
+            }
+          }
+        }
+      },
+      confirmButton = {
+        LiquidDialogButton(
+            text = "Lock All Clusters",
+            onClick = {
+              val configs = clusterFrequencies.map { (clusterNum, freqs) ->
+                clusterNum to CpuClusterLockConfig(
+                    clusterId = clusterNum,
+                    minFreq = freqs.first,
+                    maxFreq = freqs.second
+                )
+              }.toMap()
+              onConfirm(configs)
+            },
+            isPrimary = true
+        )
+      },
+      dismissButton = {
+        LiquidDialogButton(
+            text = "Cancel",
+            onClick = onDismiss,
+            isPrimary = false
+        )
+      }
+  )
+  
+  // Frequency Selection Dialog
+  selectedClusterForFreq?.let { cluster ->
+    val currentFreq = if (isSelectingMin) {
+      clusterFrequencies[cluster.clusterNumber]?.first ?: cluster.currentMinFreq
+    } else {
+      clusterFrequencies[cluster.clusterNumber]?.second ?: cluster.currentMaxFreq
+    }
+    
+    FrequencySelectionDialog(
+        title = if (isSelectingMin) "Min Frequency - Cluster ${cluster.clusterNumber}"
+                else "Max Frequency - Cluster ${cluster.clusterNumber}",
+        availableFrequencies = cluster.availableFrequencies,
+        currentFrequency = currentFreq,
+        onDismiss = { selectedClusterForFreq = null },
+        onSelect = { selectedFreq ->
+          val current = clusterFrequencies[cluster.clusterNumber] 
+              ?: Pair(cluster.currentMinFreq, cluster.currentMaxFreq)
+          
+          if (isSelectingMin) {
+            var newMin = selectedFreq
+            var newMax = current.second
+            if (newMin > newMax) newMax = newMin
+            clusterFrequencies[cluster.clusterNumber] = Pair(newMin, newMax)
+          } else {
+            var newMin = current.first
+            var newMax = selectedFreq
+            if (newMax < newMin) newMin = newMax
+            clusterFrequencies[cluster.clusterNumber] = Pair(newMin, newMax)
+          }
+          
+          selectedClusterForFreq = null
+        }
+    )
+  }
+}
+
+@Composable
+internal fun ClusterFrequencyCard(
+    clusterIndex: Int,
+    clusterName: String,
+    minFreq: Int,
+    maxFreq: Int,
+    onMinClick: () -> Unit,
+    onMaxClick: () -> Unit
+) {
+  Surface(
+      shape = RoundedCornerShape(16.dp),
+      color = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.5f),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+  ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+      // Header
+      Row(
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          verticalAlignment = Alignment.CenterVertically
+      ) {
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.secondaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+          Text(
+              text = "C$clusterIndex",
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSecondaryContainer
+          )
+        }
+        Text(
+            text = clusterName,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+      }
+      
+      // Frequency Cards
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        // Min Frequency
+        Surface(
+            onClick = onMinClick,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+        ) {
+          Column(
+              modifier = Modifier.padding(12.dp),
+              verticalArrangement = Arrangement.spacedBy(4.dp)
+          ) {
+            Text(
+                text = "Min",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "$minFreq",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = "MHz",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+            )
+          }
+        }
+        
+        // Max Frequency
+        Surface(
+            onClick = onMaxClick,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
+        ) {
+          Column(
+              modifier = Modifier.padding(12.dp),
+              verticalArrangement = Arrangement.spacedBy(4.dp)
+          ) {
+            Text(
+                text = "Max",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "$maxFreq",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.tertiary
+            )
+            Text(
+                text = "MHz",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+@Composable
+internal fun PolicySelectionCard(
+    policy: LockPolicyType,
+    isSelected: Boolean,
+    onSelect: () -> Unit
+) {
+  Surface(
+      onClick = onSelect,
+      shape = RoundedCornerShape(12.dp),
+      color = if (isSelected)
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+      else
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+      border = if (isSelected)
+        BorderStroke(2.dp, MaterialTheme.colorScheme.secondary)
+      else
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+  ) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+      RadioButton(
+          selected = isSelected,
+          onClick = onSelect
+      )
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+            text = policy.name.replace("_", " "),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+        )
+        Text(
+            text = when (policy) {
+              LockPolicyType.MANUAL -> "User-controlled, no thermal override"
+              LockPolicyType.SMART -> "Thermal-aware with auto-restore"
+              LockPolicyType.GAME -> "Optimized for gaming"
+              LockPolicyType.BATTERY_SAVING -> "Power-efficient"
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+      }
+    }
+  }
+}
+
+@Composable
+internal fun ThermalPolicyCard(
+    policy: id.xms.xtrakernelmanager.data.model.ThermalPolicy,
+    isSelected: Boolean,
+    onSelect: () -> Unit
+) {
+  Surface(
+      onClick = onSelect,
+      shape = RoundedCornerShape(12.dp),
+      color = if (isSelected)
+        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+      else
+        MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+      border = if (isSelected)
+        BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
+      else
+        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+  ) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+      RadioButton(
+          selected = isSelected,
+          onClick = onSelect
+      )
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+            text = policy.name,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+        )
+        Text(
+            text = "Emergency: ${policy.emergencyThreshold}°C, Warning: ${policy.warningThreshold}°C",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+      }
+    }
   }
 }
 
@@ -312,14 +944,6 @@ private fun ModernClusterCard(
           if (cluster.cores.any { it != 0 }) {
             FixedCoreControlSection(cluster.cores, viewModel)
           }
-          
-          // CPU Lock Controls
-          CPULockControls(
-            cluster = cluster,
-            clusterIndex = clusterIndex,
-            viewModel = viewModel,
-            modifier = Modifier.fillMaxWidth()
-          )
         }
       }
     }
@@ -407,7 +1031,7 @@ private fun FrequencyClickableCard(
 }
 
 @Composable
-private fun FrequencySelectionDialog(
+internal fun FrequencySelectionDialog(
     title: String,
     availableFrequencies: List<Int>,
     currentFrequency: Int,
