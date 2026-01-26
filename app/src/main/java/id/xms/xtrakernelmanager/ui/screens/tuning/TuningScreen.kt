@@ -190,7 +190,11 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                   },
               )
               // Detail Screens
-              "liquid_cpu_settings" -> LiquidCPUSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_cpu_settings" -> LiquidCPUSettingsScreen(
+                  viewModel = viewModel,
+                  onNavigateBack = { currentRoute = "main" },
+                  onNavigateToSmartLock = { onNavigate("smart_frequency_lock") }
+              )
               "liquid_gpu_settings" -> LiquidGPUSettingsScreen(viewModel) { currentRoute = "main" }
               "liquid_ram_settings" -> LiquidRAMSettingsScreen(viewModel) { currentRoute = "main" }
               "liquid_thermal_settings" -> LiquidThermalSettingsScreen(viewModel) { currentRoute = "main" }

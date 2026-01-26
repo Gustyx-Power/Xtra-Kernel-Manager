@@ -43,8 +43,10 @@ import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.SmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialSmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
@@ -186,6 +188,15 @@ fun Navigation(preferencesManager: PreferencesManager) {
           LiquidCPUSettingsScreen(
               viewModel = tuningViewModel,
               onNavigateBack = { navController.popBackStack() },
+              onNavigateToSmartLock = { navController.navigate("smart_frequency_lock") }
+          )
+        }
+        composable("smart_frequency_lock") {
+          val factory = TuningViewModel.Factory(preferencesManager)
+          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+          SmartFrequencyLockScreen(
+              viewModel = tuningViewModel,
+              onNavigateBack = { navController.popBackStack() }
           )
         }
         composable("cpu_tuning") {
@@ -194,6 +205,15 @@ fun Navigation(preferencesManager: PreferencesManager) {
           CPUTuningScreen(
               viewModel = tuningViewModel,
               onNavigateBack = { navController.popBackStack() },
+              onNavigateToSmartLock = { navController.navigate("material_smart_frequency_lock") }
+          )
+        }
+        composable("material_smart_frequency_lock") {
+          val factory = TuningViewModel.Factory(preferencesManager)
+          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+          MaterialSmartFrequencyLockScreen(
+              viewModel = tuningViewModel,
+              onNavigateBack = { navController.popBackStack() }
           )
         }
         composable("memory_tuning") {
