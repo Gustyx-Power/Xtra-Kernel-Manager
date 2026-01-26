@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Speed
@@ -31,7 +33,11 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CPUTuningScreen(viewModel: TuningViewModel, onNavigateBack: () -> Unit) {
+fun CPUTuningScreen(
+    viewModel: TuningViewModel,
+    onNavigateBack: () -> Unit,
+    onNavigateToSmartLock: () -> Unit = {}
+) {
 
   Scaffold(
       topBar = {
@@ -51,13 +57,21 @@ fun CPUTuningScreen(viewModel: TuningViewModel, onNavigateBack: () -> Unit) {
       },
   ) { paddingValues ->
     Box(modifier = Modifier.padding(paddingValues)) {
-      ClusterTuningContent(viewModel = viewModel, modifier = Modifier.fillMaxSize())
+      ClusterTuningContent(
+          viewModel = viewModel,
+          onNavigateToSmartLock = onNavigateToSmartLock,
+          modifier = Modifier.fillMaxSize()
+      )
     }
   }
 }
 
 @Composable
-fun ClusterTuningContent(viewModel: TuningViewModel, modifier: Modifier = Modifier) {
+fun ClusterTuningContent(
+    viewModel: TuningViewModel,
+    onNavigateToSmartLock: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
   val cpuClusters by viewModel.cpuClusters.collectAsState()
   val clusterStates by viewModel.clusterStates.collectAsState()
 
@@ -66,6 +80,9 @@ fun ClusterTuningContent(viewModel: TuningViewModel, modifier: Modifier = Modifi
       contentPadding = PaddingValues(16.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
   ) {
+    // Smart Frequency Lock Card
+    item { SmartFrequencyLockCard(onNavigateToSmartLock = onNavigateToSmartLock) }
+    
     items(cpuClusters) { cluster -> ClusterCard(cluster = cluster, viewModel = viewModel) }
 
     // Set on Boot Toggle
@@ -459,6 +476,64 @@ fun SetOnBootCard(viewModel: TuningViewModel) {
       Switch(
           checked = cpuSetOnBoot,
           onCheckedChange = { enabled -> viewModel.setCpuSetOnBoot(enabled) },
+      )
+    }
+  }
+}
+
+
+@Composable
+fun SmartFrequencyLockCard(onNavigateToSmartLock: () -> Unit) {
+  Surface(
+      modifier = Modifier
+          .fillMaxWidth()
+          .clickable(onClick = onNavigateToSmartLock),
+      shape = RoundedCornerShape(24.dp),
+      color = MaterialTheme.colorScheme.tertiaryContainer,
+  ) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f)),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+              Icons.Rounded.Lock,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.tertiary,
+              modifier = Modifier.size(24.dp)
+          )
+        }
+        Column {
+          Text(
+              "Smart Frequency Lock",
+              style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+              color = MaterialTheme.colorScheme.onTertiaryContainer,
+          )
+          Text(
+              "Configure advanced frequency locking",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
+          )
+        }
+      }
+      Icon(
+          Icons.Rounded.ChevronRight,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onTertiaryContainer,
       )
     }
   }

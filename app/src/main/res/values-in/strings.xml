@@ -27,6 +27,19 @@
     <string name="cpu_load">Beban</string>
     <string name="load">%1$s%% Beban</string>
 
+    <!-- CPU Lock Messages -->
+    <string name="cpu_lock_success">Frekuensi CPU berhasil dikunci</string>
+    <string name="cpu_lock_failed">Gagal mengunci CPU: %s</string>
+    <string name="cpu_lock_governor_incompatible">Governor %s tidak kompatibel dengan frequency locking</string>
+    <string name="cpu_lock_thermal_override">Thermal override diaktifkan untuk safety</string>
+    <string name="cpu_lock_thermal_restored">Lock dikembalikan setelah cooldown</string>
+    <string name="cpu_lock_governor_changed">Governor diubah ke %s untuk locking</string>
+    <string name="cpu_lock_verify_failed">Verifikasi lock gagal - mencoba ulang...</string>
+    <string name="cpu_lock_retry_exceeded">Maksimum retry terlampaui. Silakan coba lagi nanti.</string>
+    <string name="cpu_lock_incompatible_governors">Governor saat ini (%s) tidak kompatibel dengan frequency locking</string>
+    <string name="cpu_lock_smart_mode_activated">Smart Mode diaktifkan dengan monitoring thermal</string>
+    <string name="tap_to_dismiss">Ketuk untuk tutup</string>
+
     <!-- GPU Information -->
     <string name="gpu_info">Informasi GPU</string>
     <string name="gpu_information">Informasi GPU</string>
