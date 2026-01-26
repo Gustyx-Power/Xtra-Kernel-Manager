@@ -109,4 +109,5 @@ build.sh
 .vscode/
 .kotlin/
 .gradle/
-pico.save
+pico.saveLIQUID_CPU_REDESIGN.md
+LIQUID_CPU_REDESIGN_SUMMARY.md
