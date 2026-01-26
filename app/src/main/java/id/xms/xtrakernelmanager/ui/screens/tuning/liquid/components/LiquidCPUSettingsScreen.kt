@@ -40,7 +40,12 @@ import id.xms.xtrakernelmanager.data.model.ClusterInfo
 import id.xms.xtrakernelmanager.data.model.CpuClusterLockConfig
 import id.xms.xtrakernelmanager.data.model.LockPolicyType
 import id.xms.xtrakernelmanager.data.model.ThermalPolicyPresets
+import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
+import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
 import id.xms.xtrakernelmanager.ui.screens.tuning.ClusterUIState
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
@@ -50,55 +55,65 @@ fun LiquidCPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
   val clusters by viewModel.cpuClusters.collectAsState()
   val clusterStates by viewModel.clusterStates.collectAsState()
 
-  Scaffold(
-      topBar = {
-        TopAppBar(
-            title = {
-              Text(
-                  stringResource(R.string.cpu_control),
-                  style = MaterialTheme.typography.titleLarge,
-                  fontWeight = FontWeight.Bold,
-              )
-            },
-            navigationIcon = {
-              IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-              }
-            },
-            colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background,
-                ),
-        )
-      }
-  ) { paddingValues ->
-    Box(modifier = Modifier.fillMaxSize()) {
-      LazyColumn(
-          modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
-          verticalArrangement = Arrangement.spacedBy(16.dp),
-          contentPadding = PaddingValues(bottom = 24.dp),
-      ) {
-      if (clusters.isEmpty()) {
-        item { EmptyState() }
-      } else {
-        items(clusters.size) { index ->
-          val cluster = clusters[index]
-          ModernClusterCard(
-              cluster = cluster,
-              clusterIndex = index,
-              uiState = clusterStates[cluster.clusterNumber],
-              viewModel = viewModel,
+  // Box container with WavyBlobOrnament background
+  Box(modifier = Modifier.fillMaxSize()) {
+    // Background Layer
+    WavyBlobOrnament(
+        modifier = Modifier.fillMaxSize()
+    )
+    
+    // Foreground Layer
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+          TopAppBar(
+              title = {
+                Text(
+                    stringResource(R.string.cpu_control),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                )
+              },
+              navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                  Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                }
+              },
+              colors =
+                  TopAppBarDefaults.topAppBarColors(
+                      containerColor = Color.Transparent,
+                      scrolledContainerColor = Color.Transparent,
+                  ),
           )
+        }
+    ) { paddingValues ->
+      Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 24.dp),
+        ) {
+          if (clusters.isEmpty()) {
+            item { EmptyState() }
+          } else {
+            items(clusters.size) { index ->
+              val cluster = clusters[index]
+              ModernClusterCard(
+                  cluster = cluster,
+                  clusterIndex = index,
+                  uiState = clusterStates[cluster.clusterNumber],
+                  viewModel = viewModel,
+              )
+            }
+          }
+        }
+        
+        Box(modifier = Modifier.padding(paddingValues)) {
+          CpuLockNotificationOverlay(viewModel = viewModel)
         }
       }
     }
-      }
-      
-      Box(modifier = Modifier.padding(paddingValues)) {
-        CpuLockNotificationOverlay(viewModel = viewModel)
-      }
-    }
+  }
 }
 
 @Composable
@@ -168,20 +183,15 @@ private fun ModernClusterCard(
         }
     }
 
-  OutlinedCard(
+  GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(20.dp),
-      colors =
-          CardDefaults.outlinedCardColors(
-              containerColor = MaterialTheme.colorScheme.surface,
-              contentColor = MaterialTheme.colorScheme.onSurface,
-          ),
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+      shape = RoundedCornerShape(24.dp),
+      contentPadding = PaddingValues(0.dp)
   ) {
     Column(modifier = Modifier.fillMaxWidth()) {
       // Cluster Header
       Row(
-          modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }.padding(16.dp),
+          modifier = Modifier.fillMaxWidth().clickable { isExpanded = !isExpanded }.padding(20.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
       ) {
@@ -234,47 +244,63 @@ private fun ModernClusterCard(
         ) {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-          // Frequency Sliders
-          FrequencyControl(
+          // Frequency Controls - Clickable Cards
+          var showMinFreqDialog by remember { mutableStateOf(false) }
+          var showMaxFreqDialog by remember { mutableStateOf(false) }
+          
+          FrequencyClickableCard(
               label = stringResource(R.string.min_frequency),
-              value = minFreqSlider,
-              range = cluster.minFreq.toFloat()..cluster.maxFreq.toFloat(),
-              availableFrequencies = cluster.availableFrequencies,
+              value = minFreqSlider.toInt(),
               color = MaterialTheme.colorScheme.primary,
-              onValueChange = {
-                minFreqSlider = it
-                viewModel.updateClusterUIState(cluster.clusterNumber, it, maxFreqSlider)
-              },
-              onValueChangeStarted = {
-                viewModel.startUserAdjusting()
-              },
-              onValueChangeFinished = {
-                viewModel.endUserAdjusting()
-              },
+              onClick = { showMinFreqDialog = true }
           )
 
-          FrequencyControl(
+          FrequencyClickableCard(
               label = stringResource(R.string.max_frequency),
-              value = maxFreqSlider,
-              range = cluster.minFreq.toFloat()..cluster.maxFreq.toFloat(),
-              availableFrequencies = cluster.availableFrequencies,
+              value = maxFreqSlider.toInt(),
               color = MaterialTheme.colorScheme.tertiary,
-              onValueChange = {
-                maxFreqSlider = it
-                viewModel.updateClusterUIState(cluster.clusterNumber, minFreqSlider, it)
-              },
-              onValueChangeStarted = {
-                viewModel.startUserAdjusting()
-              },
-              onValueChangeFinished = {
-                viewModel.setCPUFrequency(
-                    cluster.clusterNumber,
-                    minFreqSlider.toInt(),
-                    maxFreqSlider.toInt(),
-                )
-                viewModel.endUserAdjusting()
-              },
+              onClick = { showMaxFreqDialog = true }
           )
+          
+          // Min Frequency Dialog
+          if (showMinFreqDialog) {
+            FrequencySelectionDialog(
+                title = stringResource(R.string.min_frequency),
+                availableFrequencies = cluster.availableFrequencies,
+                currentFrequency = minFreqSlider.toInt(),
+                onDismiss = { showMinFreqDialog = false },
+                onSelect = { selectedFreq ->
+                  minFreqSlider = selectedFreq.toFloat()
+                  viewModel.updateClusterUIState(cluster.clusterNumber, minFreqSlider, maxFreqSlider)
+                  viewModel.setCPUFrequency(
+                      cluster.clusterNumber,
+                      minFreqSlider.toInt(),
+                      maxFreqSlider.toInt(),
+                  )
+                  showMinFreqDialog = false
+                }
+            )
+          }
+          
+          // Max Frequency Dialog
+          if (showMaxFreqDialog) {
+            FrequencySelectionDialog(
+                title = stringResource(R.string.max_frequency),
+                availableFrequencies = cluster.availableFrequencies,
+                currentFrequency = maxFreqSlider.toInt(),
+                onDismiss = { showMaxFreqDialog = false },
+                onSelect = { selectedFreq ->
+                  maxFreqSlider = selectedFreq.toFloat()
+                  viewModel.updateClusterUIState(cluster.clusterNumber, minFreqSlider, maxFreqSlider)
+                  viewModel.setCPUFrequency(
+                      cluster.clusterNumber,
+                      minFreqSlider.toInt(),
+                      maxFreqSlider.toInt(),
+                  )
+                  showMaxFreqDialog = false
+                }
+            )
+          }
 
           // Governor
           GovernorSelector(
@@ -300,7 +326,7 @@ private fun ModernClusterCard(
   }
 
   if (showGovernorDialog) {
-    GovernorSelectionDialog(
+    GovernorSelectionLiquidDialog(
         governors = cluster.availableGovernors,
         selectedGovernor = currentGovernor,
         onDismiss = { showGovernorDialog = false },
@@ -313,100 +339,175 @@ private fun ModernClusterCard(
 }
 
 @Composable
-private fun FrequencyControl(
+private fun FrequencyClickableCard(
     label: String,
-    value: Float,
-    range: ClosedFloatingPointRange<Float>,
-    availableFrequencies: List<Int>,
+    value: Int,
     color: Color,
-    onValueChange: (Float) -> Unit,
-    onValueChangeStarted: () -> Unit = {},
-    onValueChangeFinished: () -> Unit,
+    onClick: () -> Unit
 ) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+  Surface(
+      onClick = onClick,
+      shape = RoundedCornerShape(16.dp),
+      color = MaterialTheme.colorScheme.surfaceContainer,
+      border = BorderStroke(1.5.dp, color.copy(alpha = 0.3f)),
+      modifier = Modifier.fillMaxWidth()
+  ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-      Text(
-          text = label,
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.Medium,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-      Text(
-          text = "${value.toInt()} MHz",
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.Bold,
-          color = color,
-      )
-    }
-    
-    val interactionSource = remember { MutableInteractionSource() }
-    
-    LaunchedEffect(interactionSource) {
-        interactionSource.interactions.collect { interaction: Interaction ->
-            when (interaction) {
-                is androidx.compose.foundation.interaction.PressInteraction.Press,
-                is androidx.compose.foundation.interaction.DragInteraction.Start -> {
-                    onValueChangeStarted()
-                }
-                is androidx.compose.foundation.interaction.PressInteraction.Release,
-                is androidx.compose.foundation.interaction.PressInteraction.Cancel,
-                is androidx.compose.foundation.interaction.DragInteraction.Stop,
-                is androidx.compose.foundation.interaction.DragInteraction.Cancel -> {
-                    onValueChangeFinished()
-                }
-            }
-        }
-    }
-
-    if (availableFrequencies.isNotEmpty()) {
-      // Discrete Slider for available frequencies
-      val sortedFreqs = remember(availableFrequencies) { availableFrequencies.sorted() }
-      // Find closest index for current value
-      val currentIndex =
-          remember(value, sortedFreqs) {
-            val idx = sortedFreqs.indexOfFirst { it >= value }
-            if (idx == -1) sortedFreqs.lastIndex else idx
-          }
-
-      Slider(
-          value = currentIndex.toFloat(),
-          onValueChange = { index ->
-            // onValueChangeStarted handled by interactionSource
-            val freq = sortedFreqs.getOrElse(index.toInt()) { sortedFreqs.last() }
-            onValueChange(freq.toFloat())
-          },
-          // onValueChangeFinished handled by interactionSource
-          valueRange = 0f..(sortedFreqs.size - 1).toFloat(),
-          steps = if (sortedFreqs.size > 1) sortedFreqs.size - 2 else 0,
-          interactionSource = interactionSource,
-          colors = SliderDefaults.colors(
-              thumbColor = color,
-              activeTrackColor = color,
-              inactiveTrackColor = color.copy(alpha = 0.2f),
+      Column(
+          verticalArrangement = Arrangement.spacedBy(4.dp)
+      ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+          Text(
+              text = "$value",
+              style = MaterialTheme.typography.headlineMedium,
+              fontWeight = FontWeight.Bold,
+              color = color,
           )
-      )
-    } else {
-      // Continuous Slider fallback
-      Slider(
-          value = value,
-          onValueChange = onValueChange,
-          // onValueChangeFinished handled by interactionSource
-          valueRange = range,
-          steps = 10,
-          interactionSource = interactionSource,
-          colors =
-              SliderDefaults.colors(
-                  thumbColor = color,
-                  activeTrackColor = color,
-                  inactiveTrackColor = color.copy(alpha = 0.2f),
-              ),
-      )
+          Text(
+              text = "MHz",
+              style = MaterialTheme.typography.bodyLarge,
+              fontWeight = FontWeight.Medium,
+              color = color.copy(alpha = 0.7f),
+              modifier = Modifier.padding(bottom = 4.dp)
+          )
+        }
+      }
+      
+      Box(
+          modifier = Modifier
+              .size(48.dp)
+              .clip(CircleShape)
+              .background(color.copy(alpha = 0.15f)),
+          contentAlignment = Alignment.Center
+      ) {
+        Icon(
+            imageVector = Icons.Rounded.Tune,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(24.dp)
+        )
+      }
     }
   }
+}
+
+@Composable
+private fun FrequencySelectionDialog(
+    title: String,
+    availableFrequencies: List<Int>,
+    currentFrequency: Int,
+    onDismiss: () -> Unit,
+    onSelect: (Int) -> Unit,
+) {
+  val sortedFreqs = remember(availableFrequencies) { 
+    availableFrequencies.sorted().reversed() // Highest first
+  }
+  
+  LiquidDialog(
+      onDismissRequest = onDismiss,
+      title = title,
+      content = {
+        if (sortedFreqs.isEmpty()) {
+          Text(
+              text = "No frequencies available",
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              textAlign = TextAlign.Center,
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(vertical = 16.dp)
+          )
+        } else {
+          LazyColumn(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .heightIn(max = 400.dp),
+              verticalArrangement = Arrangement.spacedBy(8.dp),
+          ) {
+            items(sortedFreqs.size) { index ->
+              val freq = sortedFreqs[index]
+              val isSelected = freq == currentFrequency
+              
+              Surface(
+                  onClick = { onSelect(freq) },
+                  shape = RoundedCornerShape(12.dp),
+                  color = if (isSelected) 
+                      MaterialTheme.colorScheme.primaryContainer
+                  else 
+                      MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                  border = if (isSelected) 
+                      BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                  else 
+                      BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+              ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  Row(
+                      horizontalArrangement = Arrangement.spacedBy(12.dp),
+                      verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Text(
+                        text = "$freq",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                        color = if (isSelected) 
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else 
+                            MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        text = "MHz",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = if (isSelected) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                  }
+                  
+                  if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      confirmButton = {
+        LiquidDialogButton(
+            text = stringResource(R.string.cancel),
+            onClick = onDismiss,
+            isPrimary = false
+        )
+      }
+  )
 }
 
 @Composable
@@ -512,13 +613,11 @@ private fun FixedCoreControlSection(
           }
           
           val coreEnabled by viewModel.preferencesManager.isCpuCoreEnabled(coreNum).collectAsState(initial = true)
-          Switch(
+          LiquidToggle(
               checked = coreEnabled,
               onCheckedChange = { enabled ->
-                viewModel.setCpuCoreEnabled(coreNum, !enabled)
+                viewModel.disableCPUCore(coreNum, !enabled)
               },
-              modifier = Modifier
-                  .width(60.dp),
               enabled = coreNum != 0 // Don't allow disabling core 0
           )
         }
@@ -580,12 +679,12 @@ private fun CoreControl(cores: List<Int>, viewModel: TuningViewModel) {
               )
             }
 
-            LottieSwitchControlled(
+            LiquidToggle(
                 checked = coreEnabled,
-                onCheckedChange = { viewModel.disableCPUCore(coreNum, !it) },
-                width = 50.dp,
-                height = 25.dp,
-                scale = 1.8f,
+                onCheckedChange = { enabled ->
+                  viewModel.disableCPUCore(coreNum, !enabled)
+                },
+                enabled = coreNum != 0
             )
           }
         }
@@ -594,81 +693,77 @@ private fun CoreControl(cores: List<Int>, viewModel: TuningViewModel) {
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun GovernorSelectionDialog(
+private fun GovernorSelectionLiquidDialog(
     governors: List<String>,
     selectedGovernor: String,
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit,
 ) {
-  AlertDialog(
+  LiquidDialog(
       onDismissRequest = onDismiss,
-  ) {
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-      Column(modifier = Modifier.padding(24.dp)) {
-        Text(
-            text = stringResource(R.string.cpu_governor_dialog_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
+      title = stringResource(R.string.cpu_governor_dialog_title),
+      content = {
         LazyColumn(
-            modifier = Modifier.heightIn(max = 300.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 400.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-          items(governors) { governor ->
+          items(governors.size) { index ->
+            val governor = governors[index]
             val isSelected = governor == selectedGovernor
 
             Surface(
                 onClick = { onSelect(governor) },
                 shape = RoundedCornerShape(12.dp),
-                color =
-                    if (isSelected) MaterialTheme.colorScheme.secondaryContainer
-                    else Color.Transparent,
-                border =
-                    if (isSelected) null
-                    else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                color = if (isSelected) 
+                    MaterialTheme.colorScheme.secondaryContainer
+                else 
+                    MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                border = if (isSelected) 
+                    BorderStroke(2.dp, MaterialTheme.colorScheme.secondary)
+                else 
+                    BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
             ) {
               Row(
-                  modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(horizontal = 20.dp, vertical = 16.dp),
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.CenterVertically,
               ) {
                 Text(
                     text = governor,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color =
-                        if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
-                        else MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                    color = if (isSelected) 
+                        MaterialTheme.colorScheme.onSecondaryContainer
+                    else 
+                        MaterialTheme.colorScheme.onSurface,
                 )
 
                 if (isSelected) {
                   Icon(
-                      imageVector = Icons.Rounded.Check,
+                      imageVector = Icons.Rounded.CheckCircle,
                       contentDescription = null,
-                      tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                      tint = MaterialTheme.colorScheme.secondary,
+                      modifier = Modifier.size(24.dp)
                   )
                 }
               }
             }
           }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-          TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-        }
+      },
+      confirmButton = {
+        LiquidDialogButton(
+            text = stringResource(R.string.cancel),
+            onClick = onDismiss,
+            isPrimary = false
+        )
       }
-    }
-  }
+  )
 }
 
 @Composable
@@ -765,7 +860,7 @@ private fun CPULockControls(
   
   // Lock Configuration Dialog
   if (showLockDialog) {
-    CPULockDialog(
+    CPULockLiquidDialog(
       cluster = cluster,
       currentMinFreq = cluster.currentMinFreq,
       currentMaxFreq = cluster.currentMaxFreq,
@@ -792,9 +887,8 @@ private fun CPULockControls(
   }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CPULockDialog(
+private fun CPULockLiquidDialog(
   cluster: ClusterInfo,
   currentMinFreq: Int,
   currentMaxFreq: Int,
@@ -808,158 +902,146 @@ private fun CPULockDialog(
 ) {
   var lockMinFreq by remember { mutableIntStateOf(currentMinFreq) }
   var lockMaxFreq by remember { mutableIntStateOf(currentMaxFreq) }
+  var showMinFreqDialog by remember { mutableStateOf(false) }
+  var showMaxFreqDialog by remember { mutableStateOf(false) }
   
-  AlertDialog(
-    onDismissRequest = onDismiss
-  ) {
-    Surface(
-      shape = RoundedCornerShape(28.dp),
-      color = MaterialTheme.colorScheme.surfaceContainerHigh,
-      modifier = Modifier.fillMaxWidth()
-    ) {
+  LiquidDialog(
+    onDismissRequest = onDismiss,
+    title = "Lock Cluster ${cluster.clusterNumber}",
+    content = {
       Column(
-        modifier = Modifier.padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
       ) {
+        // Frequency Selection Cards
         Text(
-          text = "Lock Cluster ${cluster.clusterNumber} Frequencies",
-          style = MaterialTheme.typography.headlineSmall,
-          fontWeight = FontWeight.Bold
+          text = "Frequency Range",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface
         )
         
-        // Frequency Selection
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text = "Frequency Range",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
-          )
-          
-          // Min Frequency
-          Text(
-            text = "Min: ${lockMinFreq} MHz",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-          
-          if (availableFrequencies.isNotEmpty()) {
-            val sortedFreqs = availableFrequencies.sorted()
-            val currentIndex = sortedFreqs.indexOfFirst { it >= lockMinFreq }
-              .coerceAtLeast(0)
-            
-            Slider(
-              value = currentIndex.toFloat(),
-              onValueChange = { index ->
-                lockMinFreq = sortedFreqs.getOrElse(index.toInt()) { sortedFreqs.last() }
-                if (lockMinFreq > lockMaxFreq) {
-                  lockMaxFreq = lockMinFreq
-                }
-              },
-              valueRange = 0f..(sortedFreqs.size - 1).toFloat(),
-              steps = if (sortedFreqs.size > 1) sortedFreqs.size - 2 else 0
-            )
-          }
-          
-          // Max Frequency
-          Text(
-            text = "Max: ${lockMaxFreq} MHz",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-          )
-          
-          if (availableFrequencies.isNotEmpty()) {
-            val sortedFreqs = availableFrequencies.sorted()
-            val currentIndex = sortedFreqs.indexOfFirst { it >= lockMaxFreq }
-              .coerceAtLeast(0)
-            
-            Slider(
-              value = currentIndex.toFloat(),
-              onValueChange = { index ->
-                lockMaxFreq = sortedFreqs.getOrElse(index.toInt()) { sortedFreqs.last() }
-                if (lockMaxFreq < lockMinFreq) {
-                  lockMinFreq = lockMaxFreq
-                }
-              },
-              valueRange = 0f..(sortedFreqs.size - 1).toFloat(),
-              steps = if (sortedFreqs.size > 1) sortedFreqs.size - 2 else 0
+        // Min Frequency Card
+        Surface(
+          onClick = { showMinFreqDialog = true },
+          shape = RoundedCornerShape(12.dp),
+          color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+          border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+        ) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Column {
+              Text(
+                text = "Min Frequency",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+              Text(
+                text = "$lockMinFreq MHz",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+              )
+            }
+            Icon(
+              imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.primary
             )
           }
         }
+        
+        // Max Frequency Card
+        Surface(
+          onClick = { showMaxFreqDialog = true },
+          shape = RoundedCornerShape(12.dp),
+          color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+          border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
+        ) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Column {
+              Text(
+                text = "Max Frequency",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+              )
+              Text(
+                text = "$lockMaxFreq MHz",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.tertiary
+              )
+            }
+            Icon(
+              imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.tertiary
+            )
+          }
+        }
+        
+        HorizontalDivider(
+          color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+        )
         
         // Policy Selection
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-          Text(
-            text = "Lock Policy",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Medium
-          )
-          
-          LockPolicyType.values().forEach { policy ->
-            Row(
-              modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .clickable { onPolicySelected(policy) }
-                .padding(8.dp),
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              RadioButton(
-                selected = policy == selectedPolicy,
-                onClick = { onPolicySelected(policy) }
-              )
-              Spacer(modifier = Modifier.width(8.dp))
-              Column {
-                Text(
-                  text = policy.name.replace("_", " "),
-                  style = MaterialTheme.typography.bodyLarge,
-                  fontWeight = if (policy == selectedPolicy) FontWeight.Bold else FontWeight.Normal
-                )
-                Text(
-                  text = when (policy) {
-                    LockPolicyType.MANUAL -> "User-controlled, no thermal override"
-                    LockPolicyType.SMART -> "Thermal-aware with auto-restore (Recommended)"
-                    LockPolicyType.GAME -> "Optimized for gaming performance"
-                    LockPolicyType.BATTERY_SAVING -> "Power-efficient configuration"
-                  },
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-              }
-            }
-          }
-        }
+        Text(
+          text = "Lock Policy",
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface
+        )
         
-        // Thermal Policy Selection (only for SMART policy)
-        if (selectedPolicy == LockPolicyType.SMART) {
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-              text = "Thermal Policy",
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Medium
-            )
-            
-            ThermalPolicyPresets.getAllPolicies().forEach { policy ->
+        Column(
+          verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+          LockPolicyType.values().forEach { policy ->
+            Surface(
+              onClick = { onPolicySelected(policy) },
+              shape = RoundedCornerShape(12.dp),
+              color = if (policy == selectedPolicy)
+                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+              else
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+              border = if (policy == selectedPolicy)
+                BorderStroke(2.dp, MaterialTheme.colorScheme.secondary)
+              else
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+            ) {
               Row(
                 modifier = Modifier
                   .fillMaxWidth()
-                  .clip(RoundedCornerShape(8.dp))
-                  .clickable { onThermalPolicySelected(policy.name) }
-                  .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                  .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
               ) {
                 RadioButton(
-                  selected = policy.name == selectedThermalPolicy,
-                  onClick = { onThermalPolicySelected(policy.name) }
+                  selected = policy == selectedPolicy,
+                  onClick = { onPolicySelected(policy) }
                 )
-                Spacer(modifier = Modifier.width(8.dp))
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                   Text(
-                    text = policy.name,
+                    text = policy.name.replace("_", " "),
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (policy.name == selectedThermalPolicy) FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (policy == selectedPolicy) FontWeight.Bold else FontWeight.Medium
                   )
                   Text(
-                    text = "Emergency: ${policy.emergencyThreshold}°C, Warning: ${policy.warningThreshold}°C",
+                    text = when (policy) {
+                      LockPolicyType.MANUAL -> "User-controlled, no thermal override"
+                      LockPolicyType.SMART -> "Thermal-aware with auto-restore"
+                      LockPolicyType.GAME -> "Optimized for gaming"
+                      LockPolicyType.BATTERY_SAVING -> "Power-efficient"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                   )
@@ -969,25 +1051,115 @@ private fun CPULockDialog(
           }
         }
         
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.End
-        ) {
-          TextButton(onClick = onDismiss) {
-            Text("Cancel")
-          }
-          Spacer(modifier = Modifier.width(8.dp))
-          Button(
-            onClick = {
-              onConfirm(lockMinFreq, lockMaxFreq)
-            },
-            enabled = lockMinFreq <= lockMaxFreq
+        // Thermal Policy Selection (only for SMART policy)
+        if (selectedPolicy == LockPolicyType.SMART) {
+          HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+          )
+          
+          Text(
+            text = "Thermal Policy",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+          )
+          
+          Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
           ) {
-            Text("Lock Frequencies")
+            ThermalPolicyPresets.getAllPolicies().forEach { policy ->
+              Surface(
+                onClick = { onThermalPolicySelected(policy.name) },
+                shape = RoundedCornerShape(12.dp),
+                color = if (policy.name == selectedThermalPolicy)
+                  MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
+                else
+                  MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                border = if (policy.name == selectedThermalPolicy)
+                  BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
+                else
+                  BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+              ) {
+                Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                  RadioButton(
+                    selected = policy.name == selectedThermalPolicy,
+                    onClick = { onThermalPolicySelected(policy.name) }
+                  )
+                  Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                      text = policy.name,
+                      style = MaterialTheme.typography.bodyLarge,
+                      fontWeight = if (policy.name == selectedThermalPolicy) FontWeight.Bold else FontWeight.Medium
+                    )
+                    Text(
+                      text = "Emergency: ${policy.emergencyThreshold}°C, Warning: ${policy.warningThreshold}°C",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                  }
+                }
+              }
+            }
           }
         }
       }
+    },
+    confirmButton = {
+      LiquidDialogButton(
+        text = "Lock Frequencies",
+        onClick = {
+          onConfirm(lockMinFreq, lockMaxFreq)
+        },
+        isPrimary = true
+      )
+    },
+    dismissButton = {
+      LiquidDialogButton(
+        text = "Cancel",
+        onClick = onDismiss,
+        isPrimary = false
+      )
     }
+  )
+  
+  // Min Frequency Selection Dialog
+  if (showMinFreqDialog) {
+    FrequencySelectionDialog(
+      title = "Select Min Frequency",
+      availableFrequencies = availableFrequencies,
+      currentFrequency = lockMinFreq,
+      onDismiss = { showMinFreqDialog = false },
+      onSelect = { selectedFreq ->
+        lockMinFreq = selectedFreq
+        if (lockMinFreq > lockMaxFreq) {
+          lockMaxFreq = lockMinFreq
+        }
+        showMinFreqDialog = false
+      }
+    )
+  }
+  
+  // Max Frequency Selection Dialog
+  if (showMaxFreqDialog) {
+    FrequencySelectionDialog(
+      title = "Select Max Frequency",
+      availableFrequencies = availableFrequencies,
+      currentFrequency = lockMaxFreq,
+      onDismiss = { showMaxFreqDialog = false },
+      onSelect = { selectedFreq ->
+        lockMaxFreq = selectedFreq
+        if (lockMaxFreq < lockMinFreq) {
+          lockMinFreq = lockMaxFreq
+        }
+        showMaxFreqDialog = false
+      }
+    )
   }
 }
 
