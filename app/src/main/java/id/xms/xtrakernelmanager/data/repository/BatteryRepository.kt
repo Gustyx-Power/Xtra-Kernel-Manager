@@ -133,8 +133,10 @@ object BatteryRepository {
                   ?: 0
         }
 
-        // Current: Try fast NativeLib first, Fallback to RootManager
-        var currentNow = NativeLib.readDrainRate() ?: 0
+        // NativeLib returns Drain Rate (Positive = Discharging, Negative = Charging)
+        // We want Net Current (Positive = Charging, Negative = Discharging)
+        // So we invert the sign.
+        var currentNow = NativeLib.readDrainRate()?.let { -it } ?: 0
         if (currentNow == 0) {
           // Determine sign based on status
           val raw =

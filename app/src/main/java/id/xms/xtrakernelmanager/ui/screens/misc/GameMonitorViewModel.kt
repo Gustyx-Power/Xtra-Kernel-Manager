@@ -188,7 +188,7 @@ class GameMonitorViewModel(
 
               // 3. Smart Delay: Target 250ms loop time (4Hz refresh rate)
               val elapsed = System.currentTimeMillis() - cycleStart
-              val wait = (250 - elapsed).coerceAtLeast(10) // Min 10ms wait to prevent CPU hogs
+              val wait = (1000 - elapsed).coerceAtLeast(10) 
               delay(wait)
             }
           }

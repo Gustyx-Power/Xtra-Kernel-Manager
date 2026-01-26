@@ -122,7 +122,7 @@ fun MaterialHomeScreen(
                   icon = Icons.Rounded.Memory, // Chip icon
                   label = "Load",
                   value = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
-                  subValue = "${cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0} MHz",
+                  subValue = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
                   color = MaterialTheme.colorScheme.primary,
                   badgeText = "CPU",
               )

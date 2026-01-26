@@ -105,17 +105,23 @@ pub fn read_battery_voltage_mv() -> i32 {
 /// Read battery drain rate in milliamps
 #[inline(always)]
 pub fn read_drain_rate_ma() -> i32 {
-    ensure_init();
-
-    unsafe {
-        if let Some(current_ua) = read_fd_int(CURRENT_FD) {
-            return (current_ua.abs() / 1000) as i32;
+    let raw_value = unsafe {
+        if let Some(val) = read_fd_int(CURRENT_FD) {
+            val
+        } else {
+            utils::read_sysfs_int("/sys/class/power_supply/battery/current_now", 500)
+                .unwrap_or(0)
+                .into()
         }
-    }
+    };
 
-    let current_ua =
-        utils::read_sysfs_int("/sys/class/power_supply/battery/current_now", 500).unwrap_or(0);
-    (current_ua.abs() / 1000) as i32
+    let abs_val = raw_value.abs();
+
+    if abs_val < 10000 {
+        abs_val as i32
+    } else {
+        (abs_val / 1000) as i32
+    }
 }
 
 /// Check if battery is charging
