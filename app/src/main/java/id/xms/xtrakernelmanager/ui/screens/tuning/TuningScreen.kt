@@ -1,19 +1,23 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -21,7 +25,13 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.TuningConfig
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidGPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidRAMSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidAdditionalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -45,6 +55,14 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
   var pendingImportConfig by remember { mutableStateOf<TuningConfig?>(null) }
   var isImporting by remember { mutableStateOf(false) }
   var detectionTimeoutReached by remember { mutableStateOf(false) }
+  
+  // Internal Navigation State
+  var currentRoute by remember { mutableStateOf("main") }
+
+  // Handle Back Press
+  BackHandler(enabled = currentRoute != "main") {
+      currentRoute = "main"
+  }
 
   val exportLauncher =
       rememberLauncherForActivityResult(
@@ -53,8 +71,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
         uri?.let {
           scope.launch {
             try {
-              viewModel
-                  .getExportFileName() // Assuming usage for file name generaton logic inside VM
+              viewModel.getExportFileName() 
               val success = viewModel.exportConfigToUri(context, it)
               Toast.makeText(
                       context,
@@ -143,40 +160,61 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           onImportConfig = { showImportDialog = true },
       )
     } else {
-      LiquidTuningScreen(
-          viewModel = viewModel,
-          preferencesManager = preferencesManager,
-          isRootAvailable = isRootAvailable,
-          isLoading = isLoading,
-          detectionTimeoutReached = detectionTimeoutReached,
-          onExportClick = { showExportDialog = true },
-          onImportClick = { showImportDialog = true },
-          onNavigate = onNavigate,
-      )
+      // Internal Navigation Handling
+      AnimatedContent(
+          targetState = currentRoute,
+          transitionSpec = {
+              if (targetState != "main") {
+                  slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
+              } else {
+                  slideInHorizontally { -it } + fadeIn() togetherWith slideOutHorizontally { it } + fadeOut()
+              }
+          }
+      ) { route ->
+          when (route) {
+              "main" -> LiquidTuningScreen(
+                  viewModel = viewModel,
+                  preferencesManager = preferencesManager,
+                  isRootAvailable = isRootAvailable,
+                  isLoading = isLoading,
+                  detectionTimeoutReached = detectionTimeoutReached,
+                  onExportClick = { showExportDialog = true },
+                  onImportClick = { showImportDialog = true },
+                  onNavigate = { dest ->
+                      // Check if it's one of our internal routes
+                      if (dest.startsWith("liquid_")) {
+                          currentRoute = dest
+                      } else {
+                          onNavigate(dest) // Pass up if unknown (e.g. legacy)
+                      }
+                  },
+              )
+              // Detail Screens
+              "liquid_cpu_settings" -> LiquidCPUSettingsScreen(
+                  viewModel = viewModel,
+                  onNavigateBack = { currentRoute = "main" },
+                  onNavigateToSmartLock = { onNavigate("smart_frequency_lock") }
+              )
+              "liquid_gpu_settings" -> LiquidGPUSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_ram_settings" -> LiquidRAMSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_thermal_settings" -> LiquidThermalSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_additional_settings" -> LiquidAdditionalSettingsScreen(viewModel, preferencesManager) { currentRoute = "main" }
+              else -> Text("Unknown route: $route")
+          }
+      }
     }
 
     // Export Confirmation Dialog
     if (showExportDialog) {
-      AlertDialog(
+      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
           onDismissRequest = { showExportDialog = false },
-          icon = {
-            Icon(
-                imageVector = Icons.Default.Upload,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
-          },
-          title = {
-            Text(
-                text = stringResource(R.string.tuning_export_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-          },
-          text = {
+          title = stringResource(R.string.tuning_export_title),
+          content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
               Text(
                   text = stringResource(R.string.tuning_export_message),
                   style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
               )
               Text(
                   text = stringResource(R.string.tuning_export_description),
@@ -186,54 +224,39 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             }
           },
           confirmButton = {
-            FilledTonalButton(
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                text = stringResource(R.string.tuning_export_button),
                 onClick = {
                   showExportDialog = false
                   scope.launch {
                     val fileName = viewModel.getExportFileName()
                     exportLauncher.launch(fileName)
                   }
-                }
-            ) {
-              Icon(
-                  imageVector = Icons.Default.Upload,
-                  contentDescription = null,
-                  modifier = Modifier.size(18.dp),
-              )
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(R.string.tuning_export_button))
-            }
+                },
+                isPrimary = true
+            )
           },
           dismissButton = {
-            TextButton(onClick = { showExportDialog = false }) {
-              Text(stringResource(R.string.cancel))
-            }
-          },
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                text = stringResource(R.string.cancel),
+                onClick = { showExportDialog = false },
+                isPrimary = false
+            )
+          }
       )
     }
 
     // Import Confirmation Dialog
     if (showImportDialog) {
-      AlertDialog(
+      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
           onDismissRequest = { showImportDialog = false },
-          icon = {
-            Icon(
-                imageVector = Icons.Default.Download,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.secondary,
-            )
-          },
-          title = {
-            Text(
-                text = stringResource(R.string.tuning_import_title),
-                style = MaterialTheme.typography.headlineSmall,
-            )
-          },
-          text = {
+          title = stringResource(R.string.tuning_import_title),
+          content = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
               Text(
                   text = stringResource(R.string.tuning_import_message),
                   style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
               )
               Text(
                   text = stringResource(R.string.tuning_import_warning),
@@ -243,75 +266,70 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             }
           },
           confirmButton = {
-            FilledTonalButton(
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                text = stringResource(R.string.tuning_import_button),
                 onClick = {
                   showImportDialog = false
                   importLauncher.launch(arrayOf("application/toml", "text/plain", "*/*"))
                 },
-                colors =
-                    ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    ),
-            ) {
-              Icon(
-                  imageVector = Icons.Default.Download,
-                  contentDescription = null,
-                  modifier = Modifier.size(18.dp),
-              )
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(R.string.tuning_import_button))
-            }
+                isPrimary = true
+            )
           },
           dismissButton = {
-            TextButton(onClick = { showImportDialog = false }) {
-              Text(stringResource(R.string.cancel))
-            }
-          },
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                text = stringResource(R.string.cancel),
+                onClick = { showImportDialog = false },
+                isPrimary = false
+            )
+          }
       )
     }
 
     // LOADING POPUP saat import
     if (isImporting) {
-      AlertDialog(
+      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
           onDismissRequest = {},
-          icon = { CircularProgressIndicator() },
-          title = { Text(stringResource(R.string.tuning_importing)) },
-          text = { Text(stringResource(R.string.tuning_applying_config)) },
+          title = stringResource(R.string.tuning_importing),
+          content = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+              CircularProgressIndicator()
+              Text(
+                  text = stringResource(R.string.tuning_applying_config),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+              )
+            }
+          },
           confirmButton = {},
-          dismissButton = {},
+          dismissButton = null,
+          properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
       )
     }
 
     // SOC Compatibility Warning Dialog
     if (showSOCWarning) {
-      AlertDialog(
+      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
           onDismissRequest = {
             showSOCWarning = false
             pendingImportConfig = null
           },
-          icon = {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-            )
-          },
-          title = {
-            Text(
-                text = stringResource(R.string.tuning_soc_warning_title),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error,
-            )
-          },
-          text = {
+          title = stringResource(R.string.tuning_soc_warning_title),
+          content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-              Text(text = socWarningMessage, style = MaterialTheme.typography.bodyMedium)
-              Divider()
+              Text(
+                  text = socWarningMessage, 
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+              )
+              HorizontalDivider()
               Text(
                   text = stringResource(R.string.tuning_soc_warning_question),
                   style = MaterialTheme.typography.bodyMedium,
                   fontWeight = FontWeight.Bold,
+                  color = MaterialTheme.colorScheme.onSurface
               )
               Text(
                   text = stringResource(R.string.tuning_soc_warning_desc),
@@ -321,7 +339,8 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             }
           },
           confirmButton = {
-            Button(
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                text = stringResource(R.string.tuning_apply_anyway),
                 onClick = {
                   scope.launch {
                     pendingImportConfig?.let { config ->
@@ -337,28 +356,19 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                   showSOCWarning = false
                   pendingImportConfig = null
                 },
-                colors =
-                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-            ) {
-              Icon(
-                  imageVector = Icons.Default.Warning,
-                  contentDescription = null,
-                  modifier = Modifier.size(18.dp),
-              )
-              Spacer(Modifier.width(8.dp))
-              Text(stringResource(R.string.tuning_apply_anyway))
-            }
+                isPrimary = true
+            )
           },
           dismissButton = {
-            TextButton(
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                text = stringResource(R.string.cancel),
                 onClick = {
                   showSOCWarning = false
                   pendingImportConfig = null
-                }
-            ) {
-              Text(stringResource(R.string.cancel))
-            }
-          },
+                },
+                isPrimary = false
+            )
+          }
       )
     }
   }

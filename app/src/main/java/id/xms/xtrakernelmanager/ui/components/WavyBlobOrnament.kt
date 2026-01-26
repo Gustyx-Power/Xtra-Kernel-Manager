@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlin.math.cos
@@ -71,7 +72,10 @@ fun WavyBlobOrnament(
         label = "phase2"
     )
 
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(modifier = modifier
+        .fillMaxSize()
+        .testTag("WavyBlobOrnament")
+    ) {
         val w = size.width
         val h = size.height
         
