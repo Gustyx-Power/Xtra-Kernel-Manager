@@ -172,7 +172,7 @@ dependencies {
     implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.3")
 
     // Backdrop (Liquid Glass)
-    implementation("io.github.kyant0:backdrop:1.0.4")
+    implementation("io.github.kyant0:backdrop:1.0.5")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
