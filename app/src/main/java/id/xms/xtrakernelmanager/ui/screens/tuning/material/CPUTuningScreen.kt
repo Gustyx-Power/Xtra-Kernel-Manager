@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.CoreControlCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +74,7 @@ fun ClusterTuningContent(
     modifier: Modifier = Modifier
 ) {
   val cpuClusters by viewModel.cpuClusters.collectAsState()
+  val cpuCores by viewModel.cpuCores.collectAsState()
   val clusterStates by viewModel.clusterStates.collectAsState()
 
   LazyColumn(
@@ -82,6 +84,14 @@ fun ClusterTuningContent(
   ) {
     // Smart Frequency Lock Card
     item { SmartFrequencyLockCard(onNavigateToSmartLock = onNavigateToSmartLock) }
+    
+    // Core Management Card (NEW - Separated from clusters)
+    item { 
+      CoreControlCard(
+          cores = cpuCores,
+          viewModel = viewModel
+      )
+    }
     
     items(cpuClusters) { cluster -> ClusterCard(cluster = cluster, viewModel = viewModel) }
 
@@ -173,9 +183,6 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
             viewModel.setCpuClusterGovernor(cluster.clusterNumber, newGov)
           },
       )
-
-      // Core Management
-      CoreControlList(cluster = cluster, viewModel = viewModel)
     }
   }
 }
@@ -341,88 +348,6 @@ fun GovernorCard(
                     color =
                         if (isSelected) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurface,
-                )
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-@Composable
-fun CoreControlList(cluster: ClusterInfo, viewModel: TuningViewModel) {
-  var expanded by remember { mutableStateOf(false) }
-  val enabledCores = cluster.cores.count { true } // We would need core online status from cluster
-
-  Surface(
-      modifier = Modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
-      shape = RoundedCornerShape(16.dp),
-      color = MaterialTheme.colorScheme.surfaceContainerHigh,
-  ) {
-    Column {
-      // Header Row
-      Row(
-          modifier = Modifier.padding(16.dp),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.SpaceBetween,
-      ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-          Box(
-              modifier =
-                  Modifier.size(40.dp)
-                      .clip(RoundedCornerShape(12.dp))
-                      .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-              contentAlignment = Alignment.Center,
-          ) {
-            Icon(Icons.Rounded.Memory, null, tint = MaterialTheme.colorScheme.onSurface)
-          }
-          Spacer(modifier = Modifier.width(16.dp))
-          Column {
-            Text(
-                "Core Management",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            )
-            Text(
-                "${cluster.cores.size} Cores",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-          }
-        }
-      }
-
-      // Expanded Content
-      AnimatedVisibility(visible = expanded) {
-        Surface(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-        ) {
-          Column(modifier = Modifier.padding(8.dp)) {
-            cluster.cores.forEach { coreId ->
-              val checked = remember { mutableStateOf(true) }
-              Row(
-                  modifier =
-                      Modifier.fillMaxWidth()
-                          .clip(RoundedCornerShape(8.dp))
-                          .padding(horizontal = 12.dp, vertical = 8.dp),
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.SpaceBetween,
-              ) {
-                Text(
-                    text = "Core ${coreId + 1}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Switch(
-                    checked = checked.value,
-                    onCheckedChange = {
-                      checked.value = it
-                      viewModel.setCpuCoreOnline(coreId, it)
-                    },
                 )
               }
             }

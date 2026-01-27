@@ -42,10 +42,6 @@ fun LiquidProfileCard(
         else -> Triple(Icons.Rounded.Speed, Color(0xFF3B82F6), "Balanced") // Blue
     }
 
-    // Material 3 colors for background and content
-    val containerColor = Color.White
-    val contentColor = Color.White
-
     LiquidSharedCard(modifier = modifier) {
         Column(
             modifier = Modifier
@@ -104,12 +100,12 @@ fun LiquidProfileCard(
                         text = targetLabel,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = contentColor
+                        color = adaptiveTextColor()
                     )
                     Text(
                         text = "Tap to Change",
                         style = MaterialTheme.typography.labelSmall,
-                        color = contentColor.copy(alpha = 0.5f)
+                        color = adaptiveTextColor(0.5f)
                     )
                 }
             }

@@ -167,6 +167,8 @@ fun HomeScreen(
                                 MaterialHomeScreen(
                                         preferencesManager = preferencesManager,
                                         viewModel = viewModel,
+                                        currentProfile = tuningViewModel.selectedProfile.collectAsState().value,
+                                        onProfileChange = { tuningViewModel.applyGlobalProfile(it) },
                                         onPowerAction = { action ->
                                                 if (action == PowerAction.LockScreen) {
                                                         scope.launch {

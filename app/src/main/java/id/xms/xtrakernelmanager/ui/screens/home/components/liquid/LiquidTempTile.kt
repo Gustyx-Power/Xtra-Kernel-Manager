@@ -91,13 +91,13 @@ private fun TempRow(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.7f),
+            color = adaptiveTextColor(0.7f),
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = value,
             style = MaterialTheme.typography.labelLarge,
-            color = Color.White,
+            color = adaptiveTextColor(),
             fontWeight = FontWeight.Bold
         )
     }

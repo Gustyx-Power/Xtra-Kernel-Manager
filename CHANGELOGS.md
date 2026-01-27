@@ -4,6 +4,53 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased] - January 27, 2026
+
+### ✨ New Features
+- **Separated Core Management** - CPU Core control now has dedicated card
+  - Independent Core Management card (no longer nested in cluster)
+  - Real-time core status display (online/offline)
+  - Per-core frequency monitoring
+  - Grouped by cluster for better organization
+  - Core 0 protection (cannot be disabled)
+  - Available in both Material and Liquid design variants
+
+- **Enhanced GPU Info Display** - Recent GPU card now shows comprehensive details
+  - **Current Renderer Badge** - Shows active renderer (VULKAN/OPENGL)
+    - Purple badge for Vulkan renderer
+    - Primary color badge for OpenGL renderer
+  - **Compute Units** - Display GPU compute units (e.g., 4 CUs for Adreno 710)
+  - **Vulkan API Version** - Proper detection using Android PackageManager
+  - **GPU Memory** - Shows dedicated GPU memory or estimated from system RAM
+  - **OpenGL ES Version** - Display OpenGL ES version support
+  - **2x2 Grid Layout** - Optimized layout without empty spaces
+    - Row 1: GPU Memory + Compute Units (purple background)
+    - Row 2: OpenGL ES + Vulkan (gray and purple backgrounds)
+
+### 🛠️ Improvements
+- Enhanced CPU control UX with separated sections
+- Better visual indicators for core status
+- Improved core information display
+- Cleaner cluster cards (frequency & governor only)
+- More comprehensive GPU information in Recent Cards
+- Optimized GPU info detection methods
+- Better renderer type detection and display
+- Improved Vulkan detection using DevCheck-style approach
+
+### 🔧 Technical Changes
+- New `getAllCoreInfo()` function in CPUControlUseCase
+- New `getCoreInfoByCluster()` function for cluster-specific cores
+- Added `cpuCores` StateFlow in TuningViewModel
+- Auto-refresh core info every 5 seconds
+- New UI components: CoreControlCard (Material) and LiquidCoreControl (Liquid)
+- Added `vulkanVersion`, `gpuMemory`, `computeUnits`, and `rendererType` fields to GPUInfo model
+- New `getVulkanVersion()` function using Android PackageManager API
+- New `getGPUMemory()` function with multiple detection methods
+- New `getComputeUnits()` function with sysfs and model-based estimation
+- Updated RecentGPUCard with renderer badge and 2x2 grid layout
+
+---
+
 ## [2.3-Release] - December 25, 2025
 
 ### ✨ New Features

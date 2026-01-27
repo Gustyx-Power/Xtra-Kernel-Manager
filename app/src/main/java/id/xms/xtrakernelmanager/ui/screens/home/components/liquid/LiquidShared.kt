@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.ui.screens.home.components.liquid
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +17,50 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+
+// --- ADAPTIVE COLORS FOR LIQUID THEME ---
+
+/**
+ * Returns adaptive text color based on system theme
+ * - Dark mode: White
+ * - Light mode: Black
+ */
+@Composable
+fun adaptiveTextColor(): Color {
+    return if (isSystemInDarkTheme()) {
+        Color.White
+    } else {
+        Color.Black
+    }
+}
+
+/**
+ * Returns adaptive text color with alpha based on system theme
+ * - Dark mode: White with alpha
+ * - Light mode: Black with alpha
+ */
+@Composable
+fun adaptiveTextColor(alpha: Float): Color {
+    return if (isSystemInDarkTheme()) {
+        Color.White.copy(alpha = alpha)
+    } else {
+        Color.Black.copy(alpha = alpha)
+    }
+}
+
+/**
+ * Returns adaptive surface color based on system theme
+ * - Dark mode: White with low alpha
+ * - Light mode: Black with low alpha
+ */
+@Composable
+fun adaptiveSurfaceColor(alpha: Float = 0.1f): Color {
+    return if (isSystemInDarkTheme()) {
+        Color.White.copy(alpha = alpha)
+    } else {
+        Color.Black.copy(alpha = alpha)
+    }
+}
 
 // --- SHARED CONTAINER ---
 
@@ -64,11 +109,11 @@ fun LiquidBatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
 
 @Composable
 fun LiquidBatteryStatusChip(text: String) {
-    Surface(color = Color.White.copy(alpha = 0.1f), shape = MaterialTheme.shapes.small) {
+    Surface(color = adaptiveSurfaceColor(0.1f), shape = MaterialTheme.shapes.small) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium,
-            color = Color.White,
+            color = adaptiveTextColor(),
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
         )
     }
@@ -79,7 +124,7 @@ fun LiquidBatteryStatBox(label: String, value: String, modifier: Modifier = Modi
     Box(
         modifier = modifier
             .clip(MaterialTheme.shapes.large)
-            .background(Color.White.copy(alpha = 0.05f))
+            .background(adaptiveSurfaceColor(0.05f))
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 8.dp),
@@ -90,13 +135,13 @@ fun LiquidBatteryStatBox(label: String, value: String, modifier: Modifier = Modi
                 text = value,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = adaptiveTextColor()
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.6f)
+                color = adaptiveTextColor(0.6f)
             )
         }
     }

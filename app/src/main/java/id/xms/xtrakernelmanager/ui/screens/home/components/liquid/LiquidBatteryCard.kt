@@ -51,19 +51,19 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
                         text = "Battery",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = adaptiveTextColor()
                     )
                 }
 
                 Surface(
-                    color = Color.White.copy(alpha = 0.1f),
+                    color = adaptiveSurfaceColor(0.1f),
                     shape = CircleShape
                 ) {
                     Text(
                         text = batteryInfo.technology.takeIf { it != "Unknown" } ?: "Li-ion",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = adaptiveTextColor(),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
                 }

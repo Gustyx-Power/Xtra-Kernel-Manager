@@ -68,7 +68,7 @@ class GPUControlUseCase {
     return info
   }
 
-  suspend fun getGPUDynamicInfo(): GPUInfo {
+  suspend fun getGPUDynamicInfo(context: android.content.Context? = null): GPUInfo {
     val staticInfo = getGPUStaticInfo()
     val basePath = "/sys/class/kgsl/kgsl-3d0"
 
@@ -96,11 +96,28 @@ class GPUControlUseCase {
             ?: 0
 
     val currentRenderer = detectCurrentRenderer()
+    
+    // Get Vulkan version using native lib with context
+    val vulkanVersion = if (context != null) {
+      id.xms.xtrakernelmanager.domain.native.NativeLib.getVulkanVersion(context) 
+          ?: getVulkanVersionFallback()
+    } else {
+      getVulkanVersionFallback()
+    }
+    
+    // Get GPU memory
+    val gpuMemory = getGPUMemory()
+    
+    // Get Compute Units
+    val computeUnits = getComputeUnits(staticInfo.renderer)
 
     return GPUInfo(
         vendor = staticInfo.vendor,
         renderer = staticInfo.renderer,
         openglVersion = staticInfo.openglVersion,
+        vulkanVersion = vulkanVersion,
+        gpuMemory = gpuMemory,
+        computeUnits = computeUnits,
         currentFreq = currentFreq,
         minFreq = staticInfo.minFreq,
         maxFreq = staticInfo.maxFreq,
@@ -110,6 +127,191 @@ class GPUControlUseCase {
         rendererType = currentRenderer,
         gpuLoad = gpuLoad,
     )
+  }
+  
+  private suspend fun getComputeUnits(renderer: String): Int {
+    return try {
+      // Try to get compute units from sysfs
+      val basePath = "/sys/class/kgsl/kgsl-3d0"
+      
+      // Method 1: Check for shader cores (Mali)
+      val shaderCores = RootManager.executeCommand("cat $basePath/shader_cores 2>/dev/null")
+          .getOrNull()?.trim()?.toIntOrNull()
+      
+      if (shaderCores != null && shaderCores > 0) {
+        Log.d(TAG, "Compute units from sysfs shader_cores: $shaderCores")
+        return shaderCores
+      }
+      
+      // Method 2: Check for compute units (Adreno)
+      val computeUnits = RootManager.executeCommand("cat $basePath/compute_units 2>/dev/null")
+          .getOrNull()?.trim()?.toIntOrNull()
+      
+      if (computeUnits != null && computeUnits > 0) {
+        Log.d(TAG, "Compute units from sysfs compute_units: $computeUnits")
+        return computeUnits
+      }
+      
+      // Method 3: Try to read from GPU info
+      val gpuInfo = RootManager.executeCommand("cat $basePath/gpu_model 2>/dev/null")
+          .getOrNull()?.trim()?.lowercase() ?: ""
+      
+      // Method 4: Estimate from GPU model name
+      val rendererLower = renderer.lowercase()
+      
+      Log.d(TAG, "Detecting compute units for renderer: '$renderer' (lowercase: '$rendererLower'), gpu_model: '$gpuInfo'")
+      
+      // Extract numeric model from renderer (e.g., "Adreno (TM) 710" -> "710")
+      val modelNumber = Regex("\\d{3,4}").find(rendererLower)?.value ?: ""
+      Log.d(TAG, "Extracted model number: '$modelNumber'")
+      
+      // Adreno GPU compute units mapping
+      val result = when {
+        // Adreno 7xx series
+        modelNumber == "740" || rendererLower.contains("740") -> 6
+        modelNumber == "730" || rendererLower.contains("730") -> 6
+        modelNumber == "725" || rendererLower.contains("725") -> 5
+        modelNumber == "720" || rendererLower.contains("720") -> 4
+        modelNumber == "710" || rendererLower.contains("710") -> 4
+        modelNumber == "702" || rendererLower.contains("702") -> 2
+        
+        // Adreno 6xx series
+        modelNumber == "690" || rendererLower.contains("690") -> 3
+        modelNumber == "680" || rendererLower.contains("680") -> 4
+        modelNumber == "675" || rendererLower.contains("675") -> 4
+        modelNumber == "660" || rendererLower.contains("660") -> 3
+        modelNumber == "650" || rendererLower.contains("650") -> 3
+        modelNumber == "640" || rendererLower.contains("640") -> 2
+        modelNumber == "642" || rendererLower.contains("642") -> 2
+        modelNumber == "630" || rendererLower.contains("630") -> 2
+        modelNumber == "620" || rendererLower.contains("620") -> 2
+        modelNumber == "619" || rendererLower.contains("619") -> 2
+        modelNumber == "618" || rendererLower.contains("618") -> 2
+        modelNumber == "616" || rendererLower.contains("616") -> 1
+        modelNumber == "612" || rendererLower.contains("612") -> 1
+        modelNumber == "610" || rendererLower.contains("610") -> 1
+        
+        // Adreno 5xx series
+        modelNumber == "540" || rendererLower.contains("540") -> 2
+        modelNumber == "530" || rendererLower.contains("530") -> 2
+        modelNumber == "512" || rendererLower.contains("512") -> 1
+        modelNumber == "510" || rendererLower.contains("510") -> 1
+        modelNumber == "509" || rendererLower.contains("509") -> 1
+        modelNumber == "508" || rendererLower.contains("508") -> 1
+        modelNumber == "506" || rendererLower.contains("506") -> 1
+        modelNumber == "505" || rendererLower.contains("505") -> 1
+        
+        // Mali GPU shader cores mapping (approximate)
+        rendererLower.contains("g710") -> 10
+        rendererLower.contains("g78") -> 24
+        rendererLower.contains("g77") -> 16
+        rendererLower.contains("g76") -> 12
+        rendererLower.contains("g72") -> 18
+        rendererLower.contains("g71") -> 32
+        rendererLower.contains("g68") -> 6
+        rendererLower.contains("g57") -> 6
+        rendererLower.contains("g52") -> 6
+        rendererLower.contains("g51") -> 4
+        
+        else -> {
+          Log.w(TAG, "No compute units mapping found for renderer: '$renderer', model: '$modelNumber'")
+          0
+        }
+      }
+      
+      Log.d(TAG, "Compute units detected: $result for renderer: '$renderer'")
+      result
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to get compute units", e)
+      0
+    }
+  }
+  
+  private suspend fun getVulkanVersionFallback(): String {
+    return try {
+      // Try to get Vulkan version from system properties
+      val vulkanProp = RootManager.executeCommand("getprop ro.hardware.vulkan")
+          .getOrNull()?.trim()
+      
+      if (!vulkanProp.isNullOrEmpty() && vulkanProp != "null") {
+        return vulkanProp
+      }
+      
+      // Check if Vulkan is supported at all
+      val vulkanSupport = RootManager.executeCommand("getprop ro.hwui.use_vulkan")
+          .getOrNull()?.trim()
+      
+      if (vulkanSupport == "true") {
+        return "Vulkan 1.1"
+      }
+      
+      "Not Supported"
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to get Vulkan version", e)
+      "Unknown"
+    }
+  }
+  
+  private suspend fun getGPUMemory(): String {
+    return try {
+      // Try to get GPU memory from various sources
+      
+      // Method 1: Check kgsl memory stats
+      val kgslMemPath = "/sys/class/kgsl/kgsl-3d0/mem_pool_size_kb"
+      val kgslMem = RootManager.executeCommand("cat $kgslMemPath 2>/dev/null")
+          .getOrNull()?.trim()?.toLongOrNull()
+      
+      if (kgslMem != null && kgslMem > 0) {
+        val memMB = kgslMem / 1024
+        return "${memMB} MB"
+      }
+      
+      // Method 2: Check GPU memory from meminfo
+      val meminfo = RootManager.executeCommand("cat /proc/meminfo 2>/dev/null")
+          .getOrNull() ?: ""
+      
+      // Look for GPU-related memory entries
+      val gpuMemMatch = Regex("(?:GPU|Graphics).*?:\\s*(\\d+)\\s*kB").find(meminfo)
+      if (gpuMemMatch != null) {
+        val memKB = gpuMemMatch.groupValues[1].toLongOrNull()
+        if (memKB != null) {
+          val memMB = memKB / 1024
+          return "${memMB} MB"
+        }
+      }
+      
+      // Method 3: Check ION memory (used by GPU on many devices)
+      val ionPath = "/sys/kernel/debug/ion/heaps/system"
+      val ionMem = RootManager.executeCommand("cat $ionPath 2>/dev/null")
+          .getOrNull()
+      
+      if (ionMem != null) {
+        val sizeMatch = Regex("total\\s+(\\d+)").find(ionMem)
+        if (sizeMatch != null) {
+          val bytes = sizeMatch.groupValues[1].toLongOrNull()
+          if (bytes != null) {
+            val memMB = bytes / (1024 * 1024)
+            return "${memMB} MB"
+          }
+        }
+      }
+      
+      // Method 4: Estimate from total RAM (GPU typically uses 10-20% of RAM)
+      val totalMemKB = RootManager.executeCommand("cat /proc/meminfo | grep MemTotal")
+          .getOrNull()?.let { line ->
+            Regex("(\\d+)").find(line)?.groupValues?.get(1)?.toLongOrNull()
+          }
+      
+      if (totalMemKB != null) {
+        val estimatedGpuMB = (totalMemKB / 1024) / 8 // Rough estimate: 12.5% of RAM
+        return "~${estimatedGpuMB} MB"
+      }
+      
+      "Unknown"
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to get GPU memory", e)
+      "Unknown"
+    }
   }
 
   // Deprecated/Legacy wrapper

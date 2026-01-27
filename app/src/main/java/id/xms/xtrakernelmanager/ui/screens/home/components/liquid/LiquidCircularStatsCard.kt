@@ -33,7 +33,7 @@ fun LiquidCircularStatsCard(
                 CircularProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.White.copy(alpha = 0.1f),
+                    color = adaptiveSurfaceColor(0.1f),
                     strokeWidth = 6.dp
                 )
                 CircularProgressIndicator(
@@ -46,12 +46,12 @@ fun LiquidCircularStatsCard(
                 Text(
                     text = "${(progress * 100).toInt()}%", // Show percentage in center
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
+                    color = adaptiveTextColor()
                 )
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Text(value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = Color.White)
-            Text(title, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+            Text(value, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = adaptiveTextColor())
+            Text(title, style = MaterialTheme.typography.labelSmall, color = adaptiveTextColor(0.5f))
         }
     }
 }

@@ -87,6 +87,10 @@ class TuningViewModel(
   val cpuClusters: StateFlow<List<ClusterInfo>>
     get() = _cpuClusters.asStateFlow()
 
+  private val _cpuCores = MutableStateFlow<List<CoreInfo>>(emptyList())
+  val cpuCores: StateFlow<List<CoreInfo>>
+    get() = _cpuCores.asStateFlow()
+
   private val _cpuInfo = MutableStateFlow(id.xms.xtrakernelmanager.data.model.CPUInfo())
   val cpuInfo: StateFlow<id.xms.xtrakernelmanager.data.model.CPUInfo>
     get() = _cpuInfo.asStateFlow()
@@ -478,9 +482,13 @@ class TuningViewModel(
   private suspend fun refreshCurrentValues() {
     val updatedClusters = cpuUseCase.detectClusters()
     _cpuClusters.value = updatedClusters
+    
+    // Load core info
+    val updatedCores = cpuUseCase.getAllCoreInfo()
+    _cpuCores.value = updatedCores
 
     if (!_isMediatek.value) {
-      _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
+      _gpuInfo.value = gpuUseCase.getGPUDynamicInfo(preferencesManager.getContext())
     }
 
     val states = mutableMapOf<Int, ClusterUIState>()
@@ -528,9 +536,13 @@ class TuningViewModel(
     val updatedClusters = cpuUseCase.detectClusters()
     _cpuClusters.value = updatedClusters
     Log.d("TuningViewModel", "Refreshed clusters: ${updatedClusters.size} clusters")
+    
+    // Refresh core info
+    val updatedCores = cpuUseCase.getAllCoreInfo()
+    _cpuCores.value = updatedCores
 
     if (!_isMediatek.value) {
-      _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
+      _gpuInfo.value = gpuUseCase.getGPUDynamicInfo(preferencesManager.getContext())
     }
 
     // Update temperature
@@ -581,7 +593,7 @@ class TuningViewModel(
         // GPU Info depends on Mediatek check
         if (!isMtk) {
           val staticInfo = gpuUseCase.getGPUStaticInfo()
-          _gpuInfo.value = gpuUseCase.getGPUDynamicInfo()
+          _gpuInfo.value = gpuUseCase.getGPUDynamicInfo(preferencesManager.getContext())
         }
         _blockDeviceStates.value = blockDevicesDeferred.await()
 

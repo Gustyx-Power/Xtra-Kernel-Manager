@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.domain.usecase
 
 import android.util.Log
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
+import id.xms.xtrakernelmanager.data.model.CoreInfo
 import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.native.NativeLib.ThermalZone
 import id.xms.xtrakernelmanager.domain.root.RootManager
@@ -180,6 +181,60 @@ class CPUControlUseCase {
     val corePath = "/sys/devices/system/cpu/cpu$core"
     val value = if (online) "1" else "0"
     return RootManager.executeCommand("echo $value > $corePath/online 2>/dev/null").map { Unit }
+  }
+
+  /**
+   * Get detailed information about all CPU cores
+   */
+  suspend fun getAllCoreInfo(): List<CoreInfo> {
+    val clusters = detectClusters()
+    val coreInfoList = mutableListOf<CoreInfo>()
+    
+    clusters.forEach { cluster ->
+      cluster.cores.forEach { coreNum ->
+        val basePath = "/sys/devices/system/cpu/cpu$coreNum"
+        
+        // Check if core is online
+        val isOnline = if (coreNum == 0) {
+          true // Core 0 is always online
+        } else {
+          RootManager.executeCommand("cat $basePath/online 2>/dev/null")
+            .getOrNull()
+            ?.trim() == "1"
+        }
+        
+        // Get current frequency (only if online)
+        val currentFreq = if (isOnline) {
+          RootManager.executeCommand("cat $basePath/cpufreq/scaling_cur_freq 2>/dev/null")
+            .getOrNull()
+            ?.trim()
+            ?.toIntOrNull()?.div(1000) ?: 0
+        } else {
+          0
+        }
+        
+        coreInfoList.add(
+          CoreInfo(
+            coreNumber = coreNum,
+            currentFreq = currentFreq,
+            minFreq = cluster.minFreq,
+            maxFreq = cluster.maxFreq,
+            governor = cluster.governor,
+            isOnline = isOnline,
+            cluster = cluster.clusterNumber
+          )
+        )
+      }
+    }
+    
+    return coreInfoList
+  }
+
+  /**
+   * Get core info for a specific cluster
+   */
+  suspend fun getCoreInfoByCluster(clusterNumber: Int): List<CoreInfo> {
+    return getAllCoreInfo().filter { it.cluster == clusterNumber }
   }
 
   // CPU Lock Management Methods
