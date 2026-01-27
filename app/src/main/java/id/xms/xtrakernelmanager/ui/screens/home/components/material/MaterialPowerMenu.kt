@@ -10,6 +10,10 @@ import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.model.PowerAction
 import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
 
+/**
+ * Material Design power menu components
+ * Displays power actions like reboot, power off, recovery, etc.
+ */
 @Composable
 fun PowerMenuContent(onAction: (PowerAction) -> Unit) {
     Column(
