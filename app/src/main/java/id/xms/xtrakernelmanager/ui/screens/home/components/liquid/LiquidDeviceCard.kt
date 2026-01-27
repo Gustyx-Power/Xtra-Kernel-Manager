@@ -124,14 +124,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                          .trim()
                          .ifBlank { "Unknown Device" },
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 42.sp),
-                    color = Color.White,
+                    color = adaptiveTextColor(),
                     lineHeight = 44.sp
                 )
                 
                 Text(
                     text = android.os.Build.DEVICE,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = adaptiveTextColor(0.5f),
                     fontFamily = FontFamily.Monospace
                 )
 
@@ -228,7 +228,7 @@ private fun InfoTile(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.05f))
+            .background(adaptiveSurfaceColor(0.05f))
             .padding(12.dp),
         verticalArrangement = Arrangement.Center
     ) {
@@ -237,14 +237,14 @@ private fun InfoTile(
         Text(
             text = value,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            color = Color.White,
+            color = adaptiveTextColor(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.5f)
+            color = adaptiveTextColor(0.5f)
         )
     }
 }
