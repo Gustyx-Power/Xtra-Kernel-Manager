@@ -173,6 +173,10 @@ fun MaterialHomeScreen(
     }
 }
 
+/**
+ * Staggered entry animation for home screen components
+ * Creates a cascading fade-in and slide-up effect
+ */
 @Composable
 fun StaggeredEntry(delayMillis: Int, content: @Composable () -> Unit) {
     var visible by remember { mutableStateOf(false) }
