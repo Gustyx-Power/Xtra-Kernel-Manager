@@ -459,7 +459,12 @@ fun RecentGPUCard(
     gpuInfo: GPUInfo,
     onClick: () -> Unit
 ) {
-    val purpleColor = Color(0xFFA855F7)
+    val blueColor = Color(0xFF3B82F6)
+    
+    // Determine renderer badge color and text
+    val isVulkanActive = gpuInfo.rendererType.contains("Vulkan", ignoreCase = true)
+    val rendererBadgeText = if (isVulkanActive) "VULKAN" else "OPENGL"
+    val rendererBadgeColor = if (isVulkanActive) blueColor else MaterialTheme.colorScheme.primary
     
     GlassmorphicCard(
         modifier = Modifier
@@ -477,8 +482,8 @@ fun RecentGPUCard(
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
-                            purpleColor.copy(alpha = 0.3f),
-                            purpleColor.copy(alpha = 0.15f)
+                            blueColor.copy(alpha = 0.3f),
+                            blueColor.copy(alpha = 0.15f)
                         )
                     )
                 ),
@@ -487,20 +492,38 @@ fun RecentGPUCard(
             Icon(
                 imageVector = Icons.Default.Games,
                 contentDescription = "GPU Control",
-                tint = purpleColor,
+                tint = blueColor,
                 modifier = Modifier.size(32.dp)
             )
         }
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Title
-        Text(
-            text = stringResource(R.string.gpu_control),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        // Title & Renderer Badge
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.gpu_control),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = rendererBadgeColor.copy(alpha = 0.15f)
+            ) {
+                Text(
+                    text = rendererBadgeText,
+                    color = rendererBadgeColor,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                )
+            }
+        }
         
         Spacer(modifier = Modifier.height(8.dp))
         
@@ -509,42 +532,42 @@ fun RecentGPUCard(
             text = gpuInfo.renderer.ifEmpty { "Adreno 710" },
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = purpleColor
+            color = blueColor
         )
         
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         
-        // Main Stats
+        // Main Stats - Smaller
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             // GPU Load
             Surface(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
-                color = purpleColor.copy(alpha = 0.1f)
+                shape = RoundedCornerShape(12.dp),
+                color = blueColor.copy(alpha = 0.1f)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
                         imageVector = Icons.Default.ShowChart,
                         contentDescription = null,
-                        tint = purpleColor,
-                        modifier = Modifier.size(24.dp)
+                        tint = blueColor,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${gpuInfo.gpuLoad}%",
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = purpleColor
+                        color = blueColor
                     )
                     Text(
                         text = "GPU Load",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -553,36 +576,36 @@ fun RecentGPUCard(
             // Current Frequency
             Surface(
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
                         imageVector = Icons.Default.Speed,
                         contentDescription = null,
-                        tint = purpleColor,
-                        modifier = Modifier.size(24.dp)
+                        tint = blueColor,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${gpuInfo.currentFreq}",
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "MHz",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
         // Power Level
         Column {
@@ -600,7 +623,7 @@ fun RecentGPUCard(
                     text = "${gpuInfo.powerLevel} / ${gpuInfo.numPwrLevels}",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = purpleColor
+                    color = blueColor
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -623,8 +646,8 @@ fun RecentGPUCard(
                         .background(
                             Brush.horizontalGradient(
                                 colors = listOf(
-                                    purpleColor.copy(alpha = 0.8f),
-                                    purpleColor
+                                    blueColor.copy(alpha = 0.8f),
+                                    blueColor
                                 )
                             )
                         )
@@ -632,60 +655,228 @@ fun RecentGPUCard(
             }
         }
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
-        // Features
+        // GPU Info Grid - 2x2 layout
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            // Row 1: GPU Memory + Compute Units
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // GPU Memory
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    color = blueColor.copy(alpha = 0.1f)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Memory,
+                            contentDescription = null,
+                            tint = blueColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = gpuInfo.gpuMemory.take(8),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = blueColor,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "Memory",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                // Compute Units
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    color = blueColor.copy(alpha = 0.1f)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeveloperBoard,
+                            contentDescription = null,
+                            tint = blueColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (gpuInfo.computeUnits > 0) "${gpuInfo.computeUnits}" else "N/A",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = blueColor,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "CUs",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            
+            // Row 2: OpenGL + Vulkan
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // OpenGL ES Version
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Layers,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (gpuInfo.openglVersion != "Unknown") 
+                                gpuInfo.openglVersion.replace("OpenGL ES ", "").take(6)
+                            else "3.2",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "OpenGL",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                // Vulkan Version
+                Surface(
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    color = blueColor.copy(alpha = 0.1f)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Bolt,
+                            contentDescription = null,
+                            tint = if (gpuInfo.vulkanVersion != "Not Supported" && gpuInfo.vulkanVersion != "Unknown")
+                                blueColor
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = when {
+                                gpuInfo.vulkanVersion.contains("1.1") -> "1.1"
+                                gpuInfo.vulkanVersion.contains("1.2") -> "1.2"
+                                gpuInfo.vulkanVersion.contains("1.3") -> "1.3"
+                                gpuInfo.vulkanVersion == "Not Supported" -> "N/A"
+                                else -> "N/A"
+                            },
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (gpuInfo.vulkanVersion != "Not Supported" && gpuInfo.vulkanVersion != "Unknown")
+                                blueColor
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = "Vulkan",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Display Info - Resolution & Refresh Rate
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Surface(
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                color = purpleColor.copy(alpha = 0.1f)
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Bolt,
-                        contentDescription = null,
-                        tint = purpleColor,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = "Boost",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = purpleColor
-                    )
-                }
-            }
-            
+            // Resolution
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Layers,
+                        imageVector = Icons.Default.AspectRatio,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = blueColor,
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "OpenGL",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
+                        text = getDisplayResolution(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "Resolution",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            
+            // Refresh Rate
+            Surface(
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+            ) {
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = null,
+                        tint = blueColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${getMaxRefreshRate()}Hz",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "Refresh Rate",
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -1303,6 +1494,46 @@ fun RecentAdditionalCard(
     }
 }
 
+
+
+
+// Helper function to get display resolution
+@Composable
+private fun getDisplayResolution(): String {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val displayMetrics = context.resources.displayMetrics
+    val width = displayMetrics.widthPixels
+    val height = displayMetrics.heightPixels
+    
+    // Get the larger dimension as height (portrait orientation standard)
+    val displayWidth = minOf(width, height)
+    val displayHeight = maxOf(width, height)
+    
+    return "${displayWidth}x${displayHeight}"
+}
+
+// Helper function to get max refresh rate
+@Composable
+private fun getMaxRefreshRate(): Int {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager
+    
+    return try {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11+ (API 30+)
+            val display = context.display
+            val mode = display?.mode
+            mode?.refreshRate?.toInt() ?: 60
+        } else {
+            // Android 10 and below
+            @Suppress("DEPRECATION")
+            val display = windowManager.defaultDisplay
+            display.refreshRate.toInt()
+        }
+    } catch (e: Exception) {
+        60 // Default fallback
+    }
+}
 
 // Helper function to determine process node based on SOC
 private fun getProcessNode(platform: String, chipname: String): String {
