@@ -21,6 +21,17 @@ import androidx.graphics.shapes.star
 import androidx.graphics.shapes.toPath
 import kotlinx.coroutines.delay
 
+/**
+ * Shared components and utilities for Material Design home screen
+ * Contains reusable UI elements, icons, and shapes
+ */
+
+// ============ Animation Components ============
+
+/**
+ * Staggered entry animation for list items
+ * Creates a fade-in and slide-up effect with delay
+ */
 @Composable
 fun StaggeredEntry(delayMillis: Int, content: @Composable () -> Unit) {
   var visible by remember { mutableStateOf(false) }
@@ -42,6 +53,11 @@ fun StaggeredEntry(delayMillis: Int, content: @Composable () -> Unit) {
   }
 }
 
+// ============ Battery Components ============
+
+/**
+ * Battery status chip displaying charging or discharging state
+ */
 @Composable
 fun BatteryStatusChip(text: String) {
   Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = MaterialTheme.shapes.small) {
@@ -53,6 +69,9 @@ fun BatteryStatusChip(text: String) {
   }
 }
 
+/**
+ * Battery stat box displaying a single battery metric
+ */
 @Composable
 fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier) {
   Card(
