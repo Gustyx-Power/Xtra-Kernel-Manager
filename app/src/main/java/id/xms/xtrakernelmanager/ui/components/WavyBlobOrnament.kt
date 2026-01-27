@@ -12,7 +12,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -21,62 +20,49 @@ import androidx.compose.ui.unit.dp
 import kotlin.math.cos
 import kotlin.math.sin
 
-/**
- * Animated cleaner WavyBlobOrnament implementation with Liquid Glass effect.
- * Draws large, organic shapes with:
- * - Volume gradients (Radial) for 3D liquid feel
- * - Specular highlights (Glossy reflection)
- * - Subtle morphing animation
- * - Adaptive colors based on dark/light mode
- */
 @Composable
 fun WavyBlobOrnament(
     modifier: Modifier = Modifier,
     colors: List<Color>? = null,
     strokeColor: Color? = null,
-    strokeWidth: Dp = 2.5.dp,
-    blobAlpha: Float = 0.75f // Slightly higher alpha for glass volume
+    strokeWidth: Dp = 0.dp,
+    blobAlpha: Float = 0.9f
 ) {
     val colorScheme = MaterialTheme.colorScheme
     val isDarkMode = isSystemInDarkTheme()
     
-    // Adaptive stroke color: light in dark mode, dark in light mode
-    val adaptiveStrokeColor = strokeColor ?: if (isDarkMode) {
-        Color.White.copy(alpha = 0.6f)  // Light stroke in dark mode
+    // iOS 16 inspired color palette - Teal/Green and Periwinkle Blue
+    val palette = colors ?: if (isDarkMode) {
+        listOf(
+            Color(0xFF4A9B8E), 
+            Color(0xFF8BA8D8), 
+            Color(0xFF6BC4E8)  
+        )
     } else {
-        Color.Black.copy(alpha = 0.8f)  // Dark stroke in light mode
+        listOf(
+            Color(0xFFB8D4CE), 
+            Color(0xFFC5D5E8), 
+            Color(0xFFD0E8F5)  
+        )
     }
-    
-    // Smooth, harmonious Monet colors
-    val palette = colors ?: listOf(
-        colorScheme.primaryContainer,     // 0: Top Right
-        colorScheme.tertiaryContainer,    // 1: Center Left
-        colorScheme.secondaryContainer,   // 2: Bottom Right
-        colorScheme.primary.copy(0.4f),   // 3: Middle Floating
-    )
-
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
 
     // --- Animation State ---
-    val transition = rememberInfiniteTransition(label = "liquid_ornament")
-    
-    // Phase 1: Slow breathing cycle (12 seconds)
-    val phase1 by transition.animateFloat(
+    val transition = rememberInfiniteTransition(label = "ios_petal_ornament")
+        val phase1 by transition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * Math.PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(12000, easing = LinearEasing),
+            animation = tween(25000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "phase1"
     )
-
-    // Phase 2: Slightly faster, offset cycle (7 seconds) for complexity
     val phase2 by transition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * Math.PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(17000, easing = LinearEasing),
+            animation = tween(18000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "phase2"
@@ -89,153 +75,201 @@ fun WavyBlobOrnament(
         val w = size.width
         val h = size.height
         
-        // Dynamic animation offsets based on screen size
+        // Very subtle animation offsets
         fun waveOffset(phase: Float, mult: Float = 1f): Float {
-            return sin(phase) * (w * 0.03f * mult)
+            return sin(phase) * (w * 0.005f * mult)
         }
         
         fun waveCosOffset(phase: Float, mult: Float = 1f): Float {
-            return cos(phase) * (h * 0.02f * mult)
+            return cos(phase) * (h * 0.004f * mult)
         }
-
-        // Helper to draw a LIQUID shape
-        fun drawLiquidShape(path: Path, color: Color, centerX: Float, centerY: Float) {
-            
-            // 1. Volume Fill (Radial Gradient for 3D effect)
-            // Center is slightly offset to give direction to the volume
+        fun drawSmoothPetal(
+            path: Path, 
+            colorStart: Color,
+            colorEnd: Color,
+            centerX: Float,
+            centerY: Float,
+            radius: Float
+        ) {
             drawPath(
                 path = path,
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        color.copy(alpha = blobAlpha),      // Center: Pure color
-                        color.copy(alpha = blobAlpha * 0.3f) // Edge: Translucent
+                        colorStart.copy(alpha = blobAlpha),
+                        colorStart.copy(alpha = blobAlpha * 0.85f),
+                        colorEnd.copy(alpha = blobAlpha * 0.7f)
                     ),
                     center = Offset(centerX, centerY),
-                    radius = w * 0.6f // Large radius for soft falloff
+                    radius = radius
                 )
             )
-
-            // 2. Specular Highlight (Glossy Reflection)
-            // White gradient overlay from top-left (assuming light source)
-            drawPath(
-                path = path,
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.35f), // Shiny reflection
-                        Color.Transparent,
-                        Color.Transparent
-                    ),
-                    start = Offset(centerX - w * 0.2f, centerY - h * 0.2f),
-                    end = Offset(centerX + w * 0.2f, centerY + h * 0.2f)
-                )
-            )
-
-            // 3. Rim Stroke (Dark Outline)
-            drawPath(
-                path = path,
-                color = adaptiveStrokeColor,
-                style = Stroke(width = strokeWidthPx)
-            )
         }
 
-        // 1. TOP RIGHT: Animated
-        val topRightPath = Path().apply {
-            moveTo(w, 0f)
-            lineTo(w * 0.2f, 0f)
+        // 1. TOP-LEFT BLOB (Teal/Green) - Menempel di pojok kiri atas
+        val topLeftBlob = Path().apply {
+            moveTo(0f, 0f)
+            lineTo(w * 0.35f + waveOffset(phase1), 0f)
             
-            val p1x = w * 0.25f + waveOffset(phase1)
-            val p1y = h * 0.15f + waveCosOffset(phase1)
-            val p2x = w * 0.5f + waveOffset(phase2, 0.5f)
-            val p2y = h * 0.05f + waveCosOffset(phase2, 0.5f)
-            val end1x = w * 0.6f + waveOffset(phase1 + 1f)
-            val end1y = h * 0.2f + waveCosOffset(phase1 + 1f)
-            
-            cubicTo(p1x, p1y, p2x, p2y, end1x, end1y)
-            
-            val p3x = w * 0.7f + waveOffset(phase2 + 2f)
-            val p3y = h * 0.35f + waveCosOffset(phase2 + 2f)
-            val p4x = w * 0.9f + waveOffset(phase1 + 3f)
-            val p4y = h * 0.3f + waveCosOffset(phase1 + 3f)
-            
-            cubicTo(p3x, p3y, p4x, p4y, w, h * 0.45f)
-            close()
-        }
-        drawLiquidShape(topRightPath, palette.getOrElse(0) { Color.Gray }, w * 0.8f, h * 0.2f)
-
-
-        // 2. MIDDLE LEFT: Animated
-        val midLeftPath = Path().apply {
-            moveTo(0f, h * 0.25f)
-            
-            val p1x = w * 0.3f + waveOffset(phase2)
-            val p1y = h * 0.2f + waveCosOffset(phase2)
-            val p2x = w * 0.5f + waveOffset(phase1, 1.2f)
-            val p2y = h * 0.35f + waveCosOffset(phase1)
-            val end1x = w * 0.4f + waveOffset(phase2 + 1f)
-            val end1y = h * 0.5f + waveCosOffset(phase2 + 1f)
-            
-            cubicTo(p1x, p1y, p2x, p2y, end1x, end1y)
-            
-            val p3x = w * 0.3f + waveOffset(phase1 + 2f)
-            val p3y = h * 0.65f + waveCosOffset(phase1 + 2f)
-            val p4x = w * 0.15f + waveOffset(phase2 + 3f)
-            val p4y = h * 0.6f + waveCosOffset(phase2 + 3f)
-            
-            cubicTo(p3x, p3y, p4x, p4y, 0f, h * 0.7f)
-            close()
-        }
-        drawLiquidShape(midLeftPath, palette.getOrElse(1) { Color.Gray }, w * 0.2f, h * 0.4f)
-        
-        
-        // 3. BOTTOM RIGHT: Animated
-        val bottomRightPath = Path().apply {
-            moveTo(w, h)
-            lineTo(w * 0.4f, h)
-            
-            val p1x = w * 0.45f + waveOffset(phase1 + 0.5f)
-            val p1y = h * 0.85f + waveCosOffset(phase1 + 0.5f)
-            val p2x = w * 0.6f + waveOffset(phase2 + 0.5f)
-            val p2y = h * 0.9f + waveCosOffset(phase2 + 0.5f)
-            val end1x = w * 0.7f + waveOffset(phase1 + 2.5f)
-            val end1y = h * 0.8f + waveCosOffset(phase1 + 2.5f)
-
-            cubicTo(p1x, p1y, p2x, p2y, end1x, end1y)
-            
-            val p3x = w * 0.8f + waveOffset(phase2 + 3.5f)
-            val p3y = h * 0.7f + waveCosOffset(phase2 + 3.5f)
-            val p4x = w * 0.95f + waveOffset(phase1 + 4.5f)
-            val p4y = h * 0.75f + waveCosOffset(phase1 + 4.5f)
-            
-            cubicTo(p3x, p3y, p4x, p4y, w, h * 0.6f)
-            close()
-        }
-        drawLiquidShape(bottomRightPath, palette.getOrElse(2) { Color.Gray }, w * 0.8f, h * 0.8f)
-
-        
-        // 4. CENTER FLOATING BLOB: More movement
-        val centerBlobPath = Path().apply {
-            // Center point moves slightly
-            val cx = w * 0.75f + waveOffset(phase2, 0.5f)
-            val cy = h * 0.6f + waveCosOffset(phase1, 0.5f)
-            val r = w * 0.15f
-            
-            // Breathing radius
-            val breath = r + sin(phase1 * 2f) * (r * 0.05f) 
-            
-            moveTo(cx, cy - breath)
+            // Top-right curve
             cubicTo(
-                cx + breath, cy - breath,
-                cx + breath * 1.5f, cy + breath,
-                cx, cy + breath
+                w * 0.4f, h * 0.02f + waveCosOffset(phase2),
+                w * 0.43f + waveOffset(phase2), h * 0.06f,
+                w * 0.44f, h * 0.11f + waveCosOffset(phase1)
             )
+            
+            // Right side curve
             cubicTo(
-                cx - breath * 1.2f, cy + breath * 0.8f,
-                cx - breath, cy - breath * 0.5f,
-                cx, cy - breath
+                w * 0.45f + waveOffset(phase1), h * 0.16f,
+                w * 0.44f, h * 0.21f + waveCosOffset(phase2),
+                w * 0.41f + waveOffset(phase2), h * 0.25f
             )
+            
+            // Bottom-right curve
+            cubicTo(
+                w * 0.38f, h * 0.29f + waveCosOffset(phase1),
+                w * 0.33f + waveOffset(phase1), h * 0.31f,
+                w * 0.28f, h * 0.32f + waveCosOffset(phase2)
+            )
+            
+            // Bottom curve
+            cubicTo(
+                w * 0.2f + waveOffset(phase2), h * 0.33f,
+                w * 0.12f, h * 0.32f + waveCosOffset(phase1),
+                w * 0.05f + waveOffset(phase1), h * 0.29f
+            )
+            
+            // Bottom-left curve
+            cubicTo(
+                w * 0.02f, h * 0.27f + waveCosOffset(phase2),
+                0f, h * 0.24f,
+                0f, h * 0.2f + waveCosOffset(phase1)
+            )
+            
             close()
         }
-        // Floating blob gets center position for radial effect
-        drawLiquidShape(centerBlobPath, palette.getOrElse(3) { Color.Gray }, w * 0.75f, h * 0.6f)
+        
+        drawSmoothPetal(
+            topLeftBlob,
+            palette[0].copy(alpha = 0.92f),
+            palette[0].copy(alpha = 0.68f),
+            w * 0.22f,
+            h * 0.16f,
+            w * 0.35f
+        )
+
+        // 2. CENTER-RIGHT BLOB (Periwinkle Blue) - Menempel di sisi kanan
+        val centerRightBlob = Path().apply {
+            moveTo(w, h * 0.25f + waveCosOffset(phase1))
+            
+            // Top-right corner
+            cubicTo(
+                w * 0.98f, h * 0.28f + waveCosOffset(phase2),
+                w * 0.95f + waveOffset(phase1), h * 0.3f,
+                w * 0.91f, h * 0.32f + waveCosOffset(phase1)
+            )
+            
+            // Top-left curve
+            cubicTo(
+                w * 0.86f + waveOffset(phase2), h * 0.34f,
+                w * 0.81f, h * 0.35f + waveCosOffset(phase2),
+                w * 0.76f + waveOffset(phase1), h * 0.37f
+            )
+            
+            // Left side curve
+            cubicTo(
+                w * 0.71f, h * 0.39f + waveCosOffset(phase1),
+                w * 0.68f + waveOffset(phase2), h * 0.43f,
+                w * 0.67f, h * 0.48f + waveCosOffset(phase2)
+            )
+            
+            // Bottom-left curve
+            cubicTo(
+                w * 0.66f + waveOffset(phase1), h * 0.53f,
+                w * 0.68f, h * 0.58f + waveCosOffset(phase1),
+                w * 0.71f + waveOffset(phase2), h * 0.62f
+            )
+            
+            // Bottom curve
+            cubicTo(
+                w * 0.76f, h * 0.67f + waveCosOffset(phase2),
+                w * 0.82f + waveOffset(phase1), h * 0.7f,
+                w * 0.88f, h * 0.71f + waveCosOffset(phase1)
+            )
+            
+            // Bottom-right curve
+            cubicTo(
+                w * 0.93f + waveOffset(phase2), h * 0.72f,
+                w * 0.97f, h * 0.71f + waveCosOffset(phase2),
+                w, h * 0.69f
+            )
+            
+            close()
+        }
+        
+        drawSmoothPetal(
+            centerRightBlob,
+            palette[1].copy(alpha = 0.86f),
+            palette[1].copy(alpha = 0.58f),
+            w * 0.83f,
+            h * 0.5f,
+            w * 0.28f
+        )
+        val bottomLeftBlob = Path().apply {
+            moveTo(0f, h)
+            lineTo(0f, h * 0.75f + waveCosOffset(phase1))
+            
+            // Top-left curve
+            cubicTo(
+                w * 0.02f, h * 0.72f + waveCosOffset(phase2),
+                w * 0.05f + waveOffset(phase1), h * 0.7f,
+                w * 0.09f, h * 0.69f + waveCosOffset(phase1)
+            )
+            
+            // Top-right curve
+            cubicTo(
+                w * 0.14f + waveOffset(phase2), h * 0.68f,
+                w * 0.19f, h * 0.68f + waveCosOffset(phase2),
+                w * 0.24f + waveOffset(phase1), h * 0.7f
+            )
+            
+            // Right side curve
+            cubicTo(
+                w * 0.28f, h * 0.72f + waveCosOffset(phase1),
+                w * 0.31f + waveOffset(phase2), h * 0.75f,
+                w * 0.32f, h * 0.79f + waveCosOffset(phase2)
+            )
+            
+            // Bottom-right curve
+            cubicTo(
+                w * 0.33f + waveOffset(phase1), h * 0.84f,
+                w * 0.31f, h * 0.88f + waveCosOffset(phase1),
+                w * 0.28f + waveOffset(phase2), h * 0.91f
+            )
+            
+            // Bottom curve
+            cubicTo(
+                w * 0.23f, h * 0.95f + waveCosOffset(phase2),
+                w * 0.17f + waveOffset(phase1), h * 0.97f,
+                w * 0.11f, h * 0.98f + waveCosOffset(phase1)
+            )
+            
+            // Bottom-left corner
+            cubicTo(
+                w * 0.06f + waveOffset(phase2), h * 0.99f,
+                w * 0.02f, h,
+                0f, h
+            )
+            
+            close()
+        }
+        
+        drawSmoothPetal(
+            bottomLeftBlob,
+            palette[2].copy(alpha = 0.8f),
+            palette[2].copy(alpha = 0.58f),
+            w * 0.16f,
+            h * 0.84f,
+            w * 0.25f
+        )
     }
 }
