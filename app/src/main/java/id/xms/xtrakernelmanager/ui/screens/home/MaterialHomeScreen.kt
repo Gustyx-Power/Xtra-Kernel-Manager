@@ -21,7 +21,10 @@ import id.xms.xtrakernelmanager.ui.screens.home.components.material.*
 import kotlinx.coroutines.delay
 import java.util.Locale
 
-/** Material Home Screen - Modular Layout with Dynamic Colors (Material You) */
+/**
+ * Material Home Screen - Modular Layout with Dynamic Colors (Material You)
+ * All components are separated into individual files for better maintainability
+ */
 @SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
