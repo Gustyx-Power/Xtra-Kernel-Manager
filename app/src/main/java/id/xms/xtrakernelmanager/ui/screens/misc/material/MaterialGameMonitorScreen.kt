@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.material
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.HardwareGauge
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.HardwareGaugeType
+import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

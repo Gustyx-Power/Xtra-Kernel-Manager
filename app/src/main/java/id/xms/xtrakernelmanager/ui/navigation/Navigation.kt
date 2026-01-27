@@ -36,7 +36,7 @@ import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsSc
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
-import id.xms.xtrakernelmanager.ui.screens.misc.MaterialGameAppSelectorScreen
+import id.xms.xtrakernelmanager.ui.screens.misc.material.MaterialGameAppSelectorScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen

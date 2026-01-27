@@ -26,7 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import id.xms.xtrakernelmanager.ui.screens.misc.GameMonitorViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlinx.coroutines.delay

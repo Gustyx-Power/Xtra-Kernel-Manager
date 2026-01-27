@@ -1,4 +1,9 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.material
+
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.components.BatteryAnalyticsStatusCard
+import id.xms.xtrakernelmanager.ui.screens.misc.components.CurrentFlowCard
+import id.xms.xtrakernelmanager.ui.screens.misc.components.BatteryStatsRow
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

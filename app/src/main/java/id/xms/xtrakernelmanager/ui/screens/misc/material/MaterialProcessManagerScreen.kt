@@ -1,6 +1,7 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.material
 
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,16 +27,15 @@ import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.shared.ProcessInfo
+import id.xms.xtrakernelmanager.ui.screens.misc.shared.loadRunningProcesses
+import id.xms.xtrakernelmanager.ui.screens.misc.shared.getAppIconSafe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-data class ProcessInfo(
-    val pid: Int,
-    val packageName: String,
-    val memoryMB: Float,
-    val cpuPercent: Float = 0f,
-)
+private const val TAG = "MaterialProcessManager"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,27 +52,50 @@ fun MaterialProcessManagerScreen(
 
   // Load processes on launch
   LaunchedEffect(Unit) {
-    processes = loadRunningProcesses()
-    isLoading = false
+    Log.d(TAG, "Loading processes on launch...")
+    try {
+      processes = loadRunningProcesses()
+      Log.d(TAG, "Loaded ${processes.size} processes")
+    } catch (e: Exception) {
+      Log.e(TAG, "Error loading processes", e)
+    } finally {
+      isLoading = false
+    }
   }
 
   fun refreshProcesses() {
     scope.launch {
+      Log.d(TAG, "Refreshing processes...")
       isLoading = true
-      processes = loadRunningProcesses()
-      isLoading = false
+      try {
+        processes = loadRunningProcesses()
+        Log.d(TAG, "Refreshed ${processes.size} processes")
+      } catch (e: Exception) {
+        Log.e(TAG, "Error refreshing processes", e)
+      } finally {
+        isLoading = false
+      }
     }
   }
 
   fun killProcess(packageName: String) {
     scope.launch {
+      Log.d(TAG, "Killing process: $packageName")
       isKilling = packageName
-      val result =
-          withContext(Dispatchers.IO) { RootManager.executeCommand("am force-stop $packageName") }
-      if (result.isSuccess) {
-        processes = processes.filter { it.packageName != packageName }
+      try {
+        val result =
+            withContext(Dispatchers.IO) { RootManager.executeCommand("am force-stop $packageName") }
+        if (result.isSuccess) {
+          processes = processes.filter { it.packageName != packageName }
+          Log.d(TAG, "Successfully killed: $packageName")
+        } else {
+          Log.w(TAG, "Failed to kill: $packageName")
+        }
+      } catch (e: Exception) {
+        Log.e(TAG, "Error killing process: $packageName", e)
+      } finally {
+        isKilling = null
       }
-      isKilling = null
     }
   }
 
@@ -157,7 +180,7 @@ fun MaterialProcessManagerScreen(
           )
         }
 
-        items(sortedProcesses, key = { it.packageName }) { process ->
+        items(sortedProcesses, key = { it.pid }) { process ->
           ProcessItem(
               process = process,
               isKilling = isKilling == process.packageName,
@@ -360,23 +383,55 @@ fun ProcessItem(
   val context = LocalContext.current
   var expanded by remember { mutableStateOf(false) }
 
+  Log.d(TAG, "=== Rendering MaterialProcessItem START ===")
+  Log.d(TAG, "Package: ${process.packageName}, PID: ${process.pid}, Memory: ${process.memoryMB}MB")
+
   Card(
-      modifier = Modifier.fillMaxWidth().animateContentSize().clickable { expanded = !expanded },
-      shape = MaterialTheme.shapes.large,
-      colors =
-          CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-  ) {
-    Column(modifier = Modifier.padding(16.dp)) {
-      Row(
-          modifier = Modifier.fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
-      ) {
-        // App icon
-        SubcomposeAsyncImage(
+        modifier = Modifier.fillMaxWidth().animateContentSize().clickable { 
+            Log.d(TAG, "Card clicked: ${process.packageName}")
+            expanded = !expanded 
+        },
+        shape = MaterialTheme.shapes.large,
+        colors =
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+      Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+          // App icon - Load asynchronously to prevent crashes
+          var appIcon by remember(process.packageName) { 
+              Log.d(TAG, "Initializing icon state for: ${process.packageName}")
+              mutableStateOf<android.graphics.drawable.Drawable?>(null) 
+          }
+          var iconLoadError by remember(process.packageName) { mutableStateOf(false) }
+          
+          LaunchedEffect(process.packageName) {
+              Log.d(TAG, "LaunchedEffect: Starting icon load for ${process.packageName}")
+              withContext(Dispatchers.IO) {
+                  try {
+                      Log.d(TAG, "IO Thread: Loading icon for ${process.packageName}")
+                      val icon = context.packageManager.getApplicationIcon(process.packageName)
+                      Log.d(TAG, "IO Thread: Icon loaded successfully for ${process.packageName}")
+                      appIcon = icon
+                      iconLoadError = false
+                  } catch (e: Exception) {
+                      Log.e(TAG, "IO Thread: Error loading icon for ${process.packageName}", e)
+                      Log.e(TAG, "Exception type: ${e.javaClass.simpleName}, Message: ${e.message}")
+                      appIcon = null
+                      iconLoadError = true
+                  }
+              }
+              Log.d(TAG, "LaunchedEffect: Finished icon load for ${process.packageName}")
+          }
+          
+          Log.d(TAG, "Rendering SubcomposeAsyncImage for ${process.packageName}")
+          SubcomposeAsyncImage(
             model =
                 ImageRequest.Builder(context)
-                    .data(getAppIcon(context, process.packageName))
+                    .data(appIcon)
                     .crossfade(true)
                     .build(),
             contentDescription = null,
@@ -534,75 +589,6 @@ fun ProcessItem(
       }
     }
   }
+  
+  Log.d(TAG, "=== Rendering MaterialProcessItem END: ${process.packageName} ===")
 }
-
-private fun getAppIcon(
-    context: android.content.Context,
-    packageName: String,
-): android.graphics.drawable.Drawable? {
-  return try {
-    context.packageManager.getApplicationIcon(packageName)
-  } catch (e: Exception) {
-    null
-  }
-}
-
-suspend fun loadRunningProcesses(): List<ProcessInfo> =
-    withContext(Dispatchers.IO) {
-      try {
-        val result = RootManager.executeCommand("dumpsys meminfo --package")
-        if (result.isSuccess) {
-          val output = result.getOrNull() ?: return@withContext emptyList()
-          parseProcesses(output)
-        } else {
-          // Fallback to mock data for testing
-          getMockProcesses()
-        }
-      } catch (e: Exception) {
-        getMockProcesses()
-      }
-    }
-
-private fun parseProcesses(output: String): List<ProcessInfo> {
-  val processes = mutableListOf<ProcessInfo>()
-  val regex = Regex("""(\d+)\s+K:\s+(\S+)\s+\(pid\s+(\d+)""")
-
-  output.lines().forEach { line ->
-    val match = regex.find(line)
-    if (match != null) {
-      val memoryKB = match.groupValues[1].toIntOrNull() ?: 0
-      val packageName = match.groupValues[2]
-      val pid = match.groupValues[3].toIntOrNull() ?: 0
-
-      if (
-          !packageName.startsWith("com.android.") &&
-              !packageName.startsWith("android.") &&
-              memoryKB > 10000
-      ) {
-        processes.add(
-            ProcessInfo(
-                pid = pid,
-                packageName = packageName,
-                memoryMB = memoryKB / 1024f,
-            )
-        )
-      }
-    }
-  }
-
-  return processes.ifEmpty { getMockProcesses() }
-}
-
-private fun getMockProcesses(): List<ProcessInfo> =
-    listOf(
-        ProcessInfo(pid = 1234, packageName = "com.instagram.android", memoryMB = 456.2f),
-        ProcessInfo(pid = 2345, packageName = "com.whatsapp", memoryMB = 312.8f),
-        ProcessInfo(pid = 3456, packageName = "com.spotify.music", memoryMB = 287.5f),
-        ProcessInfo(pid = 4567, packageName = "com.twitter.android", memoryMB = 198.3f),
-        ProcessInfo(pid = 5678, packageName = "com.discord", memoryMB = 175.6f),
-        ProcessInfo(pid = 6789, packageName = "com.netflix.mediaclient", memoryMB = 523.1f),
-        ProcessInfo(pid = 8901, packageName = "com.facebook.katana", memoryMB = 445.7f),
-        ProcessInfo(pid = 1023, packageName = "com.miHoYo.GenshinImpact", memoryMB = 1245.8f),
-        ProcessInfo(pid = 1124, packageName = "com.supercell.clashofclans", memoryMB = 156.3f),
-        ProcessInfo(pid = 1225, packageName = "com.mojang.minecraftpe", memoryMB = 234.1f),
-    )

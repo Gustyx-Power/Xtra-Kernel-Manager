@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.material
+
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState

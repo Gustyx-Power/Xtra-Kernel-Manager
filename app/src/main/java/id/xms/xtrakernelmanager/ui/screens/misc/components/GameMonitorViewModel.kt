@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.components
 
 import android.content.Context
 import android.content.Intent

@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

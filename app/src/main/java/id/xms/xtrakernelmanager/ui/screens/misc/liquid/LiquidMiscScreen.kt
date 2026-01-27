@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.liquid
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -24,7 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.PillCard
-import id.xms.xtrakernelmanager.ui.screens.misc.liquid.*
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.material.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -36,6 +38,7 @@ fun LiquidMiscScreen(
     var currentScreen by remember { mutableStateOf("main") }
     var showGameSpace by remember { mutableStateOf(false) }
     var showGameMonitor by remember { mutableStateOf(false) }
+    var showProcessManager by remember { mutableStateOf(false) }
     
     val context = androidx.compose.ui.platform.LocalContext.current
     val gameMonitorViewModel = androidx.lifecycle.viewmodel.compose.viewModel {
@@ -53,6 +56,10 @@ fun LiquidMiscScreen(
         showGameMonitor -> MaterialGameMonitorScreen(
             viewModel = gameMonitorViewModel,
             onBack = { showGameMonitor = false }
+        )
+        showProcessManager -> id.xms.xtrakernelmanager.ui.screens.misc.liquid.LiquidProcessManagerScreen(
+            viewModel = viewModel,
+            onBack = { showProcessManager = false }
         )
         else -> {
             androidx.compose.animation.AnimatedContent(
@@ -77,7 +84,8 @@ fun LiquidMiscScreen(
                             showGameSpace = true
                         },
                         onNavigateToDisplay = { currentScreen = "display" },
-                        onNavigateToFunctionalRom = onNavigateToFunctionalRom
+                        onNavigateToFunctionalRom = onNavigateToFunctionalRom,
+                        onNavigateToProcessManager = { showProcessManager = true }
                     )
                     "battery" -> LiquidBatteryDetailScreen(
                         viewModel = viewModel,
@@ -100,12 +108,19 @@ fun LiquidMiscMainScreen(
     onNavigateToGameControl: () -> Unit,
     onNavigateToDisplay: () -> Unit,
     onNavigateToFunctionalRom: () -> Unit,
+    onNavigateToProcessManager: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val useCase = remember { id.xms.xtrakernelmanager.domain.usecase.FunctionalRomUseCase() }
     
     var isVipCommunity by remember { mutableStateOf<Boolean?>(null) }
     var showSecurityWarning by remember { mutableStateOf(false) }
+    var showSELinuxDialog by remember { mutableStateOf(false) }
+    
+    val selinuxStatus by viewModel.selinuxStatus.collectAsState()
+    val isRooted by viewModel.isRootAvailable.collectAsState()
+    val selinuxLoading by viewModel.selinuxLoading.collectAsState()
+    val isEnforcing = selinuxStatus.equals("Enforcing", ignoreCase = true)
 
     LaunchedEffect(Unit) {
         isVipCommunity = useCase.checkVipCommunity()
@@ -137,6 +152,78 @@ fun LiquidMiscMainScreen(
             confirmButton = {
                 TextButton(onClick = { showSecurityWarning = false }) {
                     Text(stringResource(R.string.security_warning_button))
+                }
+            }
+        )
+    }
+    
+    // SELinux Toggle Dialog
+    if (showSELinuxDialog) {
+        AlertDialog(
+            onDismissRequest = { showSELinuxDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = if (isEnforcing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+            },
+            title = {
+                Text(
+                    text = "SELinux Mode",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = "Current status: $selinuxStatus",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    
+                    if (!isRooted) {
+                        Text(
+                            text = "Root access required to change SELinux mode.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = if (isEnforcing) "Enforcing" else "Permissive",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = if (isEnforcing) "Security policies active" else "Policies not enforced",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            
+                            if (selinuxLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Switch(
+                                    checked = isEnforcing,
+                                    onCheckedChange = { viewModel.setSELinuxMode(it) }
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showSELinuxDialog = false }) {
+                    Text("Close")
                 }
             }
         )
@@ -194,6 +281,33 @@ fun LiquidMiscMainScreen(
                     title = stringResource(R.string.display_settings),
                     subtitle = stringResource(R.string.display_saturation_desc),
                     onClick = onNavigateToDisplay
+                )
+                
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 60.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
+                )
+                
+                LiquidSettingsRow(
+                    icon = Icons.Default.Shield,
+                    iconColor = if (isEnforcing) Color(0xFF34C759) else Color(0xFFFF3B30),
+                    title = "SELinux",
+                    subtitle = if (isRooted) selinuxStatus else "Root required",
+                    badge = selinuxStatus,
+                    onClick = { showSELinuxDialog = true }
+                )
+                
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 60.dp),
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
+                )
+                
+                LiquidSettingsRow(
+                    icon = Icons.Default.Memory,
+                    iconColor = Color(0xFF5856D6),
+                    title = "Processes",
+                    subtitle = "View & Kill Apps",
+                    onClick = onNavigateToProcessManager
                 )
                 
                 HorizontalDivider(

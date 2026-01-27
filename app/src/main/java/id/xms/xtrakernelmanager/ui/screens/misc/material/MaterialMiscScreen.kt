@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.material
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.ui.components.WavySlider
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.components.BatterySettingsScreen
 import java.util.Locale
 import kotlinx.coroutines.delay
 import org.json.JSONArray

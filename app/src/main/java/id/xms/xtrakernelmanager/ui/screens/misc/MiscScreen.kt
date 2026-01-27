@@ -21,6 +21,8 @@ import id.xms.xtrakernelmanager.ui.components.PillCard
 import id.xms.xtrakernelmanager.ui.screens.misc.section.BatteryInfoSection
 import id.xms.xtrakernelmanager.ui.screens.misc.section.DisplaySection
 import id.xms.xtrakernelmanager.ui.screens.misc.section.GameControlSection
+import id.xms.xtrakernelmanager.ui.screens.misc.material.MaterialMiscScreen
+import id.xms.xtrakernelmanager.ui.screens.misc.liquid.LiquidMiscScreen
 
 @Composable
 fun MiscScreen(

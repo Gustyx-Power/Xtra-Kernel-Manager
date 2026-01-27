@@ -1,4 +1,4 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.data.repository.CurrentFlowRepository
 import id.xms.xtrakernelmanager.ui.components.CurrentFlowChart
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import kotlin.math.abs
 
 /**
