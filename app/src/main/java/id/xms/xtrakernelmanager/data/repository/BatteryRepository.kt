@@ -32,7 +32,6 @@ data class BatteryRealtimeState(
 
 object BatteryRepository {
 
-  // Shared State for Material UI
   private val _batteryState = MutableStateFlow(BatteryRealtimeState())
   val batteryState: StateFlow<BatteryRealtimeState> = _batteryState.asStateFlow()
 
@@ -49,6 +48,10 @@ object BatteryRepository {
   private var cachedTotalCapacity = 0
   private var cachedCurrentCapacity = 0
   private var cachedCycleCount = 0
+  
+  private var cachedBatteryBasePath: String? = null
+  private var cachedCurrentNowPath: String? = null
+  private var cachedCycleCountPath: String? = null
 
   fun getCachedTotalCapacity(): Int = cachedTotalCapacity
 
@@ -88,66 +91,104 @@ object BatteryRepository {
         val technology = batteryStatus?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: "Unknown"
         val voltage = batteryStatus?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0) ?: 0
 
-        // Cache capacity values (slow to read via Root, changes rarely)
         if (cachedTotalCapacity == 0 || cachedCurrentCapacity == 0) {
-          // Native first
+          if (cachedBatteryBasePath == null) {
+            val possiblePaths = listOf(
+                "/sys/class/power_supply/battery",
+                "/sys/class/power_supply/bms",
+                "/sys/class/power_supply/BAT0"
+            )
+            cachedBatteryBasePath = possiblePaths.firstOrNull {
+              RootManager.executeCommand("[ -d $it ] && echo exists").getOrNull()?.trim() == "exists"
+            } ?: "/sys/class/power_supply/battery"
+          }
+          
+          val basePath = cachedBatteryBasePath!!
+          
           val nativeCapacityLevel = NativeLib.readBatteryCapacityLevel()
           if (nativeCapacityLevel != null && nativeCapacityLevel > 0f) {
             cachedTotalCapacity =
-                RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
+                RootManager.readFile("$basePath/charge_full_design")
                     .getOrNull()
                     ?.trim()
                     ?.toIntOrNull()
                     ?.div(1000) ?: 0
 
             cachedCurrentCapacity =
-                RootManager.readFile("/sys/class/power_supply/battery/charge_full")
+                RootManager.readFile("$basePath/charge_full")
                     .getOrNull()
                     ?.trim()
                     ?.toIntOrNull()
                     ?.div(1000) ?: 0
           } else {
-            // Fallback: Shell-only reads
             cachedTotalCapacity =
-                RootManager.readFile("/sys/class/power_supply/battery/charge_full_design")
+                RootManager.readFile("$basePath/charge_full_design")
                     .getOrNull()
                     ?.trim()
                     ?.toIntOrNull()
                     ?.div(1000) ?: 0
 
             cachedCurrentCapacity =
-                RootManager.readFile("/sys/class/power_supply/battery/charge_full")
+                RootManager.readFile("$basePath/charge_full")
                     .getOrNull()
                     ?.trim()
                     ?.toIntOrNull()
                     ?.div(1000) ?: 0
           }
 
-          // Cycle count: Native first (fast), shell fallback
-          cachedCycleCount =
-              NativeLib.readCycleCount()
-                  ?: RootManager.readFile("/sys/class/power_supply/battery/cycle_count")
-                      .getOrNull()
-                      ?.trim()
-                      ?.toIntOrNull()
-                  ?: 0
+          if (cachedCycleCountPath != null) {
+            cachedCycleCount = RootManager.readFile(cachedCycleCountPath!!)
+                .getOrNull()
+                ?.trim()
+                ?.toIntOrNull() ?: 0
+          } else {
+            cachedCycleCount = NativeLib.readCycleCount() ?: run {
+              val cyclePaths = listOf(
+                  "$basePath/cycle_count",
+                  "$basePath/battery_cycle_count",
+                  "/sys/class/power_supply/bms/cycle_count"
+              )
+              var count = 0
+              for (path in cyclePaths) {
+                val value = RootManager.readFile(path).getOrNull()?.trim()?.toIntOrNull()
+                if (value != null && value > 0) {
+                  count = value
+                  cachedCycleCountPath = path
+                  break
+                }
+              }
+              count
+            }
+          }
         }
 
-        // NativeLib returns Drain Rate (Positive = Discharging, Negative = Charging)
-        // We want Net Current (Positive = Charging, Negative = Discharging)
-        // So we invert the sign.
         var currentNow = NativeLib.readDrainRate()?.let { -it } ?: 0
         if (currentNow == 0) {
-          // Determine sign based on status
-          val raw =
-              RootManager.readFile("/sys/class/power_supply/battery/current_now")
-                  .getOrNull()
-                  ?.trim()
-                  ?.toIntOrNull()
-                  ?.div(1000) ?: 0 // uA -> mA
-
-          val isCharging = statusText == "Charging" || statusText == "Full"
-          currentNow = if (isCharging) kotlin.math.abs(raw) else -kotlin.math.abs(raw)
+          if (cachedCurrentNowPath != null) {
+            val raw = RootManager.readFile(cachedCurrentNowPath!!)
+                .getOrNull()
+                ?.trim()
+                ?.toIntOrNull()
+                ?.div(1000) ?: 0
+            val isCharging = statusText == "Charging" || statusText == "Full"
+            currentNow = if (isCharging) kotlin.math.abs(raw) else -kotlin.math.abs(raw)
+          } else {
+            val basePath = cachedBatteryBasePath ?: "/sys/class/power_supply/battery"
+            val currentPaths = listOf(
+                "$basePath/current_now",
+                "$basePath/batt_current_now",
+                "/sys/class/power_supply/bms/current_now"
+            )
+            for (path in currentPaths) {
+              val raw = RootManager.readFile(path).getOrNull()?.trim()?.toIntOrNull()?.div(1000)
+              if (raw != null) {
+                cachedCurrentNowPath = path
+                val isCharging = statusText == "Charging" || statusText == "Full"
+                currentNow = if (isCharging) kotlin.math.abs(raw) else -kotlin.math.abs(raw)
+                break
+              }
+            }
+          }
         }
 
         val capacityHealth =
