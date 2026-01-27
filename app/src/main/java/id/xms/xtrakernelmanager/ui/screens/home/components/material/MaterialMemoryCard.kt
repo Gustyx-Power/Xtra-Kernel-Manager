@@ -15,6 +15,10 @@ import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.ui.components.WavyProgressIndicator
 import java.util.Locale
 
+/**
+ * Material Design card displaying memory information
+ * Shows RAM, ZRAM/Swap, and Internal Storage usage
+ */
 @Composable
 fun MaterialMemoryCard(systemInfo: SystemInfo) {
     Card(
