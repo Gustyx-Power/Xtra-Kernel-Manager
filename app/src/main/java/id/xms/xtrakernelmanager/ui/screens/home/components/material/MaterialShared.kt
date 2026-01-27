@@ -102,7 +102,12 @@ fun BatteryStatBox(label: String, value: String, modifier: Modifier = Modifier) 
   }
 }
 
-// GitHub Icon
+// ============ Vector Icons ============
+
+/**
+ * GitHub icon vector graphic
+ * Used in app info section for GitHub link
+ */
 val GithubIcon: ImageVector
     get() {
         if (_GithubIcon != null) return _GithubIcon!!
@@ -158,7 +163,12 @@ val GithubIcon: ImageVector
 
 private var _GithubIcon: ImageVector? = null
 
-// Cookie Shape
+// ============ Custom Shapes ============
+
+/**
+ * Cookie-shaped outline for avatar images
+ * Creates a star-like rounded polygon shape
+ */
 val CookieShape = object : Shape {
     override fun createOutline(
         size: Size,
