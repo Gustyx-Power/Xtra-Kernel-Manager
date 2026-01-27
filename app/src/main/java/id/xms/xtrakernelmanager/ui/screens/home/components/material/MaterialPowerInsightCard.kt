@@ -182,6 +182,10 @@ fun MaterialPowerInsightCard(
     }
 }
 
+/**
+ * Wavy circular progress indicator with animated progress
+ * Used for displaying battery level and screen on time
+ */
 @Composable
 fun WavyCircularProgressIndicator(
     progress: Float,
