@@ -79,7 +79,7 @@ fun LiquidStatTile(
                     style = MaterialTheme.typography.labelMedium.copy(
                         platformStyle = PlatformTextStyle(includeFontPadding = false)
                     ),
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = adaptiveTextColor(0.7f),
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
@@ -92,7 +92,7 @@ fun LiquidStatTile(
                          )
                     ),
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color.White,
+                    color = adaptiveTextColor(),
                     lineHeight = 32.sp
                 )
                 Text(
@@ -100,7 +100,7 @@ fun LiquidStatTile(
                     style = MaterialTheme.typography.bodySmall.copy(
                         platformStyle = PlatformTextStyle(includeFontPadding = false)
                     ),
-                    color = Color.White.copy(alpha = 0.6f)
+                    color = adaptiveTextColor(0.6f)
                 )
             }
         }
