@@ -20,6 +20,7 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidIOControl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,7 +90,7 @@ fun LiquidAdditionalSettingsScreen(
                 
                 // I/O Control Section
                 item {
-                    id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidIOControl(viewModel = viewModel)
+                    LiquidIOControl(viewModel = viewModel)
                 }
                 
                 // Per App Profile Section - All settings embedded directly
