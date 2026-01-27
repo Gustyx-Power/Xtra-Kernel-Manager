@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -26,16 +27,25 @@ import kotlin.math.sin
  * - Volume gradients (Radial) for 3D liquid feel
  * - Specular highlights (Glossy reflection)
  * - Subtle morphing animation
+ * - Adaptive colors based on dark/light mode
  */
 @Composable
 fun WavyBlobOrnament(
     modifier: Modifier = Modifier,
     colors: List<Color>? = null,
-    strokeColor: Color = Color.Black.copy(alpha = 0.8f),
+    strokeColor: Color? = null,
     strokeWidth: Dp = 2.5.dp,
     blobAlpha: Float = 0.75f // Slightly higher alpha for glass volume
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val isDarkMode = isSystemInDarkTheme()
+    
+    // Adaptive stroke color: light in dark mode, dark in light mode
+    val adaptiveStrokeColor = strokeColor ?: if (isDarkMode) {
+        Color.White.copy(alpha = 0.6f)  // Light stroke in dark mode
+    } else {
+        Color.Black.copy(alpha = 0.8f)  // Dark stroke in light mode
+    }
     
     // Smooth, harmonious Monet colors
     val palette = colors ?: listOf(
@@ -123,7 +133,7 @@ fun WavyBlobOrnament(
             // 3. Rim Stroke (Dark Outline)
             drawPath(
                 path = path,
-                color = strokeColor,
+                color = adaptiveStrokeColor,
                 style = Stroke(width = strokeWidthPx)
             )
         }
