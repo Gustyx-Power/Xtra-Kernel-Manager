@@ -46,6 +46,10 @@ fun PowerMenuContent(onAction: (PowerAction) -> Unit) {
     }
 }
 
+/**
+ * Power menu item component
+ * Displays a single power action with icon and label
+ */
 @Composable
 fun PowerMenuItem(action: PowerAction, onClick: () -> Unit) {
     Surface(
