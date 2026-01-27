@@ -23,6 +23,9 @@ private val Context.dataStore: DataStore<Preferences> by
     preferencesDataStore(name = "xtra_settings")
 
 class PreferencesManager(private val context: Context) {
+  
+  // Expose context for use cases that need it
+  fun getContext(): Context = context
 
   // Theme and boot preference
   private val THEME_MODE = intPreferencesKey("theme_mode")
