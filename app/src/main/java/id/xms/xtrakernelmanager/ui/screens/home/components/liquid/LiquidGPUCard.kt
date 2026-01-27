@@ -32,11 +32,11 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                     text = "GPU",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = adaptiveTextColor()
                 )
 
                 Surface(
-                    color = Color.White.copy(alpha = 0.1f),
+                    color = adaptiveSurfaceColor(0.1f),
                     shape = CircleShape
                 ) {
                     val gpuBadge = remember(gpuInfo.renderer) {
@@ -53,7 +53,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                         text = gpuBadge.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = adaptiveTextColor(),
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     )
                 }
@@ -69,7 +69,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                 Text(
                     text = "Frequency",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.6f)
+                    color = adaptiveTextColor(0.6f)
                 )
             }
 
@@ -83,7 +83,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(MaterialTheme.shapes.large)
-                        .background(Color.White.copy(alpha = 0.05f))
+                        .background(adaptiveSurfaceColor(0.05f))
                         .padding(16.dp)
                 ) {
                     Column {
@@ -91,12 +91,12 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                             text = "${gpuInfo.gpuLoad}%",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = adaptiveTextColor()
                         )
                         Text(
                             text = "Load",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.6f)
+                            color = adaptiveTextColor(0.6f)
                         )
                     }
                 }
@@ -107,7 +107,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(MaterialTheme.shapes.large)
-                        .background(Color.White.copy(alpha = 0.05f))
+                        .background(adaptiveSurfaceColor(0.05f))
                         .padding(16.dp)
                 ) {
                      Column {
@@ -124,7 +124,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                             text = cleanGpuName,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = adaptiveTextColor(),
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                              lineHeight = 1.2.em
@@ -132,7 +132,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                         Text(
                             text = "GPU",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(alpha = 0.6f)
+                            color = adaptiveTextColor(0.6f)
                         )
                     }
                 }
