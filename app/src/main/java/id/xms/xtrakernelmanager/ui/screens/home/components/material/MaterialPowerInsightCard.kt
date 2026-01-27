@@ -28,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.model.PowerInfo
 
+/**
+ * Material Design card displaying power insight information
+ * Shows screen on time, screen off time, deep sleep, and drain rate
+ */
 @Composable
 fun MaterialPowerInsightCard(
     powerInfo: PowerInfo,
