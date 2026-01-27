@@ -19,10 +19,10 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LiquidTempTile(
     modifier: Modifier = Modifier,
-    cpuTemp: String,
-    gpuTemp: String,
-    pmicTemp: String,
-    thermalTemp: String,
+    cpuTemp: Int,
+    gpuTemp: Int,
+    pmicTemp: Int,
+    thermalTemp: Int,
     color: Color
 ) {
     LiquidSharedCard(modifier = modifier) {
@@ -72,10 +72,10 @@ fun LiquidTempTile(
 
             // List of Temps
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                TempRow("CPU", cpuTemp)
-                TempRow("GPU", gpuTemp)
-                TempRow("PMIC", pmicTemp)
-                TempRow("Thermal", thermalTemp)
+                TempRow("CPU", "${cpuTemp}°C")
+                TempRow("GPU", "${gpuTemp}°C")
+                TempRow("PMIC", "${pmicTemp}°C")
+                TempRow("Thermal", "${thermalTemp}°C")
             }
         }
     }

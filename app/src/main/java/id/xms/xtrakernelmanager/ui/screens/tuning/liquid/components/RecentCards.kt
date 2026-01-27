@@ -888,6 +888,7 @@ fun RecentGPUCard(
 @Composable
 fun RecentThermalCard(
     thermalPreset: String,
+    cpuTemperature: Float,
     onClick: () -> Unit
 ) {
     val roseColor = Color(0xFFF43F5E)
@@ -945,7 +946,7 @@ fun RecentThermalCard(
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "42",
+                    text = "${cpuTemperature.toInt()}",
                     style = MaterialTheme.typography.displayLarge.copy(
                         fontSize = 72.sp,
                         fontWeight = FontWeight.Bold

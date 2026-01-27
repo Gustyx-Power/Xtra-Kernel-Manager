@@ -53,6 +53,9 @@ class DampedDragAnimation(
     private val mutatorMutex = MutatorMutex()
 
     private val velocityTracker = VelocityTracker()
+    
+    var isDragging = false
+        private set
 
     val value: Float get() = valueAnimation.value
     val progress: Float get() = (value - valueRange.start) / (valueRange.endInclusive - valueRange.start)
@@ -62,17 +65,20 @@ class DampedDragAnimation(
     val scaleY: Float get() = scaleYAnimation.value
     val velocity: Float get() = velocityAnimation.value
 
-    val modifier: Modifier = Modifier.pointerInput(Unit) {
+    fun getModifier(): Modifier = Modifier.pointerInput(Unit) {
         inspectDragGestures(
             onDragStart = { down ->
+                isDragging = true
                 onDragStarted(down.position)
                 press()
             },
             onDragEnd = {
+                isDragging = false
                 onDragStopped()
                 release()
             },
             onDragCancel = {
+                isDragging = false
                 onDragStopped()
                 release()
             }
@@ -108,7 +114,14 @@ class DampedDragAnimation(
     fun updateValue(value: Float) {
         val targetValue = value.coerceIn(valueRange)
         animationScope.launch {
-            launch { valueAnimation.animateTo(targetValue, valueAnimationSpec) { updateVelocity() } }
+            valueAnimation.snapTo(targetValue)
+        }
+    }
+    
+    fun updateValueDuringDrag(value: Float) {
+        val targetValue = value.coerceIn(valueRange)
+        animationScope.launch {
+            valueAnimation.snapTo(targetValue)
         }
     }
 

@@ -185,6 +185,7 @@ fun LiquidTuningScreen(
                     )
                     2 -> RecentThermalCard(
                         thermalPreset = prefsThermal,
+                        cpuTemperature = cpuTemperature,
                         onClick = { onNavigate("liquid_thermal_settings") }
                     )
                     3 -> RecentRAMCard(

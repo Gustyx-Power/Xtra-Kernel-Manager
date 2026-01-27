@@ -80,10 +80,10 @@ fun LiquidHomeScreen(
              
              LiquidTempTile(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
-                cpuTemp = "${cpuInfo.temperature.toInt()}°C",
-                gpuTemp = "${gpuInfo.temperature.toInt()}°C",
-                pmicTemp = "${batteryInfo.pmicTemp.toInt()}°C",
-                thermalTemp = "${batteryInfo.temperature.toInt()}°C",
+                cpuTemp = cpuInfo.temperature.toInt(),
+                gpuTemp = gpuInfo.temperature.toInt(),
+                pmicTemp = batteryInfo.pmicTemp.toInt(),
+                thermalTemp = batteryInfo.temperature.toInt(),
                 color = id.xms.xtrakernelmanager.ui.theme.NeonPurple
              )
         }

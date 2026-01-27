@@ -293,7 +293,7 @@ fun LiquidBottomTabs(
                 scaleY *= 1f - (velocity * 0.4f).fastCoerceIn(-0.2f, 0.2f)
             }
             .then(interactiveHighlight.gestureModifier)
-            .then(dampedDragAnimation.modifier)
+            .then(dampedDragAnimation.getModifier())
             .height(56f.dp)
             .fillMaxWidth(1f / tabsCount)
             .clip(shape)
