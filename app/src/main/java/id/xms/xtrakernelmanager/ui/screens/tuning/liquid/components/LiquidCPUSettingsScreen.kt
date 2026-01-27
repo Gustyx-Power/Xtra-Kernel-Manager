@@ -58,6 +58,7 @@ fun LiquidCPUSettingsScreen(
     onNavigateToSmartLock: () -> Unit
 ) {
   val clusters by viewModel.cpuClusters.collectAsState()
+  val cpuCores by viewModel.cpuCores.collectAsState()
   val clusterStates by viewModel.clusterStates.collectAsState()
 
   // Box container with WavyBlobOrnament background
@@ -107,6 +108,14 @@ fun LiquidCPUSettingsScreen(
                   clusters = clusters,
                   viewModel = viewModel,
                   onNavigateToConfig = onNavigateToSmartLock
+              )
+            }
+            
+            // Core Management Card (NEW - Separated from clusters)
+            item {
+              LiquidCoreControl(
+                  cores = cpuCores,
+                  viewModel = viewModel
               )
             }
             
@@ -939,11 +948,6 @@ private fun ModernClusterCard(
               currentGovernor = currentGovernor,
               onClick = { showGovernorDialog = true },
           )
-
-          // Cores - Fixed positioning
-          if (cluster.cores.any { it != 0 }) {
-            FixedCoreControlSection(cluster.cores, viewModel)
-          }
         }
       }
     }
@@ -1175,143 +1179,6 @@ private fun GovernorSelector(currentGovernor: String, onClick: () -> Unit) {
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-      }
-    }
-  }
-}
-
-@Composable
-private fun FixedCoreControlSection(
-    cores: List<Int>, 
-    viewModel: TuningViewModel
-) {
-  Column(
-      modifier = Modifier
-          .fillMaxWidth()
-          .clip(RoundedCornerShape(12.dp))
-          .background(MaterialTheme.colorScheme.surfaceContainerLow)
-          .border(
-              1.dp,
-              MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-              RoundedCornerShape(12.dp),
-          )
-          .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp)
-  ) {
-    Text(
-        text = "Core Control",
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.Medium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    
-    // Fixed layout grid for cores
-    cores.forEachIndexed { index, coreNum ->
-      if (coreNum != 0) {
-        if (index > 0) {
-          HorizontalDivider(
-              color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-              modifier = Modifier.padding(vertical = 4.dp)
-          )
-        }
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Column(
-              modifier = Modifier.weight(1f)
-          ) {
-            Text(
-                text = "Core $coreNum",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = if (coreNum == 0) "Performance Core" else "Efficiency Core",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-          }
-          
-          val coreEnabled by viewModel.preferencesManager.isCpuCoreEnabled(coreNum).collectAsState(initial = true)
-          LiquidToggle(
-              checked = coreEnabled,
-              onCheckedChange = { enabled ->
-                viewModel.disableCPUCore(coreNum, !enabled)
-              },
-              enabled = coreNum != 0 // Don't allow disabling core 0
-          )
-        }
-      }
-    }
-  }
-}
-
-@Composable
-private fun CoreControl(cores: List<Int>, viewModel: TuningViewModel) {
-  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    Text(
-        text = stringResource(R.string.core_control),
-        style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.Medium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-
-    Column(
-        modifier =
-            Modifier.fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                    RoundedCornerShape(12.dp),
-                )
-    ) {
-      cores.forEachIndexed { index, coreNum ->
-        if (coreNum != 0) {
-          val coreEnabled by
-              viewModel.preferencesManager.isCpuCoreEnabled(coreNum).collectAsState(initial = true)
-
-          if (index > 0) {
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                modifier = Modifier.padding(horizontal = 16.dp),
-            )
-          }
-
-          Row(
-              modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-              horizontalArrangement = Arrangement.SpaceBetween,
-              verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Column {
-              Text(
-                  text = "Core $coreNum",
-                  style = MaterialTheme.typography.bodyMedium,
-                  fontWeight = FontWeight.SemiBold,
-              )
-              Text(
-                  text = if (coreEnabled) "Online" else "Offline",
-                  style = MaterialTheme.typography.bodySmall,
-                  color =
-                      if (coreEnabled) MaterialTheme.colorScheme.primary
-                      else MaterialTheme.colorScheme.error,
-              )
-            }
-
-            LiquidToggle(
-                checked = coreEnabled,
-                onCheckedChange = { enabled ->
-                  viewModel.disableCPUCore(coreNum, !enabled)
-                },
-                enabled = coreNum != 0
-            )
-          }
-        }
       }
     }
   }
