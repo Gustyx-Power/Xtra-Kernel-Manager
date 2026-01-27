@@ -13,6 +13,9 @@ class KernelRepository {
   private var cachedClusters: List<ClusterInfo>? = null
   private var cachedGpuFreqPath: String? = null
   private var cachedGpuBusyPath: String? = null
+  private var cachedGpuBasePath: String? = null
+  private var cachedCpuThermalPath: String? = null
+  private var cachedGpuThermalZone: String? = null
 
   suspend fun getCPUInfo(): CPUInfo =
       withContext(Dispatchers.IO) {
@@ -210,17 +213,25 @@ class KernelRepository {
   }
 
   private suspend fun getCPUTemperature(): Float {
-    val thermalZones =
-        listOf(
-            "/sys/class/thermal/thermal_zone0/temp",
-            "/sys/devices/virtual/thermal/thermal_zone0/temp",
-            "/sys/class/hwmon/hwmon0/temp1_input",
-            "/sys/class/hwmon/hwmon1/temp1_input",
-        )
-    for (zone in thermalZones) {
-      val temp =
-          RootManager.executeCommand("cat $zone 2>/dev/null").getOrNull()?.trim()?.toFloatOrNull()
+    if (cachedCpuThermalPath != null) {
+      val temp = RootManager.executeCommand("cat $cachedCpuThermalPath 2>/dev/null")
+          .getOrNull()?.trim()?.toFloatOrNull()
       if (temp != null && temp > 0) {
+        return if (temp > 1000) temp / 1000f else temp
+      }
+    }
+    
+    val thermalZones = listOf(
+        "/sys/class/thermal/thermal_zone0/temp",
+        "/sys/devices/virtual/thermal/thermal_zone0/temp",
+        "/sys/class/hwmon/hwmon0/temp1_input",
+        "/sys/class/hwmon/hwmon1/temp1_input",
+    )
+    for (zone in thermalZones) {
+      val temp = RootManager.executeCommand("cat $zone 2>/dev/null")
+          .getOrNull()?.trim()?.toFloatOrNull()
+      if (temp != null && temp > 0) {
+        cachedCpuThermalPath = zone
         return if (temp > 1000) temp / 1000f else temp
       }
     }
@@ -274,11 +285,9 @@ class KernelRepository {
 
   suspend fun getGPUInfo(): GPUInfo =
       withContext(Dispatchers.IO) {
-        // Try native GPU vendor/model first (fast path)
         var vendor = NativeLib.getGpuVendor()
         var renderer = NativeLib.getGpuModel()
 
-        // Fallback to dumpsys if native returns null
         var openglVersion = "Unknown"
         if (vendor == null || renderer == null) {
           val glesRaw =
@@ -307,7 +316,6 @@ class KernelRepository {
                         renderer?.contains("PowerVR", true) == true -> "Imagination"
                         renderer?.contains("NVIDIA", true) == true -> "NVIDIA"
                         else -> {
-                          // Use native getprop (100x faster)
                           val soc = NativeLib.getSystemProperty("ro.hardware")?.lowercase() ?: ""
                           when {
                             soc.contains("qcom") -> "Qualcomm"
@@ -323,11 +331,13 @@ class KernelRepository {
           }
         }
 
-        val basePath =
-            listOf("/sys/class/kgsl/kgsl-3d0", "/sys/kernel/gpu").firstOrNull {
-              RootManager.executeCommand("[ -d $it ] && echo exists").getOrNull()?.trim() ==
-                  "exists"
-            } ?: "/sys/class/kgsl/kgsl-3d0"
+        val basePath = cachedGpuBasePath ?: run {
+          val path = listOf("/sys/class/kgsl/kgsl-3d0", "/sys/kernel/gpu").firstOrNull {
+            RootManager.executeCommand("[ -d $it ] && echo exists").getOrNull()?.trim() == "exists"
+          } ?: "/sys/class/kgsl/kgsl-3d0"
+          cachedGpuBasePath = path
+          path
+        }
 
         val availableFreqs =
             RootManager.executeCommand("cat $basePath/gpu_available_frequencies 2>/dev/null")
@@ -335,11 +345,10 @@ class KernelRepository {
                 ?.split(" ")
                 ?.mapNotNull { it.toIntOrNull()?.div(1000000) } ?: emptyList()
 
-        // GPU frequency: Native first (fast), shell fallback
         var currentFreq = NativeLib.readGpuFreq() ?: 0
         if (currentFreq == 0) {
           if (cachedGpuFreqPath != null) {
-             val rawValue = RootManager.executeCommand("cat $cachedGpuFreqPath").getOrNull()?.trim()
+             val rawValue = RootManager.executeCommand("cat $cachedGpuFreqPath 2>/dev/null").getOrNull()?.trim()
              val valueLong = rawValue?.toLongOrNull()
              if (valueLong != null) {
                  currentFreq = when {
@@ -349,24 +358,22 @@ class KernelRepository {
                  }
              }
           } else {
-              val freqPaths =
-                  listOf(
-                      "/sys/class/kgsl/kgsl-3d0/gpuclk",
-                      "$basePath/gpuclk",
-                      "$basePath/clock_mhz",
-                      "/sys/kernel/gpu/gpu_clock",
-                      "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq",
-                      "/sys/class/devfreq/gpufreq/cur_freq"
-                  )
+              val freqPaths = listOf(
+                  "/sys/class/kgsl/kgsl-3d0/gpuclk",
+                  "$basePath/gpuclk",
+                  "$basePath/clock_mhz",
+                  "/sys/kernel/gpu/gpu_clock",
+                  "/sys/class/devfreq/5000000.qcom,kgsl-3d0/cur_freq",
+                  "/sys/class/devfreq/gpufreq/cur_freq"
+              )
               for (path in freqPaths) {
-                val rawValue = RootManager.executeCommand("cat $path").getOrNull()?.trim()
+                val rawValue = RootManager.executeCommand("cat $path 2>/dev/null").getOrNull()?.trim()
                 val valueLong = rawValue?.toLongOrNull() ?: continue
-                val foundFreq =
-                    when {
-                      valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
-                      valueLong > 1_000 -> (valueLong / 1_000).toInt()
-                      else -> valueLong.toInt()
-                    }
+                val foundFreq = when {
+                  valueLong > 1_000_000 -> (valueLong / 1_000_000).toInt()
+                  valueLong > 1_000 -> (valueLong / 1_000).toInt()
+                  else -> valueLong.toInt()
+                }
                 if (foundFreq > 0) {
                     currentFreq = foundFreq
                     cachedGpuFreqPath = path
@@ -379,7 +386,6 @@ class KernelRepository {
         val maxFreq = availableFreqs.maxOrNull() ?: 0
         val minFreq = availableFreqs.minOrNull() ?: 0
 
-        // GPU load: Native first (fast), shell fallback
         var gpuLoad = NativeLib.readGpuBusy() ?: 0
         if (gpuLoad == 0) {
              if (cachedGpuBusyPath != null) {
@@ -403,12 +409,27 @@ class KernelRepository {
              }
         }
 
-        // GPU Temperature: Scan thermal zones
-        val thermalZones = NativeLib.readThermalZones()
-        val gpuTemp = thermalZones.find { zone ->
+        val gpuTemp = if (cachedGpuThermalZone != null) {
+          val temp = RootManager.executeCommand("cat $cachedGpuThermalZone/temp 2>/dev/null")
+              .getOrNull()?.trim()?.toFloatOrNull()
+          if (temp != null && temp > 0) {
+            if (temp > 1000) temp / 1000f else temp
+          } else {
+            0f
+          }
+        } else {
+          val thermalZones = NativeLib.readThermalZones()
+          val gpuZone = thermalZones.find { zone ->
             val name = zone.name.lowercase()
             name.contains("gpu") || name.contains("adreno") || name.contains("mali") || name.contains("3d")
-        }?.temp ?: 0f
+          }
+          if (gpuZone != null) {
+            cachedGpuThermalZone = "/sys/class/thermal/${gpuZone.name}"
+            gpuZone.temp
+          } else {
+            0f
+          }
+        }
 
         GPUInfo(
             vendor = vendor ?: "Unknown",
