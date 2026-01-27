@@ -626,4 +626,61 @@ object NativeLib {
       "unknown"
     }
   }
+  
+  /**
+   * Get Vulkan version using Android PackageManager
+   * This method works like DevCheck app
+   */
+  fun getVulkanVersion(context: android.content.Context): String? {
+    return try {
+      val packageManager = context.packageManager
+      
+      // Try to get Vulkan version from system features
+      val systemFeatures = packageManager.systemAvailableFeatures
+      
+      // Look for Vulkan version feature
+      val vulkanFeature = systemFeatures.find { 
+        it.name == "android.hardware.vulkan.version"
+      }
+      
+      if (vulkanFeature != null) {
+        // Vulkan version is encoded as: (major << 22) | (minor << 12) | patch
+        val version = vulkanFeature.version
+        val major = (version shr 22) and 0x3FF
+        val minor = (version shr 12) and 0x3FF
+        val patch = version and 0xFFF
+        
+        return "Vulkan $major.$minor.$patch"
+      }
+      
+      // Check Vulkan level as fallback
+      val hasVulkanLevel = packageManager.hasSystemFeature("android.hardware.vulkan.level")
+      if (hasVulkanLevel) {
+        val levelFeature = systemFeatures.find { 
+          it.name == "android.hardware.vulkan.level" 
+        }
+        
+        if (levelFeature != null) {
+          val level = levelFeature.version
+          return when {
+            level >= 3 -> "Vulkan 1.3"
+            level >= 2 -> "Vulkan 1.2"
+            level >= 1 -> "Vulkan 1.1"
+            else -> "Vulkan 1.0"
+          }
+        }
+      }
+      
+      // Check if Vulkan is supported at all
+      val hasVulkan = packageManager.hasSystemFeature("android.hardware.vulkan.version")
+      if (hasVulkan) {
+        return "Vulkan 1.1" // Default
+      }
+      
+      null
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to get Vulkan version", e)
+      null
+    }
+  }
 }
