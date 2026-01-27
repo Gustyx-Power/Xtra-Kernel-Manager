@@ -72,25 +72,36 @@ fun LiquidCPUSettingsScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-          TopAppBar(
-              title = {
-                Text(
-                    stringResource(R.string.cpu_control),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+          GlassmorphicCard(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 24.dp, vertical = 16.dp),
+              shape = CircleShape,
+              contentPadding = PaddingValues(0.dp)
+          ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+              IconButton(onClick = onNavigateBack) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back",
+                    tint = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
                 )
-              },
-              navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                  Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
-                }
-              },
-              colors =
-                  TopAppBarDefaults.topAppBarColors(
-                      containerColor = Color.Transparent,
-                      scrolledContainerColor = Color.Transparent,
-                  ),
-          )
+              }
+              Text(
+                  text = stringResource(R.string.cpu_control),
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = FontWeight.Bold,
+                  color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+              )
+              Spacer(modifier = Modifier.width(48.dp))
+            }
+          }
         }
     ) { paddingValues ->
       Box(modifier = Modifier.fillMaxSize()) {
