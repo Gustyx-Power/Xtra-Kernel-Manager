@@ -245,6 +245,10 @@ fun WavyCircularProgressIndicator(
     }
 }
 
+/**
+ * Power insight item displaying a single stat with icon
+ * Used for screen on/off time, deep sleep, and drain rate
+ */
 @Composable
 fun PowerInsightItem(label: String, value: String, icon: ImageVector) {
     Row(
