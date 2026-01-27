@@ -26,6 +26,10 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import id.xms.xtrakernelmanager.BuildConfig
 
+/**
+ * Material Design section displaying app information
+ * Shows maintainer info, version details, and project links
+ */
 @Composable
 fun MaterialAppInfoSection() {
     Card(
