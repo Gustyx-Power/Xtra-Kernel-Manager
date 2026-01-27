@@ -169,6 +169,10 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
     }
 }
 
+/**
+ * Formats file size from bytes to human-readable format
+ * Returns GB if >= 1GB, otherwise MB
+ */
 private fun formatFileSize(bytes: Long): String {
     val gb = bytes / (1024.0 * 1024.0 * 1024.0)
     return if (gb >= 1.0) {
