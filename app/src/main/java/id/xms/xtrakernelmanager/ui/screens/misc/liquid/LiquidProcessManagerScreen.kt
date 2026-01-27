@@ -48,16 +48,20 @@ fun LiquidProcessManagerScreen(
     var isKilling by remember { mutableStateOf<String?>(null) }
     var sortByMemory by remember { mutableStateOf(true) }
 
-    // Load processes on launch
+    // Load processes on launch and auto-refresh every 3 seconds
     LaunchedEffect(Unit) {
-        Log.d(TAG, "Loading processes on launch...")
-        try {
-            processes = loadRunningProcesses()
-            Log.d(TAG, "Loaded ${processes.size} processes")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error loading processes", e)
-        } finally {
-            isLoading = false
+        Log.d(TAG, "Starting realtime process monitoring...")
+        while (true) {
+            try {
+                val newProcesses = loadRunningProcesses(context)
+                processes = newProcesses
+                Log.d(TAG, "Updated ${newProcesses.size} processes")
+                if (isLoading) isLoading = false
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading processes", e)
+                if (isLoading) isLoading = false
+            }
+            kotlinx.coroutines.delay(3000) // Update every 3 seconds
         }
     }
 
@@ -66,7 +70,7 @@ fun LiquidProcessManagerScreen(
             Log.d(TAG, "Refreshing processes...")
             isLoading = true
             try {
-                processes = loadRunningProcesses()
+                processes = loadRunningProcesses(context)
                 Log.d(TAG, "Refreshed ${processes.size} processes")
             } catch (e: Exception) {
                 Log.e(TAG, "Error refreshing processes", e)
@@ -307,6 +311,25 @@ fun LiquidProcessManagerTopBar(
 fun LiquidMemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
     val totalDeviceRAM = 8192f
     val usagePercent = (totalMemoryMB / totalDeviceRAM).coerceIn(0f, 1f)
+    
+    // Animate memory value changes for smooth realtime updates
+    val animatedMemoryGB by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = totalMemoryMB / 1024,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 800,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "memoryAnimation"
+    )
+    
+    val animatedPercent by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = usagePercent,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 800,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "percentAnimation"
+    )
 
     id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
         modifier = Modifier.fillMaxWidth()
@@ -329,7 +352,7 @@ fun LiquidMemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = String.format("%.1f", totalMemoryMB / 1024),
+                            text = String.format("%.1f", animatedMemoryGB),
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -372,7 +395,7 @@ fun LiquidMemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                     Text(
-                        "${(usagePercent * 100).toInt()}%",
+                        "${(animatedPercent * 100).toInt()}%",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -380,7 +403,7 @@ fun LiquidMemorySummaryCard(totalMemoryMB: Float, processCount: Int) {
                 }
 
                 LinearProgressIndicator(
-                    progress = { usagePercent },
+                    progress = { animatedPercent },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(12.dp)
@@ -401,6 +424,16 @@ fun LiquidProcessItem(
 ) {
     val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
+    
+    // Animate memory changes for smooth realtime updates
+    val animatedMemoryMB by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = process.memoryMB,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 600,
+            easing = androidx.compose.animation.core.FastOutSlowInEasing
+        ),
+        label = "processMemoryAnimation"
+    )
 
     Log.d(TAG, "=== Rendering LiquidProcessItem START ===")
     Log.d(TAG, "Package: ${process.packageName}, PID: ${process.pid}, Memory: ${process.memoryMB}MB")
@@ -508,13 +541,13 @@ fun LiquidProcessItem(
                     )
                 }
 
-                // Memory badge
+                // Memory badge with animated value
                 Surface(
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                     shape = CircleShape
                 ) {
                     Text(
-                        text = "${String.format("%.0f", process.memoryMB)} MB",
+                        text = "${String.format("%.0f", animatedMemoryMB)} MB",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -591,7 +624,7 @@ fun LiquidProcessItem(
                         }
                     }
 
-                    // Memory bar
+                    // Memory bar with animated progress
                     Column {
                         Text(
                             "Memory Allocation",
@@ -599,8 +632,16 @@ fun LiquidProcessItem(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
+                        val animatedMemoryProgress by androidx.compose.animation.core.animateFloatAsState(
+                            targetValue = (process.memoryMB / 1024f).coerceIn(0f, 1f),
+                            animationSpec = androidx.compose.animation.core.tween(
+                                durationMillis = 600,
+                                easing = androidx.compose.animation.core.FastOutSlowInEasing
+                            ),
+                            label = "memoryProgressAnimation"
+                        )
                         LinearProgressIndicator(
-                            progress = { (process.memoryMB / 1024f).coerceIn(0f, 1f) },
+                            progress = { animatedMemoryProgress },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp)
