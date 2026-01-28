@@ -180,6 +180,19 @@ class RAMControlUseCase {
   )
 
   suspend fun getMemoryStats(): MemoryStats {
+    val nativeMemInfo = NativeLib.readMemInfo()
+    if (nativeMemInfo != null) {
+      return MemoryStats(
+          totalRamMb = (nativeMemInfo.totalKb / 1024).toInt(),
+          freeRamMb = (nativeMemInfo.freeKb / 1024).toInt(),
+          availableRamMb = (nativeMemInfo.availableKb / 1024).toInt(),
+          bufferedMb = (nativeMemInfo.buffersKb / 1024).toInt(),
+          cachedMb = (nativeMemInfo.cachedKb / 1024).toInt(),
+          totalSwapMb = (nativeMemInfo.swapTotalKb / 1024).toInt(),
+          freeSwapMb = (nativeMemInfo.swapFreeKb / 1024).toInt(),
+      )
+    }
+    
     val result = RootManager.executeCommand("cat /proc/meminfo")
     val meminfo = result.getOrNull() ?: ""
 
