@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,9 @@ fun MaterialHomeScreen(
     onSettingsClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    
+    // Status bar data
+    val statusBarData = id.xms.xtrakernelmanager.ui.components.statusbar.rememberStatusBarData()
 
     // Bottom Sheet State
     val powerSheetState = rememberModalBottomSheetState()
@@ -60,82 +64,98 @@ fun MaterialHomeScreen(
             ExpandablePowerFab(onPowerAction = { action -> onPowerAction(action) })
         },
         content = { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .statusBarsPadding()
-                    .offset(y = (-16).dp)
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                // Header
-                StaggeredEntry(delayMillis = 0) {
-                    MaterialHeader(onSettingsClick = { showSettingsBottomSheet = true })
-                }
-
-                // Device Info Card
-                StaggeredEntry(delayMillis = 100) {
-                    MaterialDeviceCard(systemInfo = systemInfo)
-                }
-
-                // CPU & Temperature Tiles Row (matching Liquid layout)
-                StaggeredEntry(delayMillis = 200) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        // CPU Tile
-                        MaterialStatTile(
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            icon = Icons.Rounded.Memory,
-                            label = "CPU",
-                            value = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
-                            subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
-                            color = MaterialTheme.colorScheme.primary,
-                            badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
-                        )
-
-                        // Temperature Tile
-                        MaterialTempTile(
-                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                            cpuTemp = cpuInfo.temperature.toInt(),
-                            gpuTemp = gpuInfo.temperature.toInt(),
-                            pmicTemp = batteryInfo.pmicTemp.toInt(),
-                            thermalTemp = batteryInfo.temperature.toInt(),
-                            color = MaterialTheme.colorScheme.error,
-                        )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
+                        .padding(bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Spacer(modifier = Modifier.height(44.dp)) // Space for custom status bar (36dp + 8dp safe area)
+                
+                    // Header
+                    StaggeredEntry(delayMillis = 0) {
+                        MaterialHeader(onSettingsClick = { showSettingsBottomSheet = true })
                     }
-                }
 
-                // GPU Information Card
-                StaggeredEntry(delayMillis = 300) {
-                    MaterialGPUCard(gpuInfo = gpuInfo)
-                }
+                    // Device Info Card
+                    StaggeredEntry(delayMillis = 100) {
+                        MaterialDeviceCard(systemInfo = systemInfo)
+                    }
 
-                // Memory & Storage Card
-                StaggeredEntry(delayMillis = 400) {
-                    MaterialMemoryCard(systemInfo = systemInfo)
-                }
+                    // CPU & Temperature Tiles Row (matching Liquid layout)
+                    StaggeredEntry(delayMillis = 200) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            // CPU Tile
+                            MaterialStatTile(
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                                icon = Icons.Rounded.Memory,
+                                label = "CPU",
+                                value = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
+                                subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
+                                color = MaterialTheme.colorScheme.primary,
+                                badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%",
+                            )
 
-                // Battery Information Card
-                StaggeredEntry(delayMillis = 500) {
-                    MaterialBatteryCard(batteryInfo = batteryInfo)
-                }
+                            // Temperature Tile
+                            MaterialTempTile(
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                                cpuTemp = cpuInfo.temperature.toInt(),
+                                gpuTemp = gpuInfo.temperature.toInt(),
+                                pmicTemp = batteryInfo.pmicTemp.toInt(),
+                                thermalTemp = batteryInfo.temperature.toInt(),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                    }
 
-                // Power Insight Card
-                StaggeredEntry(delayMillis = 600) {
-                    MaterialPowerInsightCard(powerInfo, batteryInfo)
-                }
+                    // GPU Information Card
+                    StaggeredEntry(delayMillis = 300) {
+                        MaterialGPUCard(gpuInfo = gpuInfo)
+                    }
 
-                // App Info Section
-                StaggeredEntry(delayMillis = 700) {
-                    MaterialAppInfoSection()
-                }
+                    // Memory & Storage Card
+                    StaggeredEntry(delayMillis = 400) {
+                        MaterialMemoryCard(systemInfo = systemInfo)
+                    }
 
-                // Bottom Spacing
-                Spacer(modifier = Modifier.height(80.dp))
+                    // Battery Information Card
+                    StaggeredEntry(delayMillis = 500) {
+                        MaterialBatteryCard(batteryInfo = batteryInfo)
+                    }
+
+                    // Power Insight Card
+                    StaggeredEntry(delayMillis = 600) {
+                        MaterialPowerInsightCard(powerInfo, batteryInfo)
+                    }
+
+                    // App Info Section
+                    StaggeredEntry(delayMillis = 700) {
+                        MaterialAppInfoSection()
+                    }
+
+                    // Bottom Spacing
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
+            
+                // Pixel-style Status Bar (overlay - FIXED position, tidak scroll)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                ) {
+                    id.xms.xtrakernelmanager.ui.components.statusbar.MaterialStatusBar(
+                        batteryLevel = statusBarData.batteryLevel,
+                        isCharging = statusBarData.isCharging,
+                        signalStrength = statusBarData.signalStrength,
+                        wifiEnabled = statusBarData.wifiEnabled
+                    )
+                }
             }
         },
     )
