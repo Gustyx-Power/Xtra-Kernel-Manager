@@ -186,7 +186,7 @@ pub fn read_core_data() -> String {
 
 /// Read CPU load (total + per-core)
 pub fn read_cpu_load_detailed() -> CpuLoadInfo {
-    let mut per_core_load = Vec::new();
+    let mut per_core_load = Vec::with_capacity(16);
 
     let mut buf = [0u8; 4096];
     if let Some(bytes_read) = utils::read_file_libc_buf("/proc/stat", &mut buf) {
@@ -197,42 +197,44 @@ pub fn read_cpu_load_detailed() -> CpuLoadInfo {
             let mut stats = CPU_STATS.lock().unwrap();
 
             for line in content.lines() {
-                if line.starts_with("cpu") && !line.starts_with("cpu ") {
-                    let parts: Vec<&str> = line.split_whitespace().collect();
+                if !line.starts_with("cpu") || line.starts_with("cpu ") {
+                    continue;
+                }
+                
+                let parts: Vec<&str> = line.split_whitespace().collect();
 
-                    if parts.len() >= 5 {
-                        let user: u64 = parts[1].parse().unwrap_or(0);
-                        let nice: u64 = parts[2].parse().unwrap_or(0);
-                        let system: u64 = parts[3].parse().unwrap_or(0);
-                        let idle: u64 = parts[4].parse().unwrap_or(0);
+                if parts.len() >= 5 {
+                    let user: u64 = parts[1].parse().unwrap_or(0);
+                    let nice: u64 = parts[2].parse().unwrap_or(0);
+                    let system: u64 = parts[3].parse().unwrap_or(0);
+                    let idle: u64 = parts[4].parse().unwrap_or(0);
 
-                        let total = user + nice + system + idle;
+                    let total = user + nice + system + idle;
 
-                        let load = if cpu_index < stats.total_time.len() {
-                            let total_diff = total.saturating_sub(stats.total_time[cpu_index]);
-                            let idle_diff = idle.saturating_sub(stats.idle_time[cpu_index]);
+                    let load = if cpu_index < stats.total_time.len() {
+                        let total_diff = total.saturating_sub(stats.total_time[cpu_index]);
+                        let idle_diff = idle.saturating_sub(stats.idle_time[cpu_index]);
 
-                            if total_diff > 0 {
-                                100.0 - (idle_diff as f32 / total_diff as f32 * 100.0)
-                            } else {
-                                0.0
-                            }
+                        if total_diff > 0 {
+                            100.0 - (idle_diff as f32 / total_diff as f32 * 100.0)
                         } else {
                             0.0
-                        };
-
-                        per_core_load.push(load.max(0.0).min(100.0));
-
-                        if cpu_index < stats.total_time.len() {
-                            stats.total_time[cpu_index] = total;
-                            stats.idle_time[cpu_index] = idle;
-                        } else {
-                            stats.total_time.push(total);
-                            stats.idle_time.push(idle);
                         }
+                    } else {
+                        0.0
+                    };
 
-                        cpu_index += 1;
+                    per_core_load.push(load.clamp(0.0, 100.0));
+
+                    if cpu_index < stats.total_time.len() {
+                        stats.total_time[cpu_index] = total;
+                        stats.idle_time[cpu_index] = idle;
+                    } else {
+                        stats.total_time.push(total);
+                        stats.idle_time.push(idle);
                     }
+
+                    cpu_index += 1;
                 }
             }
 
@@ -249,7 +251,7 @@ pub fn read_cpu_load_detailed() -> CpuLoadInfo {
 
     CpuLoadInfo {
         total_load: 0.0,
-        per_core_load: vec![],
+        per_core_load: Vec::new(),
     }
 }
 
