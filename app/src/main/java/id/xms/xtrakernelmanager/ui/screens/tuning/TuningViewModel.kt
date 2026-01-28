@@ -579,6 +579,7 @@ class TuningViewModel(
         val mediatekDeferred = async { detectMediatek() }
         val blockDevicesDeferred = async { loadBlockDeviceStatesParallel() }
         val tcpDeferred = async { getCurrentTCPCongestion() }
+        val availableTCPDeferred = async { getAvailableTCPCongestion() }
         val compAlgoDeferred = async { ramUseCase.getCurrentCompressionAlgorithm() }
         val memoryInfoDeferred = async { loadMemoryInfoParallel() }
         val availableAlgorithmsDeferred = async { ramUseCase.getAvailableCompressionAlgorithms() }
@@ -596,10 +597,23 @@ class TuningViewModel(
           _gpuInfo.value = gpuUseCase.getGPUDynamicInfo(preferencesManager.getContext())
         }
         _blockDeviceStates.value = blockDevicesDeferred.await()
+        
+        // Sync IO schedulers to liquid flows
+        val states = _blockDeviceStates.value
+        val sda = states.find { it.name == "sda" } ?: states.firstOrNull()
+        if (sda != null) {
+          _availableIOSchedulers.value = sda.availableSchedulers
+          _currentIOScheduler.value = sda.currentScheduler
+        }
 
         val currentTCP = tcpDeferred.await()
         if (currentTCP.isNotEmpty()) {
           _currentTCPCongestion.value = currentTCP
+        }
+
+        val availableTCP = availableTCPDeferred.await()
+        if (availableTCP.isNotEmpty()) {
+          _availableTCPCongestion.value = availableTCP
         }
 
         val currentComp = compAlgoDeferred.await()

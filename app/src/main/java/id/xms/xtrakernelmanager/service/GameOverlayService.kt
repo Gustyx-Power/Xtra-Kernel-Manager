@@ -31,7 +31,7 @@ import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.*
 import androidx.lifecycle.lifecycleScope
-import id.xms.xtrakernelmanager.ui.screens.misc.GameMonitorViewModel
+import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
 import kotlinx.coroutines.*
 
 class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {

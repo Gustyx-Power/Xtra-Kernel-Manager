@@ -43,22 +43,26 @@ fun LiquidHomeScreen(
     val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
     val isCompact =
           dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+    
+    // Status bar data
+    val statusBarData = id.xms.xtrakernelmanager.ui.components.statusbar.rememberStatusBarData()
 
-    // Content Scrollable Column with pure Liquid Backdrop
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp) // Match Material padding
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(4.dp)) // Reduced top spacing
- 
-        // 1. Header (Redesigned Liquid Header)
-        LiquidHeader(
-            onSettingsClick = onSettingsClick,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Content Scrollable Column with pure Liquid Backdrop
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(56.dp)) // Space for custom status bar (48dp + 8dp safe area)
+     
+            // 1. Header (Redesigned Liquid Header)
+            LiquidHeader(
+                onSettingsClick = onSettingsClick,
+                modifier = Modifier
+            )
 
         // 2. Liquid Device Card
         LiquidDeviceCard(systemInfo = systemInfo, modifier = Modifier.fillMaxWidth())
@@ -152,6 +156,21 @@ fun LiquidHomeScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(100.dp))
         }
+        
+        // iOS-style Status Bar (overlay - FIXED position, tidak scroll)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter)
+        ) {
+            id.xms.xtrakernelmanager.ui.components.statusbar.LiquidStatusBar(
+                batteryLevel = statusBarData.batteryLevel,
+                isCharging = statusBarData.isCharging,
+                signalStrength = statusBarData.signalStrength,
+                wifiEnabled = statusBarData.wifiEnabled
+            )
+        }
+    }
 }

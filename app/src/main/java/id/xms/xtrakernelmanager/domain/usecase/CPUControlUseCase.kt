@@ -10,8 +10,34 @@ import id.xms.xtrakernelmanager.domain.root.RootManager
 class CPUControlUseCase {
 
   private val TAG = "CPUControlUseCase"
-  /** Detect CPU clusters - tries native implementation first, falls back to shell-based */
+  
+  private var cachedClusters: List<ClusterInfo>? = null
+  private var clusterCacheTime: Long = 0L
+  
+  companion object {
+    private const val CLUSTER_CACHE_TTL_MS = 30000L
+  }
+  
+  fun invalidateClusterCache() {
+    cachedClusters = null
+    clusterCacheTime = 0L
+  }
+  
   suspend fun detectClusters(): List<ClusterInfo> {
+    val now = System.currentTimeMillis()
+    cachedClusters?.let { cached ->
+      if (now - clusterCacheTime < CLUSTER_CACHE_TTL_MS) {
+        return cached
+      }
+    }
+    
+    val clusters = detectClustersInternal()
+    cachedClusters = clusters
+    clusterCacheTime = now
+    return clusters
+  }
+  
+  private suspend fun detectClustersInternal(): List<ClusterInfo> {
     // Try native implementation first (faster, no shell overhead)
     val nativeClusters = NativeLib.detectCpuClusters()
     if (nativeClusters != null && nativeClusters.isNotEmpty()) {
@@ -162,6 +188,7 @@ class CPUControlUseCase {
           "echo ${minFreq * 1000} > $basePath/cpufreq/scaling_min_freq 2>/dev/null"
       )
     }
+    invalidateClusterCache()
     return Result.success(Unit)
   }
 
@@ -173,6 +200,7 @@ class CPUControlUseCase {
       val basePath = "/sys/devices/system/cpu/cpu$coreNum"
       RootManager.executeCommand("echo $governor > $basePath/cpufreq/scaling_governor 2>/dev/null")
     }
+    invalidateClusterCache()
     return Result.success(Unit)
   }
 

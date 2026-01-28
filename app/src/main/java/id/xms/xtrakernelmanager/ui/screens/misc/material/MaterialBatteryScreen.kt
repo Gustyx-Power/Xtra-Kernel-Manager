@@ -1,4 +1,6 @@
-package id.xms.xtrakernelmanager.ui.screens.misc
+package id.xms.xtrakernelmanager.ui.screens.misc.material
+
+import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

@@ -91,10 +91,9 @@ fun XtraKernelManagerTheme(
       window.statusBarColor = Color.Transparent.toArgb()
       window.navigationBarColor = Color.Transparent.toArgb()
 
-      WindowCompat.getInsetsController(window, view).apply {
-        isAppearanceLightStatusBars = !darkTheme
-        isAppearanceLightNavigationBars = !darkTheme
-      }
+      // Don't set appearance since we're hiding the status bar
+      // The custom status bar will handle the display
+      WindowCompat.setDecorFitsSystemWindows(window, false)
     }
   }
 

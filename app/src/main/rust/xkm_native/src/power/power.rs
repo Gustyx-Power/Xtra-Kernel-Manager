@@ -1,4 +1,6 @@
 use crate::utils;
+use once_cell::sync::{Lazy, OnceCell};
+use serde::{Deserialize, Serialize};
 use std::os::unix::io::RawFd;
 use std::sync::Once;
 
@@ -8,6 +10,9 @@ static mut VOLTAGE_FD: RawFd = -1;
 static mut CURRENT_FD: RawFd = -1;
 
 static INIT: Once = Once::new();
+
+static GPU_THERMAL_ZONE: OnceCell<i32> = OnceCell::new();
+static CPU_THERMAL_ZONE: OnceCell<i32> = OnceCell::new();
 
 #[inline]
 fn ensure_init() {

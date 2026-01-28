@@ -235,7 +235,8 @@ fun HomeScreen(
                                                 Scaffold(
                                                         containerColor = Color.Transparent, 
                                                 ) { paddingValues ->
-                                                        Box(Modifier.padding(paddingValues)) {
+                                                        // Don't apply paddingValues for fullscreen
+                                                        Box(Modifier.fillMaxSize()) {
                 LiquidHomeScreen(
                         cpuInfo = cpuInfo,
                         gpuInfo = gpuInfo,
