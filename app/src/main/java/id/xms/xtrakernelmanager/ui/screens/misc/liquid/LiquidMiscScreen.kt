@@ -36,7 +36,7 @@ fun LiquidMiscScreen(
     onNavigateToAppPicker: () -> Unit = {},
 ) {
     var currentScreen by remember { mutableStateOf("main") }
-    var showGameSpace by remember { mutableStateOf(false) }
+    var showGameControl by remember { mutableStateOf(false) }
     var showGameMonitor by remember { mutableStateOf(false) }
     var showProcessManager by remember { mutableStateOf(false) }
     
@@ -45,13 +45,12 @@ fun LiquidMiscScreen(
         GameMonitorViewModel(context, viewModel.preferencesManager)
     }
     
-    // Temporary: Show MaterialGameSpaceScreen until liquid version is ready
+    // Show screens based on state
     when {
-        showGameSpace -> MaterialGameSpaceScreen(
+        showGameControl -> LiquidGameControlScreen(
             viewModel = viewModel,
-            onBack = { showGameSpace = false },
-            onAddGames = { onNavigateToAppPicker() },
-            onGameMonitorClick = { showGameMonitor = true }
+            gameMonitorViewModel = gameMonitorViewModel,
+            onBack = { showGameControl = false }
         )
         showGameMonitor -> MaterialGameMonitorScreen(
             viewModel = gameMonitorViewModel,
@@ -80,8 +79,7 @@ fun LiquidMiscScreen(
                         viewModel = viewModel,
                         onNavigateToBattery = { currentScreen = "battery" },
                         onNavigateToGameControl = { 
-                            // Temporary: Show material game space
-                            showGameSpace = true
+                            showGameControl = true
                         },
                         onNavigateToDisplay = { currentScreen = "display" },
                         onNavigateToFunctionalRom = onNavigateToFunctionalRom,
