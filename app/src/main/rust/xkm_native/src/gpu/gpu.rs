@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::sync::Mutex;
 
+static GPU_THERMAL_ZONE: OnceCell<i32> = OnceCell::new();
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum GpuVendor {
     Qualcomm,
@@ -454,27 +456,34 @@ pub fn read_gpu_load() -> GpuLoad {
 
 /// Read GPU temperature from thermal zones
 fn read_gpu_temperature() -> f32 {
-    let zone_names = ["gpu", "gpuss", "gpu0", "gpu1"];
-
-    for zone in 0..20 {
-        let type_path = format!("/sys/class/thermal/thermal_zone{}/type", zone);
-        if let Some(zone_type) = utils::read_sysfs_cached(&type_path, 0) {
-            let zone_lower = zone_type.to_lowercase();
-
-            for name in &zone_names {
-                if zone_lower.contains(name) {
-                    let temp_path = format!("/sys/class/thermal/thermal_zone{}/temp", zone);
-                    if let Some(temp) = utils::read_sysfs_int(&temp_path, 500) {
-                        let temp_c = temp as f32 / 1000.0;
-                        if temp_c > 0.0 && temp_c < 150.0 {
-                            return temp_c;
-                        }
+    let cached_zone = GPU_THERMAL_ZONE.get_or_init(|| {
+        let zone_names = ["gpu", "gpuss", "gpu0", "gpu1"];
+        
+        for zone in 0..20 {
+            let type_path = format!("/sys/class/thermal/thermal_zone{}/type", zone);
+            if let Some(zone_type) = utils::read_sysfs_cached(&type_path, 0) {
+                let zone_lower = zone_type.to_lowercase();
+                
+                for name in &zone_names {
+                    if zone_lower.contains(name) {
+                        return zone;
                     }
                 }
             }
         }
+        -1
+    });
+    
+    if *cached_zone >= 0 {
+        let temp_path = format!("/sys/class/thermal/thermal_zone{}/temp", cached_zone);
+        if let Some(temp) = utils::read_sysfs_int(&temp_path, 500) {
+            let temp_c = temp as f32 / 1000.0;
+            if temp_c > 0.0 && temp_c < 150.0 {
+                return temp_c;
+            }
+        }
     }
-
+    
     0.0
 }
 
