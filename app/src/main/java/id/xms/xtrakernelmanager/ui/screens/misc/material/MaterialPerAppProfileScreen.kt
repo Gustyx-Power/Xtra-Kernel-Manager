@@ -4,12 +4,14 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +34,7 @@ data class AppProfile(
     val packageName: String,
     val appName: String,
     val profileType: ProfileType = ProfileType.DEFAULT,
+    val refreshRate: RefreshRate = RefreshRate.DEFAULT,
 )
 
 enum class ProfileType(val displayName: String, val description: String) {
@@ -39,6 +43,14 @@ enum class ProfileType(val displayName: String, val description: String) {
   BALANCED("Balanced", "Optimal balance"),
   POWER_SAVE("Power Save", "Extend battery"),
   GAMING("Gaming", "Gaming optimization"),
+}
+
+enum class RefreshRate(val displayName: String, val value: String) {
+  DEFAULT("Default", "def"),
+  HZ_60("60 Hz", "60"),
+  HZ_90("90 Hz", "90"),
+  HZ_120("120 Hz", "120"),
+  HZ_144("144 Hz", "144"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +63,9 @@ fun MaterialPerAppProfileScreen(
   var appProfiles by remember { mutableStateOf(getInstalledApps(context)) }
   var searchQuery by remember { mutableStateOf("") }
   var selectedFilter by remember { mutableStateOf<ProfileType?>(null) }
-  var selectedApp by remember { mutableStateOf<AppProfile?>(null) }
+  
+  // Inline expansion state
+  var expandedAppPackage by remember { mutableStateOf<String?>(null) }
 
   val filteredApps =
       remember(appProfiles, searchQuery, selectedFilter) {
@@ -198,7 +212,10 @@ fun MaterialPerAppProfileScreen(
           verticalArrangement = Arrangement.spacedBy(12.dp),
       ) {
         // Active Configs Section (Only show if no filter and search)
-        val activeConfigs = appProfiles.filter { it.profileType != ProfileType.DEFAULT }
+        val activeConfigs = appProfiles.filter { 
+             it.profileType != ProfileType.DEFAULT || it.refreshRate != RefreshRate.DEFAULT 
+        }
+        
         if (searchQuery.isEmpty() && selectedFilter == null && activeConfigs.isNotEmpty()) {
           item {
             Text(
@@ -215,14 +232,14 @@ fun MaterialPerAppProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
               items(activeConfigs) { app ->
-                ActiveConfigCard(app = app, onClick = { selectedApp = app })
+                ActiveConfigCard(app = app, onClick = { expandedAppPackage = app.packageName })
               }
             }
           }
 
           item {
             Text(
-                "All Application",
+                "All Applications",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp),
@@ -233,18 +250,15 @@ fun MaterialPerAppProfileScreen(
         items(filteredApps, key = { it.packageName }) { app ->
           ExpressiveAppItem(
               app = app,
-              isSelected = selectedApp?.packageName == app.packageName,
-              onClick = {
-                selectedApp = if (selectedApp?.packageName == app.packageName) null else app
+              isExpanded = expandedAppPackage == app.packageName,
+              onToggleExpand = {
+                  expandedAppPackage = if (expandedAppPackage == app.packageName) null else app.packageName
               },
-              onProfileChange = { newProfile ->
-                appProfiles =
-                    appProfiles.map {
-                      if (it.packageName == app.packageName) {
-                        it.copy(profileType = newProfile)
-                      } else it
-                    }
-              },
+              onUpdate = { updatedApp ->
+                   appProfiles = appProfiles.map {
+                      if (it.packageName == updatedApp.packageName) updatedApp else it
+                   }
+              }
           )
         }
 
@@ -300,7 +314,7 @@ fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            app.profileType.displayName,
+            if(app.profileType != ProfileType.DEFAULT) app.profileType.displayName else app.refreshRate.displayName,
             style = MaterialTheme.typography.labelMedium,
             color = color,
             fontWeight = FontWeight.Bold,
@@ -313,21 +327,22 @@ fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
 @Composable
 fun ExpressiveAppItem(
     app: AppProfile,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onProfileChange: (ProfileType) -> Unit,
+    isExpanded: Boolean,
+    onToggleExpand: () -> Unit,
+    onUpdate: (AppProfile) -> Unit
 ) {
   val context = LocalContext.current
-  val isCustomized = app.profileType != ProfileType.DEFAULT
+  val isCustomized = app.profileType != ProfileType.DEFAULT || app.refreshRate != RefreshRate.DEFAULT
+  val profileColor = getProfileColor(app.profileType)
 
   Card(
-      modifier = Modifier.fillMaxWidth().animateContentSize().clickable { onClick() },
+      modifier = Modifier.fillMaxWidth().animateContentSize().clickable { onToggleExpand() },
       shape = MaterialTheme.shapes.large,
       colors =
           CardDefaults.cardColors(
               containerColor =
                   if (isCustomized) {
-                    getProfileColor(app.profileType).copy(alpha = 0.05f)
+                    profileColor.copy(alpha = 0.05f)
                   } else {
                     MaterialTheme.colorScheme.surfaceContainerLow
                   }
@@ -336,7 +351,7 @@ fun ExpressiveAppItem(
           if (isCustomized) {
             androidx.compose.foundation.BorderStroke(
                 1.dp,
-                getProfileColor(app.profileType).copy(alpha = 0.3f),
+                profileColor.copy(alpha = 0.3f),
             )
           } else null,
   ) {
@@ -398,107 +413,183 @@ fun ExpressiveAppItem(
               maxLines = 1,
               overflow = TextOverflow.Ellipsis,
           )
-        }
-
-        // Status Indicator
-        if (isCustomized) {
-          Box(
-              modifier =
-                  Modifier.size(40.dp)
-                      .clip(CircleShape)
-                      .background(getProfileColor(app.profileType).copy(alpha = 0.1f)),
-              contentAlignment = Alignment.Center,
-          ) {
-            Icon(
-                getProfileIcon(app.profileType),
-                null,
-                tint = getProfileColor(app.profileType),
-                modifier = Modifier.size(20.dp),
-            )
+          
+          if(isCustomized && !isExpanded) {
+              Spacer(modifier = Modifier.height(4.dp))
+              Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                  if (app.profileType != ProfileType.DEFAULT) {
+                       Surface(
+                           color = profileColor.copy(alpha = 0.1f), 
+                           shape = RoundedCornerShape(8.dp)
+                       ) {
+                           Text(
+                               app.profileType.displayName,
+                               style = MaterialTheme.typography.labelSmall,
+                               color = profileColor,
+                               modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                           )
+                       }
+                  }
+                  if (app.refreshRate != RefreshRate.DEFAULT) {
+                       Surface(
+                           color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), 
+                           shape = RoundedCornerShape(8.dp)
+                       ) {
+                           Text(
+                               app.refreshRate.displayName,
+                               style = MaterialTheme.typography.labelSmall,
+                               color = MaterialTheme.colorScheme.secondary,
+                               modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                           )
+                       }
+                  }
+              }
           }
-        } else {
-          Icon(
-              if (isSelected) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
+        }
+        
+         Icon(
+              if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
               contentDescription = null,
               tint = MaterialTheme.colorScheme.onSurfaceVariant,
           )
-        }
       }
+      
+      // Inline Expansion Content
+      AnimatedVisibility(visible = isExpanded) {
+          Column(
+            modifier = Modifier.padding(top = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+          ) {
+              HorizontalDivider(
+                  color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                  modifier = Modifier.padding(bottom = 12.dp)
+              )
+              
+              // Performance Profile Dropdown
+              ConfigDropdownRow(
+                  label = "Performance Profile",
+                  currentValue = app.profileType.displayName,
+                  icon = Icons.Rounded.Settings,
+                  isModified = app.profileType != ProfileType.DEFAULT
+              ) { dismiss ->
+                  ProfileType.entries.forEach { type ->
+                      DropdownMenuItem(
+                          text = { Text(type.displayName) },
+                          onClick = { 
+                              onUpdate(app.copy(profileType = type))
+                              dismiss()
+                          },
+                          leadingIcon = { 
+                              val icon = getProfileIcon(type)
+                              val color = getProfileColor(type)
+                              Icon(icon, null, tint = if(type == ProfileType.DEFAULT) MaterialTheme.colorScheme.onSurfaceVariant else color)
+                          },
+                          trailingIcon = {
+                              if(app.profileType == type) Icon(Icons.Rounded.Check, null)
+                          }
+                      )
+                  }
+              }
 
-      // Expanded Profile Selection
-      AnimatedVisibility(visible = isSelected) {
-        Column(
-            modifier = Modifier.padding(top = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          Text(
-              "Performance Profile",
-              style = MaterialTheme.typography.labelLarge,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              modifier = Modifier.padding(bottom = 8.dp),
-          )
-
-          ProfileType.entries.forEach { profile ->
-            ExpressiveProfileOption(
-                profile = profile,
-                isSelected = app.profileType == profile,
-                onClick = { onProfileChange(profile) },
-            )
+             // Refresh Rate Dropdown
+              ConfigDropdownRow(
+                  label = "Refresh Rate",
+                  currentValue = app.refreshRate.displayName,
+                  icon = Icons.Rounded.Refresh,
+                  isModified = app.refreshRate != RefreshRate.DEFAULT
+              ) { dismiss ->
+                  RefreshRate.entries.forEach { rate ->
+                      DropdownMenuItem(
+                          text = { Text(rate.displayName) },
+                          onClick = { 
+                              onUpdate(app.copy(refreshRate = rate))
+                              dismiss()
+                          },
+                          leadingIcon = {
+                               if(app.refreshRate == rate) Icon(Icons.Rounded.Check, null)
+                          }
+                      )
+                  }
+              }
           }
-        }
       }
     }
   }
 }
 
 @Composable
-fun ExpressiveProfileOption(
-    profile: ProfileType,
-    isSelected: Boolean,
-    onClick: () -> Unit,
+fun ConfigDropdownRow(
+    label: String,
+    currentValue: String,
+    icon: ImageVector,
+    isModified: Boolean,
+    content: @Composable (dismiss: () -> Unit) -> Unit
 ) {
-  val color = getProfileColor(profile)
-
-  Surface(
-      onClick = onClick,
-      modifier = Modifier.fillMaxWidth(),
-      shape = MaterialTheme.shapes.medium,
-      color = if (isSelected) color.copy(alpha = 0.15f) else Color.Transparent,
-      border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, color) else null,
-  ) {
+    var expanded by remember { mutableStateOf(false) }
+    
     Row(
-        modifier = Modifier.fillMaxWidth().padding(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-      Icon(
-          getProfileIcon(profile),
-          null,
-          tint = if (isSelected) color else MaterialTheme.colorScheme.onSurfaceVariant,
-          modifier = Modifier.size(24.dp),
-      )
-
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-            text = profile.displayName,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) color else MaterialTheme.colorScheme.onSurface,
-        )
-        if (isSelected) {
-          Text(
-              text = profile.description,
-              style = MaterialTheme.typography.bodySmall,
-              color = color.copy(alpha = 0.8f),
-          )
+        Row(
+            verticalAlignment = Alignment.CenterVertically, 
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+             Icon(
+                 icon, 
+                 null, 
+                 tint = MaterialTheme.colorScheme.onSurfaceVariant, 
+                 modifier = Modifier.size(24.dp)
+             )
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
-      }
-
-      if (isSelected) {
-        Icon(Icons.Rounded.Check, null, tint = color)
-      }
+        
+        Box {
+             Surface(
+                 shape = RoundedCornerShape(12.dp),
+                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                 modifier = Modifier.height(36.dp).clickable { expanded = true }
+             ) {
+                 Row(
+                     verticalAlignment = Alignment.CenterVertically,
+                     modifier = Modifier.padding(horizontal = 12.dp)
+                 ) {
+                     Text(
+                         currentValue,
+                         style = MaterialTheme.typography.labelMedium,
+                         fontWeight = FontWeight.SemiBold,
+                         color = if(isModified) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                     )
+                     Spacer(modifier = Modifier.width(8.dp))
+                     Icon(
+                         Icons.Rounded.ArrowDropDown,
+                         null,
+                         modifier = Modifier.size(16.dp),
+                         tint = MaterialTheme.colorScheme.onSurfaceVariant
+                     )
+                 }
+             }
+             
+             DropdownMenu(
+                 expanded = expanded,
+                 onDismissRequest = { expanded = false },
+                 shape = RoundedCornerShape(16.dp),
+                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                 tonalElevation = 4.dp
+             ) {
+                 content { expanded = false }
+             }
+        }
     }
-  }
 }
 
 @Composable
@@ -512,7 +603,7 @@ private fun getProfileColor(profile: ProfileType): Color {
   }
 }
 
-private fun getProfileIcon(profile: ProfileType): androidx.compose.ui.graphics.vector.ImageVector {
+private fun getProfileIcon(profile: ProfileType): ImageVector {
   return when (profile) {
     ProfileType.DEFAULT -> Icons.Rounded.Settings
     ProfileType.PERFORMANCE -> Icons.Rounded.RocketLaunch
@@ -545,9 +636,9 @@ private fun getInstalledApps(context: android.content.Context): List<AppProfile>
         AppProfile("com.spotify.music", "Spotify"),
         AppProfile("com.discord", "Discord"),
         AppProfile("com.netflix.mediaclient", "Netflix"),
-        AppProfile("com.miHoYo.GenshinImpact", "Genshin Impact", ProfileType.GAMING),
-        AppProfile("com.tencent.ig", "PUBG Mobile", ProfileType.GAMING),
-        AppProfile("com.mobile.legends", "Mobile Legends", ProfileType.GAMING),
+        AppProfile("com.miHoYo.GenshinImpact", "Genshin Impact", ProfileType.GAMING, RefreshRate.HZ_120),
+        AppProfile("com.tencent.ig", "PUBG Mobile", ProfileType.GAMING, RefreshRate.HZ_90),
+        AppProfile("com.mobile.legends", "Mobile Legends", ProfileType.GAMING, RefreshRate.HZ_120),
     )
   }
 }
