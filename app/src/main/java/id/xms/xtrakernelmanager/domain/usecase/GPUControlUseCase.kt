@@ -9,6 +9,7 @@ class GPUControlUseCase {
   private val TAG = "GPUControlUseCase"
 
   private var cachedStaticInfo: GPUStaticInfo? = null
+  private var cachedBasePath: String? = null
 
   data class GPUStaticInfo(
       val vendor: String,
@@ -25,11 +26,14 @@ class GPUControlUseCase {
       return it
     }
 
-    val gpuPaths = listOf("/sys/class/kgsl/kgsl-3d0", "/sys/kernel/gpu")
-    val basePath =
-        gpuPaths.firstOrNull {
-          RootManager.executeCommand("[ -d $it ] && echo exists").getOrNull()?.trim() == "exists"
-        } ?: gpuPaths[0]
+    val basePath = cachedBasePath ?: run {
+      val gpuPaths = listOf("/sys/class/kgsl/kgsl-3d0", "/sys/kernel/gpu")
+      val path = gpuPaths.firstOrNull {
+        RootManager.executeCommand("[ -d $it ] && echo exists").getOrNull()?.trim() == "exists"
+      } ?: gpuPaths[0]
+      cachedBasePath = path
+      path
+    }
 
     val availableFreqs =
         id.xms.xtrakernelmanager.domain.native.NativeLib.getGpuAvailableFrequencies().ifEmpty {
