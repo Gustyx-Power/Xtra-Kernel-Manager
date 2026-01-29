@@ -49,6 +49,11 @@ class BatteryInfoService : Service() {
   private var isHighPriority: Boolean = false
   private var isForceOnTop: Boolean = false
   private var dontUpdateScreenOff: Boolean = true // Default true
+  
+  // Battery Statistics Settings
+  private var showActiveIdle: Boolean = true
+  private var showScreen: Boolean = true
+  private var showAwakeSleep: Boolean = true
 
   // Deep sleep tracking
   private var initialDeepSleep: Long = 0L
@@ -134,6 +139,28 @@ class BatteryInfoService : Service() {
     scope.launch {
       prefs.getBatteryNotifDontUpdateScreenOff().collect { enabled ->
         dontUpdateScreenOff = enabled
+      }
+    }
+    
+    // Battery Statistics Settings
+    scope.launch {
+      prefs.getBatteryStatsActiveIdle().collect { enabled ->
+        showActiveIdle = enabled
+        if (cachedLevel != -1) refreshState()
+      }
+    }
+    
+    scope.launch {
+      prefs.getBatteryStatsScreen().collect { enabled ->
+        showScreen = enabled
+        if (cachedLevel != -1) refreshState()
+      }
+    }
+    
+    scope.launch {
+      prefs.getBatteryStatsAwakeSleep().collect { enabled ->
+        showAwakeSleep = enabled
+        if (cachedLevel != -1) refreshState()
       }
     }
 
@@ -472,6 +499,14 @@ class BatteryInfoService : Service() {
 
     // Get deep sleep time from system
     val deepSleepTime = getDeepSleepTime()
+    
+    // Calculate awake time
+    // Awake time = Screen On + Screen Off (when CPU is awake but screen off)
+    // Deep sleep only happens during screen off when CPU is suspended
+    // So: Screen Off Time = Awake (screen off) + Deep Sleep
+    // Therefore: Awake (screen off) = Screen Off Time - Deep Sleep
+    val awakeScreenOff = (totalScreenOff - deepSleepTime).coerceAtLeast(0L)
+    val totalAwakeTime = totalScreenOn + awakeScreenOff
 
     // Calculate drain rates (% per hour)
     val activeDrainRate =
@@ -488,10 +523,11 @@ class BatteryInfoService : Service() {
     val screenOnStr = formatTimeCompact(totalScreenOn)
     val screenOffStr = formatTimeCompact(totalScreenOff)
     val deepSleepStr = formatTimeCompact(deepSleepTime)
+    val awakeStr = formatTimeCompact(totalAwakeTime)
 
     // Format numbers
-    val tempStr = "%.1f".format(temp / 10f)
-    val activeDrainStr = "%.1f".format(activeDrainRate) // 1 decimal is enough for clean look
+    val tempStr = "%.1f°C".format(temp / 10f)
+    val activeDrainStr = "%.1f".format(activeDrainRate)
     val idleDrainStr = "%.1f".format(idleDrainRate)
 
     // Calculate Watts (P = V * I)
@@ -502,17 +538,32 @@ class BatteryInfoService : Service() {
 
     // Format current (Always signed) with Watts if charging
     val currentStr = "$currentNow mA"
-
     val powerStr = if (charging && watts > 0) "($wattsStr W)" else ""
+    
+    // Charging/Discharging status
+    val statusStr = if (charging) "Charging" else "Discharging"
 
-    // Deep Sleep Percentage
-    val deepSleepPercent =
-        if (totalScreenOff > 0) {
-          (deepSleepTime.toFloat() / totalScreenOff * 100).toInt()
-        } else 0
+    // Calculate percentages based on total elapsed time since service started
+    val totalElapsedTime = currentTime - serviceStartTime
+    
+    val screenOnPercent = if (totalElapsedTime > 0) {
+      ((totalScreenOn.toFloat() / totalElapsedTime) * 100).toInt().coerceIn(0, 100)
+    } else 0
+    
+    val screenOffPercent = if (totalElapsedTime > 0) {
+      ((totalScreenOff.toFloat() / totalElapsedTime) * 100).toInt().coerceIn(0, 100)
+    } else 0
+    
+    val deepSleepPercent = if (totalElapsedTime > 0) {
+      ((deepSleepTime.toFloat() / totalElapsedTime) * 100).toInt().coerceIn(0, 100)
+    } else 0
+    
+    val awakePercent = if (totalElapsedTime > 0) {
+      ((totalAwakeTime.toFloat() / totalElapsedTime) * 100).toInt().coerceIn(0, 100)
+    } else 0
 
-    // Title: 55% • +351 mA (1.4 W) • 32.6°
-    val title = "$level% • $currentStr $powerStr • $tempStr°"
+    // Title: 55% • Charging • +351 mA (1.4 W) • 32.6°C
+    val title = "$level% • $statusStr • $currentStr $powerStr • $tempStr"
 
     // BigText Content
     val bigTextStyle =
@@ -520,12 +571,27 @@ class BatteryInfoService : Service() {
             .setBigContentTitle(title)
             .bigText(
                 buildString {
-                  appendLine("Screen On: $screenOnStr • $activeDrainStr%/h")
-                  appendLine("Screen Off: $screenOffStr • $idleDrainStr%/h")
+                  // Show Screen Stats (Screen On/Off with percentages and drain rates)
+                  if (showScreen) {
+                    appendLine("Screen On: $screenOnStr ($screenOnPercent%)")
+                    appendLine("Screen Off: $screenOffStr ($screenOffPercent%)")
+                  }
+                  
+                  // Show Active/Idle Drain Stats
+                  if (showActiveIdle) {
+                    appendLine("Active Drain: $activeDrainStr%/h")
+                    appendLine("Idle Drain: $idleDrainStr%/h")
+                  }
 
-                  // Only show deep sleep if NOT charging
-                  if (!charging) {
+                  // Show Awake/Sleep Stats (only if not charging)
+                  if (showAwakeSleep && !charging) {
+                    appendLine("Awake: $awakeStr ($awakePercent%)")
                     append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
+                  }
+                  
+                  // If all stats are disabled, show basic info
+                  if (!showScreen && !showActiveIdle && !showAwakeSleep) {
+                    append("Battery monitoring active")
                   }
                 }
             )
@@ -533,7 +599,10 @@ class BatteryInfoService : Service() {
     val builder =
         NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
-            .setContentText("Screen On: $screenOnStr • Charge: $level%") // Collapsed state
+            .setContentText(
+                if (showScreen) "Screen On: $screenOnStr • Charge: $level%"
+                else "Battery: $level% • ${if (charging) "Charging" else "Discharging"}"
+            ) // Collapsed state
             .setStyle(bigTextStyle)
             .setOngoing(true)
             .setColor(
