@@ -105,12 +105,17 @@ class GameMonitorService : AccessibilityService() {
       val packages = mutableSetOf<String>()
       for (i in 0 until jsonArray.length()) {
         val item = jsonArray.opt(i)
-        if (item is String) {
-          packages.add(item)
-        } else if (item is org.json.JSONObject) {
-          val enabled = item.optBoolean("enabled", true)
-          if (enabled) {
-            packages.add(item.optString("packageName"))
+        when (item) {
+          is String -> {
+            // Old format: simple string
+            packages.add(item)
+          }
+          is org.json.JSONObject -> {
+            // New format: JSON object with enabled flag
+            val enabled = item.optBoolean("enabled", true)
+            if (enabled) {
+              packages.add(item.optString("packageName"))
+            }
           }
         }
       }
