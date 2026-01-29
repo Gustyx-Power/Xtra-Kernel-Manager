@@ -1,6 +1,7 @@
 package id.xms.xtrakernelmanager.ui.screens.home
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -13,10 +14,13 @@ import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.BuildConfig
@@ -26,6 +30,7 @@ import id.xms.xtrakernelmanager.data.model.GPUInfo
 import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.screens.home.components.liquid.*
+import kotlinx.coroutines.delay
 import java.util.Locale
 
 @SuppressLint("DefaultLocale")
@@ -47,6 +52,14 @@ fun LiquidHomeScreen(
     // Status bar data
     val statusBarData = id.xms.xtrakernelmanager.ui.components.statusbar.rememberStatusBarData()
 
+    // Animation states for each component
+    var isVisible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        delay(100) // Small delay before starting animations
+        isVisible = true
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Content Scrollable Column with pure Liquid Backdrop
         Column(
@@ -58,103 +71,138 @@ fun LiquidHomeScreen(
         ) {
             Spacer(modifier = Modifier.height(56.dp)) // Space for custom status bar (48dp + 8dp safe area)
      
-            // 1. Header (Redesigned Liquid Header)
-            LiquidHeader(
-                onSettingsClick = onSettingsClick,
-                modifier = Modifier
-            )
+            // 1. Header (Redesigned Liquid Header) - Index 0
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 0
+            ) {
+                LiquidHeader(
+                    onSettingsClick = onSettingsClick,
+                    modifier = Modifier
+                )
+            }
 
-        // 2. Liquid Device Card
-        LiquidDeviceCard(systemInfo = systemInfo, modifier = Modifier.fillMaxWidth())
+            // 2. Liquid Device Card - Index 1
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 100
+            ) {
+                LiquidDeviceCard(systemInfo = systemInfo, modifier = Modifier.fillMaxWidth())
+            }
 
-        // 3. CPU & GPU Tiles (Rich Tiles)
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-             LiquidStatTile(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                icon = Icons.Rounded.Memory,
-                label = "CPU",
-                value = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
-                subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
-                color = id.xms.xtrakernelmanager.ui.theme.NeonGreen,
-                badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%"
-             )
-             
-             LiquidTempTile(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                cpuTemp = cpuInfo.temperature.toInt(),
-                gpuTemp = gpuInfo.temperature.toInt(),
-                pmicTemp = batteryInfo.pmicTemp.toInt(),
-                thermalTemp = batteryInfo.temperature.toInt(),
-                color = id.xms.xtrakernelmanager.ui.theme.NeonPurple
-             )
-        }
+            // 3. CPU & GPU Tiles (Rich Tiles) - Index 2
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 200
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    LiquidStatTile(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        icon = Icons.Rounded.Memory,
+                        label = "CPU",
+                        value = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
+                        subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
+                        color = id.xms.xtrakernelmanager.ui.theme.NeonGreen,
+                        badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%"
+                    )
+                    
+                    LiquidTempTile(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        cpuTemp = cpuInfo.temperature.toInt(),
+                        gpuTemp = gpuInfo.temperature.toInt(),
+                        pmicTemp = batteryInfo.pmicTemp.toInt(),
+                        thermalTemp = batteryInfo.temperature.toInt(),
+                        color = id.xms.xtrakernelmanager.ui.theme.NeonPurple
+                    )
+                }
+            }
 
-        // 4. Liquid GPU Card (Detailed)
-        LiquidGPUCard(gpuInfo = gpuInfo, modifier = Modifier.fillMaxWidth())
+            // 4. Liquid GPU Card (Detailed) - Index 3
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 300
+            ) {
+                LiquidGPUCard(gpuInfo = gpuInfo, modifier = Modifier.fillMaxWidth())
+            }
 
-        // 5. Liquid Battery Card (Detailed)
-        LiquidBatteryCard(batteryInfo = batteryInfo, modifier = Modifier.fillMaxWidth())
-        
-         // 6. Memory & Storage Row
-        Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            val totalMem = systemInfo.totalRam
-            val availMem = systemInfo.availableRam
-            val usedMem = totalMem - availMem
-            val memProgress = if (totalMem > 0) usedMem.toFloat() / totalMem.toFloat() else 0f
-            val usedGb = String.format("%.1f GB", usedMem / (1024f * 1024f * 1024f))
+            // 5. Liquid Battery Card (Detailed) - Index 4
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 400
+            ) {
+                LiquidBatteryCard(batteryInfo = batteryInfo, modifier = Modifier.fillMaxWidth())
+            }
+            
+            // 6. Memory & Storage Row - Index 5
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 500
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    val totalMem = systemInfo.totalRam
+                    val availMem = systemInfo.availableRam
+                    val usedMem = totalMem - availMem
+                    val memProgress = if (totalMem > 0) usedMem.toFloat() / totalMem.toFloat() else 0f
+                    val usedGb = String.format("%.1f GB", usedMem / (1024f * 1024f * 1024f))
 
-            LiquidCircularStatsCard(
-                title = "RAM",
-                value = usedGb,
-                progress = memProgress,
-                color = id.xms.xtrakernelmanager.ui.theme.NeonBlue,
-                modifier = Modifier.weight(1f)
-            )
+                    LiquidCircularStatsCard(
+                        title = "RAM",
+                        value = usedGb,
+                        progress = memProgress,
+                        color = id.xms.xtrakernelmanager.ui.theme.NeonBlue,
+                        modifier = Modifier.weight(1f)
+                    )
 
-            val totalStorage = systemInfo.totalStorage
-            val availStorage = systemInfo.availableStorage
-            val usedStorage = totalStorage - availStorage
-            val storageProgress = if (totalStorage > 0) usedStorage.toFloat() / totalStorage.toFloat() else 0f
-            val usedStorageGb = String.format("%.0f GB", usedStorage / (1024f * 1024f * 1024f))
+                    val totalStorage = systemInfo.totalStorage
+                    val availStorage = systemInfo.availableStorage
+                    val usedStorage = totalStorage - availStorage
+                    val storageProgress = if (totalStorage > 0) usedStorage.toFloat() / totalStorage.toFloat() else 0f
+                    val usedStorageGb = String.format("%.0f GB", usedStorage / (1024f * 1024f * 1024f))
 
-            LiquidCircularStatsCard(
-                title = "ROM",
-                value = usedStorageGb,
-                progress = storageProgress,
-                color = id.xms.xtrakernelmanager.ui.theme.NeonPurple,
-                modifier = Modifier.weight(1f)
-            )
-        }
-        
-        // 7. Actions Row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            LiquidPowerMenu(
-                onAction = onPowerAction,
-                modifier = Modifier.weight(1f).height(140.dp)
-            )
-             
-            LiquidProfileCard(
-                currentProfile = currentProfile,
-                onNextProfile = {
-                    val next = when (currentProfile) {
-                        "Balance" -> "Performance"
-                        "Performance" -> "Battery"
-                        else -> "Balance"
-                    }
-                    onProfileChange(next)
-                },
-                modifier = Modifier.weight(1f).height(140.dp)
-            )
-        }
+                    LiquidCircularStatsCard(
+                        title = "ROM",
+                        value = usedStorageGb,
+                        progress = storageProgress,
+                        color = id.xms.xtrakernelmanager.ui.theme.NeonPurple,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+            
+            // 7. Actions Row - Index 6
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 600
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    LiquidPowerMenu(
+                        onAction = onPowerAction,
+                        modifier = Modifier.weight(1f).height(140.dp)
+                    )
+                    
+                    LiquidProfileCard(
+                        currentProfile = currentProfile,
+                        onNextProfile = {
+                            val next = when (currentProfile) {
+                                "Balance" -> "Performance"
+                                "Performance" -> "Battery"
+                                else -> "Balance"
+                            }
+                            onProfileChange(next)
+                        },
+                        modifier = Modifier.weight(1f).height(140.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(100.dp))
         }
@@ -172,5 +220,60 @@ fun LiquidHomeScreen(
                 wifiEnabled = statusBarData.wifiEnabled
             )
         }
+    }
+}
+
+@Composable
+private fun AnimatedComponent(
+    visible: Boolean,
+    delayMillis: Int,
+    content: @Composable () -> Unit
+) {
+    var startAnimation by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(visible) {
+        if (visible) {
+            delay(delayMillis.toLong())
+            startAnimation = true
+        }
+    }
+    
+    val alpha by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = 600,
+            easing = FastOutSlowInEasing
+        ),
+        label = "alpha"
+    )
+    
+    val scale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.8f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+    
+    val translationY by animateFloatAsState(
+        targetValue = if (startAnimation) 0f else 50f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "translationY"
+    )
+    
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                this.alpha = alpha
+                this.scaleX = scale
+                this.scaleY = scale
+                this.translationY = translationY
+            }
+    ) {
+        content()
     }
 }
