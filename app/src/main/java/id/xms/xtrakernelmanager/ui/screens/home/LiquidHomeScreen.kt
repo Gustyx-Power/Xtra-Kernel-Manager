@@ -45,12 +45,29 @@ fun LiquidHomeScreen(
     onSettingsClick: () -> Unit,
     onPowerAction: (id.xms.xtrakernelmanager.ui.model.PowerAction) -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
     val isCompact =
           dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
     
     // Status bar data
     val statusBarData = id.xms.xtrakernelmanager.ui.components.statusbar.rememberStatusBarData()
+
+    // Check accessibility service status
+    var showAccessibilityDialog by remember { mutableStateOf(false) }
+    var hasCheckedAccessibility by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        if (!hasCheckedAccessibility) {
+            delay(1000) // Wait 1 second after screen loads
+            val isEnabled = viewModel.isAccessibilityServiceEnabled(context)
+            if (!isEnabled) {
+                showAccessibilityDialog = true
+            }
+            hasCheckedAccessibility = true
+        }
+    }
 
     // Animation states for each component
     var isVisible by remember { mutableStateOf(false) }
@@ -220,6 +237,39 @@ fun LiquidHomeScreen(
                 wifiEnabled = statusBarData.wifiEnabled
             )
         }
+    }
+    
+    // Accessibility Service Dialog
+    if (showAccessibilityDialog) {
+        id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
+            onDismissRequest = { showAccessibilityDialog = false },
+            title = "Accessibility Service Disabled",
+            content = {
+                Text(
+                    text = "XKM Game Monitor accessibility service is disabled. This service is required for game detection and statistics tracking.\n\nWould you like to enable it now?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            confirmButton = {
+                id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                    text = "Enable",
+                    onClick = {
+                        showAccessibilityDialog = false
+                        val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        context.startActivity(intent)
+                    },
+                    isPrimary = true
+                )
+            },
+            dismissButton = {
+                id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                    text = "Later",
+                    onClick = { showAccessibilityDialog = false },
+                    isPrimary = false
+                )
+            }
+        )
     }
 }
 
