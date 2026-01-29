@@ -259,7 +259,9 @@ fun LiquidPerAppProfileCard(
                                     scope.launch {
                                         preferencesManager.setPerAppProfileEnabled(enabled)
                                         
-                                        if (enabled && hasUsagePermission) {
+                                        // Always start service if there are profiles and permission is granted
+                                        // The service will check the enabled state internally
+                                        if (hasUsagePermission && profiles.isNotEmpty()) {
                                             val serviceIntent = Intent(context, AppProfileService::class.java)
                                             try {
                                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -270,9 +272,6 @@ fun LiquidPerAppProfileCard(
                                             } catch (e: Exception) {
                                                 android.util.Log.e("PerAppProfile", "Failed to start service: ${e.message}")
                                             }
-                                        } else {
-                                            val serviceIntent = Intent(context, AppProfileService::class.java)
-                                            context.stopService(serviceIntent)
                                         }
                                     }
                                 },
