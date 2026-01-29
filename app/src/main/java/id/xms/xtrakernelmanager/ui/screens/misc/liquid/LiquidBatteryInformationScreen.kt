@@ -204,6 +204,20 @@ fun BatterySettingsContent(
     notificationPermissionLauncher: androidx.activity.result.ActivityResultLauncher<String>,
     isLightTheme: Boolean
 ) {
+    // Collect all settings states
+    val notifIconType by viewModel.batteryNotifIconType.collectAsState()
+    val notifRefreshRate by viewModel.batteryNotifRefreshRate.collectAsState()
+    val notifSecureLockScreen by viewModel.batteryNotifSecureLockScreen.collectAsState()
+    val notifHighPriority by viewModel.batteryNotifHighPriority.collectAsState()
+    val notifForceOnTop by viewModel.batteryNotifForceOnTop.collectAsState()
+    val notifDontUpdateScreenOff by viewModel.batteryNotifDontUpdateScreenOff.collectAsState()
+    val statsActiveIdle by viewModel.batteryStatsActiveIdle.collectAsState()
+    val statsScreen by viewModel.batteryStatsScreen.collectAsState()
+    val statsAwakeSleep by viewModel.batteryStatsAwakeSleep.collectAsState()
+    
+    var showIconTypeDialog by remember { mutableStateOf(false) }
+    var showRefreshRateDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -300,27 +314,360 @@ fun BatterySettingsContent(
             }
         }
 
-        // Description card
-        GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = "About Battery Notification",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Battery notification provides real-time battery information in your notification area. Monitor voltage, current, temperature, and more without opening the app.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    lineHeight = 20.sp
-                )
-            }
+        // Notification Settings Section
+        IOSSettingsSectionHeader(text = "Notification Settings")
+        
+        IOSSettingsGroup {
+            IOSListSetting(
+                title = "Icon Type",
+                value = getIconTypeLabel(notifIconType),
+                onClick = { showIconTypeDialog = true }
+            )
+            
+            IOSDivider()
+            
+            IOSListSetting(
+                title = "Refresh Rate",
+                value = getRefreshRateLabel(notifRefreshRate),
+                onClick = { showRefreshRateDialog = true }
+            )
+            
+            IOSDivider()
+            
+            IOSSwitchSetting(
+                title = "Secure Lock Screen",
+                subtitle = "Show on secure lock screen",
+                checked = notifSecureLockScreen,
+                onCheckedChange = { viewModel.setBatteryNotifSecureLockScreen(it) }
+            )
+            
+            IOSDivider()
+            
+            IOSSwitchSetting(
+                title = "High Priority",
+                subtitle = "Keep notification at top",
+                checked = notifHighPriority,
+                onCheckedChange = { viewModel.setBatteryNotifHighPriority(it) }
+            )
+            
+            IOSDivider()
+            
+            IOSSwitchSetting(
+                title = "Force On Top",
+                subtitle = "Always show at top of list",
+                checked = notifForceOnTop,
+                onCheckedChange = { viewModel.setBatteryNotifForceOnTop(it) }
+            )
+            
+            IOSDivider()
+            
+            IOSSwitchSetting(
+                title = "Pause When Screen Off",
+                subtitle = "Don't update when screen is off",
+                checked = notifDontUpdateScreenOff,
+                onCheckedChange = { viewModel.setBatteryNotifDontUpdateScreenOff(it) }
+            )
+        }
+
+        // Statistics Settings Section
+        IOSSettingsSectionHeader(text = "Statistics Settings")
+        
+        IOSSettingsGroup {
+            IOSSwitchSetting(
+                title = "Active/Idle Stats",
+                subtitle = "Show active and idle drain rates",
+                checked = statsActiveIdle,
+                onCheckedChange = { viewModel.setBatteryStatsActiveIdle(it) }
+            )
+            
+            IOSDivider()
+            
+            IOSSwitchSetting(
+                title = "Screen Stats",
+                subtitle = "Show screen on/off statistics",
+                checked = statsScreen,
+                onCheckedChange = { viewModel.setBatteryStatsScreen(it) }
+            )
+            
+            IOSDivider()
+            
+            IOSSwitchSetting(
+                title = "Awake/Sleep Stats",
+                subtitle = "Show awake and deep sleep time",
+                checked = statsAwakeSleep,
+                onCheckedChange = { viewModel.setBatteryStatsAwakeSleep(it) }
+            )
         }
 
         Spacer(modifier = Modifier.height(100.dp))
+    }
+    
+    // Icon Type Dialog
+    if (showIconTypeDialog) {
+        IOSSelectionDialog(
+            title = "Icon Type",
+            currentValue = notifIconType,
+            options = mapOf(
+                "battery_icon" to "Battery Icon",
+                "circle_percent" to "Circle Percent",
+                "percent_only" to "Percent Only",
+                "temp" to "Temperature",
+                "percent_temp" to "Percent + Temp",
+                "current" to "Current",
+                "voltage" to "Voltage",
+                "power" to "Power"
+            ),
+            onDismiss = { showIconTypeDialog = false },
+            onSelect = { 
+                viewModel.setBatteryNotifIconType(it)
+                showIconTypeDialog = false
+            }
+        )
+    }
+    
+    // Refresh Rate Dialog
+    if (showRefreshRateDialog) {
+        IOSSelectionDialog(
+            title = "Refresh Rate",
+            currentValue = notifRefreshRate.toString(),
+            options = mapOf(
+                "500" to "0.5s",
+                "1000" to "1s",
+                "2000" to "2s",
+                "5000" to "5s"
+            ),
+            onDismiss = { showRefreshRateDialog = false },
+            onSelect = { 
+                viewModel.setBatteryNotifRefreshRate(it.toLong())
+                showRefreshRateDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun IOSSelectionDialog(
+    title: String,
+    currentValue: String,
+    options: Map<String, String>,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    val isLightTheme = !isSystemInDarkTheme()
+    
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        GlassmorphicCard(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    options.forEach { (key, label) ->
+                        val isSelected = key == currentValue
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onSelect(key) }
+                                .background(
+                                    if (isSelected) {
+                                        if (isLightTheme) Color(0xFF007AFF).copy(alpha = 0.1f)
+                                        else Color(0xFF0A84FF).copy(alpha = 0.15f)
+                                    } else Color.Transparent
+                                )
+                                .padding(horizontal = 12.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (isSelected) {
+                                    if (isLightTheme) Color(0xFF007AFF) else Color(0xFF0A84FF)
+                                } else MaterialTheme.colorScheme.onSurface
+                            )
+                            
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = if (isLightTheme) Color(0xFF007AFF) else Color(0xFF0A84FF)
+                                )
+                            }
+                        }
+                        
+                        if (key != options.keys.last()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = if (isLightTheme) Color(0xFF007AFF) else Color(0xFF0A84FF)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun IOSSettingsSectionHeader(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelLarge,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+    )
+}
+
+@Composable
+fun IOSSettingsGroup(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    GlassmorphicCard(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            content()
+        }
+    }
+}
+
+@Composable
+fun IOSSwitchSetting(
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium
+            )
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.width(12.dp))
+        
+        LiquidToggle(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
+fun IOSListSetting(
+    title: String,
+    value: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Medium
+        )
+        
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
+        }
+    }
+}
+
+@Composable
+fun IOSDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(start = 16.dp),
+        thickness = 0.5.dp,
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+    )
+}
+
+private fun getIconTypeLabel(type: String): String {
+    return when (type) {
+        "battery_icon" -> "Battery Icon"
+        "circle_percent" -> "Circle Percent"
+        "percent_only" -> "Percent Only"
+        "temp" -> "Temperature"
+        "percent_temp" -> "Percent + Temp"
+        "current" -> "Current"
+        "voltage" -> "Voltage"
+        "power" -> "Power"
+        else -> type
+    }
+}
+
+private fun getRefreshRateLabel(rate: Long): String {
+    return when (rate) {
+        500L -> "0.5s"
+        1000L -> "1s"
+        2000L -> "2s"
+        5000L -> "5s"
+        else -> "${rate}ms"
     }
 }
 
