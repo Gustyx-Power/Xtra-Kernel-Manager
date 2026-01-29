@@ -85,7 +85,7 @@ fun LiquidMiscScreen(
                         onNavigateToFunctionalRom = onNavigateToFunctionalRom,
                         onNavigateToProcessManager = { showProcessManager = true }
                     )
-                    "battery" -> LiquidBatteryDetailScreen(
+                    "battery" -> LiquidBatteryInformationScreen(
                         viewModel = viewModel,
                         onBack = { currentScreen = "main" }
                     )
@@ -250,8 +250,8 @@ fun LiquidMiscMainScreen(
                 LiquidSettingsRow(
                     icon = Icons.Default.BatteryStd,
                     iconColor = Color(0xFF34C759),
-                    title = stringResource(R.string.battery_guru),
-                    subtitle = stringResource(R.string.battery_guru_desc),
+                    title = "Battery Information",
+                    subtitle = "Monitor battery status and usage",
                     onClick = onNavigateToBattery
                 )
                 
