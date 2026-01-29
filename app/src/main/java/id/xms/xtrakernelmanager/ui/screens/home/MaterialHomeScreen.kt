@@ -48,6 +48,21 @@ fun MaterialHomeScreen(
 
     val settingsSheetState = rememberModalBottomSheetState()
     var showSettingsBottomSheet by remember { mutableStateOf(false) }
+    
+    // Check accessibility service status
+    var showAccessibilityDialog by remember { mutableStateOf(false) }
+    var hasCheckedAccessibility by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        if (!hasCheckedAccessibility) {
+            delay(1000) // Wait 1 second after screen loads
+            val isEnabled = viewModel.isAccessibilityServiceEnabled(context)
+            if (!isEnabled) {
+                showAccessibilityDialog = true
+            }
+            hasCheckedAccessibility = true
+        }
+    }
 
     // Data State
     val cpuInfo by viewModel.cpuInfo.collectAsState()
@@ -190,6 +205,50 @@ fun MaterialHomeScreen(
                 onDismiss = { showSettingsBottomSheet = false },
             )
         }
+    }
+    
+    // Accessibility Service Dialog
+    if (showAccessibilityDialog) {
+        AlertDialog(
+            onDismissRequest = { showAccessibilityDialog = false },
+            icon = {
+                Icon(
+                    Icons.Rounded.Accessibility,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = {
+                Text(
+                    "Accessibility Service Disabled",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Text(
+                    "XKM Game Monitor accessibility service is disabled. This service is required for game detection and statistics tracking.\n\nWould you like to enable it now?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showAccessibilityDialog = false
+                        val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text("Enable")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showAccessibilityDialog = false }
+                ) {
+                    Text("Later")
+                }
+            }
+        )
     }
 }
 
