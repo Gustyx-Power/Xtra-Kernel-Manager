@@ -80,7 +80,7 @@ class AppProfileService : Service() {
     mainHandler.post {
       Toast.makeText(
               applicationContext,
-              getString(R.string.per_app_profile_service_started),
+              "Per-App Profile Service Started",
               Toast.LENGTH_SHORT,
           )
           .show()
@@ -145,6 +145,15 @@ class AppProfileService : Service() {
         serviceScope.launch {
           while (isActive) {
             try {
+              // Check if per-app profiles are enabled
+              val isEnabled = preferencesManager.isPerAppProfileEnabled().first()
+              
+              if (!isEnabled) {
+                Log.d(TAG, "Per-app profiles disabled, skipping polling cycle")
+                delay(POLL_INTERVAL)
+                continue
+              }
+
               // Load profiles
               val profilesJson = preferencesManager.getAppProfiles().first()
               appProfiles = parseProfiles(profilesJson)
@@ -172,6 +181,12 @@ class AppProfileService : Service() {
                   }
                 } else {
                   Log.d(TAG, "No profile found for $foregroundPackage")
+
+                  // Stop game overlay if it was active
+                  if (isGameOverlayActive) {
+                    Log.d(TAG, "Stopping game overlay (left profiled app)")
+                    stopGameOverlay()
+                  }
 
                   // Reset refresh rate to default if custom was previously active
                   if (isCustomRefreshRateActive) {
@@ -276,6 +291,11 @@ class AppProfileService : Service() {
         // Show toast first (before applying settings)
         mainHandler.post {
           Toast.makeText(applicationContext, toastMessage, Toast.LENGTH_SHORT).show()
+        }
+
+        // Start game overlay if not already active
+        if (!isGameOverlayActive) {
+          startGameOverlay()
         }
 
         // Apply governor to all clusters (with individual error handling)
@@ -500,7 +520,7 @@ class AppProfileService : Service() {
     mainHandler.post {
       Toast.makeText(
               applicationContext,
-              getString(R.string.per_app_profile_service_stopped),
+              "Per-App Profile Service Stopped",
               Toast.LENGTH_SHORT,
           )
           .show()
