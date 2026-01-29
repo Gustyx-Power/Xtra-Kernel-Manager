@@ -48,7 +48,9 @@
         </receiver>
 
         <!-- Game Overlay Service -->
-        <service android:name=".service.GameOverlayService" android:enabled="true" android:exported="false" android:foregroundServiceType="dataSync" />
+        <service android:name=".service.GameOverlayService" android:enabled="true" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Game overlay controls and performance monitoring during gameplay" />
+        </service>
 
         <!-- Floating Window Service for Quick Apps -->
         <service android:name=".service.FloatingWindowService" android:enabled="true" android:exported="false" android:foregroundServiceType="specialUse">
