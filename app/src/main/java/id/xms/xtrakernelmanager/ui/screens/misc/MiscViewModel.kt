@@ -566,14 +566,35 @@ class MiscViewModel(
       // Check if already exists
       var exists = false
       for (i in 0 until currentApps.length()) {
-        if (currentApps.optString(i) == packageName) {
+        val item = currentApps.opt(i)
+        val existingPackage = when (item) {
+          is String -> item
+          is org.json.JSONObject -> item.optString("packageName")
+          else -> null
+        }
+        if (existingPackage == packageName) {
           exists = true
           break
         }
       }
 
       if (!exists) {
-        currentApps.put(packageName)
+        // Get app name from package manager
+        val appName = try {
+          val pm = context.packageManager
+          val appInfo = pm.getApplicationInfo(packageName, 0)
+          appInfo.loadLabel(pm).toString()
+        } catch (e: Exception) {
+          packageName
+        }
+        
+        // Add as JSON object with structure matching LiquidGameControlScreen
+        val gameObj = org.json.JSONObject().apply {
+          put("packageName", packageName)
+          put("appName", appName)
+          put("enabled", true)
+        }
+        currentApps.put(gameObj)
         saveGameApps(currentApps.toString())
       }
     }
@@ -590,7 +611,13 @@ class MiscViewModel(
 
       val newApps = JSONArray()
       for (i in 0 until currentApps.length()) {
-        if (currentApps.optString(i) != packageName) {
+        val item = currentApps.opt(i)
+        val existingPackage = when (item) {
+          is String -> item
+          is org.json.JSONObject -> item.optString("packageName")
+          else -> null
+        }
+        if (existingPackage != packageName) {
           newApps.put(currentApps.get(i))
         }
       }
@@ -616,7 +643,13 @@ class MiscViewModel(
         }
 
     for (i in 0 until currentApps.length()) {
-      if (currentApps.optString(i) == packageName) {
+      val item = currentApps.opt(i)
+      val existingPackage = when (item) {
+        is String -> item
+        is org.json.JSONObject -> item.optString("packageName")
+        else -> null
+      }
+      if (existingPackage == packageName) {
         return true
       }
     }

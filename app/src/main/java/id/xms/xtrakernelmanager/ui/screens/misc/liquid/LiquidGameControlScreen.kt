@@ -74,6 +74,7 @@ fun LiquidGameControlScreen(
 
     var hasOverlayPermission by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     var hasUsageAccessPermission by remember { mutableStateOf(hasUsageStatsPermission(context)) }
+    var hasAccessibilityPermission by remember { mutableStateOf(isAccessibilityServiceEnabled(context)) }
 
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -81,6 +82,7 @@ fun LiquidGameControlScreen(
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 hasOverlayPermission = Settings.canDrawOverlays(context)
                 hasUsageAccessPermission = hasUsageStatsPermission(context)
+                hasAccessibilityPermission = isAccessibilityServiceEnabled(context)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -99,14 +101,11 @@ fun LiquidGameControlScreen(
         hasUsageAccessPermission = hasUsageStatsPermission(context)
     }
 
-    LaunchedEffect(enabledCount, hasOverlayPermission, hasUsageAccessPermission) {
-        if (enabledCount > 0 && hasOverlayPermission && hasUsageAccessPermission) {
-            startGameMonitorService(context)
-        } else {
-            stopGameMonitorService(context)
-        }
+    val accessibilityLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        hasAccessibilityPermission = isAccessibilityServiceEnabled(context)
     }
-
     Box(modifier = Modifier.fillMaxSize()) {
         // Background decoration
         id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament(
@@ -183,11 +182,13 @@ fun LiquidGameControlScreen(
                 gameApps = gameApps,
                 hasOverlayPermission = hasOverlayPermission,
                 hasUsageAccessPermission = hasUsageAccessPermission,
+                hasAccessibilityPermission = hasAccessibilityPermission,
                 context = context,
                 isLightTheme = isLightTheme,
                 viewModel = viewModel,
                 overlayPermissionLauncher = overlayPermissionLauncher,
                 usageAccessLauncher = usageAccessLauncher,
+                accessibilityLauncher = accessibilityLauncher,
                 onShowAddDialog = { showAddGameDialog = true }
             )
 
@@ -227,11 +228,13 @@ private fun LiquidGameLibrarySection(
     gameApps: List<GameApp>,
     hasOverlayPermission: Boolean,
     hasUsageAccessPermission: Boolean,
+    hasAccessibilityPermission: Boolean,
     context: Context,
     isLightTheme: Boolean,
     viewModel: MiscViewModel,
     overlayPermissionLauncher: androidx.activity.result.ActivityResultLauncher<Intent>,
     usageAccessLauncher: androidx.activity.result.ActivityResultLauncher<Intent>,
+    accessibilityLauncher: androidx.activity.result.ActivityResultLauncher<Intent>,
     onShowAddDialog: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -286,6 +289,18 @@ private fun LiquidGameLibrarySection(
                 GlassmorphicCard(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
+                        // Check all required permissions
+                        if (!hasAccessibilityPermission) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Please enable Game Monitor in Accessibility settings",
+                                android.widget.Toast.LENGTH_LONG
+                            ).show()
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            accessibilityLauncher.launch(intent)
+                            return@GlassmorphicCard
+                        }
+                        
                         if (!hasOverlayPermission) {
                             android.widget.Toast.makeText(
                                 context,
@@ -313,7 +328,7 @@ private fun LiquidGameLibrarySection(
 
                         android.widget.Toast.makeText(
                             context,
-                            "Service Active for Instant Detection",
+                            "All permissions granted! Game monitoring is active",
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
 
@@ -357,7 +372,11 @@ private fun LiquidGameLibrarySection(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    "Manage Permissions & Start",
+                                    if (hasAccessibilityPermission && hasOverlayPermission && hasUsageAccessPermission) {
+                                        "All permissions granted"
+                                    } else {
+                                        "Tap to configure permissions"
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
                                 )
@@ -965,25 +984,16 @@ private fun AppDialogItem(
 
 // Helper functions
 private fun startGameMonitorService(context: Context) {
-    try {
-        val intent = Intent(context, GameMonitorService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
-        }
-    } catch (e: Exception) {
-        // Service might already be running
-    }
+    // GameMonitorService is an AccessibilityService, not a regular service
+    // It cannot be started with startService() or startForegroundService()
+    // It must be enabled through Settings > Accessibility
+    // This function is kept for compatibility but does nothing
 }
 
 private fun stopGameMonitorService(context: Context) {
-    try {
-        val intent = Intent(context, GameMonitorService::class.java)
-        context.stopService(intent)
-    } catch (e: Exception) {
-        // Ignore
-    }
+    // GameMonitorService is an AccessibilityService
+    // It cannot be stopped programmatically
+    // This function is kept for compatibility but does nothing
 }
 
 private fun parseGameApps(json: String): List<GameApp> {
@@ -1031,4 +1041,13 @@ private fun hasUsageStatsPermission(context: Context): Boolean {
     } catch (e: Exception) {
         false
     }
+}
+
+private fun isAccessibilityServiceEnabled(context: Context): Boolean {
+    val expectedComponentName = "${context.packageName}/${GameMonitorService::class.java.name}"
+    val enabledServicesSetting = Settings.Secure.getString(
+        context.contentResolver,
+        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+    ) ?: return false
+    return enabledServicesSetting.contains(expectedComponentName)
 }
