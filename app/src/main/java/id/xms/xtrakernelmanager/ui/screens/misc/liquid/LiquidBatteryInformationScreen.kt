@@ -326,7 +326,14 @@ fun BatterySettingsContent(
 
 @Composable
 fun BatteryMonitorContent(viewModel: MiscViewModel) {
+    val context = LocalContext.current
     val isLightTheme = !isSystemInDarkTheme()
+    
+    // Load battery data when screen is opened
+    LaunchedEffect(Unit) {
+        viewModel.loadBatteryInfo(context)
+        viewModel.loadAppBatteryUsage(context)
+    }
     
     Column(
         modifier = Modifier
