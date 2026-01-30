@@ -68,12 +68,26 @@
         </service>
 
         <!-- Game Monitor Service - Accessibility Service for instant detection -->
-        <service android:name=".service.GameMonitorService" android:label="@string/game_monitor_service_label" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" android:exported="true">
+        <service android:name=".service.GameMonitorService" 
+            android:label="@string/game_monitor_service_label" 
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" 
+            android:exported="true"
+            android:stopWithTask="false"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_config" />
         </service>
+        
+        <!-- Accessibility Restart Receiver -->
+        <receiver android:name=".receiver.AccessibilityRestartReceiver" 
+            android:enabled="true" 
+            android:exported="false">
+            <intent-filter>
+                <action android:name="${applicationId}.RESTART_ACCESSIBILITY" />
+            </intent-filter>
+        </receiver>
 
         <!-- Performance Mode Quick Settings Tile -->
         <service android:name=".service.PerformanceModeTileService" android:label="@string/tile_perf_label" android:icon="@drawable/ic_tile_balanced" android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" android:exported="true">
