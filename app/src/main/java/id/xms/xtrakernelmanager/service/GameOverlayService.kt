@@ -12,9 +12,6 @@ import android.provider.Settings
 import android.view.*
 import android.widget.Toast
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.*
@@ -22,7 +19,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationCompat
@@ -223,23 +219,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
     val isLiquidUI = layoutStyle == "liquid"
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopStart) {
-      // Backdrop/Scrim - klik untuk menutup overlay
-      if (isExpanded) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.3f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    isExpanded = false
-                }
-        )
-      }
-      
-      // Overlay content
+    Box(modifier = Modifier.wrapContentSize(), contentAlignment = Alignment.TopStart) {
       if (isExpanded) {
         if (isLiquidUI) {
           // Liquid UI - Glassmorphism Light Mode
