@@ -117,19 +117,20 @@ class GameMonitorViewModel(
         preferencesManager.isThreeFingerSwipeEnabled().collect { _threeFingerSwipe.value = it }
     }
     viewModelScope.launch {
+        // Detect max brightness value for this device
+        maxBrightnessValue = withContext(Dispatchers.IO) { 
+            gameControlUseCase.getMaxBrightness() 
+        }
+        
+        // Load current brightness and normalize to 0-1 range
         val sysBrightness = withContext(Dispatchers.IO) { gameControlUseCase.getBrightness() }
-        _brightness.value = (sysBrightness / 255f).coerceIn(0f, 1f)
+        _brightness.value = (sysBrightness.toFloat() / maxBrightnessValue).coerceIn(0f, 1f)
     }
     viewModelScope.launch {
       _currentPerformanceMode.value = gameControlUseCase.getCurrentPerformanceMode()
     }
     viewModelScope.launch {
       _isFpsEnabled.value = preferencesManager.getBoolean("fps_enabled", false)
-    }
-
-    viewModelScope.launch {
-        val sysVal = withContext(Dispatchers.IO) { gameControlUseCase.getBrightness() }
-        _brightness.value = (sysVal / 255f).coerceIn(0f, 1f)
     }
   }
 
@@ -348,11 +349,13 @@ class GameMonitorViewModel(
 
   private val _brightness = MutableStateFlow(0.5f)
   val brightness: StateFlow<Float> = _brightness.asStateFlow()
+  
+  private var maxBrightnessValue = 255 // Default, will be updated on init
 
   fun setBrightness(value: Float) {
       _brightness.value = value
       viewModelScope.launch {
-          val sysVal = (value * 255).toInt().coerceIn(0, 255)
+          val sysVal = (value * maxBrightnessValue).toInt().coerceIn(0, maxBrightnessValue)
           withContext(Dispatchers.IO) { gameControlUseCase.setBrightness(sysVal) }
       }
   }
