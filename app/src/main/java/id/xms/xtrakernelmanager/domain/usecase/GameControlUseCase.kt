@@ -362,6 +362,35 @@ class GameControlUseCase(private val context: Context) {
       }
   }
   
+  suspend fun getMaxBrightness(): Int {
+      return try {
+          val result = RootManager.executeCommand("settings get system screen_brightness_mode_value")
+          val maxVal = result.getOrNull()?.trim()?.toIntOrNull()
+          
+          // If not found, try to get from system
+          if (maxVal == null || maxVal <= 0) {
+              // Try reading from sysfs
+              val sysfsResult = RootManager.readFile("/sys/class/backlight/panel0-backlight/max_brightness")
+              val sysfsMax = sysfsResult.getOrNull()?.trim()?.toIntOrNull()
+              
+              if (sysfsMax != null && sysfsMax > 0) {
+                  return sysfsMax
+              }
+              // Default fallback 
+              val currentResult = RootManager.executeCommand("settings get system screen_brightness")
+              val current = currentResult.getOrNull()?.trim()?.toIntOrNull() ?: 255
+              
+              // If current value is > 255, using higher range
+              return if (current > 255) 2047 else 255
+          }
+          
+          maxVal
+      } catch (e: Exception) {
+          Log.e(TAG, "Error getting max brightness, using default 255", e)
+          255
+      }
+  }
+
   suspend fun setBrightness(value: Int): Result<Boolean> {
       return try {
           RootManager.executeCommand("settings put system screen_brightness $value")

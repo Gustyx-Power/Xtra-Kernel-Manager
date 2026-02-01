@@ -415,18 +415,46 @@ class KernelRepository {
           if (temp != null && temp > 0) {
             if (temp > 1000) temp / 1000f else temp
           } else {
+            // Cache invalid, reset it
+            cachedGpuThermalZone = null
             0f
           }
         } else {
           val thermalZones = NativeLib.readThermalZones()
-          val gpuZone = thermalZones.find { zone ->
+          Log.d("KernelRepository", "Available thermal zones: ${thermalZones.map { it.name }}")
+          
+          // Try to find GPU-specific thermal zone
+          var gpuZone = thermalZones.find { zone ->
             val name = zone.name.lowercase()
             name.contains("gpu") || name.contains("adreno") || name.contains("mali") || name.contains("3d")
           }
+          
+          // Fallback: try to find zones with "gpuss" or similar patterns
+          if (gpuZone == null) {
+            gpuZone = thermalZones.find { zone ->
+              val name = zone.name.lowercase()
+              name.contains("gpuss") || name.contains("gpu-") || name.contains("kgsl")
+            }
+          }
+          
+          // Fallback: try common GPU zone numbers (zones 5-15 are often GPU on Qualcomm)
+          if (gpuZone == null) {
+            gpuZone = thermalZones.find { zone ->
+              val zoneNum = zone.name.split(":").firstOrNull()?.toIntOrNull()
+              zoneNum != null && zoneNum in 5..15 && zone.temp > 0
+            }
+          }
+          
           if (gpuZone != null) {
-            cachedGpuThermalZone = "/sys/class/thermal/${gpuZone.name}"
+            // Extract zone number from format "zone_number:type"
+            val zoneNumber = gpuZone.name.split(":").firstOrNull()
+            if (zoneNumber != null) {
+              cachedGpuThermalZone = "/sys/class/thermal/thermal_zone$zoneNumber"
+              Log.d("KernelRepository", "Found GPU thermal zone: ${gpuZone.name} -> $cachedGpuThermalZone, temp: ${gpuZone.temp}°C")
+            }
             gpuZone.temp
           } else {
+            Log.w("KernelRepository", "No GPU thermal zone found")
             0f
           }
         }

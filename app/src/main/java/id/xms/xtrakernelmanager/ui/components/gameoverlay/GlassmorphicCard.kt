@@ -9,12 +9,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Glassmorphic Card Component
+ * Glassmorphic Card Component - Dark Mode
  *
  * A card with glass-like appearance featuring:
  * - Semi-transparent background
@@ -43,6 +44,69 @@ fun GlassmorphicCard(
   }
 }
 
+/**
+ * Glassmorphic Card Component - Light Mode
+ *
+ * Light mode glassmorphism with:
+ * - Bright semi-transparent white background
+ * - Soft white border with subtle glow
+ * - Optimized for light backgrounds
+ */
+@Composable
+fun GlassmorphicCardLight(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 20.dp,
+    backgroundColor: Color = Color.White.copy(alpha = 0.25f),
+    borderColor: Color = Color.White.copy(alpha = 0.5f),
+    borderWidth: Dp = 1.5.dp,
+    content: @Composable BoxScope.() -> Unit,
+) {
+  val shape = RoundedCornerShape(cornerRadius)
+
+  Box(
+      modifier =
+          modifier
+              .clip(shape)
+              .background(backgroundColor, shape)
+              .border(borderWidth, borderColor, shape)
+  ) {
+    content()
+  }
+}
+
+/**
+ * Glassmorphic Card with Gradient Border - Light Mode
+ *
+ * Enhanced light glassmorphism with gradient border
+ */
+@Composable
+fun GlassmorphicCardLightGradient(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 20.dp,
+    backgroundColor: Color = Color.White.copy(alpha = 0.3f),
+    borderGradient: Brush = Brush.linearGradient(
+        colors = listOf(
+            Color.White.copy(alpha = 0.6f),
+            Color.White.copy(alpha = 0.3f),
+            Color.White.copy(alpha = 0.6f)
+        )
+    ),
+    borderWidth: Dp = 1.5.dp,
+    content: @Composable BoxScope.() -> Unit,
+) {
+  val shape = RoundedCornerShape(cornerRadius)
+
+  Box(
+      modifier =
+          modifier
+              .clip(shape)
+              .background(backgroundColor, shape)
+              .border(borderWidth, borderGradient, shape)
+  ) {
+    content()
+  }
+}
+
 /** Glassmorphic Surface - Alternative using Material3 Surface */
 @Composable
 fun GlassmorphicSurface(
@@ -64,7 +128,28 @@ fun GlassmorphicSurface(
   }
 }
 
-/** Glassmorphic Sidebar Card - Optimized for sidebar panels */
+/** Glassmorphic Surface - Light Mode */
+@Composable
+fun GlassmorphicSurfaceLight(
+    modifier: Modifier = Modifier,
+    cornerRadius: Dp = 20.dp,
+    backgroundColor: Color = Color.White.copy(alpha = 0.25f),
+    borderColor: Color = Color.White.copy(alpha = 0.5f),
+    content: @Composable () -> Unit,
+) {
+  val shape = RoundedCornerShape(cornerRadius)
+
+  Surface(
+      modifier = modifier.clip(shape).border(1.5.dp, borderColor, shape),
+      color = backgroundColor,
+      shape = shape,
+      tonalElevation = 0.dp,
+  ) {
+    content()
+  }
+}
+
+/** Glassmorphic Sidebar Card - Optimized for sidebar panels (Dark) */
 @Composable
 fun GlassmorphicSidebarCard(
     modifier: Modifier = Modifier,
@@ -79,7 +164,23 @@ fun GlassmorphicSidebarCard(
   )
 }
 
-/** Glassmorphic Control Item - For individual control buttons/toggles */
+/** Glassmorphic Sidebar Card - Light Mode */
+@Composable
+fun GlassmorphicSidebarCardLight(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+  GlassmorphicCardLight(
+      modifier = modifier,
+      cornerRadius = 24.dp,
+      backgroundColor = Color.White.copy(alpha = 0.3f),
+      borderColor = Color.White.copy(alpha = 0.6f),
+      borderWidth = 1.5.dp,
+      content = content,
+  )
+}
+
+/** Glassmorphic Control Item - For individual control buttons/toggles (Dark) */
 @Composable
 fun GlassmorphicControlItem(
     modifier: Modifier = Modifier,
@@ -106,6 +207,38 @@ fun GlassmorphicControlItem(
       cornerRadius = 12.dp,
       backgroundColor = backgroundColor,
       borderColor = borderColor,
+      content = content,
+  )
+}
+
+/** Glassmorphic Control Item - Light Mode */
+@Composable
+fun GlassmorphicControlItemLight(
+    modifier: Modifier = Modifier,
+    isActive: Boolean = false,
+    accentColor: Color = MaterialTheme.colorScheme.primary,
+    content: @Composable BoxScope.() -> Unit,
+) {
+  val backgroundColor =
+      if (isActive) {
+        Color.White.copy(alpha = 0.5f)
+      } else {
+        Color.White.copy(alpha = 0.25f)
+      }
+
+  val borderColor =
+      if (isActive) {
+        Color.White.copy(alpha = 0.8f)
+      } else {
+        Color.White.copy(alpha = 0.4f)
+      }
+
+  GlassmorphicCardLight(
+      modifier = modifier,
+      cornerRadius = 16.dp,
+      backgroundColor = backgroundColor,
+      borderColor = borderColor,
+      borderWidth = if (isActive) 2.dp else 1.5.dp,
       content = content,
   )
 }

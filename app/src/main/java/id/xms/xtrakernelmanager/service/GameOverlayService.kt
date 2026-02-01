@@ -1,7 +1,11 @@
 package id.xms.xtrakernelmanager.service
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.*
 import android.provider.Settings
@@ -17,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -26,6 +31,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
@@ -35,6 +41,12 @@ import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
 import kotlinx.coroutines.*
 
 class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
+
+  companion object {
+    private const val TAG = "GameOverlayService"
+    private const val CHANNEL_ID = "game_overlay_channel"
+    private const val NOTIFICATION_ID = 2003
+  }
 
   private lateinit var windowManager: WindowManager
   private var overlayView: ComposeView? = null
@@ -70,6 +82,20 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
+    // Create notification channel
+    createNotificationChannel()
+
+    // Start as foreground service with notification
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      startForeground(
+          NOTIFICATION_ID,
+          createNotification(),
+          ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+      )
+    } else {
+      startForeground(NOTIFICATION_ID, createNotification())
+    }
+
     // Check overlay permission
     if (!Settings.canDrawOverlays(this)) {
       showToast("Please grant overlay permission for Game Overlay")
@@ -88,6 +114,33 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     createOverlay()
+  }
+
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel =
+          NotificationChannel(
+                  CHANNEL_ID,
+                  "Game Overlay",
+                  NotificationManager.IMPORTANCE_LOW,
+              )
+              .apply {
+                description = "Shows game overlay controls during gameplay"
+                setShowBadge(false)
+              }
+      val notificationManager = getSystemService(NotificationManager::class.java)
+      notificationManager.createNotificationChannel(channel)
+    }
+  }
+
+  private fun createNotification(): Notification {
+    return NotificationCompat.Builder(this, CHANNEL_ID)
+        .setContentTitle("Game Overlay Active")
+        .setContentText("Overlay controls available during gameplay")
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
+        .build()
   }
 
   private fun performHiddenScreenshot() {
@@ -146,7 +199,14 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         ComposeView(this).apply {
           setViewTreeLifecycleOwner(this@GameOverlayService)
           setViewTreeSavedStateRegistryOwner(this@GameOverlayService)
-          setContent { GameOverlayTheme { GameOverlayContent() } }
+          setContent { 
+            val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
+            if (layoutStyle == "liquid") {
+              LiquidGameOverlayTheme { GameOverlayContent() }
+            } else {
+              GameOverlayTheme { GameOverlayContent() }
+            }
+          }
         }
     windowManager.addView(overlayView, params)
     lifecycleRegistry.currentState = Lifecycle.State.STARTED
@@ -156,113 +216,226 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
   private fun GameOverlayContent() {
     val context = LocalContext.current
     val isFpsEnabled by viewModel.isFpsEnabled.collectAsState()
+    val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
+    val isLiquidUI = layoutStyle == "liquid"
 
     Box(modifier = Modifier.wrapContentSize(), contentAlignment = Alignment.TopStart) {
       if (isExpanded) {
-        GamePanelCard(
-            viewModel = viewModel,
-            isFpsEnabled = isFpsEnabled,
-            onFpsToggle = { viewModel.setFpsEnabled(!isFpsEnabled) },
-            onCollapse = { isExpanded = false },
-            onMoveSide = { toggleOverlayPosition() },
-            onDrag = { dx, dy ->
-              params?.let { p ->
-                // Accumulate drag deltas
-                dragAccumulatorX += dx
-                dragAccumulatorY += dy
-                
-                val moveY = dragAccumulatorY.toInt()
-                val moveX = dragAccumulatorX.toInt()
-                
-                if (moveY != 0) {
-                   p.y = (p.y + moveY).coerceIn(0, 2500)
-                   dragAccumulatorY -= moveY // Keep remainder
-                }
-
-                if (moveX != 0) {
-                    val actualMoveX = if (isOverlayOnRight) -moveX else moveX
-                    p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
-                    dragAccumulatorX -= moveX // Keep remainder
-                }
-                
-                val snapThreshold = 60
-                isDockedToEdge = p.x < snapThreshold
-                
-                if (p.x > screenWidth / 3) {
-                    toggleOverlayPosition()
-                    p.x = 0
-                    isDockedToEdge = true
-                    dragAccumulatorX = 0f // Reset
-                }
-
-                try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
-              }
-            },
-            onDragEnd = {
+        if (isLiquidUI) {
+          // Liquid UI - Glassmorphism Light Mode
+          LiquidGamePanelCard(
+              viewModel = viewModel,
+              isFpsEnabled = isFpsEnabled,
+              onFpsToggle = { viewModel.setFpsEnabled(!isFpsEnabled) },
+              onCollapse = { isExpanded = false },
+              onMoveSide = { toggleOverlayPosition() },
+              onDrag = { dx, dy ->
                 params?.let { p ->
-                    preferencesManager.setInt("overlay_y_pos", p.y)
+                  // Accumulate drag deltas
+                  dragAccumulatorX += dx
+                  dragAccumulatorY += dy
+                  
+                  val moveY = dragAccumulatorY.toInt()
+                  val moveX = dragAccumulatorX.toInt()
+                  
+                  if (moveY != 0) {
+                     p.y = (p.y + moveY).coerceIn(0, 2500)
+                     dragAccumulatorY -= moveY // Keep remainder
+                  }
+
+                  if (moveX != 0) {
+                      val actualMoveX = if (isOverlayOnRight) -moveX else moveX
+                      p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
+                      dragAccumulatorX -= moveX // Keep remainder
+                  }
+                  
+                  val snapThreshold = 60
+                  isDockedToEdge = p.x < snapThreshold
+                  
+                  if (p.x > screenWidth / 3) {
+                      toggleOverlayPosition()
+                      p.x = 0
+                      isDockedToEdge = true
+                      dragAccumulatorX = 0f // Reset
+                  }
+
+                  try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
                 }
-            },
-        )
+              },
+              onDragEnd = {
+                  params?.let { p ->
+                      preferencesManager.setInt("overlay_y_pos", p.y)
+                  }
+              },
+          )
+        } else {
+          // Material UI - Dark Mode
+          GamePanelCard(
+              viewModel = viewModel,
+              isFpsEnabled = isFpsEnabled,
+              onFpsToggle = { viewModel.setFpsEnabled(!isFpsEnabled) },
+              onCollapse = { isExpanded = false },
+              onMoveSide = { toggleOverlayPosition() },
+              onDrag = { dx, dy ->
+                params?.let { p ->
+                  // Accumulate drag deltas
+                  dragAccumulatorX += dx
+                  dragAccumulatorY += dy
+                  
+                  val moveY = dragAccumulatorY.toInt()
+                  val moveX = dragAccumulatorX.toInt()
+                  
+                  if (moveY != 0) {
+                     p.y = (p.y + moveY).coerceIn(0, 2500)
+                     dragAccumulatorY -= moveY // Keep remainder
+                  }
+
+                  if (moveX != 0) {
+                      val actualMoveX = if (isOverlayOnRight) -moveX else moveX
+                      p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
+                      dragAccumulatorX -= moveX // Keep remainder
+                  }
+                  
+                  val snapThreshold = 60
+                  isDockedToEdge = p.x < snapThreshold
+                  
+                  if (p.x > screenWidth / 3) {
+                      toggleOverlayPosition()
+                      p.x = 0
+                      isDockedToEdge = true
+                      dragAccumulatorX = 0f // Reset
+                  }
+
+                  try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
+                }
+              },
+              onDragEnd = {
+                  params?.let { p ->
+                      preferencesManager.setInt("overlay_y_pos", p.y)
+                  }
+              },
+          )
+        }
       } else {
         val fpsVal by viewModel.fpsValue.collectAsState()
 
-        GameSidebar(
-            isExpanded = isExpanded,
-            overlayOnRight = isOverlayOnRight,
-            isDockedToEdge = isDockedToEdge,
-            fps = if (isFpsEnabled) fpsVal else null,
-            onToggleExpand = { isExpanded = true },
-            onDrag = { dx, dy ->
-              params?.let { p ->
-                // Accumulate drag deltas
-                dragAccumulatorX += dx
-                dragAccumulatorY += dy
-                
-                val moveY = dragAccumulatorY.toInt()
-                val moveX = dragAccumulatorX.toInt()
-                
-                if (moveY != 0) {
-                    p.y = (p.y + moveY).coerceIn(0, 2500)
-                    dragAccumulatorY -= moveY
-                }
-
-                if (moveX != 0) {
-                    val actualMoveX = if (isOverlayOnRight) -moveX else moveX
-                    p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
-                    dragAccumulatorX -= moveX
-                }
-                
-                // Auto-snap threshold: 60px from edge
-                val snapThreshold = 60
-                isDockedToEdge = p.x < snapThreshold
-                
-                // If dragged far enough, switch sides
-                if (p.x > screenWidth / 3) {
-                    toggleOverlayPosition()
-                    p.x = 0
-                    isDockedToEdge = true
-                    dragAccumulatorX = 0f
-                }
-
-                try {
-                  windowManager.updateViewLayout(overlayView, p)
-                } catch (e: Exception) {}
-              }
-            },
-            onDragEnd = {
+        if (isLiquidUI) {
+          // Liquid UI - Glassmorphism Light Mode
+          LiquidGameSidebar(
+              isExpanded = isExpanded,
+              overlayOnRight = isOverlayOnRight,
+              isDockedToEdge = isDockedToEdge,
+              fps = if (isFpsEnabled) fpsVal else null,
+              onToggleExpand = { isExpanded = true },
+              onDrag = { dx, dy ->
                 params?.let { p ->
-                    // Auto-snap to edge if close
-                    val snapThreshold = 100
-                    if (p.x < snapThreshold) {
-                        p.x = 0
-                        isDockedToEdge = true
-                        try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
-                    }
-                    preferencesManager.setInt("overlay_y_pos", p.y)
+                  // Accumulate drag deltas
+                  dragAccumulatorX += dx
+                  dragAccumulatorY += dy
+                  
+                  val moveY = dragAccumulatorY.toInt()
+                  val moveX = dragAccumulatorX.toInt()
+                  
+                  if (moveY != 0) {
+                      p.y = (p.y + moveY).coerceIn(0, 2500)
+                      dragAccumulatorY -= moveY
+                  }
+
+                  if (moveX != 0) {
+                      val actualMoveX = if (isOverlayOnRight) -moveX else moveX
+                      p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
+                      dragAccumulatorX -= moveX
+                  }
+                  
+                  // Auto-snap threshold: 60px from edge
+                  val snapThreshold = 60
+                  isDockedToEdge = p.x < snapThreshold
+                  
+                  // If dragged far enough, switch sides
+                  if (p.x > screenWidth / 3) {
+                      toggleOverlayPosition()
+                      p.x = 0
+                      isDockedToEdge = true
+                      dragAccumulatorX = 0f
+                  }
+
+                  try {
+                    windowManager.updateViewLayout(overlayView, p)
+                  } catch (e: Exception) {}
                 }
-            }
-        )
+              },
+              onDragEnd = {
+                  params?.let { p ->
+                      // Auto-snap to edge if close
+                      val snapThreshold = 100
+                      if (p.x < snapThreshold) {
+                          p.x = 0
+                          isDockedToEdge = true
+                          try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
+                      }
+                      preferencesManager.setInt("overlay_y_pos", p.y)
+                  }
+              }
+          )
+        } else {
+          // Material UI - Dark Mode
+          GameSidebar(
+              isExpanded = isExpanded,
+              overlayOnRight = isOverlayOnRight,
+              isDockedToEdge = isDockedToEdge,
+              fps = if (isFpsEnabled) fpsVal else null,
+              onToggleExpand = { isExpanded = true },
+              onDrag = { dx, dy ->
+                params?.let { p ->
+                  // Accumulate drag deltas
+                  dragAccumulatorX += dx
+                  dragAccumulatorY += dy
+                  
+                  val moveY = dragAccumulatorY.toInt()
+                  val moveX = dragAccumulatorX.toInt()
+                  
+                  if (moveY != 0) {
+                      p.y = (p.y + moveY).coerceIn(0, 2500)
+                      dragAccumulatorY -= moveY
+                  }
+
+                  if (moveX != 0) {
+                      val actualMoveX = if (isOverlayOnRight) -moveX else moveX
+                      p.x = (p.x + actualMoveX).coerceIn(0, screenWidth / 2)
+                      dragAccumulatorX -= moveX
+                  }
+                  
+                  // Auto-snap threshold: 60px from edge
+                  val snapThreshold = 60
+                  isDockedToEdge = p.x < snapThreshold
+                  
+                  // If dragged far enough, switch sides
+                  if (p.x > screenWidth / 3) {
+                      toggleOverlayPosition()
+                      p.x = 0
+                      isDockedToEdge = true
+                      dragAccumulatorX = 0f
+                  }
+
+                  try {
+                    windowManager.updateViewLayout(overlayView, p)
+                  } catch (e: Exception) {}
+                }
+              },
+              onDragEnd = {
+                  params?.let { p ->
+                      // Auto-snap to edge if close
+                      val snapThreshold = 100
+                      if (p.x < snapThreshold) {
+                          p.x = 0
+                          isDockedToEdge = true
+                          try { windowManager.updateViewLayout(overlayView, p) } catch (e: Exception) {}
+                      }
+                      preferencesManager.setInt("overlay_y_pos", p.y)
+                  }
+              }
+          )
+        }
       }
     }
   }

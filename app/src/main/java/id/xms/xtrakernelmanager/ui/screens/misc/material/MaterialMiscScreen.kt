@@ -88,6 +88,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
             onProcessManagerClick = { showProcessManager = true },
             onGameSpaceClick = { showGameSpace = true },
             onPerAppProfileClick = { showPerAppProfile = true },
+            onFunctionalRomClick = { onNavigate("functionalrom") },
         )
   }
 }
@@ -100,6 +101,7 @@ fun MaterialMiscScreenContent(
     onProcessManagerClick: () -> Unit,
     onGameSpaceClick: () -> Unit,
     onPerAppProfileClick: () -> Unit,
+    onFunctionalRomClick: () -> Unit = {},
 ) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
@@ -191,7 +193,7 @@ fun MaterialMiscScreenContent(
 
       // 7. Functional ROM (VIP Feature - Moved to bottom)
       item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 400) { FunctionalRomCard(viewModel) }
+        StaggeredEntry(delayMillis = 400) { FunctionalRomCard(onClick = onFunctionalRomClick) }
       }
     }
   }
@@ -906,8 +908,9 @@ fun ProcessManagerCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun FunctionalRomCard(viewModel: MiscViewModel) {
+fun FunctionalRomCard(onClick: () -> Unit) {
   Card(
+      onClick = onClick,
       modifier = Modifier.fillMaxWidth().height(80.dp),
       shape = RoundedCornerShape(20.dp),
       colors =

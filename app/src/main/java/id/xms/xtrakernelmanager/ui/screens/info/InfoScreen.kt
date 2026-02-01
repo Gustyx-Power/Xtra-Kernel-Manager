@@ -46,7 +46,7 @@ fun InfoScreen(preferencesManager: id.xms.xtrakernelmanager.data.preferences.Pre
   if (layoutStyle == "material") {
     MaterialAboutScreen()
   } else {
-    LegacyInfoScreen()
+    LiquidInfoScreen()
   }
 }
 

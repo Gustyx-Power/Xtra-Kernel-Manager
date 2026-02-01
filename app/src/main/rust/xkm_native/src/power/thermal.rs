@@ -67,7 +67,8 @@ struct ThermalZoneData {
 pub fn read_thermal_zones() -> String {
     let mut zones = Vec::new();
 
-    for zone in 0..84 {
+    // Scan more thermal zones to ensure we catch GPU zones
+    for zone in 0..100 {
         let temp = read_thermal_zone(zone);
         if temp > 0.0 {
             let zone_type = get_thermal_zone_type(zone);

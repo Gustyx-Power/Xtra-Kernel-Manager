@@ -1,9 +1,15 @@
 package id.xms.xtrakernelmanager.service
 
 import android.accessibilityservice.AccessibilityService
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import androidx.core.app.NotificationCompat
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import kotlinx.coroutines.*
 import org.json.JSONArray
@@ -12,6 +18,8 @@ class GameMonitorService : AccessibilityService() {
 
   companion object {
     private const val TAG = "GameMonitorService"
+    private const val CHANNEL_ID = "game_monitor_channel"
+    private const val NOTIFICATION_ID = 2001
   }
 
   private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -26,8 +34,51 @@ class GameMonitorService : AccessibilityService() {
     Log.d(TAG, "Accessibility Service Connected")
     preferencesManager = PreferencesManager(applicationContext)
 
+    // Create persistent notification to prevent service from being killed
+    createNotificationChannel()
+    startForegroundIfNeeded()
+
     // Load initial games list
     serviceScope.launch { loadGameList() }
+  }
+
+  private fun createNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(
+        CHANNEL_ID,
+        "Game Monitor Service",
+        NotificationManager.IMPORTANCE_LOW
+      ).apply {
+        description = "Monitors game apps for automatic overlay activation"
+        setShowBadge(false)
+        setSound(null, null)
+      }
+      val notificationManager = getSystemService(NotificationManager::class.java)
+      notificationManager.createNotificationChannel(channel)
+    }
+  }
+
+  private fun startForegroundIfNeeded() {
+    try {
+      val notification = createNotification()
+      // Use startForeground to make service more persistent
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        startForeground(NOTIFICATION_ID, notification)
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to start foreground", e)
+    }
+  }
+
+  private fun createNotification(): Notification {
+    return NotificationCompat.Builder(this, CHANNEL_ID)
+      .setContentTitle("Game Monitor Active")
+      .setContentText("Monitoring for game apps")
+      .setSmallIcon(R.drawable.ic_launcher_foreground)
+      .setPriority(NotificationCompat.PRIORITY_LOW)
+      .setOngoing(true)
+      .setSilent(true)
+      .build()
   }
 
   private var stopJob: Job? = null
@@ -105,12 +156,17 @@ class GameMonitorService : AccessibilityService() {
       val packages = mutableSetOf<String>()
       for (i in 0 until jsonArray.length()) {
         val item = jsonArray.opt(i)
-        if (item is String) {
-          packages.add(item)
-        } else if (item is org.json.JSONObject) {
-          val enabled = item.optBoolean("enabled", true)
-          if (enabled) {
-            packages.add(item.optString("packageName"))
+        when (item) {
+          is String -> {
+            // Old format: simple string
+            packages.add(item)
+          }
+          is org.json.JSONObject -> {
+            // New format: JSON object with enabled flag
+            val enabled = item.optBoolean("enabled", true)
+            if (enabled) {
+              packages.add(item.optString("packageName"))
+            }
           }
         }
       }
@@ -145,5 +201,26 @@ class GameMonitorService : AccessibilityService() {
     serviceScope.cancel()
     stopGameOverlay()
     Log.d(TAG, "Service Destroyed")
+    
+    // Try to restart service if killed by system
+    try {
+      val restartIntent = Intent(applicationContext, GameMonitorService::class.java)
+      restartIntent.setPackage(packageName)
+      sendBroadcast(restartIntent)
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to send restart broadcast", e)
+    }
+  }
+  
+  override fun onUnbind(intent: Intent?): Boolean {
+    Log.d(TAG, "Service Unbound - attempting to stay alive")
+    // Return true to indicate we want onRebind to be called
+    return true
+  }
+  
+  override fun onRebind(intent: Intent?) {
+    super.onRebind(intent)
+    Log.d(TAG, "Service Rebound")
+    startForegroundIfNeeded()
   }
 }

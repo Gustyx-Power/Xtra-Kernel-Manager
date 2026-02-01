@@ -39,7 +39,7 @@ fun MiscScreen(
         viewModel = viewModel,
         onNavigate = { route ->
           when (route) {
-            "functional_rom" -> onNavigateToFunctionalRom()
+            "functionalrom" -> onNavigateToFunctionalRom()
             "app_picker" -> onNavigateToAppPicker()
           }
         },

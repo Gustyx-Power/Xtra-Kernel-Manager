@@ -88,12 +88,12 @@ fun LiquidBatterySection(viewModel: MiscViewModel) {
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.battery_guru),
+                            text = "Battery Information",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
-                            text = stringResource(R.string.battery_guru_desc),
+                            text = "Monitor battery status and usage",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         )

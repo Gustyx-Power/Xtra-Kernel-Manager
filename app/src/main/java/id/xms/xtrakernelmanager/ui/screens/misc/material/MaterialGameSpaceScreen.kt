@@ -36,7 +36,21 @@ fun MaterialGameSpaceScreen(
   val gameApps by viewModel.gameApps.collectAsState()
   val appCount =
       try {
-        JSONArray(gameApps).length()
+        val jsonArray = JSONArray(gameApps)
+        var count = 0
+        for (i in 0 until jsonArray.length()) {
+          val item = jsonArray.opt(i)
+          when (item) {
+            is String -> count++
+            is org.json.JSONObject -> {
+              // Only count if enabled
+              if (item.optBoolean("enabled", true)) {
+                count++
+              }
+            }
+          }
+        }
+        count
       } catch (e: Exception) {
         0
       }

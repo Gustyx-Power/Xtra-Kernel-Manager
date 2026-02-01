@@ -108,4 +108,44 @@ class HomeViewModel : ViewModel() {
   fun hasUsageStatsPermission(context: Context): Boolean {
     return powerRepository.hasUsageStatsPermission(context)
   }
+
+  /** Check if accessibility service (Game Monitor) is enabled */
+  fun isAccessibilityServiceEnabled(context: Context): Boolean {
+    try {
+      val accessibilityEnabled = android.provider.Settings.Secure.getInt(
+          context.contentResolver,
+          android.provider.Settings.Secure.ACCESSIBILITY_ENABLED,
+          0
+      )
+      
+      android.util.Log.d("HomeViewModel", "Accessibility enabled flag: $accessibilityEnabled")
+      
+      if (accessibilityEnabled == 0) return false
+      
+      val enabledServices = android.provider.Settings.Secure.getString(
+          context.contentResolver,
+          android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+      )
+      
+      android.util.Log.d("HomeViewModel", "Enabled services: $enabledServices")
+      
+      if (enabledServices.isNullOrEmpty()) return false
+      
+      // Check for both possible formats:
+      // 1. Full component name: id.xms.xtrakernelmanager/id.xms.xtrakernelmanager.service.GameMonitorService
+      // 2. Short format: id.xms.xtrakernelmanager/.service.GameMonitorService
+      val packageName = context.packageName
+      val serviceName = "GameMonitorService"
+      
+      val isEnabled = enabledServices.contains(packageName) && 
+                      enabledServices.contains(serviceName)
+      
+      android.util.Log.d("HomeViewModel", "GameMonitorService enabled: $isEnabled")
+      
+      return isEnabled
+    } catch (e: Exception) {
+      android.util.Log.e("HomeViewModel", "Error checking accessibility: ${e.message}")
+      return false
+    }
+  }
 }

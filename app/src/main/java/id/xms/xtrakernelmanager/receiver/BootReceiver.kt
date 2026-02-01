@@ -125,10 +125,19 @@ class BootReceiver : BroadcastReceiver() {
   private suspend fun startAppProfileServiceIfEnabled(context: Context) {
     try {
       val preferencesManager = PreferencesManager(context)
-      val isPerAppProfileEnabled = preferencesManager.isPerAppProfileEnabled().first()
+      val profilesJson = preferencesManager.getAppProfiles().first()
 
-      if (isPerAppProfileEnabled) {
-        Log.d(TAG, "Per-app profiles enabled, starting AppProfileService...")
+      // Check if there are any profiles registered
+      val hasProfiles =
+          try {
+            val jsonArray = JSONArray(profilesJson)
+            jsonArray.length() > 0
+          } catch (e: Exception) {
+            false
+          }
+
+      if (hasProfiles) {
+        Log.d(TAG, "Profiles found, starting AppProfileService...")
 
         // For Android 15+ (API 35+), use delayed start
         if (Build.VERSION.SDK_INT >= 35) {
@@ -139,7 +148,7 @@ class BootReceiver : BroadcastReceiver() {
           startAppProfileServiceDirect(context)
         }
       } else {
-        Log.d(TAG, "Per-app profiles disabled, skipping AppProfileService start")
+        Log.d(TAG, "No profiles registered, skipping AppProfileService start")
       }
     } catch (e: Exception) {
       Log.e(TAG, "Failed to start AppProfileService: ${e.message}")
