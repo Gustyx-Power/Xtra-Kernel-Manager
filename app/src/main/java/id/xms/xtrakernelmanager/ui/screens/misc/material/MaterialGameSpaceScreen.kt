@@ -18,11 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.xms.xtrakernelmanager.R
 import org.json.JSONArray
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +61,7 @@ fun MaterialGameSpaceScreen(
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
         TopAppBar(
-            title = { Text("Game Space", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
+            title = { Text(stringResource(R.string.game_control), fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
             navigationIcon = {
               IconButton(onClick = onBack) {
                 Icon(
@@ -103,7 +105,7 @@ fun MaterialGameSpaceScreen(
                       color = Color.White,
                   )
                   Text(
-                      text = "Registered in Game Space",
+                      text = "Registered in ${stringResource(R.string.game_control)}",
                       style = MaterialTheme.typography.bodySmall,
                       color = Color.Gray,
                   )

@@ -21,9 +21,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.ui.components.WavySlider
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
@@ -609,7 +611,7 @@ fun GameSpaceCard(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Game Space",
+            text = stringResource(R.string.game_control),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onTertiaryContainer,

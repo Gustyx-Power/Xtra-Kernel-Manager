@@ -151,7 +151,7 @@ fun LiquidGameControlScreen(
                     }
 
                     Text(
-                        text = "Game Space",
+                        text = stringResource(R.string.game_control),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),
@@ -266,7 +266,7 @@ private fun LiquidGameLibrarySection(
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Registered in Game Space",
+                            text = "Registered in ${stringResource(R.string.game_control)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
                         )
