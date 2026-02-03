@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.GameControlUseCase
 import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
+import id.xms.xtrakernelmanager.domain.root.RootManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -268,6 +269,8 @@ class GameMonitorViewModel(
       preferencesManager.setEsportsMode(enabled)
 
       if (enabled) {
+        // Trigger esports animation
+        _esportsAnimationTrigger.emit(Unit)
         withContext(Dispatchers.IO) { gameControlUseCase.enableMonsterMode() }
       } else {
         withContext(Dispatchers.IO) { gameControlUseCase.disableMonsterMode() }
@@ -401,9 +404,133 @@ class GameMonitorViewModel(
   private val _screenshotTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0)
   val screenshotTrigger = _screenshotTrigger.asSharedFlow()
 
+  private val _esportsAnimationTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0)
+  val esportsAnimationTrigger = _esportsAnimationTrigger.asSharedFlow()
+
+  private val _toastMessage = kotlinx.coroutines.flow.MutableSharedFlow<String>(replay = 0)
+  val toastMessage = _toastMessage.asSharedFlow()
+
   fun takeScreenshot() {
       viewModelScope.launch {
           _screenshotTrigger.emit(Unit)
+      }
+  }
+
+  fun performGameBoost() {
+      viewModelScope.launch {
+          try {
+              Log.d("GameMonitorViewModel", "Starting game boost with animation")
+              
+              _esportsAnimationTrigger.emit(Unit)
+              
+              delay(100)
+              
+              val result = withContext(Dispatchers.IO) { gameControlUseCase.performGameBoost() }
+              if (result.isSuccess) {
+                  val message = result.getOrNull() ?: "Game Boost Applied!\nPerformance optimized"
+                  Log.d("GameMonitorViewModel", "Game boost successful: $message")
+                  _toastMessage.emit(message)
+              } else {
+                  val errorMsg = "Game Boost Failed!\n${result.exceptionOrNull()?.message ?: "Unknown error"}"
+                  Log.e("GameMonitorViewModel", errorMsg)
+                  _toastMessage.emit(errorMsg)
+              }
+          } catch (e: Exception) {
+              val errorMsg = "Game Boost Error!\n${e.message ?: "Unknown error"}"
+              Log.e("GameMonitorViewModel", errorMsg, e)
+              _toastMessage.emit(errorMsg)
+          }
+      }
+  }
+
+  fun rejectIncomingCall() {
+      viewModelScope.launch {
+          try {
+              _toastMessage.emit("Rejecting call...")
+              val result = withContext(Dispatchers.IO) { gameControlUseCase.rejectIncomingCall() }
+              if (result.isSuccess) {
+                  Log.d("GameMonitorViewModel", "Call rejected successfully")
+                  _toastMessage.emit("Call Rejected!\nSuccessfully ended call")
+              } else {
+                  val errorMsg = "Failed to reject call!\n${result.exceptionOrNull()?.message ?: "Unknown error"}"
+                  Log.e("GameMonitorViewModel", errorMsg)
+                  _toastMessage.emit(errorMsg)
+              }
+          } catch (e: Exception) {
+              val errorMsg = "Error rejecting call!\n${e.message ?: "Unknown error"}"
+              Log.e("GameMonitorViewModel", errorMsg, e)
+              _toastMessage.emit(errorMsg)
+          }
+      }
+  }
+
+  fun answerIncomingCall() {
+      viewModelScope.launch {
+          try {
+              _toastMessage.emit("Answering call...")
+              val result = withContext(Dispatchers.IO) { gameControlUseCase.answerIncomingCall() }
+              if (result.isSuccess) {
+                  Log.d("GameMonitorViewModel", "Call answered successfully")
+                  _toastMessage.emit("Call Answered!\nSuccessfully connected")
+              } else {
+                  val errorMsg = "Failed to answer call!\n${result.exceptionOrNull()?.message ?: "Unknown error"}"
+                  Log.e("GameMonitorViewModel", errorMsg)
+                  _toastMessage.emit(errorMsg)
+              }
+          } catch (e: Exception) {
+              val errorMsg = "Error answering call!\n${e.message ?: "Unknown error"}"
+              Log.e("GameMonitorViewModel", errorMsg, e)
+              _toastMessage.emit(errorMsg)
+          }
+      }
+  }
+
+  fun testCallFunctionality() {
+      viewModelScope.launch {
+          try {
+              _toastMessage.emit("Testing call functionality...")
+              
+              val testCommands = listOf(
+                  "service call phone 1",
+                  "input keyevent --help",
+                  "am broadcast --help"
+              )
+              
+              var workingMethods = 0
+              var availableServices = mutableListOf<String>()
+              
+              testCommands.forEachIndexed { index, command ->
+                  try {
+                      val result = withContext(Dispatchers.IO) { 
+                          RootManager.executeCommand(command) 
+                      }
+                      if (result.isSuccess) {
+                          workingMethods++
+                          when (index) {
+                              0 -> availableServices.add("Phone Service")
+                              1 -> availableServices.add("Input Commands")
+                              2 -> availableServices.add("Broadcast Commands")
+                          }
+                      }
+                  } catch (e: Exception) {
+                      Log.w("GameMonitorViewModel", "Test command failed: $command", e)
+                  }
+              }
+              
+              val message = when {
+                  workingMethods >= 2 -> 
+                      "Call functions ready!\nAvailable: ${availableServices.joinToString(", ")}\nRoot access: OK"
+                  workingMethods >= 1 -> 
+                      "Partial call support!\nAvailable: ${availableServices.joinToString(", ")}\nSome methods working"
+                  else -> 
+                      "Call functions unavailable!\nNo services accessible\nCheck root permissions"
+              }
+              
+              _toastMessage.emit(message)
+              
+          } catch (e: Exception) {
+              _toastMessage.emit("Call test error: ${e.message}")
+          }
       }
   }
 
