@@ -479,7 +479,12 @@ fun ToolsGridExpressive(
             label = label,
             isActive = callMode != 0,
         ) {
-            viewModel.cycleCallMode()
+            if (callMode == 2) {
+                // If in reject mode, test the call functionality
+                viewModel.testCallFunctionality()
+            } else {
+                viewModel.cycleCallMode()
+            }
         }
     }
 
@@ -523,7 +528,7 @@ fun ToolsGridExpressive(
           label = "Boost",
           isActive = false,
       ) {
-        viewModel.clearRAM()
+        viewModel.performGameBoost()
       }
     }
 
