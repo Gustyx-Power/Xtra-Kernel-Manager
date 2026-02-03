@@ -18,9 +18,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
 import id.xms.xtrakernelmanager.data.model.CpuClusterLockConfig
 import id.xms.xtrakernelmanager.data.model.LockPolicyType
@@ -55,7 +57,7 @@ fun MaterialSmartFrequencyLockScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Smart Frequency Lock",
+                        stringResource(R.string.liquid_smart_frequency_lock),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 24.sp
                     )
@@ -82,7 +84,7 @@ fun MaterialSmartFrequencyLockScreen(
             // Section Header
             item {
                 Text(
-                    text = "Cluster Frequencies",
+                    text = stringResource(R.string.material_cpu_cluster_frequencies),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -122,7 +124,7 @@ fun MaterialSmartFrequencyLockScreen(
             // Policy Selection Section
             item {
                 Text(
-                    text = "Lock Policy",
+                    text = stringResource(R.string.material_cpu_lock_policy),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -146,7 +148,7 @@ fun MaterialSmartFrequencyLockScreen(
                 
                 item {
                     Text(
-                        text = "Thermal Policy",
+                        text = stringResource(R.string.material_cpu_thermal_policy),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -188,7 +190,7 @@ fun MaterialSmartFrequencyLockScreen(
                         )
                     ) {
                         Text(
-                            text = "Cancel",
+                            text = stringResource(R.string.material_cpu_cancel),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -227,7 +229,7 @@ fun MaterialSmartFrequencyLockScreen(
                         )
                     ) {
                         Text(
-                            text = "Apply Lock",
+                            text = stringResource(R.string.material_cpu_apply_lock),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -347,7 +349,7 @@ private fun MaterialClusterFrequencyCard(
                         modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
-                            text = "Min Frequency",
+                            text = stringResource(R.string.material_gpu_min_frequency),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -385,7 +387,7 @@ private fun MaterialClusterFrequencyCard(
                         modifier = Modifier.padding(12.dp)
                     ) {
                         Text(
-                            text = "Max Frequency",
+                            text = stringResource(R.string.material_gpu_max_frequency),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

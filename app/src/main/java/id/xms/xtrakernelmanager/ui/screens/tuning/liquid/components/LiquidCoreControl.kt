@@ -20,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CoreInfo
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
@@ -74,7 +76,7 @@ fun LiquidCoreControl(
 
           Column {
             Text(
-                text = "Core Management",
+                text = stringResource(R.string.liquid_cpu_core_management),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -102,7 +104,7 @@ fun LiquidCoreControl(
                 )
               }
               Text(
-                  text = "cores online",
+                  text = stringResource(R.string.liquid_cpu_cores_online),
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
@@ -173,7 +175,7 @@ private fun LiquidClusterCoreSection(
           verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-            text = "Cluster $clusterNumber",
+            text = stringResource(R.string.liquid_cpu_cluster_format, clusterNumber),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary,
         )
@@ -182,7 +184,7 @@ private fun LiquidClusterCoreSection(
             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
         ) {
           Text(
-              text = "${cores.size} cores",
+              text = stringResource(R.string.liquid_cpu_cores_format, cores.size),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Medium,
               modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -260,7 +262,7 @@ private fun LiquidCoreItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
           Text(
-              text = "Core ${core.coreNumber}",
+              text = stringResource(R.string.liquid_cpu_core_format, core.coreNumber),
               style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
               color = if (isOnline)
                   MaterialTheme.colorScheme.onSurface
@@ -275,7 +277,7 @@ private fun LiquidCoreItem(
                 color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
             ) {
               Text(
-                  text = "PRIMARY",
+                  text = stringResource(R.string.liquid_cpu_primary),
                   style = MaterialTheme.typography.labelSmall,
                   fontWeight = FontWeight.Bold,
                   modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -305,7 +307,7 @@ private fun LiquidCoreItem(
           }
         } else if (!isOnline) {
           Text(
-              text = "Offline",
+              text = stringResource(R.string.liquid_cpu_offline),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.error,
               fontWeight = FontWeight.Medium,
@@ -331,7 +333,7 @@ private fun LiquidCoreItem(
   // Core 0 Info Message
   if (isCore0) {
     Text(
-        text = "Primary core cannot be disabled",
+        text = stringResource(R.string.liquid_cpu_primary_core_cannot_disabled),
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         modifier = Modifier.padding(start = 58.dp, top = 6.dp)

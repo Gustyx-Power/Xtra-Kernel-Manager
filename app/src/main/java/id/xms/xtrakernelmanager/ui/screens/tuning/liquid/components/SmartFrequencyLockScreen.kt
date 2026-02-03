@@ -15,8 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
 import id.xms.xtrakernelmanager.data.model.CpuClusterLockConfig
 import id.xms.xtrakernelmanager.data.model.LockPolicyType
@@ -60,7 +62,7 @@ fun SmartFrequencyLockScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            "Smart Frequency Lock",
+                            stringResource(R.string.liquid_smart_frequency_lock),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                         )
@@ -88,7 +90,7 @@ fun SmartFrequencyLockScreen(
                 // Cluster Frequency Settings
                 item {
                     Text(
-                        text = "Cluster Frequencies",
+                        text = stringResource(R.string.liquid_smart_lock_cluster_frequencies),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -103,9 +105,9 @@ fun SmartFrequencyLockScreen(
                     ClusterFrequencyCard(
                         clusterIndex = index,
                         clusterName = when (index) {
-                            0 -> "Performance"
-                            1 -> "Efficiency"
-                            else -> "Cluster $index"
+                            0 -> stringResource(R.string.liquid_smart_lock_performance)
+                            1 -> stringResource(R.string.liquid_smart_lock_efficiency)
+                            else -> stringResource(R.string.liquid_smart_lock_cluster_index_format, index)
                         },
                         minFreq = minFreq,
                         maxFreq = maxFreq,
@@ -127,7 +129,7 @@ fun SmartFrequencyLockScreen(
                 // Policy Selection
                 item {
                     Text(
-                        text = "Lock Policy",
+                        text = stringResource(R.string.liquid_smart_lock_lock_policy),
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -151,7 +153,7 @@ fun SmartFrequencyLockScreen(
                     
                     item {
                         Text(
-                            text = "Thermal Policy",
+                            text = stringResource(R.string.liquid_smart_lock_thermal_policy_title),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -193,7 +195,7 @@ fun SmartFrequencyLockScreen(
                             )
                         ) {
                             Text(
-                                text = "Cancel",
+                                text = stringResource(R.string.cancel),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -232,7 +234,7 @@ fun SmartFrequencyLockScreen(
                             )
                         ) {
                             Text(
-                                text = "Apply Lock",
+                                text = stringResource(R.string.liquid_smart_lock_apply_lock),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -252,8 +254,8 @@ fun SmartFrequencyLockScreen(
         }
         
         FrequencySelectionDialog(
-            title = if (isSelectingMin) "Min Frequency - Cluster ${cluster.clusterNumber}"
-            else "Max Frequency - Cluster ${cluster.clusterNumber}",
+            title = if (isSelectingMin) stringResource(R.string.liquid_smart_lock_min_frequency_cluster_format, cluster.clusterNumber)
+            else stringResource(R.string.liquid_smart_lock_max_frequency_cluster_format, cluster.clusterNumber),
             availableFrequencies = cluster.availableFrequencies,
             currentFrequency = currentFreq,
             onDismiss = { selectedClusterForFreq = null },

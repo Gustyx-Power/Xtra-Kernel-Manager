@@ -221,13 +221,13 @@ private fun SmartFrequencyLockSection(
           
           Column {
             Text(
-                text = "Smart Frequency Lock",
+                text = stringResource(R.string.liquid_smart_frequency_lock),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = if (isLocked) "Active" else "Inactive",
+                text = if (isLocked) stringResource(R.string.liquid_smart_lock_active) else stringResource(R.string.liquid_smart_lock_inactive),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (isLocked) MaterialTheme.colorScheme.primary
                        else MaterialTheme.colorScheme.onSurfaceVariant
@@ -252,7 +252,7 @@ private fun SmartFrequencyLockSection(
               verticalAlignment = Alignment.CenterVertically
           ) {
             Text(
-                text = "Policy Type",
+                text = stringResource(R.string.liquid_smart_lock_policy_type),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -278,7 +278,7 @@ private fun SmartFrequencyLockSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
               Text(
-                  text = "Thermal Policy",
+                  text = stringResource(R.string.liquid_smart_lock_thermal_policy),
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurfaceVariant
               )
@@ -304,12 +304,12 @@ private fun SmartFrequencyLockSection(
               verticalAlignment = Alignment.CenterVertically
           ) {
             Text(
-                text = "Locked Clusters",
+                text = stringResource(R.string.liquid_smart_lock_locked_clusters),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "${lockStatus!!.clusterCount} cluster(s)",
+                text = stringResource(R.string.liquid_smart_lock_clusters_format, lockStatus!!.clusterCount),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
@@ -344,7 +344,7 @@ private fun SmartFrequencyLockSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Unlock",
+                text = stringResource(R.string.liquid_smart_lock_unlock),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -366,7 +366,7 @@ private fun SmartFrequencyLockSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Edit",
+                text = stringResource(R.string.liquid_smart_lock_edit),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -388,7 +388,7 @@ private fun SmartFrequencyLockSection(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Configure Lock",
+                text = stringResource(R.string.liquid_smart_lock_configure_lock),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -432,7 +432,7 @@ private fun SmartFrequencyLockDialog(
           // Cluster Frequency Settings
           item {
             Text(
-                text = "Cluster Frequencies",
+                text = stringResource(R.string.liquid_smart_lock_cluster_frequencies),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -447,9 +447,9 @@ private fun SmartFrequencyLockDialog(
             ClusterFrequencyCard(
                 clusterIndex = index,
                 clusterName = when (index) {
-                  0 -> "Performance"
-                  1 -> "Efficiency"
-                  else -> "Cluster $index"
+                  0 -> stringResource(R.string.liquid_smart_lock_performance)
+                  1 -> stringResource(R.string.liquid_smart_lock_efficiency)
+                  else -> stringResource(R.string.liquid_smart_lock_cluster_index_format, index)
                 },
                 minFreq = minFreq,
                 maxFreq = maxFreq,
@@ -473,7 +473,7 @@ private fun SmartFrequencyLockDialog(
           // Policy Selection
           item {
             Text(
-                text = "Lock Policy",
+                text = stringResource(R.string.liquid_smart_lock_lock_policy),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -499,7 +499,7 @@ private fun SmartFrequencyLockDialog(
             
             item {
               Text(
-                  text = "Thermal Policy",
+                  text = stringResource(R.string.liquid_smart_lock_thermal_policy_title),
                   style = MaterialTheme.typography.titleMedium,
                   fontWeight = FontWeight.SemiBold,
                   color = MaterialTheme.colorScheme.onSurface
@@ -519,7 +519,7 @@ private fun SmartFrequencyLockDialog(
       },
       confirmButton = {
         LiquidDialogButton(
-            text = "Lock All Clusters",
+            text = stringResource(R.string.liquid_smart_lock_lock_all_clusters),
             onClick = {
               val configs = clusterFrequencies.map { (clusterNum, freqs) ->
                 clusterNum to CpuClusterLockConfig(
@@ -642,7 +642,7 @@ internal fun ClusterFrequencyCard(
               verticalArrangement = Arrangement.spacedBy(4.dp)
           ) {
             Text(
-                text = "Min",
+                text = stringResource(R.string.liquid_smart_lock_min),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -653,7 +653,7 @@ internal fun ClusterFrequencyCard(
                 color = MaterialTheme.colorScheme.primary
             )
             Text(
-                text = "MHz",
+                text = stringResource(R.string.liquid_smart_lock_mhz),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
             )
@@ -673,7 +673,7 @@ internal fun ClusterFrequencyCard(
               verticalArrangement = Arrangement.spacedBy(4.dp)
           ) {
             Text(
-                text = "Max",
+                text = stringResource(R.string.liquid_smart_lock_max),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -684,7 +684,7 @@ internal fun ClusterFrequencyCard(
                 color = MaterialTheme.colorScheme.tertiary
             )
             Text(
-                text = "MHz",
+                text = stringResource(R.string.liquid_smart_lock_mhz),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
             )
@@ -732,10 +732,10 @@ internal fun PolicySelectionCard(
         )
         Text(
             text = when (policy) {
-              LockPolicyType.MANUAL -> "User-controlled, no thermal override"
-              LockPolicyType.SMART -> "Thermal-aware with auto-restore"
-              LockPolicyType.GAME -> "Optimized for gaming"
-              LockPolicyType.BATTERY_SAVING -> "Power-efficient"
+              LockPolicyType.MANUAL -> stringResource(R.string.liquid_lock_policy_manual_desc)
+              LockPolicyType.SMART -> stringResource(R.string.liquid_lock_policy_smart_desc)
+              LockPolicyType.GAME -> stringResource(R.string.liquid_lock_policy_game_desc)
+              LockPolicyType.BATTERY_SAVING -> stringResource(R.string.liquid_lock_policy_battery_saving_desc)
             },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -781,7 +781,7 @@ internal fun ThermalPolicyCard(
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
         )
         Text(
-            text = "Emergency: ${policy.emergencyThreshold}°C, Warning: ${policy.warningThreshold}°C",
+            text = stringResource(R.string.liquid_thermal_policy_format, policy.emergencyThreshold, policy.warningThreshold),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -1018,7 +1018,7 @@ private fun FrequencyClickableCard(
               color = color,
           )
           Text(
-              text = "MHz",
+              text = stringResource(R.string.liquid_smart_lock_mhz),
               style = MaterialTheme.typography.bodyLarge,
               fontWeight = FontWeight.Medium,
               color = color.copy(alpha = 0.7f),
@@ -1063,7 +1063,7 @@ internal fun FrequencySelectionDialog(
       content = {
         if (sortedFreqs.isEmpty()) {
           Text(
-              text = "No frequencies available",
+              text = stringResource(R.string.liquid_smart_lock_no_frequencies_available),
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
               textAlign = TextAlign.Center,
@@ -1115,7 +1115,7 @@ internal fun FrequencySelectionDialog(
                             MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text = "MHz",
+                        text = stringResource(R.string.liquid_smart_lock_mhz),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = if (isSelected) 
@@ -1309,7 +1309,7 @@ private fun CPULockControls(
         modifier = Modifier.weight(1f)
       ) {
         Text(
-          text = if (isLocked) "Frequency Locked" else "Frequency Unlocked",
+          text = if (isLocked) stringResource(R.string.liquid_smart_lock_frequency_locked) else stringResource(R.string.liquid_smart_lock_frequency_unlocked),
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.SemiBold,
           color = if (isLocked) MaterialTheme.colorScheme.primary 
@@ -1346,7 +1346,7 @@ private fun CPULockControls(
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
-          text = if (isLocked) "Unlock" else "Lock"
+          text = if (isLocked) stringResource(R.string.liquid_smart_lock_unlock) else stringResource(R.string.liquid_smart_lock_lock)
         )
       }
     }
@@ -1416,7 +1416,7 @@ private fun CPULockLiquidDialog(
       ) {
         // Frequency Selection Cards
         Text(
-          text = "Frequency Range",
+          text = stringResource(R.string.liquid_smart_lock_frequency_range),
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.SemiBold,
           color = MaterialTheme.colorScheme.onSurface
@@ -1438,7 +1438,7 @@ private fun CPULockLiquidDialog(
           ) {
             Column {
               Text(
-                text = "Min Frequency",
+                text = stringResource(R.string.liquid_smart_lock_min_frequency),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
               )
@@ -1473,7 +1473,7 @@ private fun CPULockLiquidDialog(
           ) {
             Column {
               Text(
-                text = "Max Frequency",
+                text = stringResource(R.string.liquid_smart_lock_max_frequency),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
               )
@@ -1498,7 +1498,7 @@ private fun CPULockLiquidDialog(
         
         // Policy Selection
         Text(
-          text = "Lock Policy",
+          text = stringResource(R.string.liquid_smart_lock_lock_policy),
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.SemiBold,
           color = MaterialTheme.colorScheme.onSurface
@@ -1539,10 +1539,10 @@ private fun CPULockLiquidDialog(
                   )
                   Text(
                     text = when (policy) {
-                      LockPolicyType.MANUAL -> "User-controlled, no thermal override"
-                      LockPolicyType.SMART -> "Thermal-aware with auto-restore"
-                      LockPolicyType.GAME -> "Optimized for gaming"
-                      LockPolicyType.BATTERY_SAVING -> "Power-efficient"
+                      LockPolicyType.MANUAL -> stringResource(R.string.liquid_lock_policy_manual_desc)
+                      LockPolicyType.SMART -> stringResource(R.string.liquid_lock_policy_smart_desc)
+                      LockPolicyType.GAME -> stringResource(R.string.liquid_lock_policy_game_desc)
+                      LockPolicyType.BATTERY_SAVING -> stringResource(R.string.liquid_lock_policy_battery_saving_desc)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1560,7 +1560,7 @@ private fun CPULockLiquidDialog(
           )
           
           Text(
-            text = "Thermal Policy",
+            text = stringResource(R.string.liquid_smart_lock_thermal_policy_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
@@ -1600,7 +1600,7 @@ private fun CPULockLiquidDialog(
                       fontWeight = if (policy.name == selectedThermalPolicy) FontWeight.Bold else FontWeight.Medium
                     )
                     Text(
-                      text = "Emergency: ${policy.emergencyThreshold}°C, Warning: ${policy.warningThreshold}°C",
+                      text = stringResource(R.string.liquid_thermal_policy_format, policy.emergencyThreshold, policy.warningThreshold),
                       style = MaterialTheme.typography.bodySmall,
                       color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1614,7 +1614,7 @@ private fun CPULockLiquidDialog(
     },
     confirmButton = {
       LiquidDialogButton(
-        text = "Lock Frequencies",
+        text = stringResource(R.string.liquid_smart_lock_lock_frequencies),
         onClick = {
           onConfirm(lockMinFreq, lockMaxFreq)
         },
@@ -1633,7 +1633,7 @@ private fun CPULockLiquidDialog(
   // Min Frequency Selection Dialog
   if (showMinFreqDialog) {
     FrequencySelectionDialog(
-      title = "Select Min Frequency",
+      title = stringResource(R.string.liquid_smart_lock_select_min_frequency),
       availableFrequencies = availableFrequencies,
       currentFrequency = lockMinFreq,
       onDismiss = { showMinFreqDialog = false },
@@ -1650,7 +1650,7 @@ private fun CPULockLiquidDialog(
   // Max Frequency Selection Dialog
   if (showMaxFreqDialog) {
     FrequencySelectionDialog(
-      title = "Select Max Frequency",
+      title = stringResource(R.string.liquid_smart_lock_select_max_frequency),
       availableFrequencies = availableFrequencies,
       currentFrequency = lockMaxFreq,
       onDismiss = { showMaxFreqDialog = false },

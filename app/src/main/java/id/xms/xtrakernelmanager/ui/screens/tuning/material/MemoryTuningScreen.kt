@@ -29,7 +29,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.domain.usecase.RAMControlUseCase
 import id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator
@@ -62,7 +64,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
   Scaffold(
       topBar = {
         TopAppBar(
-            title = { Text(text = "Memory", style = MaterialTheme.typography.titleLarge) },
+            title = { Text(text = stringResource(R.string.material_memory_title), style = MaterialTheme.typography.titleLarge) },
             navigationIcon = {
               IconButton(onClick = { navController.popBackStack() }) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -81,7 +83,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
     ) {
       // 1. RAM Card (Virtual Memory)
       ExpandableRamCard(
-          text = "Ram",
+          text = stringResource(R.string.material_memory_title),
           ramConfig = ramConfig,
           memoryStats = memoryStats,
           onClick = {},
@@ -121,7 +123,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
         // Right: Swap
         if (!compressionExpanded) {
           ExpandableSwapCard(
-              text = "Swap",
+              text = stringResource(R.string.material_memory_swap),
               ramConfig = ramConfig,
               onConfigChange = { viewModel.setRAMParameters(it) },
               modifier = Modifier.weight(1f).fillMaxHeight(),
@@ -133,7 +135,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
 
       // 3. ZRAM Card
       ExpandableZramCard(
-          text = "Zram",
+          text = stringResource(R.string.zram_info),
           ramConfig = ramConfig,
           zramStatus = zramStatus,
           isSelected = true,
@@ -182,8 +184,9 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
 
     // ZRAM Dialog
     if (showZramDialog) {
+      val disabledText = stringResource(R.string.material_dialog_disabled)
       SliderDialog(
-          title = "ZRAM Size (MB)",
+          title = stringResource(R.string.material_memory_zram_size),
           currentValue = ramConfig.zramSize.toFloat(),
           valueRange = 0f..4096f, // Up to 4GB
           steps = 15,
@@ -192,7 +195,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
             val newConfig = ramConfig.copy(zramSize = it.toInt())
             viewModel.setRAMParameters(newConfig)
           },
-          valueFormatter = { if (it.toInt() == 0) "Disabled" else "${it.toInt()} MB" },
+          valueFormatter = { if (it.toInt() == 0) disabledText else "${it.toInt()} MB" },
       )
     }
 
@@ -209,8 +212,9 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
 
     // Swap Dialog
     if (showSwapDialog) {
+      val disabledText = stringResource(R.string.material_dialog_disabled)
       SliderDialog(
-          title = "Swap Size (MB)",
+          title = stringResource(R.string.material_memory_swap_size),
           currentValue = ramConfig.swapSize.toFloat(),
           valueRange = 0f..8192f, // Up to 8GB
           steps = 31,
@@ -219,7 +223,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
             val newConfig = ramConfig.copy(swapSize = it.toInt())
             viewModel.setRAMParameters(newConfig)
           },
-          valueFormatter = { if (it.toInt() == 0) "Disabled" else "${it.toInt()} MB" },
+          valueFormatter = { if (it.toInt() == 0) disabledText else "${it.toInt()} MB" },
       )
     }
   }
@@ -315,10 +319,10 @@ fun SliderDialog(
               onDismiss()
             }
         ) {
-          Text("Apply")
+          Text(stringResource(R.string.material_dialog_apply))
         }
       },
-      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+      dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.material_dialog_cancel)) } },
   )
 }
 
@@ -353,7 +357,7 @@ fun SelectionDialog(
           }
         }
       },
-      confirmButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+      confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.material_dialog_cancel)) } },
   )
 }
 
@@ -369,10 +373,10 @@ fun VirtualMemoryDialog(
 
   AlertDialog(
       onDismissRequest = onDismiss,
-      title = { Text("Virtual Memory") },
+      title = { Text(stringResource(R.string.material_memory_virtual_memory)) },
       text = {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-          Text("Swappiness: ${swappiness.toInt()}")
+          Text("${stringResource(R.string.material_memory_swappiness)}: ${swappiness.toInt()}")
           Slider(
               value = swappiness,
               onValueChange = { swappiness = it },
@@ -380,7 +384,7 @@ fun VirtualMemoryDialog(
               steps = 19,
           )
           Spacer(Modifier.height(16.dp))
-          Text("Dirty Ratio: ${dirtyRatio.toInt()}%")
+          Text("${stringResource(R.string.material_memory_dirty_ratio)}: ${dirtyRatio.toInt()}%")
           Slider(
               value = dirtyRatio,
               onValueChange = { dirtyRatio = it },
@@ -396,10 +400,10 @@ fun VirtualMemoryDialog(
               onDismiss()
             }
         ) {
-          Text("Apply")
+          Text(stringResource(R.string.material_dialog_apply))
         }
       },
-      dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+      dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.material_dialog_cancel)) } },
   )
 }
 
@@ -424,10 +428,10 @@ fun ExpandableRamCard(
   // Health status based on usage
   val healthStatus =
       when {
-        usagePercent < 0.5f -> "Healthy"
-        usagePercent < 0.75f -> "Moderate"
-        usagePercent < 0.9f -> "High"
-        else -> "Critical"
+        usagePercent < 0.5f -> stringResource(R.string.material_memory_healthy)
+        usagePercent < 0.75f -> stringResource(R.string.material_memory_moderate)
+        usagePercent < 0.9f -> stringResource(R.string.material_memory_high)
+        else -> stringResource(R.string.material_memory_critical)
       }
 
   val containerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -456,7 +460,7 @@ fun ExpandableRamCard(
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
-            text = "RAM Insight",
+            text = stringResource(R.string.material_memory_ram_insight),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -497,7 +501,7 @@ fun ExpandableRamCard(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Used",
+                text = stringResource(R.string.material_memory_used),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -511,22 +515,22 @@ fun ExpandableRamCard(
           StatRow(
               icon = Icons.Default.Memory,
               value = "%.1f GB".format(usedRamGb),
-              label = "Used Memory",
+              label = stringResource(R.string.material_memory_used),
           )
           StatRow(
               icon = Icons.Default.CheckCircle,
               value = "%.1f GB".format(availableRamGb),
-              label = "Available",
+              label = stringResource(R.string.material_memory_available),
           )
           StatRow(
               icon = Icons.Default.Memory,
               value = "%.1f GB".format(cachedRamGb),
-              label = "Cached",
+              label = stringResource(R.string.material_memory_cached),
           )
           StatRow(
               icon = Icons.Default.KeyboardArrowUp,
               value = "$swapUsedMb MB",
-              label = "Swap Used",
+              label = stringResource(R.string.material_memory_swap_used),
           )
         }
       }
@@ -572,7 +576,7 @@ fun ExpandableZramCard(
             shape = CircleShape,
         ) {
           Text(
-              text = if (zramStatus.isActive) "Active" else "Disabled",
+              text = if (zramStatus.isActive) stringResource(R.string.material_memory_active) else stringResource(R.string.material_memory_disabled),
               modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
               style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
               color =
@@ -582,7 +586,7 @@ fun ExpandableZramCard(
         }
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = "ZRAM Status",
+            text = stringResource(R.string.material_memory_zram_status),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -615,22 +619,22 @@ fun ExpandableZramCard(
           StatRow(
               icon = Icons.Default.Settings,
               value = "%.1fx".format(zramStatus.compressionRatio),
-              label = "Comp. Ratio",
+              label = stringResource(R.string.material_memory_comp_ratio),
           )
           StatRow(
               icon = Icons.Default.Memory,
               value = "${zramStatus.usedMb} MB",
-              label = "Original",
+              label = stringResource(R.string.material_memory_original),
           )
           StatRow(
               icon = Icons.Default.KeyboardArrowDown,
               value = "${zramStatus.compressedMb} MB",
-              label = "Compressed",
+              label = stringResource(R.string.material_memory_compressed),
           )
           StatRow(
               icon = Icons.Default.KeyboardArrowUp,
               value = "${ramConfig.swappiness}%",
-              label = "Swappiness",
+              label = stringResource(R.string.material_memory_swappiness),
           )
         }
 
@@ -660,7 +664,7 @@ fun ExpandableZramCard(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Size",
+                text = stringResource(R.string.material_memory_size),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -682,7 +686,7 @@ fun ExpandableZramCard(
               verticalArrangement = Arrangement.spacedBy(16.dp),
           ) {
             Text(
-                text = "Configuration",
+                text = stringResource(R.string.material_memory_configuration),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -691,7 +695,7 @@ fun ExpandableZramCard(
             Column {
               Text(
                   text =
-                      "Size: ${if (localZramSize.toInt() == 0) "Disabled" else "${localZramSize.toInt()} MB"}",
+                      "Size: ${if (localZramSize.toInt() == 0) stringResource(R.string.material_dialog_disabled) else "${localZramSize.toInt()} MB"}",
                   style = MaterialTheme.typography.bodyMedium,
                   color = MaterialTheme.colorScheme.onSurface,
               )
@@ -851,7 +855,7 @@ fun ExpandableSelectionCard(
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = "Algorithm",
+            text = stringResource(R.string.material_memory_algorithm),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -1077,7 +1081,7 @@ fun ExpandableIOCard(
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
           if (blockDeviceStates.isEmpty()) {
             Text(
-                text = "No detected block devices with scheduler support",
+                text = stringResource(R.string.material_memory_no_detected_devices),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp),
@@ -1162,7 +1166,7 @@ fun DeviceIOSection(
 
       // Custom Dropdown
       Text(
-          text = "Scheduler",
+          text = stringResource(R.string.material_memory_scheduler),
           style = MaterialTheme.typography.labelMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
           modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),

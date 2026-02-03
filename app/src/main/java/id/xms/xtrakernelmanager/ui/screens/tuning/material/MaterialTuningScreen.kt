@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.*
@@ -38,7 +40,7 @@ fun MaterialTuningScreen(
       topBar = {
         TopAppBar(
             modifier = Modifier.offset(y = (-24).dp),
-            title = { Text(text = "Tuning", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
+            title = { Text(text = stringResource(R.string.material_tuning_title), fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
             actions = {
               var showMenu by remember { mutableStateOf(false) }
 

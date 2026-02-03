@@ -24,10 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.ClusterInfo
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.CoreControlCard
@@ -127,11 +129,11 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
           Spacer(modifier = Modifier.width(12.dp))
           Column {
             Text(
-                text = "Cluster ${cluster.clusterNumber}",
+                text = stringResource(R.string.material_cpu_cluster_format, cluster.clusterNumber),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             )
             Text(
-                text = "CPU ${cluster.cores.first()}-${cluster.cores.last()}",
+                text = stringResource(R.string.material_cpu_cores_range_format, cluster.cores.first(), cluster.cores.last()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -143,7 +145,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         ) {
           Text(
-              text = "ONLINE",
+              text = stringResource(R.string.material_cpu_online),
               style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
               modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
           )
@@ -444,7 +446,7 @@ fun SmartFrequencyLockCard(onNavigateToSmartLock: () -> Unit) {
         }
         Column {
           Text(
-              "Smart Frequency Lock",
+              stringResource(R.string.liquid_smart_frequency_lock),
               style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
               color = MaterialTheme.colorScheme.onTertiaryContainer,
           )

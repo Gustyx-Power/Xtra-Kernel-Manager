@@ -25,6 +25,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import java.lang.Math.PI
 import java.lang.Math.sin
@@ -55,7 +57,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
       // Header
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(
-            text = "GPU",
+            text = stringResource(R.string.material_gpu_title),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f),
@@ -67,11 +69,11 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
           // Show vendor from gpuInfo (e.g., "Qualcomm" -> "ADRENO")
           val badgeText =
               when {
-                gpuInfo.vendor.contains("Qualcomm", ignoreCase = true) -> "ADRENO"
-                gpuInfo.vendor.contains("ARM", ignoreCase = true) -> "MALI"
-                gpuInfo.vendor.contains("PowerVR", ignoreCase = true) -> "POWERVR"
-                gpuInfo.renderer.contains("Adreno", ignoreCase = true) -> "ADRENO"
-                gpuInfo.renderer.contains("Mali", ignoreCase = true) -> "MALI"
+                gpuInfo.vendor.contains("Qualcomm", ignoreCase = true) -> stringResource(R.string.material_gpu_adreno)
+                gpuInfo.vendor.contains("ARM", ignoreCase = true) -> stringResource(R.string.material_gpu_mali)
+                gpuInfo.vendor.contains("PowerVR", ignoreCase = true) -> stringResource(R.string.material_gpu_powervr)
+                gpuInfo.renderer.contains("Adreno", ignoreCase = true) -> stringResource(R.string.material_gpu_adreno)
+                gpuInfo.renderer.contains("Mali", ignoreCase = true) -> stringResource(R.string.material_gpu_mali)
                 else -> gpuInfo.vendor.uppercase().take(8)
               }
           Text(
@@ -104,7 +106,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
           )
         }
         Text(
-            text = "Frequency",
+            text = stringResource(R.string.material_gpu_frequency),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
         )
@@ -131,7 +133,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Load",
+                text = stringResource(R.string.material_gpu_load),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
@@ -156,7 +158,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
                 maxLines = 2,
             )
             Text(
-                text = "GPU",
+                text = stringResource(R.string.material_gpu_name),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
@@ -197,7 +199,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
 
           // Governor (display only, not changeable for GPU)
           GpuControlRow(
-              label = "Governor",
+              label = stringResource(R.string.material_gpu_governor),
               value = "msm-adreno-tz",
               icon = Icons.Rounded.Speed,
               options = listOf("msm-adreno-tz"),
@@ -208,7 +210,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
           Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             GpuTile(
                 modifier = Modifier.weight(1f),
-                label = "Min Frequency",
+                label = stringResource(R.string.material_gpu_min_frequency),
                 value = selectedMinFreq,
                 options = freqOptions.ifEmpty { listOf("${gpuInfo.minFreq} MHz") },
                 onValueChange = { newValue ->
@@ -221,7 +223,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
             )
             GpuTile(
                 modifier = Modifier.weight(1f),
-                label = "Max Frequency",
+                label = stringResource(R.string.material_gpu_max_frequency),
                 value = selectedMaxFreq,
                 options = freqOptions.ifEmpty { listOf("${gpuInfo.maxFreq} MHz") },
                 onValueChange = { newValue ->
@@ -246,12 +248,12 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
                   horizontalArrangement = Arrangement.SpaceBetween,
               ) {
                 Text(
-                    "Power Level",
+                    stringResource(R.string.material_gpu_power_level),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    "Level ${(powerSliderValue * maxPowerLevel).toInt()}",
+                    stringResource(R.string.material_gpu_level_format, (powerSliderValue * maxPowerLevel).toInt()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -270,7 +272,7 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
 
           // Renderer
           GpuControlRow(
-              label = "Renderer",
+              label = stringResource(R.string.material_gpu_renderer),
               value = gpuInfo.rendererType,
               options = listOf("skiavk", "skiagl", "opengl"),
               onValueChange = { viewModel.setGPURenderer(it) },

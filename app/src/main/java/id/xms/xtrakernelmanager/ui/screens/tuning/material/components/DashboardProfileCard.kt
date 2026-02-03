@@ -20,6 +20,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
@@ -70,7 +72,7 @@ fun DashboardProfileCard(viewModel: TuningViewModel) {
               color = MaterialTheme.colorScheme.onTertiaryContainer,
           )
           Text(
-              text = "Active Profile",
+              text = stringResource(R.string.material_active_profile),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f),
           )

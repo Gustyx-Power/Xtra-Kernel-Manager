@@ -747,7 +747,6 @@
     <string name="material_gpu_frequency">Frekuensi</string>
     <string name="material_gpu_load">Beban</string>
     <string name="material_gpu_name">GPU</string>
-    <string name="material_memory_title">Memori</string>
     <string name="material_memory_ram">RAM</string>
     <string name="material_memory_internal_storage">Penyimpanan Internal</string>
     <string name="material_power_menu_title">Menu Daya</string>
@@ -806,7 +805,6 @@
 
     <!-- Missing Material Memory Strings -->
     <string name="material_memory_zram">ZRAM</string>
-    <string name="material_memory_swap">Swap</string>
 
     <!-- Missing Material Power Insight Strings -->
     <string name="material_power_insight_charging">Mengisi Daya</string>
@@ -837,6 +835,62 @@
     <string name="liquid_tcp_select_algorithm">Pilih Algoritma TCP</string>
     <string name="liquid_tcp_choose_network_congestion">Pilih kontrol kemacetan jaringan</string>
     <string name="liquid_dialog_close">Tutup</string>
+
+    <!-- Liquid CPU Control Strings -->
+    <string name="liquid_cpu_clusters_cores_format">%1$d Cluster • %2$d Core</string>
+    <string name="liquid_cpu_core_management">Manajemen Core</string>
+    <string name="liquid_cpu_cores_online">core online</string>
+    <string name="liquid_cpu_cluster_format">Cluster %1$d</string>
+    <string name="liquid_cpu_cores_format">%1$d core</string>
+    <string name="liquid_cpu_core_format">Core %1$d</string>
+    <string name="liquid_cpu_primary">UTAMA</string>
+    <string name="liquid_cpu_offline">Offline</string>
+    <string name="liquid_cpu_primary_core_cannot_disabled">Core utama tidak dapat dinonaktifkan</string>
+    
+    <!-- Smart Frequency Lock Strings -->
+    <string name="liquid_smart_frequency_lock">Smart Frequency Lock</string>
+    <string name="liquid_smart_lock_active">Aktif</string>
+    <string name="liquid_smart_lock_inactive">Nonaktif</string>
+    <string name="liquid_smart_lock_policy_type">Tipe Kebijakan</string>
+    <string name="liquid_smart_lock_thermal_policy">Kebijakan Termal</string>
+    <string name="liquid_smart_lock_locked_clusters">Cluster Terkunci</string>
+    <string name="liquid_smart_lock_clusters_format">%1$d cluster</string>
+    <string name="liquid_smart_lock_unlock">Buka Kunci</string>
+    <string name="liquid_smart_lock_edit">Edit</string>
+    <string name="liquid_smart_lock_configure_lock">Konfigurasi Kunci</string>
+    <string name="liquid_smart_lock_cluster_frequencies">Frekuensi Cluster</string>
+    <string name="liquid_smart_lock_performance">Performa</string>
+    <string name="liquid_smart_lock_efficiency">Efisiensi</string>
+    <string name="liquid_smart_lock_cluster_index_format">Cluster %1$d</string>
+    <string name="liquid_smart_lock_min">Min</string>
+    <string name="liquid_smart_lock_max">Maks</string>
+    <string name="liquid_smart_lock_mhz">MHz</string>
+    <string name="liquid_smart_lock_lock_policy">Kebijakan Kunci</string>
+    <string name="liquid_smart_lock_thermal_policy_title">Kebijakan Termal</string>
+    <string name="liquid_smart_lock_apply_lock">Terapkan Kunci</string>
+    <string name="liquid_smart_lock_lock_all_clusters">Kunci Semua Cluster</string>
+    <string name="liquid_smart_lock_min_frequency_cluster_format">Frekuensi Min - Cluster %1$d</string>
+    <string name="liquid_smart_lock_max_frequency_cluster_format">Frekuensi Maks - Cluster %1$d</string>
+    <string name="liquid_smart_lock_no_frequencies_available">Tidak ada frekuensi tersedia</string>
+    <string name="liquid_smart_lock_lock_cluster_format">Kunci Cluster %1$d</string>
+    <string name="liquid_smart_lock_frequency_range">Rentang Frekuensi</string>
+    <string name="liquid_smart_lock_min_frequency">Frekuensi Minimum</string>
+    <string name="liquid_smart_lock_max_frequency">Frekuensi Maksimum</string>
+    <string name="liquid_smart_lock_lock_frequencies">Kunci Frekuensi</string>
+    <string name="liquid_smart_lock_select_min_frequency">Pilih Frekuensi Min</string>
+    <string name="liquid_smart_lock_select_max_frequency">Pilih Frekuensi Maks</string>
+    <string name="liquid_smart_lock_frequency_locked">Frekuensi Terkunci</string>
+    <string name="liquid_smart_lock_frequency_unlocked">Frekuensi Tidak Terkunci</string>
+    <string name="liquid_smart_lock_lock">Kunci</string>
+    
+    <!-- Lock Policy Descriptions -->
+    <string name="liquid_lock_policy_manual_desc">Kontrol pengguna, tanpa override termal</string>
+    <string name="liquid_lock_policy_smart_desc">Sadar termal dengan auto-restore</string>
+    <string name="liquid_lock_policy_game_desc">Dioptimalkan untuk gaming</string>
+    <string name="liquid_lock_policy_battery_saving_desc">Hemat daya</string>
+    
+    <!-- Thermal Policy Format -->
+    <string name="liquid_thermal_policy_format">Darurat: %1$.0f°C, Peringatan: %2$.0f°C</string>
 
     <!-- Liquid RAM Control Strings -->
     <string name="liquid_ram_virtual_memory_management">Manajemen memori virtual</string>
@@ -912,9 +966,74 @@
     <string name="liquid_recent_mb_unit">MB</string>
     <string name="liquid_recent_gb_unit">GB</string>
     <string name="liquid_recent_hz_unit">Hz</string>
+
+    <!-- Material Component Strings -->
+    <string name="material_additional_control">Kontrol Tambahan</string>
+    <string name="material_io_scheduler">I/O Scheduler</string>
+    <string name="material_dialog_none">Tidak Ada</string>
+    <string name="material_dialog_apply">Terapkan</string>
+    <string name="material_dialog_cancel">Batal</string>
+    <string name="material_dialog_disabled">Nonaktif</string>
+    
+    <!-- Material Memory Strings -->
+    <string name="material_memory_title">Memori</string>
+    <string name="material_memory_subtitle">Manajemen RAM dan Penyimpanan</string>
+    <string name="material_memory_swap">Swap</string>
+    <string name="material_memory_zram_size">Ukuran ZRAM</string>
+    <string name="material_memory_swap_size">Ukuran Swap</string>
+    <string name="material_memory_virtual_memory">Memori Virtual</string>
+    <string name="material_memory_swappiness">Swappiness</string>
+    <string name="material_memory_dirty_ratio">Dirty Ratio</string>
+    <string name="material_memory_healthy">Sehat</string>
+    <string name="material_memory_moderate">Sedang</string>
+    <string name="material_memory_high">Tinggi</string>
+    <string name="material_memory_critical">Kritis</string>
+    <string name="material_memory_ram_insight">Wawasan RAM</string>
+    <string name="material_memory_used">Terpakai</string>
+    <string name="material_memory_available">Tersedia</string>
+    <string name="material_memory_cached">Cache</string>
+    <string name="material_memory_swap_used">Swap Terpakai</string>
+    <string name="material_memory_active">Aktif</string>
+    <string name="material_memory_disabled">Nonaktif</string>
+    <string name="material_memory_zram_status">Status ZRAM</string>
+    <string name="material_memory_comp_ratio">Rasio Kompresi</string>
+    <string name="material_memory_original">Asli</string>
+    <string name="material_memory_compressed">Terkompresi</string>
+    <string name="material_memory_size">Ukuran</string>
+    <string name="material_memory_configuration">Konfigurasi</string>
+    <string name="material_memory_algorithm">Algoritma</string>
+    <string name="material_memory_no_detected_devices">Tidak ada perangkat terdeteksi</string>
+    <string name="material_memory_scheduler">Scheduler</string>
+
+    <!-- Material CPU Strings -->
+    <string name="material_cpu_cluster_format">Cluster %1$d</string>
+    <string name="material_cpu_cores_range_format">CPU %1$d-%2$d</string>
+    <string name="material_cpu_online">ONLINE</string>
+    <string name="material_cpu_cluster_frequencies">Frekuensi Cluster</string>
+    <string name="material_cpu_lock_policy">Kebijakan Kunci</string>
+    <string name="material_cpu_thermal_policy">Kebijakan Termal</string>
+    <string name="material_cpu_cancel">Batal</string>
+    <string name="material_cpu_apply_lock">Terapkan Kunci</string>
+    
+    <!-- Material GPU Strings -->
+    <string name="material_gpu_governor">Governor</string>
+    <string name="material_gpu_min_frequency">Frekuensi Min</string>
+    <string name="material_gpu_max_frequency">Frekuensi Maks</string>
+    <string name="material_gpu_power_level">Level Daya</string>
+    <string name="material_gpu_renderer">Renderer</string>
+    <string name="material_gpu_level_format">Level %d</string>
+    <string name="material_gpu_adreno">ADRENO</string>
+    <string name="material_gpu_mali">MALI</string>
+    <string name="material_gpu_powervr">POWERVR</string>
+    <string name="material_gpu_unknown">GPU Tidak Dikenal</string>
+    
+    <!-- Material Tuning Strings -->
+    <string name="material_tuning_title">Tuning</string>
+    <string name="material_active_profile">Profil Aktif</string>
+    
+    <!-- Liquid Recent Strings -->
     <string name="liquid_recent_advanced_settings">Pengaturan Lanjutan</string>
     <string name="liquid_recent_fine_tune_performance">Setel performa sistem dengan detail</string>
     <string name="liquid_recent_per_app_profiles">Profil Per-Aplikasi</string>
     <string name="liquid_recent_balance">Seimbang</string>
-
 </resources>

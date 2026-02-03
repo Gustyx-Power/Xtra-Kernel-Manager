@@ -890,7 +890,6 @@
     <string name="material_gpu_frequency">Frequency</string>
     <string name="material_gpu_load">Load</string>
     <string name="material_gpu_name">GPU</string>
-    <string name="material_memory_title">Memory</string>
     <string name="material_memory_ram">RAM</string>
     <string name="material_memory_internal_storage">Internal Storage</string>
     <string name="material_power_menu_title">Power Menu</string>
@@ -949,7 +948,6 @@
 
     <!-- Missing Material Memory Strings -->
     <string name="material_memory_zram">ZRAM</string>
-    <string name="material_memory_swap">Swap</string>
 
     <!-- Missing Material Power Insight Strings -->
     <string name="material_power_insight_charging">Charging</string>
@@ -980,6 +978,62 @@
     <string name="liquid_tcp_select_algorithm">Select TCP Algorithm</string>
     <string name="liquid_tcp_choose_network_congestion">Choose network congestion control</string>
     <string name="liquid_dialog_close">Close</string>
+
+    <!-- Liquid CPU Control Strings -->
+    <string name="liquid_cpu_clusters_cores_format">%1$d Cluster • %2$d Core</string>
+    <string name="liquid_cpu_core_management">Core Management</string>
+    <string name="liquid_cpu_cores_online">cores online</string>
+    <string name="liquid_cpu_cluster_format">Cluster %1$d</string>
+    <string name="liquid_cpu_cores_format">%1$d cores</string>
+    <string name="liquid_cpu_core_format">Core %1$d</string>
+    <string name="liquid_cpu_primary">PRIMARY</string>
+    <string name="liquid_cpu_offline">Offline</string>
+    <string name="liquid_cpu_primary_core_cannot_disabled">Primary core cannot be disabled</string>
+    
+    <!-- Smart Frequency Lock Strings -->
+    <string name="liquid_smart_frequency_lock">Smart Frequency Lock</string>
+    <string name="liquid_smart_lock_active">Active</string>
+    <string name="liquid_smart_lock_inactive">Inactive</string>
+    <string name="liquid_smart_lock_policy_type">Policy Type</string>
+    <string name="liquid_smart_lock_thermal_policy">Thermal Policy</string>
+    <string name="liquid_smart_lock_locked_clusters">Locked Clusters</string>
+    <string name="liquid_smart_lock_clusters_format">%1$d clusters</string>
+    <string name="liquid_smart_lock_unlock">Unlock</string>
+    <string name="liquid_smart_lock_edit">Edit</string>
+    <string name="liquid_smart_lock_configure_lock">Configure Lock</string>
+    <string name="liquid_smart_lock_cluster_frequencies">Cluster Frequencies</string>
+    <string name="liquid_smart_lock_performance">Performance</string>
+    <string name="liquid_smart_lock_efficiency">Efficiency</string>
+    <string name="liquid_smart_lock_cluster_index_format">Cluster %1$d</string>
+    <string name="liquid_smart_lock_min">Min</string>
+    <string name="liquid_smart_lock_max">Max</string>
+    <string name="liquid_smart_lock_mhz">MHz</string>
+    <string name="liquid_smart_lock_lock_policy">Lock Policy</string>
+    <string name="liquid_smart_lock_thermal_policy_title">Thermal Policy</string>
+    <string name="liquid_smart_lock_apply_lock">Apply Lock</string>
+    <string name="liquid_smart_lock_lock_all_clusters">Lock All Clusters</string>
+    <string name="liquid_smart_lock_min_frequency_cluster_format">Min Frequency - Cluster %1$d</string>
+    <string name="liquid_smart_lock_max_frequency_cluster_format">Max Frequency - Cluster %1$d</string>
+    <string name="liquid_smart_lock_no_frequencies_available">No frequencies available</string>
+    <string name="liquid_smart_lock_lock_cluster_format">Lock Cluster %1$d</string>
+    <string name="liquid_smart_lock_frequency_range">Frequency Range</string>
+    <string name="liquid_smart_lock_min_frequency">Minimum Frequency</string>
+    <string name="liquid_smart_lock_max_frequency">Maximum Frequency</string>
+    <string name="liquid_smart_lock_lock_frequencies">Lock Frequencies</string>
+    <string name="liquid_smart_lock_select_min_frequency">Select Min Frequency</string>
+    <string name="liquid_smart_lock_select_max_frequency">Select Max Frequency</string>
+    <string name="liquid_smart_lock_frequency_locked">Frequency Locked</string>
+    <string name="liquid_smart_lock_frequency_unlocked">Frequency Unlocked</string>
+    <string name="liquid_smart_lock_lock">Lock</string>
+    
+    <!-- Lock Policy Descriptions -->
+    <string name="liquid_lock_policy_manual_desc">User control, no thermal override</string>
+    <string name="liquid_lock_policy_smart_desc">Thermal aware with auto-restore</string>
+    <string name="liquid_lock_policy_game_desc">Optimized for gaming</string>
+    <string name="liquid_lock_policy_battery_saving_desc">Power saving</string>
+    
+    <!-- Thermal Policy Format -->
+    <string name="liquid_thermal_policy_format">Emergency: %1$.0f°C, Warning: %2$.0f°C</string>
 
     <!-- Liquid RAM Control Strings -->
     <string name="liquid_ram_virtual_memory_management">Virtual memory management</string>
@@ -1055,8 +1109,74 @@
     <string name="liquid_recent_mb_unit">MB</string>
     <string name="liquid_recent_gb_unit">GB</string>
     <string name="liquid_recent_hz_unit">Hz</string>
+
+    <!-- Material Component Strings -->
+    <string name="material_additional_control">Additional Control</string>
+    <string name="material_io_scheduler">I/O Scheduler</string>
+    <string name="material_dialog_none">None</string>
+    <string name="material_dialog_apply">Apply</string>
+    <string name="material_dialog_cancel">Cancel</string>
+    <string name="material_dialog_disabled">Disabled</string>
+    
+    <!-- Material Memory Strings -->
+    <string name="material_memory_title">Memory</string>
+    <string name="material_memory_subtitle">RAM and Storage Management</string>
+    <string name="material_memory_swap">Swap</string>
+    <string name="material_memory_zram_size">ZRAM Size</string>
+    <string name="material_memory_swap_size">Swap Size</string>
+    <string name="material_memory_virtual_memory">Virtual Memory</string>
+    <string name="material_memory_swappiness">Swappiness</string>
+    <string name="material_memory_dirty_ratio">Dirty Ratio</string>
+    <string name="material_memory_healthy">Healthy</string>
+    <string name="material_memory_moderate">Moderate</string>
+    <string name="material_memory_high">High</string>
+    <string name="material_memory_critical">Critical</string>
+    <string name="material_memory_ram_insight">RAM Insight</string>
+    <string name="material_memory_used">Used</string>
+    <string name="material_memory_available">Available</string>
+    <string name="material_memory_cached">Cached</string>
+    <string name="material_memory_swap_used">Swap Used</string>
+    <string name="material_memory_active">Active</string>
+    <string name="material_memory_disabled">Disabled</string>
+    <string name="material_memory_zram_status">ZRAM Status</string>
+    <string name="material_memory_comp_ratio">Comp. Ratio</string>
+    <string name="material_memory_original">Original</string>
+    <string name="material_memory_compressed">Compressed</string>
+    <string name="material_memory_size">Size</string>
+    <string name="material_memory_configuration">Configuration</string>
+    <string name="material_memory_algorithm">Algorithm</string>
+    <string name="material_memory_no_detected_devices">No detected devices</string>
+    <string name="material_memory_scheduler">Scheduler</string>
+
+    <!-- Material CPU Strings -->
+    <string name="material_cpu_cluster_format">Cluster %1$d</string>
+    <string name="material_cpu_cores_range_format">CPU %1$d-%2$d</string>
+    <string name="material_cpu_online">ONLINE</string>
+    <string name="material_cpu_cluster_frequencies">Cluster Frequencies</string>
+    <string name="material_cpu_lock_policy">Lock Policy</string>
+    <string name="material_cpu_thermal_policy">Thermal Policy</string>
+    <string name="material_cpu_cancel">Cancel</string>
+    <string name="material_cpu_apply_lock">Apply Lock</string>
+    
+    <!-- Material GPU Strings -->
+    <string name="material_gpu_governor">Governor</string>
+    <string name="material_gpu_min_frequency">Min Frequency</string>
+    <string name="material_gpu_max_frequency">Max Frequency</string>
+    <string name="material_gpu_power_level">Power Level</string>
+    <string name="material_gpu_renderer">Renderer</string>
+    <string name="material_gpu_level_format">Level %d</string>
+    <string name="material_gpu_adreno">ADRENO</string>
+    <string name="material_gpu_mali">MALI</string>
+    <string name="material_gpu_powervr">POWERVR</string>
+    <string name="material_gpu_unknown">Unknown GPU</string>
+    
+    <!-- Material Tuning Strings -->
+    <string name="material_tuning_title">Tuning</string>
+    <string name="material_active_profile">Active Profile</string>
+    
+    <!-- Liquid Recent Strings -->
     <string name="liquid_recent_advanced_settings">Advanced Settings</string>
-    <string name="liquid_recent_fine_tune_performance">Fine-tune system performance</string>
+    <string name="liquid_recent_fine_tune_performance">Fine tune system performance in detail</string>
     <string name="liquid_recent_per_app_profiles">Per-App Profiles</string>
     <string name="liquid_recent_balance">Balance</string>
 

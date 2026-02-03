@@ -55,7 +55,7 @@ fun LegacyCPUControl(viewModel: TuningViewModel, onClick: () -> Unit) {
               fontWeight = FontWeight.Bold,
           )
           Text(
-              text = "${clusters.size} Clusters • ${clusters.sumOf { it.cores.size }} Cores",
+              text = stringResource(R.string.liquid_cpu_clusters_cores_format, clusters.size, clusters.sumOf { it.cores.size }),
               style = MaterialTheme.typography.bodyMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
           )

@@ -16,8 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.CoreInfo
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
@@ -61,11 +63,11 @@ fun CoreControlCard(
           Spacer(modifier = Modifier.width(16.dp))
           Column {
             Text(
-                text = "Core Management",
+                text = stringResource(R.string.liquid_cpu_core_management),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             )
             Text(
-                text = "$onlineCores/$totalCores cores online",
+                text = stringResource(R.string.liquid_cpu_clusters_cores_format, onlineCores, totalCores) + " " + stringResource(R.string.liquid_cpu_cores_online),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -80,7 +82,7 @@ fun CoreControlCard(
                 MaterialTheme.colorScheme.tertiaryContainer,
         ) {
           Text(
-              text = if (expanded) "COLLAPSE" else "EXPAND",
+              text = if (expanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
               style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
               modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
               color = if (onlineCores == totalCores) 
@@ -132,7 +134,7 @@ private fun ClusterCoreSection(
     Column(modifier = Modifier.padding(16.dp)) {
       // Cluster Header
       Text(
-          text = "Cluster $clusterNumber",
+          text = stringResource(R.string.liquid_cpu_cluster_format, clusterNumber),
           style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier.padding(bottom = 12.dp)
@@ -203,7 +205,7 @@ private fun CoreItem(
       
       Column {
         Text(
-            text = "Core ${core.coreNumber}",
+            text = stringResource(R.string.liquid_cpu_core_format, core.coreNumber),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             color = if (isOnline) 
                 MaterialTheme.colorScheme.onSurface 
@@ -219,7 +221,7 @@ private fun CoreItem(
           )
         } else if (!isOnline) {
           Text(
-              text = "Offline",
+              text = stringResource(R.string.liquid_cpu_offline),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.error,
           )
@@ -249,7 +251,7 @@ private fun CoreItem(
   // Core 0 warning
   if (isCore0) {
     Text(
-        text = "Core 0 cannot be disabled",
+        text = stringResource(R.string.liquid_cpu_primary_core_cannot_disabled),
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         modifier = Modifier.padding(start = 48.dp, top = 4.dp)

@@ -15,7 +15,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
@@ -48,12 +50,12 @@ fun AdditionalControlCard(viewModel: TuningViewModel) {
           Spacer(modifier = Modifier.width(16.dp))
           Column {
             Text(
-                text = "Additional Control",
+                text = stringResource(R.string.material_additional_control),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                text = "I/O Scheduler",
+                text = stringResource(R.string.material_io_scheduler),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -68,7 +70,7 @@ fun AdditionalControlCard(viewModel: TuningViewModel) {
 
           // IO Scheduler Section
           Text(
-              text = "I/O Scheduler",
+              text = stringResource(R.string.material_io_scheduler),
               style = MaterialTheme.typography.labelMedium,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
@@ -95,7 +97,7 @@ fun AdditionalControlCard(viewModel: TuningViewModel) {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = currentIOScheduler.ifEmpty { "None" },
+                    text = currentIOScheduler.ifEmpty { stringResource(R.string.material_dialog_none) },
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                 )

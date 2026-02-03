@@ -7,6 +7,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.model.PowerAction
 import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
 
@@ -21,7 +23,7 @@ fun PowerMenuContent(onAction: (PowerAction) -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = "Power Menu",
+            text = stringResource(R.string.material_power_menu_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
