@@ -52,6 +52,9 @@ object BatteryRepository {
   private var cachedBatteryBasePath: String? = null
   private var cachedCurrentNowPath: String? = null
   private var cachedCycleCountPath: String? = null
+  private var smoothedCurrent: Double = 0.0
+  private var isCurrentInitialized: Boolean = false
+  private const val CURRENT_EMA_ALPHA: Double = 0.15
 
   fun getCachedTotalCapacity(): Int = cachedTotalCapacity
 
@@ -162,7 +165,7 @@ object BatteryRepository {
           }
         }
 
-        var currentNow = NativeLib.readDrainRate()?.let { -it } ?: 0
+        var currentNow = NativeLib.readDrainRate() ?: 0
         if (currentNow == 0) {
           if (cachedCurrentNowPath != null) {
             val raw = RootManager.readFile(cachedCurrentNowPath!!)
@@ -170,8 +173,7 @@ object BatteryRepository {
                 ?.trim()
                 ?.toIntOrNull()
                 ?.div(1000) ?: 0
-            val isCharging = statusText == "Charging" || statusText == "Full"
-            currentNow = if (isCharging) kotlin.math.abs(raw) else -kotlin.math.abs(raw)
+            currentNow = raw
           } else {
             val basePath = cachedBatteryBasePath ?: "/sys/class/power_supply/battery"
             val currentPaths = listOf(
@@ -183,12 +185,24 @@ object BatteryRepository {
               val raw = RootManager.readFile(path).getOrNull()?.trim()?.toIntOrNull()?.div(1000)
               if (raw != null) {
                 cachedCurrentNowPath = path
-                val isCharging = statusText == "Charging" || statusText == "Full"
-                currentNow = if (isCharging) kotlin.math.abs(raw) else -kotlin.math.abs(raw)
+                currentNow = raw
                 break
               }
             }
           }
+        }
+        val isCharging = statusText == "Charging" || statusText == "Full"
+        currentNow = if (isCharging) kotlin.math.abs(currentNow) else -kotlin.math.abs(currentNow)
+        if (currentNow != 0) {
+          if (!isCurrentInitialized) {
+            smoothedCurrent = currentNow.toDouble()
+            isCurrentInitialized = true
+          } else {
+            smoothedCurrent = CURRENT_EMA_ALPHA * currentNow + (1 - CURRENT_EMA_ALPHA) * smoothedCurrent
+          }
+          currentNow = smoothedCurrent.toInt()
+        } else if (isCurrentInitialized) {
+          currentNow = smoothedCurrent.toInt()
         }
 
         val capacityHealth =

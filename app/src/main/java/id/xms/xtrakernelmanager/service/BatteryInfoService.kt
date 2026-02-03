@@ -54,6 +54,14 @@ class BatteryInfoService : Service() {
   private var showActiveIdle: Boolean = true
   private var showScreen: Boolean = true
   private var showAwakeSleep: Boolean = true
+  private var smoothedCurrent: Double = 0.0
+  private var isCurrentInitialized: Boolean = false
+  private fun getEmaAlpha(): Double = when {
+    refreshRateMs <= 500 -> 0.05   // 0.5s refresh: very aggressive smoothing
+    refreshRateMs <= 1000 -> 0.08  // 1s refresh: aggressive smoothing
+    refreshRateMs <= 2000 -> 0.15  // 2s refresh: moderate smoothing
+    else -> 0.25                   // 5s+ refresh: light smoothing
+  }
 
   // Deep sleep tracking
   private var initialDeepSleep: Long = 0L
@@ -757,8 +765,12 @@ class BatteryInfoService : Service() {
       Log.d("BatteryInfoService", "Root read failed: ${e.message}")
     }
 
-    Log.w("BatteryInfoService", "Could not read battery current from any source")
-    return 0
+    Log.w("BatteryInfoService", "Could not read battery current from any source, using cached value")
+    return if (cachedCurrent != 0) {
+      if (isCharging) kotlin.math.abs(cachedCurrent) else -kotlin.math.abs(cachedCurrent)
+    } else {
+      0
+    }
   }
 
   /**
@@ -891,7 +903,7 @@ class BatteryInfoService : Service() {
                         ?.replace("\n", "")
                         ?.toIntOrNull()
                 if (rootCurrent != null)
-                    current = rootCurrent / 1000 // Convert uA to mA if needed, usually uA in sysfs
+                    current = kotlin.math.abs(rootCurrent / 1000) // Convert uA to mA, use abs (sign applied later)
 
                 val rootVoltage =
                     id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
@@ -919,10 +931,47 @@ class BatteryInfoService : Service() {
                 Log.e("BatteryInfoService", "Root fallback failed: ${e.message}")
               }
             }
-
-            val isCharging = id.xms.xtrakernelmanager.domain.native.NativeLib.isCharging() ?: false
+            // Get charging status: Use root (sysfs) first as requested by user
+            // API can get stuck, so sysfs is more reliable
+            var isCharging = false
+            var statusReadSuccess = false
+            
+            try {
+              val statusStr = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                  "/sys/class/power_supply/battery/status"
+              ).getOrNull()?.trim()
+              
+              if (statusStr != null) {
+                // Use equals instead of contains because "Discharging" contains "Charging"!
+                isCharging = statusStr.equals("Charging", ignoreCase = true) || 
+                             statusStr.equals("Full", ignoreCase = true)
+                statusReadSuccess = true
+              }
+            } catch (_: Exception) { }
+            
+            // Fallback to API if sysfs access failed
+            if (!statusReadSuccess) {
+              val batteryManager = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+              isCharging = batteryManager?.isCharging ?: false
+            }
+            
             val health =
                 id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryHealth() ?: "Unknown"
+
+            current = if (isCharging) kotlin.math.abs(current) else -kotlin.math.abs(current)
+          
+            if (current != 0) {
+              if (!isCurrentInitialized) {
+                smoothedCurrent = current.toDouble()
+                isCurrentInitialized = true
+              } else {
+                val alpha = getEmaAlpha()
+                smoothedCurrent = alpha * current + (1 - alpha) * smoothedCurrent
+              }
+              current = smoothedCurrent.toInt()
+            } else if (isCurrentInitialized) {
+              current = smoothedCurrent.toInt()
+            }
 
             // Update cache if valid read
             if (level != -1) cachedLevel = level

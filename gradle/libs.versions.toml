@@ -40,7 +40,7 @@ leakcanary = "2.14"
 # KSP
 ksp = "2.3.5"
 lifecycle-service = "2.10.0"
-foundation = "1.10.1"
+foundation = "1.10.2"
 
 [libraries]
 # AndroidX Core
