@@ -774,6 +774,7 @@
     <string name="game_control_title">Game Control</string>
     <string name="game_tools_mode_monster">Mode\nMonster</string>
     <string name="game_tools_clear_ram">Clear\nRAM</string>
+    <string name="game_tools_boost">Game\nBoost</string>
     <string name="game_tools_clearing">Clearing…</string>
     <string name="game_control_grant_usage_access">Grant Usage Access Permission</string>
 
