@@ -162,7 +162,7 @@ fun RecentCPUCard(
                     )
                 }
                 Text(
-                    text = "Cores Online",
+                    text = stringResource(R.string.liquid_recent_cores_online),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -181,14 +181,14 @@ fun RecentCPUCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "GHz",
+                        text = stringResource(R.string.liquid_recent_ghz_unit),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
                 Text(
-                    text = "Current Frequency",
+                    text = stringResource(R.string.liquid_recent_current_frequency),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -204,12 +204,12 @@ fun RecentCPUCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Frequency Range",
+                    text = stringResource(R.string.liquid_recent_frequency_range),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Max $maxFreqText GHz",
+                    text = stringResource(R.string.liquid_recent_max_freq_format, maxFreqText),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
@@ -273,7 +273,7 @@ fun RecentCPUCard(
                         color = emeraldColor
                     )
                     Text(
-                        text = "CPU Load",
+                        text = stringResource(R.string.liquid_recent_cpu_load),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -342,7 +342,7 @@ fun RecentCPUCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Clusters",
+                        text = stringResource(R.string.liquid_recent_clusters),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -372,7 +372,7 @@ fun RecentCPUCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Governors",
+                        text = stringResource(R.string.liquid_recent_governors),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -412,7 +412,7 @@ fun RecentCPUCard(
                         maxLines = 1
                     )
                     Text(
-                        text = "SOC",
+                        text = stringResource(R.string.liquid_recent_soc),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -443,7 +443,7 @@ fun RecentCPUCard(
                         color = emeraldColor
                     )
                     Text(
-                        text = "Process",
+                        text = stringResource(R.string.liquid_recent_process),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -566,7 +566,7 @@ fun RecentGPUCard(
                         color = blueColor
                     )
                     Text(
-                        text = "GPU Load",
+                        text = stringResource(R.string.liquid_recent_gpu_load),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -597,7 +597,7 @@ fun RecentGPUCard(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "MHz",
+                        text = stringResource(R.string.liquid_recent_mhz_unit),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -615,7 +615,7 @@ fun RecentGPUCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Power Level",
+                    text = stringResource(R.string.liquid_recent_power_level),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -689,7 +689,7 @@ fun RecentGPUCard(
                             maxLines = 1
                         )
                         Text(
-                            text = "Memory",
+                            text = stringResource(R.string.liquid_recent_memory),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -721,7 +721,7 @@ fun RecentGPUCard(
                             maxLines = 1
                         )
                         Text(
-                            text = "CUs",
+                            text = stringResource(R.string.liquid_recent_cus),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -760,7 +760,7 @@ fun RecentGPUCard(
                             maxLines = 1
                         )
                         Text(
-                            text = "OpenGL",
+                            text = stringResource(R.string.liquid_recent_opengl),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -804,7 +804,7 @@ fun RecentGPUCard(
                             maxLines = 1
                         )
                         Text(
-                            text = "Vulkan",
+                            text = stringResource(R.string.liquid_recent_vulkan),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -844,7 +844,7 @@ fun RecentGPUCard(
                         maxLines = 1
                     )
                     Text(
-                        text = "Resolution",
+                        text = stringResource(R.string.liquid_recent_resolution),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -875,7 +875,7 @@ fun RecentGPUCard(
                         maxLines = 1
                     )
                     Text(
-                        text = "Refresh Rate",
+                        text = stringResource(R.string.liquid_recent_refresh_rate),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -954,7 +954,7 @@ fun RecentThermalCard(
                     color = roseColor
                 )
                 Text(
-                    text = "°C",
+                    text = stringResource(R.string.celsius),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 12.dp)
@@ -980,7 +980,7 @@ fun RecentThermalCard(
                             .background(roseColor)
                     )
                     Text(
-                        text = "Normal Temperature",
+                        text = stringResource(R.string.liquid_recent_normal_temperature),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
                         color = roseColor
@@ -1007,7 +1007,7 @@ fun RecentThermalCard(
                 ) {
                     Column {
                         Text(
-                            text = "Thermal Preset",
+                            text = stringResource(R.string.liquid_recent_thermal_preset),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1053,7 +1053,7 @@ fun RecentThermalCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Stable",
+                        text = stringResource(R.string.liquid_recent_stable),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -1077,7 +1077,7 @@ fun RecentThermalCard(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Cooling",
+                        text = stringResource(R.string.liquid_recent_cooling),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium
                     )
@@ -1168,7 +1168,7 @@ fun RecentRAMCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "ZRAM",
+                    text = stringResource(R.string.liquid_recent_zram),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1184,7 +1184,7 @@ fun RecentRAMCard(
                         color = blueColor
                     )
                     Text(
-                        text = " MB",
+                        text = stringResource(R.string.liquid_recent_mb_unit),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -1192,7 +1192,7 @@ fun RecentRAMCard(
                 }
                 if (ramConfig.zramSize == 0) {
                     Text(
-                        text = "Disabled",
+                        text = stringResource(R.string.liquid_recent_disabled),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1226,7 +1226,7 @@ fun RecentRAMCard(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Swappiness",
+                            text = stringResource(R.string.liquid_recent_swappiness),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -1262,7 +1262,7 @@ fun RecentRAMCard(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Dirty Ratio",
+                            text = stringResource(R.string.liquid_recent_dirty_ratio),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -1320,7 +1320,7 @@ fun RecentAdditionalCard(
         
         // Title
         Text(
-            text = "Advanced Settings",
+            text = stringResource(R.string.liquid_recent_advanced_settings),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
@@ -1329,7 +1329,7 @@ fun RecentAdditionalCard(
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "Fine-tune system performance",
+            text = stringResource(R.string.liquid_recent_fine_tune_performance),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -1360,7 +1360,7 @@ fun RecentAdditionalCard(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "I/O Scheduler",
+                            text = stringResource(R.string.liquid_recent_io_scheduler),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -1396,7 +1396,7 @@ fun RecentAdditionalCard(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "TCP Congestion",
+                            text = stringResource(R.string.liquid_recent_tcp_congestion),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -1432,7 +1432,7 @@ fun RecentAdditionalCard(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Per-App Profiles",
+                            text = stringResource(R.string.liquid_recent_per_app_profiles),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium
                         )
@@ -1472,12 +1472,12 @@ fun RecentAdditionalCard(
                     )
                     Column {
                         Text(
-                            text = "Performance Mode",
+                            text = stringResource(R.string.liquid_recent_performance_mode),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Medium
                         )
                         Text(
-                            text = "Balance",
+                            text = stringResource(R.string.liquid_recent_balance),
                             style = MaterialTheme.typography.labelMedium,
                             color = grayColor,
                             fontWeight = FontWeight.Bold

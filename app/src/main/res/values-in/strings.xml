@@ -876,4 +876,45 @@
     <!-- Liquid I/O Control Strings -->
     <string name="liquid_io_scheduler">I/O Scheduler</string>
 
+    <!-- Liquid Recent Cards Strings -->
+    <string name="liquid_recent_cores_online">Core Online</string>
+    <string name="liquid_recent_current_frequency">Frekuensi Saat Ini</string>
+    <string name="liquid_recent_frequency_range">Rentang Frekuensi</string>
+    <string name="liquid_recent_max_freq_format">Maks %s GHz</string>
+    <string name="liquid_recent_cpu_load">Beban CPU</string>
+    <string name="liquid_recent_clusters">Cluster</string>
+    <string name="liquid_recent_governors">Governor</string>
+    <string name="liquid_recent_soc">SOC</string>
+    <string name="liquid_recent_process">Proses</string>
+    <string name="liquid_recent_gpu_load">Beban GPU</string>
+    <string name="liquid_recent_power_level">Level Daya</string>
+    <string name="liquid_recent_memory">Memori</string>
+    <string name="liquid_recent_cus">CU</string>
+    <string name="liquid_recent_opengl">OpenGL</string>
+    <string name="liquid_recent_vulkan">Vulkan</string>
+    <string name="liquid_recent_resolution">Resolusi</string>
+    <string name="liquid_recent_refresh_rate">Refresh Rate</string>
+    <string name="liquid_recent_normal_temperature">Suhu Normal</string>
+    <string name="liquid_recent_thermal_preset">Preset Termal</string>
+    <string name="liquid_recent_stable">Stabil</string>
+    <string name="liquid_recent_cooling">Pendinginan</string>
+    <string name="liquid_recent_zram">ZRAM</string>
+    <string name="liquid_recent_disabled">Nonaktif</string>
+    <string name="liquid_recent_swap">Swap</string>
+    <string name="liquid_recent_swappiness">Swappiness</string>
+    <string name="liquid_recent_dirty_ratio">Dirty Ratio</string>
+    <string name="liquid_recent_min_free_memory">Memori Bebas Min</string>
+    <string name="liquid_recent_io_scheduler">I/O Scheduler</string>
+    <string name="liquid_recent_tcp_congestion">TCP Congestion</string>
+    <string name="liquid_recent_performance_mode">Mode Performa</string>
+    <string name="liquid_recent_ghz_unit">GHz</string>
+    <string name="liquid_recent_mhz_unit">MHz</string>
+    <string name="liquid_recent_mb_unit">MB</string>
+    <string name="liquid_recent_gb_unit">GB</string>
+    <string name="liquid_recent_hz_unit">Hz</string>
+    <string name="liquid_recent_advanced_settings">Pengaturan Lanjutan</string>
+    <string name="liquid_recent_fine_tune_performance">Setel performa sistem dengan detail</string>
+    <string name="liquid_recent_per_app_profiles">Profil Per-Aplikasi</string>
+    <string name="liquid_recent_balance">Seimbang</string>
+
 </resources>

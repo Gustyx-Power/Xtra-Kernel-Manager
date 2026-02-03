@@ -1019,4 +1019,45 @@
     <!-- Liquid I/O Control Strings -->
     <string name="liquid_io_scheduler">I/O Scheduler</string>
 
+    <!-- Liquid Recent Cards Strings -->
+    <string name="liquid_recent_cores_online">Cores Online</string>
+    <string name="liquid_recent_current_frequency">Current Frequency</string>
+    <string name="liquid_recent_frequency_range">Frequency Range</string>
+    <string name="liquid_recent_max_freq_format">Max %s GHz</string>
+    <string name="liquid_recent_cpu_load">CPU Load</string>
+    <string name="liquid_recent_clusters">Clusters</string>
+    <string name="liquid_recent_governors">Governors</string>
+    <string name="liquid_recent_soc">SOC</string>
+    <string name="liquid_recent_process">Process</string>
+    <string name="liquid_recent_gpu_load">GPU Load</string>
+    <string name="liquid_recent_power_level">Power Level</string>
+    <string name="liquid_recent_memory">Memory</string>
+    <string name="liquid_recent_cus">CUs</string>
+    <string name="liquid_recent_opengl">OpenGL</string>
+    <string name="liquid_recent_vulkan">Vulkan</string>
+    <string name="liquid_recent_resolution">Resolution</string>
+    <string name="liquid_recent_refresh_rate">Refresh Rate</string>
+    <string name="liquid_recent_normal_temperature">Normal Temperature</string>
+    <string name="liquid_recent_thermal_preset">Thermal Preset</string>
+    <string name="liquid_recent_stable">Stable</string>
+    <string name="liquid_recent_cooling">Cooling</string>
+    <string name="liquid_recent_zram">ZRAM</string>
+    <string name="liquid_recent_disabled">Disabled</string>
+    <string name="liquid_recent_swap">Swap</string>
+    <string name="liquid_recent_swappiness">Swappiness</string>
+    <string name="liquid_recent_dirty_ratio">Dirty Ratio</string>
+    <string name="liquid_recent_min_free_memory">Min Free Memory</string>
+    <string name="liquid_recent_io_scheduler">I/O Scheduler</string>
+    <string name="liquid_recent_tcp_congestion">TCP Congestion</string>
+    <string name="liquid_recent_performance_mode">Performance Mode</string>
+    <string name="liquid_recent_ghz_unit">GHz</string>
+    <string name="liquid_recent_mhz_unit">MHz</string>
+    <string name="liquid_recent_mb_unit">MB</string>
+    <string name="liquid_recent_gb_unit">GB</string>
+    <string name="liquid_recent_hz_unit">Hz</string>
+    <string name="liquid_recent_advanced_settings">Advanced Settings</string>
+    <string name="liquid_recent_fine_tune_performance">Fine-tune system performance</string>
+    <string name="liquid_recent_per_app_profiles">Per-App Profiles</string>
+    <string name="liquid_recent_balance">Balance</string>
+
 </resources>
