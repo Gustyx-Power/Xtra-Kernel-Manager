@@ -93,7 +93,7 @@ fun LiquidPerformancePanel(
         LiquidSideBtn(
             icon = Icons.Default.CleaningServices,
             text = if (isClearingRam) stringResource(R.string.game_tools_clearing)
-                   else stringResource(R.string.game_tools_clear_ram),
+                   else stringResource(R.string.game_tools_boost),
             active = false,
             color = Color(0xFF10B981),
             onClick = { if (!isClearingRam) onClearRam() },
