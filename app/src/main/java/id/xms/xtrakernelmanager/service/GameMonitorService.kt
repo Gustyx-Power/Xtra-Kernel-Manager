@@ -32,11 +32,12 @@ class GameMonitorService : AccessibilityService() {
   override fun onServiceConnected() {
     super.onServiceConnected()
     Log.d(TAG, "Accessibility Service Connected")
-    preferencesManager = PreferencesManager(applicationContext)
-
-    // Create persistent notification to prevent service from being killed
+    
+    // CRITICAL: Start foreground immediately to prevent crash
     createNotificationChannel()
-    startForegroundIfNeeded()
+    startForegroundImmediately()
+    
+    preferencesManager = PreferencesManager(applicationContext)
 
     // Load initial games list
     serviceScope.launch { loadGameList() }
@@ -58,13 +59,12 @@ class GameMonitorService : AccessibilityService() {
     }
   }
 
-  private fun startForegroundIfNeeded() {
+  private fun startForegroundImmediately() {
     try {
       val notification = createNotification()
-      // Use startForeground to make service more persistent
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        startForeground(NOTIFICATION_ID, notification)
-      }
+      // Always call startForeground for AccessibilityService to prevent crashes
+      startForeground(NOTIFICATION_ID, notification)
+      Log.d(TAG, "Started foreground service successfully")
     } catch (e: Exception) {
       Log.e(TAG, "Failed to start foreground", e)
     }
@@ -221,6 +221,6 @@ class GameMonitorService : AccessibilityService() {
   override fun onRebind(intent: Intent?) {
     super.onRebind(intent)
     Log.d(TAG, "Service Rebound")
-    startForegroundIfNeeded()
+    startForegroundImmediately()
   }
 }

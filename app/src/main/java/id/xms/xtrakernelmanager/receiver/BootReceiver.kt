@@ -13,6 +13,7 @@ import id.xms.xtrakernelmanager.domain.usecase.RAMControlUseCase
 import id.xms.xtrakernelmanager.service.AppProfileService
 import id.xms.xtrakernelmanager.service.BatteryInfoService
 import id.xms.xtrakernelmanager.service.GameMonitorService
+import id.xms.xtrakernelmanager.utils.AccessibilityServiceHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -195,37 +196,26 @@ class BootReceiver : BroadcastReceiver() {
           }
 
       if (hasEnabledGames) {
-        Log.d(TAG, "Enabled games found, starting GameMonitorService...")
-
-        if (Build.VERSION.SDK_INT >= 35) {
-          Handler(Looper.getMainLooper())
-              .postDelayed({ startGameMonitorServiceDirect(context) }, BATTERY_SERVICE_DELAY_MS)
+        Log.d(TAG, "Enabled games found, checking GameMonitorService accessibility status...")
+        
+        // GameMonitorService is an AccessibilityService and cannot be started programmatically
+        // It must be enabled by the user through Android's accessibility settings
+        if (AccessibilityServiceHelper.isGameMonitorServiceEnabled(context)) {
+          Log.d(TAG, "GameMonitorService accessibility is enabled")
         } else {
-          startGameMonitorServiceDirect(context)
+          Log.w(TAG, "GameMonitorService accessibility is not enabled. User must enable it manually in Settings > Accessibility")
+          Log.i(TAG, "Service name: ${AccessibilityServiceHelper.getServiceName(context)}")
         }
       } else {
-        Log.d(TAG, "No enabled games, skipping GameMonitorService start")
+        Log.d(TAG, "No enabled games, GameMonitorService not needed")
       }
     } catch (e: Exception) {
-      Log.e(TAG, "Failed to start GameMonitorService: ${e.message}")
+      Log.e(TAG, "Failed to check GameMonitorService: ${e.message}")
     }
   }
 
-  private fun startGameMonitorServiceDirect(context: Context) {
-    try {
-      val serviceIntent = Intent(context, GameMonitorService::class.java)
-
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context.startForegroundService(serviceIntent)
-      } else {
-        context.startService(serviceIntent)
-      }
-      Log.d(TAG, "GameMonitorService started successfully")
-    } catch (e: android.app.ForegroundServiceStartNotAllowedException) {
-      Log.w(TAG, "ForegroundService not allowed for GameMonitorService: ${e.message}")
-    } catch (e: Exception) {
-      Log.e(TAG, "Failed to start GameMonitorService: ${e.message}")
-    }
+  private fun isAccessibilityServiceEnabled(context: Context): Boolean {
+    return AccessibilityServiceHelper.isGameMonitorServiceEnabled(context)
   }
 
   private suspend fun applyRamConfigOnBoot(context: Context) {
