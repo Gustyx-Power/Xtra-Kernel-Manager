@@ -596,11 +596,166 @@ class GameControlUseCase(private val context: Context) {
       return null
   }
 
+  suspend fun performGameBoost(): Result<String> {
+      return try {
+          Log.d(TAG, "Performing game boost - switching to performance mode with dynamic thermal")
+          
+          val perfResult = setPerformanceMode("performance")
+          if (!perfResult.isSuccess) {
+              Log.w(TAG, "Performance mode switch failed: ${perfResult.exceptionOrNull()?.message}")
+          }
+          
+          val thermalUseCase = ThermalControlUseCase()
+          try {
+              thermalUseCase.setThermalMode("Dynamic", false)
+              Log.d(TAG, "Dynamic thermal mode applied")
+          } catch (e: Exception) {
+              Log.e(TAG, "Failed to set dynamic thermal: ${e.message}")
+          }
+          
+          val monsterResult = enableMonsterMode()
+          if (!monsterResult.isSuccess) {
+              Log.w(TAG, "Monster mode failed: ${monsterResult.exceptionOrNull()?.message}")
+          }
+          
+          val ramResult = clearRAM()
+          val freedMB = if (ramResult.isSuccess) {
+              ramResult.getOrNull()?.freedMB ?: 0L
+          } else {
+              Log.w(TAG, "RAM clearing failed: ${ramResult.exceptionOrNull()?.message}")
+              0L
+          }
+          
+          val message = "Game Boost Activated!\nPerformance Mode + Dynamic Thermal\nFreed ${freedMB}MB RAM"
+          
+          Log.d(TAG, "Game boost completed successfully")
+          Result.success(message)
+          
+      } catch (e: Exception) {
+          Log.e(TAG, "Failed to perform game boost", e)
+          Result.failure(e)
+      }
+  }
+
   suspend fun takeScreenshot(): Result<Boolean> {
       return try {
-          RootManager.executeCommand("input keyevent 120") 
-          Result.success(true)
+          Log.d(TAG, "Taking screenshot")
+          
+          val createDirResult = RootManager.executeCommand("mkdir -p /sdcard/Pictures/Screenshots")
+          
+          val timestamp = System.currentTimeMillis()
+          val screenshotPath = "/sdcard/Pictures/Screenshots/XKM_screenshot_$timestamp.png"
+          
+          val result1 = RootManager.executeCommand("screencap -p $screenshotPath")
+          if (result1.isSuccess) {
+              kotlinx.coroutines.delay(100)
+              
+              val verifyResult = RootManager.executeCommand("test -f $screenshotPath && echo 'exists' || echo 'missing'")
+              if (verifyResult.getOrNull()?.trim() == "exists") {
+                  Log.d(TAG, "Screenshot saved to $screenshotPath")
+                  RootManager.executeCommand("am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$screenshotPath")
+                  return Result.success(true)
+              }
+          }
+          
+          val altPath = "/sdcard/DCIM/Screenshots/XKM_screenshot_$timestamp.png"
+          RootManager.executeCommand("mkdir -p /sdcard/DCIM/Screenshots")
+          val result2 = RootManager.executeCommand("screencap -p $altPath")
+          if (result2.isSuccess) {
+              kotlinx.coroutines.delay(100)
+              val verifyResult = RootManager.executeCommand("test -f $altPath && echo 'exists' || echo 'missing'")
+              if (verifyResult.getOrNull()?.trim() == "exists") {
+                  Log.d(TAG, "Screenshot saved to $altPath")
+                  RootManager.executeCommand("am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$altPath")
+                  return Result.success(true)
+              }
+          }
+          
+          val result3 = RootManager.executeCommand("am start -a android.intent.action.MAIN -n com.android.systemui/.screenshot.ScreenshotServiceActivity")
+          if (result3.isSuccess) {
+              Log.d(TAG, "Screenshot triggered via system UI")
+              return Result.success(true)
+          }
+          
+          Log.w(TAG, "All safe screenshot methods failed")
+          Result.failure(Exception("Screenshot methods failed - check root permissions"))
+          
       } catch (e: Exception) {
+          Log.e(TAG, "Failed to take screenshot", e)
+          Result.failure(e)
+      }
+  }
+
+  suspend fun rejectIncomingCall(): Result<Boolean> {
+      return try {
+          Log.d(TAG, "Rejecting incoming call")
+          
+          val result1 = RootManager.executeCommand("service call phone 5")
+          if (result1.isSuccess) {
+              Log.d(TAG, "Call rejected via telephony service")
+              return Result.success(true)
+          }
+          
+          val result2 = RootManager.executeCommand("service call phone 1 i32 0")
+          if (result2.isSuccess) {
+              Log.d(TAG, "Call rejected via alternative service")
+              return Result.success(true)
+          }
+          
+          val result3 = RootManager.executeCommand("input keyevent KEYCODE_HEADSETHOOK")
+          if (result3.isSuccess) {
+              Log.d(TAG, "Call rejected via headset hook")
+              return Result.success(true)
+          }
+          
+          val result4 = RootManager.executeCommand("input keyevent KEYCODE_ENDCALL")
+          if (result4.isSuccess) {
+              Log.d(TAG, "Call rejected via end call button")
+              return Result.success(true)
+          }
+          
+          Log.w(TAG, "All safe call rejection methods failed")
+          Result.failure(Exception("Call rejection methods failed - check permissions"))
+          
+      } catch (e: Exception) {
+          Log.e(TAG, "Failed to reject call", e)
+          Result.failure(e)
+      }
+  }
+
+  suspend fun answerIncomingCall(): Result<Boolean> {
+      return try {
+          Log.d(TAG, "Answering incoming call")
+          
+          val result1 = RootManager.executeCommand("service call phone 2")
+          if (result1.isSuccess) {
+              Log.d(TAG, "Call answered via telephony service")
+              return Result.success(true)
+          }
+          
+          val result2 = RootManager.executeCommand("input keyevent KEYCODE_HEADSETHOOK")
+          if (result2.isSuccess) {
+              Log.d(TAG, "Call answered via headset hook")
+              return Result.success(true)
+          }
+          
+          val result3 = RootManager.executeCommand("input keyevent KEYCODE_CALL")
+          if (result3.isSuccess) {
+              Log.d(TAG, "Call answered via call button")
+              return Result.success(true)
+          }
+          
+          val result4 = RootManager.executeCommand("service call phone 1 i32 1")
+          if (result4.isSuccess) {
+              Log.d(TAG, "Call answered via alternative service")
+              return Result.success(true)
+          }
+          
+          Log.w(TAG, "All safe call answer methods failed")
+          Result.failure(Exception("Call answer methods failed - check permissions"))
+          
+      } catch (e: Exception) {
+          Log.e(TAG, "Failed to answer call", e)
           Result.failure(e)
       }
   }
