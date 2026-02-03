@@ -364,27 +364,48 @@ class GameControlUseCase(private val context: Context) {
   
   suspend fun getMaxBrightness(): Int {
       return try {
-          val result = RootManager.executeCommand("settings get system screen_brightness_mode_value")
-          val maxVal = result.getOrNull()?.trim()?.toIntOrNull()
+          val commonPaths = listOf(
+              "/sys/class/backlight/panel0-backlight/max_brightness",
+              "/sys/class/backlight/panel1-backlight/max_brightness", 
+              "/sys/class/leds/lcd-backlight/max_brightness",
+              "/sys/class/backlight/backlight/max_brightness",
+              "/sys/class/backlight/*/max_brightness"
+          )
           
-          // If not found, try to get from system
-          if (maxVal == null || maxVal <= 0) {
-              // Try reading from sysfs
-              val sysfsResult = RootManager.readFile("/sys/class/backlight/panel0-backlight/max_brightness")
-              val sysfsMax = sysfsResult.getOrNull()?.trim()?.toIntOrNull()
-              
-              if (sysfsMax != null && sysfsMax > 0) {
-                  return sysfsMax
+          for (path in commonPaths) {
+              try {
+                  val result = if (path.contains("*")) {
+                      val findResult = RootManager.executeCommand("find /sys/class/backlight/ -name max_brightness 2>/dev/null | head -1")
+                      val actualPath = findResult.getOrNull()?.trim()
+                      if (!actualPath.isNullOrEmpty()) {
+                          RootManager.readFile(actualPath)
+                      } else null
+                  } else {
+                      RootManager.readFile(path)
+                  }
+                  
+                  val maxVal = result?.getOrNull()?.trim()?.toIntOrNull()
+                  if (maxVal != null && maxVal > 0) {
+                      Log.d(TAG, "Found max brightness: $maxVal from path: $path")
+                      return maxVal
+                  }
+              } catch (e: Exception) {
+                  continue
               }
-              // Default fallback 
-              val currentResult = RootManager.executeCommand("settings get system screen_brightness")
-              val current = currentResult.getOrNull()?.trim()?.toIntOrNull() ?: 255
-              
-              // If current value is > 255, using higher range
-              return if (current > 255) 2047 else 255
           }
           
-          maxVal
+          val currentResult = RootManager.executeCommand("settings get system screen_brightness")
+          val current = currentResult.getOrNull()?.trim()?.toIntOrNull()
+          
+          val maxBrightness = when {
+              current != null && current > 1000 -> 2047
+              current != null && current > 255 -> 1023
+              else -> 255
+          }
+          
+          Log.d(TAG, "Using fallback max brightness: $maxBrightness (current: $current)")
+          maxBrightness
+          
       } catch (e: Exception) {
           Log.e(TAG, "Error getting max brightness, using default 255", e)
           255
@@ -393,20 +414,186 @@ class GameControlUseCase(private val context: Context) {
 
   suspend fun setBrightness(value: Int): Result<Boolean> {
       return try {
-          RootManager.executeCommand("settings put system screen_brightness $value")
-          Result.success(true)
+          val clampedValue = value.coerceAtLeast(1)
+          
+          Log.d(TAG, "Setting brightness to: $clampedValue")
+          
+          val sysfsResult = setSysfsBrightness(clampedValue)
+          if (sysfsResult.isSuccess) {
+              Log.d(TAG, "Brightness set via sysfs successfully to: $clampedValue")
+              return sysfsResult
+          }
+          
+          Log.d(TAG, "Sysfs failed, trying Android settings method")
+          val result = RootManager.executeCommand("settings put system screen_brightness $clampedValue")
+          
+          if (result.isSuccess) {
+              RootManager.executeCommand("settings put system screen_brightness_mode 0")
+              Log.d(TAG, "Brightness set via settings successfully to: $clampedValue")
+              Result.success(true)
+          } else {
+              Log.e(TAG, "Failed to set brightness via both methods: ${result.exceptionOrNull()?.message}")
+              Result.failure(result.exceptionOrNull() ?: Exception("Both sysfs and settings methods failed"))
+          }
       } catch (e: Exception) {
+          Log.e(TAG, "Error setting brightness", e)
           Result.failure(e)
       }
+  }
+  
+  private suspend fun setSysfsBrightness(value: Int): Result<Boolean> {
+      val commonPaths = listOf(
+          "/sys/class/backlight/panel0-backlight/brightness",
+          "/sys/class/backlight/panel1-backlight/brightness",
+          "/sys/class/leds/lcd-backlight/brightness",
+          "/sys/class/backlight/backlight/brightness"
+      )
+      
+      for (path in commonPaths) {
+          try {
+              val checkResult = RootManager.executeCommand("test -f $path && echo exists || echo notfound")
+              if (checkResult.getOrNull()?.trim() == "exists") {
+                  val writeResult = RootManager.executeCommand("echo $value > $path")
+                  if (writeResult.isSuccess) {
+                      Log.d(TAG, "Successfully set brightness via sysfs: $path = $value")
+                      return Result.success(true)
+                  } else {
+                      Log.w(TAG, "Failed to write to $path: ${writeResult.exceptionOrNull()?.message}")
+                  }
+              }
+          } catch (e: Exception) {
+              Log.w(TAG, "Error trying sysfs path $path: ${e.message}")
+              continue
+          }
+      }
+      
+      try {
+          val findResult = RootManager.executeCommand("find /sys/class/backlight/ -name brightness 2>/dev/null | head -1")
+          val actualPath = findResult.getOrNull()?.trim()
+          if (!actualPath.isNullOrEmpty()) {
+              val writeResult = RootManager.executeCommand("echo $value > $actualPath")
+              if (writeResult.isSuccess) {
+                  Log.d(TAG, "Successfully set brightness via discovered sysfs: $actualPath = $value")
+                  return Result.success(true)
+              }
+          }
+      } catch (e: Exception) {
+          Log.w(TAG, "Error in wildcard sysfs discovery: ${e.message}")
+      }
+      
+      return Result.failure(Exception("No working sysfs brightness path found"))
   }
 
   suspend fun getBrightness(): Int {
       return try {
+          val sysfsResult = getSysfsBrightness()
+          if (sysfsResult != null) {
+              Log.d(TAG, "Current brightness from sysfs: $sysfsResult")
+              return sysfsResult
+          }
+          
+          Log.d(TAG, "Sysfs failed, trying Android settings method")
           val result = RootManager.executeCommand("settings get system screen_brightness")
-          result.getOrNull()?.trim()?.toIntOrNull() ?: 128
+          val brightness = result.getOrNull()?.trim()?.toIntOrNull()
+          
+          if (brightness != null && brightness >= 0) {
+              Log.d(TAG, "Current brightness from settings: $brightness")
+              brightness
+          } else {
+              Log.w(TAG, "Could not get current brightness from either method, using default 128")
+              128
+          }
       } catch (e: Exception) {
+          Log.e(TAG, "Error getting brightness", e)
           128
       }
+  }
+  
+  private suspend fun getSysfsBrightness(): Int? {
+      val commonPaths = listOf(
+          "/sys/class/backlight/panel0-backlight/brightness",
+          "/sys/class/backlight/panel1-backlight/brightness",
+          "/sys/class/leds/lcd-backlight/brightness",
+          "/sys/class/backlight/backlight/brightness"
+      )
+      
+      for (path in commonPaths) {
+          try {
+              val result = RootManager.readFile(path)
+              val brightness = result.getOrNull()?.trim()?.toIntOrNull()
+              if (brightness != null && brightness >= 0) {
+                  Log.d(TAG, "Found current brightness: $brightness from $path")
+                  return brightness
+              }
+          } catch (e: Exception) {
+              continue
+          }
+      }
+      
+      try {
+          val findResult = RootManager.executeCommand("find /sys/class/backlight/ -name brightness 2>/dev/null | head -1")
+          val actualPath = findResult.getOrNull()?.trim()
+          if (!actualPath.isNullOrEmpty()) {
+              val result = RootManager.readFile(actualPath)
+              val brightness = result.getOrNull()?.trim()?.toIntOrNull()
+              if (brightness != null && brightness >= 0) {
+                  Log.d(TAG, "Found current brightness via discovery: $brightness from $actualPath")
+                  return brightness
+              }
+          }
+      } catch (e: Exception) {
+          Log.w(TAG, "Error in wildcard brightness discovery: ${e.message}")
+      }
+      
+      return null
+  }
+  
+  suspend fun detectBrightnessControlMethod(): String? {
+      val commonPaths = listOf(
+          "/sys/class/backlight/panel0-backlight/brightness",
+          "/sys/class/backlight/panel1-backlight/brightness", 
+          "/sys/class/leds/lcd-backlight/brightness",
+          "/sys/class/backlight/backlight/brightness"
+      )
+      
+      for (path in commonPaths) {
+          try {
+              val readResult = RootManager.readFile(path)
+              val currentValue = readResult.getOrNull()?.trim()?.toIntOrNull()
+              
+              if (currentValue != null && currentValue >= 0) {
+                  val writeResult = RootManager.executeCommand("echo $currentValue > $path")
+                  if (writeResult.isSuccess) {
+                      Log.d(TAG, "Detected working brightness control: $path")
+                      return path
+                  }
+              }
+          } catch (e: Exception) {
+              continue
+          }
+      }
+      
+      try {
+          val findResult = RootManager.executeCommand("find /sys/class/backlight/ -name brightness 2>/dev/null | head -1")
+          val actualPath = findResult.getOrNull()?.trim()
+          if (!actualPath.isNullOrEmpty()) {
+              val readResult = RootManager.readFile(actualPath)
+              val currentValue = readResult.getOrNull()?.trim()?.toIntOrNull()
+              
+              if (currentValue != null && currentValue >= 0) {
+                  val writeResult = RootManager.executeCommand("echo $currentValue > $actualPath")
+                  if (writeResult.isSuccess) {
+                      Log.d(TAG, "Detected working brightness control via discovery: $actualPath")
+                      return actualPath
+                  }
+              }
+          }
+      } catch (e: Exception) {
+          Log.w(TAG, "Error in brightness control detection: ${e.message}")
+      }
+      
+      Log.d(TAG, "No sysfs brightness control detected, will use Android settings method")
+      return null
   }
 
   suspend fun takeScreenshot(): Result<Boolean> {

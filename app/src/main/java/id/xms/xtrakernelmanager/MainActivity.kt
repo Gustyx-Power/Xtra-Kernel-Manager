@@ -17,6 +17,7 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.service.KernelConfigService
 import id.xms.xtrakernelmanager.ui.navigation.Navigation
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
+import id.xms.xtrakernelmanager.utils.AccessibilityServiceHelper
 
 class MainActivity : ComponentActivity() {
   private val preferencesManager by lazy { PreferencesManager(this) }
@@ -55,8 +56,9 @@ class MainActivity : ComponentActivity() {
     startService(Intent(this, KernelConfigService::class.java))
     // Start battery info service to populate real-time stats
     startService(Intent(this, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java))
-    // Start GameMonitorService
-    startService(Intent(this, id.xms.xtrakernelmanager.service.GameMonitorService::class.java))
+    // GameMonitorService is an AccessibilityService and cannot be started programmatically
+    // It must be enabled by the user through Android's accessibility settings
+    checkGameMonitorServiceStatus()
     // Start AppProfileService
     startService(Intent(this, id.xms.xtrakernelmanager.service.AppProfileService::class.java))
 
@@ -107,5 +109,23 @@ class MainActivity : ComponentActivity() {
       // Uncomment to auto-request:
       // FullscreenPermissionHelper.requestOverlayPermission(this)
     }
+  }
+  
+  private fun checkGameMonitorServiceStatus() {
+    try {
+      val isEnabled = AccessibilityServiceHelper.isGameMonitorServiceEnabled(this)
+      if (isEnabled) {
+        android.util.Log.d("MainActivity", "GameMonitorService accessibility is enabled")
+      } else {
+        android.util.Log.w("MainActivity", "GameMonitorService accessibility is not enabled. User must enable it manually in Settings > Accessibility")
+        android.util.Log.i("MainActivity", "Service name: ${AccessibilityServiceHelper.getServiceName(this)}")
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("MainActivity", "Failed to check GameMonitorService status: ${e.message}")
+    }
+  }
+  
+  private fun isAccessibilityServiceEnabled(): Boolean {
+    return AccessibilityServiceHelper.isGameMonitorServiceEnabled(this)
   }
 }

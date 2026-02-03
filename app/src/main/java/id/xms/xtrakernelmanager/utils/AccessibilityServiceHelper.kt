@@ -4,83 +4,59 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
+import android.view.accessibility.AccessibilityManager
+import id.xms.xtrakernelmanager.service.GameMonitorService
 
-/**
- * Helper class for Accessibility Service management
- * Especially useful for ColorOS, MIUI, and other aggressive battery optimization ROMs
- */
 object AccessibilityServiceHelper {
-    
-    private const val TAG = "AccessibilityHelper"
-    
+    private const val TAG = "AccessibilityServiceHelper"
+
     /**
-     * Check if Game Monitor accessibility service is enabled
+     * Check if the GameMonitorService accessibility service is enabled
      */
-    fun isServiceEnabled(context: Context): Boolean {
+    fun isGameMonitorServiceEnabled(context: Context): Boolean {
         return try {
-            val accessibilityEnabled = Settings.Secure.getInt(
-                context.contentResolver,
-                Settings.Secure.ACCESSIBILITY_ENABLED,
-                0
-            )
-            
-            if (accessibilityEnabled == 0) return false
-            
             val enabledServices = Settings.Secure.getString(
                 context.contentResolver,
                 Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
             )
-            
-            if (enabledServices.isNullOrEmpty()) return false
-            
-            val packageName = context.packageName
-            val serviceName = "GameMonitorService"
-            
-            enabledServices.contains(packageName) && enabledServices.contains(serviceName)
+            val serviceName = "${context.packageName}/${GameMonitorService::class.java.name}"
+            enabledServices?.contains(serviceName) == true
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking accessibility service", e)
+            Log.e(TAG, "Failed to check accessibility service status: ${e.message}")
             false
         }
     }
-    
+
     /**
-     * Open accessibility settings
+     * Open accessibility settings to allow user to enable the service
      */
     fun openAccessibilitySettings(context: Context) {
         try {
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             context.startActivity(intent)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to open accessibility settings", e)
+            Log.e(TAG, "Failed to open accessibility settings: ${e.message}")
         }
     }
-    
+
     /**
-     * Get user-friendly message for ColorOS/MIUI users
+     * Get the service name for display purposes
      */
-    fun getColorOSInstructions(): String {
-        return """
-            For ColorOS/OPPO devices:
-            1. Enable the accessibility service
-            2. Go to Settings > Battery > App Battery Management
-            3. Find XKM and set to "No restrictions"
-            4. Go to Settings > App Management > XKM
-            5. Enable "Auto-start" and "Run in background"
-        """.trimIndent()
+    fun getServiceName(context: Context): String {
+        return "${context.packageName}/${GameMonitorService::class.java.name}"
     }
-    
+
     /**
-     * Get user-friendly message for MIUI users
+     * Check if accessibility services are available on this device
      */
-    fun getMIUIInstructions(): String {
-        return """
-            For MIUI/Xiaomi devices:
-            1. Enable the accessibility service
-            2. Go to Settings > Apps > Manage apps > XKM
-            3. Enable "Autostart"
-            4. Set Battery saver to "No restrictions"
-            5. Lock the app in Recent apps
-        """.trimIndent()
+    fun isAccessibilityAvailable(context: Context): Boolean {
+        return try {
+            val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+            accessibilityManager.isEnabled
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to check accessibility availability: ${e.message}")
+            false
+        }
     }
 }

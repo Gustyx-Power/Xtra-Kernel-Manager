@@ -363,9 +363,15 @@ fun ExpressiveModeSelector(viewModel: GameMonitorViewModel) {
 @Composable
 fun BrightnessControlExpressive(viewModel: GameMonitorViewModel) {
   val vmBrightness by viewModel.brightness.collectAsStateWithLifecycle()
-  var localSliderValue by remember { mutableFloatStateOf(0f) }
+  var localSliderValue by remember { mutableFloatStateOf(vmBrightness) }
   var isDragging by remember { mutableStateOf(false) }
   val displayValue = if (isDragging) localSliderValue else vmBrightness
+
+  LaunchedEffect(vmBrightness) {
+    if (!isDragging) {
+      localSliderValue = vmBrightness
+    }
+  }
 
   Surface(
       color = MaterialTheme.colorScheme.surfaceContainerHigh,
