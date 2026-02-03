@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "GPU",
+                    text = stringResource(id.xms.xtrakernelmanager.R.string.liquid_gpu_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = adaptiveTextColor()
@@ -67,7 +68,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                     color = NeonPurple
                 )
                 Text(
-                    text = "Frequency",
+                    text = stringResource(id.xms.xtrakernelmanager.R.string.liquid_gpu_frequency),
                     style = MaterialTheme.typography.bodySmall,
                     color = adaptiveTextColor(0.6f)
                 )
@@ -94,7 +95,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                             color = adaptiveTextColor()
                         )
                         Text(
-                            text = "Load",
+                            text = stringResource(id.xms.xtrakernelmanager.R.string.liquid_gpu_load),
                             style = MaterialTheme.typography.bodySmall,
                             color = adaptiveTextColor(0.6f)
                         )
@@ -130,7 +131,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
                              lineHeight = 1.2.em
                         )
                         Text(
-                            text = "GPU",
+                            text = stringResource(id.xms.xtrakernelmanager.R.string.liquid_gpu_name),
                             style = MaterialTheme.typography.bodySmall,
                             color = adaptiveTextColor(0.6f)
                         )

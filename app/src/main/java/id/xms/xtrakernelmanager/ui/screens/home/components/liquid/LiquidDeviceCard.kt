@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -122,7 +123,7 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                     text = systemInfo.deviceModel
                          .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
                          .trim()
-                         .ifBlank { "Unknown Device" },
+                         .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_unknown_device) },
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 42.sp),
                     color = adaptiveTextColor(),
                     lineHeight = 44.sp
@@ -141,14 +142,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         InfoTile(
                             icon = Icons.Rounded.Android,
-                            label = "Android",
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_android),
                             value = systemInfo.androidVersion,
                             color = NeonGreen,
                             modifier = Modifier.weight(1.5f).height(80.dp)
                         )
                          InfoTile(
                             icon = Icons.Rounded.DeveloperBoard,
-                            label = "Kernel",
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_kernel),
                             value = systemInfo.kernelVersion,
                             color = NeonPurple,
                             modifier = Modifier.weight(1.5f).height(80.dp)
@@ -158,14 +159,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         InfoTile(
                             icon = Icons.Rounded.AccessTime,
-                            label = "Uptime",
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_uptime),
                             value = uptime,
                             color = NeonBlue,
                             modifier = Modifier.weight(1f).height(80.dp)
                         )
                         InfoTile(
                             icon = androidx.compose.material.icons.Icons.Rounded.NightsStay, 
-                            label = "Sleep",
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_sleep),
                             value = deepSleep,
                             color = Color(0xFFF48FB1), 
                             modifier = Modifier.weight(1f).height(80.dp)
@@ -174,7 +175,7 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                     // Row 3
                     InfoTile(
                         icon = Icons.Rounded.Android,
-                        label = "Smartphone Brand",
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_smartphone_brand),
                         value = android.os.Build.MANUFACTURER.uppercase(),
                         color = Color.White,
                         modifier = Modifier.fillMaxWidth().height(80.dp)

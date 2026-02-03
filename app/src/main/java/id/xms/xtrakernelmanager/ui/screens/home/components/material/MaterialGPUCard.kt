@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,7 @@ fun MaterialGPUCard(gpuInfo: GPUInfo) {
           verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-            text = "GPU",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.material_gpu_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -40,15 +41,16 @@ fun MaterialGPUCard(gpuInfo: GPUInfo) {
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.1f),
             shape = CircleShape,
         ) {
+          val defaultGpuName = stringResource(id.xms.xtrakernelmanager.R.string.material_gpu_name)
           val gpuBadge =
-              remember(gpuInfo.renderer) {
+              remember(gpuInfo.renderer, gpuInfo.vendor, defaultGpuName) {
                 when {
                   gpuInfo.renderer.contains("Adreno", true) -> "Adreno"
                   gpuInfo.renderer.contains("Mali", true) -> "Mali"
                   gpuInfo.renderer.contains("PowerVR", true) -> "PowerVR"
                   gpuInfo.renderer.contains("NVIDIA", true) -> "NVIDIA"
                   gpuInfo.renderer != "Unknown" -> gpuInfo.renderer.take(12)
-                  else -> gpuInfo.vendor.ifEmpty { "GPU" }
+                  else -> gpuInfo.vendor.ifEmpty { defaultGpuName }
                 }
               }
           Text(
@@ -69,7 +71,7 @@ fun MaterialGPUCard(gpuInfo: GPUInfo) {
             color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
         Text(
-            text = "Frequency",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.material_gpu_frequency),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.6f),
         )
@@ -93,7 +95,7 @@ fun MaterialGPUCard(gpuInfo: GPUInfo) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
-                text = "Load",
+                text = stringResource(id.xms.xtrakernelmanager.R.string.material_gpu_load),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )
@@ -131,7 +133,7 @@ fun MaterialGPUCard(gpuInfo: GPUInfo) {
                 lineHeight = 1.2.em,
             )
             Text(
-                text = "GPU",
+                text = stringResource(id.xms.xtrakernelmanager.R.string.material_gpu_name),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             )

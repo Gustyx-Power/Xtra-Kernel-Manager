@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -56,7 +57,7 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
             )
           }
           Text(
-              text = "Battery",
+              text = stringResource(id.xms.xtrakernelmanager.R.string.material_battery_title),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onSurface,
@@ -69,7 +70,7 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
             shape = CircleShape,
         ) {
           Text(
-              text = batteryInfo.technology.takeIf { it != "Unknown" } ?: "Li-ion",
+              text = batteryInfo.technology.takeIf { it != "Unknown" } ?: stringResource(id.xms.xtrakernelmanager.R.string.default_li_ion),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
               color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -100,7 +101,7 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
           Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             BatteryStatusChip(text = batteryInfo.status)
             BatteryStatusChip(
-                text = "Health ${String.format(Locale.US, "%.0f", batteryInfo.healthPercent)}%"
+                text = stringResource(id.xms.xtrakernelmanager.R.string.material_battery_health, String.format(Locale.US, "%.0f", batteryInfo.healthPercent))
             )
           }
         }
@@ -115,21 +116,21 @@ fun MaterialBatteryCard(batteryInfo: BatteryInfo) {
           val currentText =
               if (batteryInfo.currentNow >= 0) "+${batteryInfo.currentNow} mA"
               else "${batteryInfo.currentNow} mA"
-          BatteryStatBox(label = "Current", value = currentText, modifier = Modifier.weight(1f))
+          BatteryStatBox(label = stringResource(id.xms.xtrakernelmanager.R.string.material_battery_current), value = currentText, modifier = Modifier.weight(1f))
           BatteryStatBox(
-              label = "Voltage",
+              label = stringResource(id.xms.xtrakernelmanager.R.string.material_battery_voltage),
               value = "${batteryInfo.voltage} mV",
               modifier = Modifier.weight(1f),
           )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
           BatteryStatBox(
-              label = "Temperature",
+              label = stringResource(id.xms.xtrakernelmanager.R.string.material_battery_temperature),
               value = "${batteryInfo.temperature}°C",
               modifier = Modifier.weight(1f),
           )
           BatteryStatBox(
-              label = "Cycle Count",
+              label = stringResource(id.xms.xtrakernelmanager.R.string.material_battery_cycle_count),
               value = "${batteryInfo.cycleCount}",
               modifier = Modifier.weight(1f),
           )

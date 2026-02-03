@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -37,9 +38,9 @@ fun LiquidProfileCard(
     modifier: Modifier = Modifier
 ) {
     val (icon, color, label) = when (currentProfile) {
-        "Performance" -> Triple(Icons.Rounded.Bolt, Color(0xFFEF4444), "Performance") // Red
-        "Powersave", "Battery" -> Triple(Icons.Rounded.BatterySaver, Color(0xFF10B981), "Power Save") // Green
-        else -> Triple(Icons.Rounded.Speed, Color(0xFF3B82F6), "Balanced") // Blue
+        "Performance" -> Triple(Icons.Rounded.Bolt, Color(0xFFEF4444), stringResource(id.xms.xtrakernelmanager.R.string.liquid_profile_performance)) // Red
+        "Powersave", "Battery" -> Triple(Icons.Rounded.BatterySaver, Color(0xFF10B981), stringResource(id.xms.xtrakernelmanager.R.string.liquid_profile_power_save)) // Green
+        else -> Triple(Icons.Rounded.Speed, Color(0xFF3B82F6), stringResource(id.xms.xtrakernelmanager.R.string.liquid_profile_balanced)) // Blue
     }
 
     LiquidSharedCard(modifier = modifier) {
@@ -103,7 +104,7 @@ fun LiquidProfileCard(
                         color = adaptiveTextColor()
                     )
                     Text(
-                        text = "Tap to Change",
+                        text = stringResource(id.xms.xtrakernelmanager.R.string.liquid_profile_tap_to_change),
                         style = MaterialTheme.typography.labelSmall,
                         color = adaptiveTextColor(0.5f)
                     )

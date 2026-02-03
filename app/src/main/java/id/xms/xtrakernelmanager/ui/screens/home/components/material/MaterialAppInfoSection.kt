@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -110,7 +111,7 @@ fun MaterialAppInfoSection() {
                                 shape = MaterialTheme.shapes.small,
                             ) {
                                 Text(
-                                    text = "TEAM",
+                                    text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_team),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -121,14 +122,14 @@ fun MaterialAppInfoSection() {
 
                         Column {
                             Text(
-                                text = "MAINTAINER",
+                                text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_maintainer),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 letterSpacing = 1.sp,
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "XMS Team",
+                                    text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_xms_team),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
@@ -142,7 +143,7 @@ fun MaterialAppInfoSection() {
                                 )
                             }
                             Text(
-                                text = "@Xtra-Manager-Software",
+                                text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_xms_handle),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 maxLines = 1,
@@ -166,7 +167,7 @@ fun MaterialAppInfoSection() {
                     ) {
                         val fullVersion = BuildConfig.VERSION_NAME
                         val isDebug = fullVersion.contains("Dev", ignoreCase = true)
-                        val badgeText = if (isDebug) "DEBUG" else "STABLE"
+                        val badgeText = if (isDebug) stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_debug) else stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_stable)
                         val badgeColor = if (isDebug) {
                             MaterialTheme.colorScheme.error
                         } else {
@@ -217,7 +218,7 @@ fun MaterialAppInfoSection() {
                             modifier = Modifier.padding(top = 12.dp),
                         ) {
                             Text(
-                                text = "VERSION",
+                                text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_version),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                                 letterSpacing = 1.sp,
@@ -275,14 +276,14 @@ fun MaterialAppInfoSection() {
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "ABOUT XKM",
+                            text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_about_xkm),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 1.sp,
                         )
                         Text(
-                            text = "Xtra Kernel Manager is a free and open-source Kernel Manager designed to give you full control over your device's kernel. Built with Kotlin Jetpack Compose for a smooth and responsive user experience.",
+                            text = stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_description),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Start,
@@ -315,7 +316,7 @@ fun MaterialAppInfoSection() {
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                "GitHub",
+                                stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_github),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.labelLarge,
                             )
@@ -335,7 +336,7 @@ fun MaterialAppInfoSection() {
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Credit", style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_credit), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }

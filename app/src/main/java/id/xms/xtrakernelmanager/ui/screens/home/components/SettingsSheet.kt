@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
@@ -58,13 +59,13 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
       Spacer(modifier = Modifier.width(16.dp))
       Column {
         Text(
-            text = "Quick Settings",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.settings_quick_settings),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = "Customize your experience",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.settings_customize_experience),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -76,7 +77,7 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
     // Layout Selection
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
       Text(
-          text = "Layout Style",
+          text = stringResource(id.xms.xtrakernelmanager.R.string.settings_layout_style),
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.SemiBold,
           color = MaterialTheme.colorScheme.onSurface,

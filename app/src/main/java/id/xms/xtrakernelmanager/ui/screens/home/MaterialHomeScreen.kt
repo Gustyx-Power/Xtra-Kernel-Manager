@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
@@ -205,13 +206,13 @@ fun MaterialHomeScreen(
             },
             title = {
                 Text(
-                    "Accessibility Service Disabled",
+                    stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_disabled),
                     style = MaterialTheme.typography.titleLarge
                 )
             },
             text = {
                 Text(
-                    "XKM Game Monitor accessibility service is disabled. This service is required for game detection and statistics tracking.\n\nWould you like to enable it now?",
+                    stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_message),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
@@ -223,14 +224,14 @@ fun MaterialHomeScreen(
                         context.startActivity(intent)
                     }
                 ) {
-                    Text("Enable")
+                    Text(stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_enable))
                 }
             },
             dismissButton = {
                 TextButton(
                     onClick = { showAccessibilityDialog = false }
                 ) {
-                    Text("Later")
+                    Text(stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_later))
                 }
             }
         )

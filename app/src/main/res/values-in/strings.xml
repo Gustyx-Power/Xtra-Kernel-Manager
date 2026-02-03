@@ -708,4 +708,94 @@
     <string name="game_tools_clearing">Membersihkan…</string>
     <string name="game_control_grant_usage_access">Aktifkan Izin Akses Penggunaan</string>
 
+    <!-- Home Screen Components - Liquid -->
+    <string name="liquid_header_title">Xtra Kernel Manager</string>
+    <string name="liquid_header_settings">Pengaturan</string>
+    <string name="liquid_device_android">Android</string>
+    <string name="liquid_device_kernel">Kernel</string>
+    <string name="liquid_device_uptime">Waktu Aktif</string>
+    <string name="liquid_device_sleep">Tidur</string>
+    <string name="liquid_device_smartphone_brand">Merek Smartphone</string>
+    <string name="liquid_device_unknown_device">Perangkat Tidak Dikenal</string>
+    <string name="liquid_battery_title">Baterai</string>
+    <string name="liquid_battery_current">Arus</string>
+    <string name="liquid_battery_voltage">Tegangan</string>
+    <string name="liquid_battery_temperature">Suhu</string>
+    <string name="liquid_battery_cycle_count">Jumlah Siklus</string>
+    <string name="liquid_gpu_title">GPU</string>
+    <string name="liquid_gpu_frequency">Frekuensi</string>
+    <string name="liquid_gpu_load">Beban</string>
+    <string name="liquid_gpu_name">GPU</string>
+    <string name="liquid_profile_performance">Performa</string>
+    <string name="liquid_profile_power_save">Hemat Daya</string>
+    <string name="liquid_profile_balanced">Seimbang</string>
+    <string name="liquid_profile_tap_to_change">Ketuk untuk Mengubah</string>
+
+    <!-- Home Screen Components - Material -->
+    <string name="material_header_title_short">XKM</string>
+    <string name="material_header_title_full">Xtra Kernel Manager</string>
+    <string name="material_header_settings">Pengaturan</string>
+    <string name="material_device_unknown_model">Model Tidak Dikenal</string>
+    <string name="material_device_unknown">Tidak Dikenal</string>
+    <string name="material_battery_title">Baterai</string>
+    <string name="material_battery_current">Arus</string>
+    <string name="material_battery_voltage">Tegangan</string>
+    <string name="material_battery_temperature">Suhu</string>
+    <string name="material_battery_cycle_count">Jumlah Siklus</string>
+    <string name="material_battery_health">Kesehatan %1$s%%</string>
+    <string name="material_gpu_title">GPU</string>
+    <string name="material_gpu_frequency">Frekuensi</string>
+    <string name="material_gpu_load">Beban</string>
+    <string name="material_gpu_name">GPU</string>
+    <string name="material_memory_title">Memori</string>
+    <string name="material_memory_ram">RAM</string>
+    <string name="material_memory_internal_storage">Penyimpanan Internal</string>
+    <string name="material_power_menu_title">Menu Daya</string>
+    <string name="material_power_insight_title">Wawasan Daya</string>
+    <string name="material_temp_title">SUHU</string>
+    <string name="material_app_info_team">TIM</string>
+    <string name="material_app_info_maintainer">MAINTAINER</string>
+    <string name="material_app_info_xms_team">Tim XMS</string>
+    <string name="material_app_info_xms_handle">@Xtra-Manager-Software</string>
+    <string name="material_app_info_version">VERSI</string>
+    <string name="material_app_info_about_xkm">TENTANG XKM</string>
+    <string name="material_app_info_description">Xtra Kernel Manager adalah Kernel Manager gratis dan open-source yang dirancang untuk memberikan kontrol penuh atas kernel perangkat Anda. Dibangun dengan Kotlin Jetpack Compose untuk pengalaman pengguna yang lancar dan responsif.</string>
+
+    <!-- Settings Sheet -->
+    <string name="settings_quick_settings">Pengaturan Cepat</string>
+    <string name="settings_customize_experience">Sesuaikan pengalaman Anda</string>
+    <string name="settings_layout_style">Gaya Tata Letak</string>
+
+    <!-- Power Actions -->
+    <string name="power_recovery">Pemulihan</string>
+    <string name="power_system_ui">UI Sistem</string>
+    <string name="power_power_off">Matikan Daya</string>
+    <string name="power_reboot">Mulai Ulang</string>
+
+    <!-- Accessibility Dialog -->
+    <string name="accessibility_service_disabled">Layanan Aksesibilitas Dinonaktifkan</string>
+    <string name="accessibility_service_message">Layanan aksesibilitas XKM Game Monitor dinonaktifkan. Layanan ini diperlukan untuk deteksi game dan pelacakan statistik.\n\nApakah Anda ingin mengaktifkannya sekarang?</string>
+    <string name="accessibility_service_enable">Aktifkan</string>
+    <string name="accessibility_service_later">Nanti</string>
+
+    <!-- CPU Labels -->
+    <string name="cpu_label">CPU</string>
+
+    <!-- Common Units and Formats -->
+    <string name="format_mhz">%1$d MHz</string>
+    <string name="format_percentage">%1$s%%</string>
+    <string name="format_temperature">%1$d°C</string>
+    <string name="format_voltage">%1$d mV</string>
+    <string name="format_current_positive">+%1$d mA</string>
+    <string name="format_current_negative">%1$d mA</string>
+    <string name="format_memory_usage">%1$s / %2$s</string>
+    <string name="format_uptime_days">%1$dd</string>
+    <string name="format_uptime_hours">%1$dj %2$dm</string>
+    <string name="format_sleep_time">%1$dj %2$dm</string>
+
+    <!-- Default Values -->
+    <string name="default_li_ion">Li-ion</string>
+    <string name="default_unknown_gpu">GPU Tidak Dikenal</string>
+    <string name="default_unknown_governor">Tidak Dikenal</string>
+
 </resources>

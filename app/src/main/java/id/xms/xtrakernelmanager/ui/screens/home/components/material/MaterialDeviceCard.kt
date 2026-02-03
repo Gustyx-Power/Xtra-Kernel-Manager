@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,14 +62,14 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                 systemInfo.deviceModel
                     .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
                     .trim()
-                    .ifBlank { "Unknown Model" },
+                    .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.material_device_unknown_model) },
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
 
         Text(
-            text = android.os.Build.DEVICE.ifBlank { "Unknown" },
+            text = android.os.Build.DEVICE.ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.material_device_unknown) },
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
             fontWeight = FontWeight.Medium,
@@ -84,7 +85,7 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
                     .padding(end = 100.dp),
         ) {
           Text(
-              text = systemInfo.kernelVersion.ifBlank { "Unknown" },
+              text = systemInfo.kernelVersion.ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.material_device_unknown) },
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
               fontFamily = FontFamily.Monospace,

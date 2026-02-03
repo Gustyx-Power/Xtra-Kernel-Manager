@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -39,9 +40,9 @@ fun MaterialPowerInsightCard(
 ) {
     // Determine badge text and color based on charging status
     val (badgeText, badgeColor) = if (powerInfo.isCharging) {
-        "Charging" to MaterialTheme.colorScheme.primaryContainer
+        stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_charging) to MaterialTheme.colorScheme.primaryContainer
     } else {
-        "Screen On" to MaterialTheme.colorScheme.tertiaryContainer
+        stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_screen_on) to MaterialTheme.colorScheme.tertiaryContainer
     }
     val badgeTextColor = if (powerInfo.isCharging) {
         MaterialTheme.colorScheme.onPrimaryContainer
@@ -88,7 +89,7 @@ fun MaterialPowerInsightCard(
                         )
                     }
                     Text(
-                        text = "Power Insight",
+                        text = stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -157,22 +158,22 @@ fun MaterialPowerInsightCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     PowerInsightItem(
-                        label = "Screen On",
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_screen_on),
                         value = powerInfo.formatScreenOnTime(),
                         icon = Icons.Rounded.LightMode,
                     )
                     PowerInsightItem(
-                        label = "Screen Off",
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_screen_off),
                         value = powerInfo.formatScreenOffTime(),
                         icon = Icons.Rounded.ScreenLockPortrait,
                     )
                     PowerInsightItem(
-                        label = "Deep Sleep",
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_deep_sleep),
                         value = powerInfo.formatDeepSleepTime(),
                         icon = Icons.Rounded.Bedtime,
                     )
                     PowerInsightItem(
-                        label = "Drain Rate",
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.material_power_insight_drain_rate),
                         value = String.format("-%.1f%%/h", powerInfo.activeDrainRate),
                         icon = Icons.Rounded.BatteryAlert,
                     )

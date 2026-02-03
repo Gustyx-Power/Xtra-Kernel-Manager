@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -48,7 +49,7 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
                         )
                     }
                     Text(
-                        text = "Battery",
+                        text = stringResource(id.xms.xtrakernelmanager.R.string.liquid_battery_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = adaptiveTextColor()
@@ -60,7 +61,7 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
                     shape = CircleShape
                 ) {
                     Text(
-                        text = batteryInfo.technology.takeIf { it != "Unknown" } ?: "Li-ion",
+                        text = batteryInfo.technology.takeIf { it != "Unknown" } ?: stringResource(id.xms.xtrakernelmanager.R.string.default_li_ion),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = adaptiveTextColor(),
@@ -102,12 +103,12 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     val currentText = if (batteryInfo.currentNow >= 0) "+${batteryInfo.currentNow} mA" else "${batteryInfo.currentNow} mA"
-                    LiquidBatteryStatBox(label = "Current", value = currentText, modifier = Modifier.weight(1f))
-                    LiquidBatteryStatBox(label = "Voltage", value = "${batteryInfo.voltage} mV", modifier = Modifier.weight(1f))
+                    LiquidBatteryStatBox(label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_battery_current), value = currentText, modifier = Modifier.weight(1f))
+                    LiquidBatteryStatBox(label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_battery_voltage), value = "${batteryInfo.voltage} mV", modifier = Modifier.weight(1f))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    LiquidBatteryStatBox(label = "Temperature", value = "${batteryInfo.temperature}°C", modifier = Modifier.weight(1f))
-                    LiquidBatteryStatBox(label = "Cycle Count", value = "${batteryInfo.cycleCount}", modifier = Modifier.weight(1f))
+                    LiquidBatteryStatBox(label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_battery_temperature), value = "${batteryInfo.temperature}°C", modifier = Modifier.weight(1f))
+                    LiquidBatteryStatBox(label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_battery_cycle_count), value = "${batteryInfo.cycleCount}", modifier = Modifier.weight(1f))
                 }
             }
         }

@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.BuildConfig
@@ -229,17 +230,17 @@ fun LiquidHomeScreen(
     if (showAccessibilityDialog) {
         id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
             onDismissRequest = { showAccessibilityDialog = false },
-            title = "Accessibility Service Disabled",
+            title = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_disabled),
             content = {
                 Text(
-                    text = "XKM Game Monitor accessibility service is disabled. This service is required for game detection and statistics tracking.\n\nWould you like to enable it now?",
+                    text = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             },
             confirmButton = {
                 id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
-                    text = "Enable",
+                    text = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_enable),
                     onClick = {
                         showAccessibilityDialog = false
                         val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
@@ -250,7 +251,7 @@ fun LiquidHomeScreen(
             },
             dismissButton = {
                 id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
-                    text = "Later",
+                    text = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_later),
                     onClick = { showAccessibilityDialog = false },
                     isPrimary = false
                 )

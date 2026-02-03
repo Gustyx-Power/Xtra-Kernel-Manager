@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.model.PowerAction
@@ -63,7 +64,7 @@ fun ExpandablePowerFab(onPowerAction: (PowerAction) -> Unit) {
       ) {
         // Recovery
         FabMenuItem(
-            text = "Recovery",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.power_recovery),
             icon = Icons.Rounded.SettingsBackupRestore,
             onClick = {
               expanded = false
@@ -74,7 +75,7 @@ fun ExpandablePowerFab(onPowerAction: (PowerAction) -> Unit) {
 
         // System UI
         FabMenuItem(
-            text = "System UI",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.power_system_ui),
             icon = Icons.Rounded.Refresh,
             onClick = {
               expanded = false
@@ -84,7 +85,7 @@ fun ExpandablePowerFab(onPowerAction: (PowerAction) -> Unit) {
         )
 
         FabMenuItem(
-            text = "Power Off",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.power_power_off),
             icon = Icons.Rounded.PowerSettingsNew,
             onClick = {
               expanded = false
@@ -95,7 +96,7 @@ fun ExpandablePowerFab(onPowerAction: (PowerAction) -> Unit) {
 
         // Reboot
         FabMenuItem(
-            text = "Reboot",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.power_reboot),
             icon = Icons.Rounded.RestartAlt,
             onClick = {
               expanded = false

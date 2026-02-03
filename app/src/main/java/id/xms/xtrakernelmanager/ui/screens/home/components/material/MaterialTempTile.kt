@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -60,7 +61,7 @@ fun MaterialTempTile(
             shape = CircleShape,
         ) {
           Text(
-              text = "TEMP",
+              text = stringResource(id.xms.xtrakernelmanager.R.string.material_temp_title),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Bold,
               color = color,
@@ -73,10 +74,10 @@ fun MaterialTempTile(
 
       // Temperature List
       Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        TempRow(label = "CPU", value = "${cpuTemp}°C")
-        TempRow(label = "GPU", value = "${gpuTemp}°C")
-        TempRow(label = "PMIC", value = "${pmicTemp}°C")
-        TempRow(label = "Thermal", value = "${thermalTemp}°C")
+        TempRow(label = stringResource(id.xms.xtrakernelmanager.R.string.material_temp_cpu), value = "${cpuTemp}°C")
+        TempRow(label = stringResource(id.xms.xtrakernelmanager.R.string.material_temp_gpu), value = "${gpuTemp}°C")
+        TempRow(label = stringResource(id.xms.xtrakernelmanager.R.string.material_temp_pmic), value = "${pmicTemp}°C")
+        TempRow(label = stringResource(id.xms.xtrakernelmanager.R.string.material_temp_thermal), value = "${thermalTemp}°C")
       }
     }
   }

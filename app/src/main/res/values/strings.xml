@@ -851,5 +851,117 @@
     <string name="battery_stats_screen">Show screen statistics</string>
     <string name="battery_stats_awake_sleep">Show Awake/Deep sleep statistics</string>
 
+    <!-- Home Screen Components - Liquid -->
+    <string name="liquid_header_title">Xtra Kernel Manager</string>
+    <string name="liquid_header_settings">Settings</string>
+    <string name="liquid_device_android">Android</string>
+    <string name="liquid_device_kernel">Kernel</string>
+    <string name="liquid_device_uptime">Uptime</string>
+    <string name="liquid_device_sleep">Sleep</string>
+    <string name="liquid_device_smartphone_brand">Smartphone Brand</string>
+    <string name="liquid_device_unknown_device">Unknown Device</string>
+    <string name="liquid_battery_title">Battery</string>
+    <string name="liquid_battery_current">Current</string>
+    <string name="liquid_battery_voltage">Voltage</string>
+    <string name="liquid_battery_temperature">Temperature</string>
+    <string name="liquid_battery_cycle_count">Cycle Count</string>
+    <string name="liquid_gpu_title">GPU</string>
+    <string name="liquid_gpu_frequency">Frequency</string>
+    <string name="liquid_gpu_load">Load</string>
+    <string name="liquid_gpu_name">GPU</string>
+    <string name="liquid_profile_performance">Performance</string>
+    <string name="liquid_profile_power_save">Power Save</string>
+    <string name="liquid_profile_balanced">Balanced</string>
+    <string name="liquid_profile_tap_to_change">Tap to Change</string>
+
+    <!-- Home Screen Components - Material -->
+    <string name="material_header_title_short">XKM</string>
+    <string name="material_header_title_full">Xtra Kernel Manager</string>
+    <string name="material_header_settings">Settings</string>
+    <string name="material_device_unknown_model">Unknown Model</string>
+    <string name="material_device_unknown">Unknown</string>
+    <string name="material_battery_title">Battery</string>
+    <string name="material_battery_current">Current</string>
+    <string name="material_battery_voltage">Voltage</string>
+    <string name="material_battery_temperature">Temperature</string>
+    <string name="material_battery_cycle_count">Cycle Count</string>
+    <string name="material_battery_health">Health %1$s%%</string>
+    <string name="material_gpu_title">GPU</string>
+    <string name="material_gpu_frequency">Frequency</string>
+    <string name="material_gpu_load">Load</string>
+    <string name="material_gpu_name">GPU</string>
+    <string name="material_memory_title">Memory</string>
+    <string name="material_memory_ram">RAM</string>
+    <string name="material_memory_internal_storage">Internal Storage</string>
+    <string name="material_power_menu_title">Power Menu</string>
+    <string name="material_power_insight_title">Power Insight</string>
+    <string name="material_temp_title">TEMP</string>
+    <string name="material_app_info_team">TEAM</string>
+    <string name="material_app_info_maintainer">MAINTAINER</string>
+    <string name="material_app_info_xms_team">XMS Team</string>
+    <string name="material_app_info_xms_handle">@Xtra-Manager-Software</string>
+    <string name="material_app_info_version">VERSION</string>
+    <string name="material_app_info_about_xkm">ABOUT XKM</string>
+    <string name="material_app_info_description">Xtra Kernel Manager is a free and open-source Kernel Manager designed to give you full control over your device\'s kernel. Built with Kotlin Jetpack Compose for a smooth and responsive user experience.</string>
+
+    <!-- Settings Sheet -->
+    <string name="settings_quick_settings">Quick Settings</string>
+    <string name="settings_customize_experience">Customize your experience</string>
+    <string name="settings_layout_style">Layout Style</string>
+
+    <!-- Power Actions -->
+    <string name="power_recovery">Recovery</string>
+    <string name="power_system_ui">System UI</string>
+    <string name="power_power_off">Power Off</string>
+    <string name="power_reboot">Reboot</string>
+
+    <!-- Accessibility Dialog -->
+    <string name="accessibility_service_disabled">Accessibility Service Disabled</string>
+    <string name="accessibility_service_message">XKM Game Monitor accessibility service is disabled. This service is required for game detection and statistics tracking.\n\nWould you like to enable it now?</string>
+    <string name="accessibility_service_enable">Enable</string>
+    <string name="accessibility_service_later">Later</string>
+
+    <!-- CPU Labels -->
+    <string name="cpu_label">CPU</string>
+
+    <!-- Common Units and Formats -->
+    <string name="format_mhz">%1$d MHz</string>
+    <string name="format_percentage">%1$s%%</string>
+    <string name="format_temperature">%1$d°C</string>
+    <string name="format_voltage">%1$d mV</string>
+    <string name="format_current_positive">+%1$d mA</string>
+    <string name="format_current_negative">%1$d mA</string>
+    <string name="format_memory_usage">%1$s / %2$s</string>
+    <string name="format_uptime_days">%1$dd</string>
+    <string name="format_uptime_hours">%1$dh %2$dm</string>
+    <string name="format_sleep_time">%1$dh %2$dm</string>
+
+    <!-- Default Values -->
+    <string name="default_li_ion">Li-ion</string>
+    <string name="default_unknown_gpu">Unknown GPU</string>
+    <string name="default_unknown_governor">Unknown</string>
+
+    <!-- Missing Material App Info Strings -->
+    <string name="material_app_info_debug">Debug</string>
+    <string name="material_app_info_stable">Stable</string>
+    <string name="material_app_info_github">GitHub</string>
+    <string name="material_app_info_credit">Credits</string>
+
+    <!-- Missing Material Memory Strings -->
+    <string name="material_memory_zram">ZRAM</string>
+    <string name="material_memory_swap">Swap</string>
+
+    <!-- Missing Material Power Insight Strings -->
+    <string name="material_power_insight_charging">Charging</string>
+    <string name="material_power_insight_screen_on">Screen On</string>
+    <string name="material_power_insight_screen_off">Screen Off</string>
+    <string name="material_power_insight_deep_sleep">Deep Sleep</string>
+    <string name="material_power_insight_drain_rate">Drain Rate</string>
+
+    <!-- Missing Material Temperature Strings -->
+    <string name="material_temp_cpu">CPU</string>
+    <string name="material_temp_gpu">GPU</string>
+    <string name="material_temp_pmic">PMIC</string>
+    <string name="material_temp_thermal">Thermal</string>
 
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.delay
 
@@ -59,7 +60,7 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
         label = "HeaderTitle",
     ) { short ->
       Text(
-          text = if (short) "XKM" else "Xtra Kernel Manager",
+          text = if (short) stringResource(id.xms.xtrakernelmanager.R.string.material_header_title_short) else stringResource(id.xms.xtrakernelmanager.R.string.material_header_title_full),
           style =
               if (short) MaterialTheme.typography.displayMedium
               else MaterialTheme.typography.headlineSmall,
@@ -74,7 +75,7 @@ fun MaterialHeader(onSettingsClick: () -> Unit) {
     ) {
       Icon(
           imageVector = Icons.Rounded.Settings,
-          contentDescription = "Settings",
+          contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.material_header_settings),
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
       )
     }

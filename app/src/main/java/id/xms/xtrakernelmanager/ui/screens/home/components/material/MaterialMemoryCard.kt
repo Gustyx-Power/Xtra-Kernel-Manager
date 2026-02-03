@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.data.model.SystemInfo
@@ -52,7 +53,7 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Memory",
+                    text = stringResource(id.xms.xtrakernelmanager.R.string.material_memory_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -71,7 +72,7 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     Text(
-                        text = "RAM",
+                        text = stringResource(id.xms.xtrakernelmanager.R.string.material_memory_ram),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -109,7 +110,7 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
                         verticalAlignment = Alignment.Bottom,
                     ) {
                         Text(
-                            text = if (systemInfo.zramSize > 0) "ZRAM" else "Swap",
+                            text = if (systemInfo.zramSize > 0) stringResource(id.xms.xtrakernelmanager.R.string.material_memory_zram) else stringResource(id.xms.xtrakernelmanager.R.string.material_memory_swap),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -144,7 +145,7 @@ fun MaterialMemoryCard(systemInfo: SystemInfo) {
                     verticalAlignment = Alignment.Bottom,
                 ) {
                     Text(
-                        text = "Internal Storage",
+                        text = stringResource(id.xms.xtrakernelmanager.R.string.material_memory_internal_storage),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,

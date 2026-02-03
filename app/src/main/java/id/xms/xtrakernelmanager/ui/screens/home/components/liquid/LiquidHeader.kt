@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,7 +27,7 @@ import id.xms.xtrakernelmanager.BuildConfig
 fun LiquidHeader(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
-    title: String = "Xtra Kernel Manager",
+    title: String = stringResource(id.xms.xtrakernelmanager.R.string.liquid_header_title),
     showVersionBadge: Boolean = true
 ) {
     id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
@@ -81,7 +82,7 @@ fun LiquidHeader(
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = Icons.Rounded.Settings,
-                        contentDescription = "Settings",
+                        contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.liquid_header_settings),
                         modifier = Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
