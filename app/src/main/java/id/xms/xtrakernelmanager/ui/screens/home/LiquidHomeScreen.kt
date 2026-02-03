@@ -51,8 +51,7 @@ fun LiquidHomeScreen(
     val isCompact =
           dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
     
-    // Status bar data
-    val statusBarData = id.xms.xtrakernelmanager.ui.components.statusbar.rememberStatusBarData()
+    // Remove custom status bar - use system status bar instead
 
     // Check accessibility service status
     var showAccessibilityDialog by remember { mutableStateOf(false) }
@@ -86,7 +85,8 @@ fun LiquidHomeScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(56.dp)) // Space for custom status bar (48dp + 8dp safe area)
+            // Remove custom status bar - use system status bar instead
+            Spacer(modifier = Modifier.height(16.dp)) // Standard top padding
      
             // 1. Header (Redesigned Liquid Header) - Index 0
             AnimatedComponent(
@@ -222,20 +222,6 @@ fun LiquidHomeScreen(
             }
 
             Spacer(modifier = Modifier.height(100.dp))
-        }
-        
-        // iOS-style Status Bar (overlay - FIXED position, tidak scroll)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-        ) {
-            id.xms.xtrakernelmanager.ui.components.statusbar.LiquidStatusBar(
-                batteryLevel = statusBarData.batteryLevel,
-                isCharging = statusBarData.isCharging,
-                signalStrength = statusBarData.signalStrength,
-                wifiEnabled = statusBarData.wifiEnabled
-            )
         }
     }
     

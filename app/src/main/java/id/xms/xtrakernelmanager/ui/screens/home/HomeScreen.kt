@@ -235,8 +235,8 @@ fun HomeScreen(
                                                 Scaffold(
                                                         containerColor = Color.Transparent, 
                                                 ) { paddingValues ->
-                                                        // Don't apply paddingValues for fullscreen
-                                                        Box(Modifier.fillMaxSize()) {
+                                                        // Apply system padding for status bar
+                                                        Box(Modifier.fillMaxSize().padding(paddingValues)) {
                 LiquidHomeScreen(
                         cpuInfo = cpuInfo,
                         gpuInfo = gpuInfo,

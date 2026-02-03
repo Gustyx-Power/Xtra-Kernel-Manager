@@ -30,27 +30,11 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     enableEdgeToEdge()
     
-    // Check and request fullscreen permissions for various ROMs
-    checkFullscreenPermissions()
+    // Use system status bar with proper theming
+    androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
     
-    // Hide system status bar completely for fullscreen experience
-    androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, false)
-    androidx.core.view.WindowInsetsControllerCompat(window, window.decorView).apply {
-      hide(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-      systemBarsBehavior = androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
-    
-    // Set system bars to transparent
-    window.statusBarColor = android.graphics.Color.TRANSPARENT
+    // Set navigation bar to transparent for edge-to-edge content
     window.navigationBarColor = android.graphics.Color.TRANSPARENT
-    
-    // Additional flags for fullscreen compatibility (OOS, MIUI, AOSP)
-    @Suppress("DEPRECATION")
-    window.decorView.systemUiVisibility = (
-      android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-      or android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-      or android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-    )
 
     // Start foreground kernel config service (persistent tuning)
     startService(Intent(this, KernelConfigService::class.java))
@@ -96,19 +80,6 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     stopService(Intent(this, KernelConfigService::class.java))
     super.onDestroy()
-  }
-  
-  private fun checkFullscreenPermissions() {
-    // Log ROM type for debugging
-    val romType = id.xms.xtrakernelmanager.utils.FullscreenPermissionHelper.getRomType()
-    android.util.Log.d("MainActivity", "Detected ROM: $romType")
-    
-    // Check overlay permission (optional, only if needed)
-    if (!id.xms.xtrakernelmanager.utils.FullscreenPermissionHelper.hasOverlayPermission(this)) {
-      android.util.Log.w("MainActivity", "Overlay permission not granted")
-      // Uncomment to auto-request:
-      // FullscreenPermissionHelper.requestOverlayPermission(this)
-    }
   }
   
   private fun checkGameMonitorServiceStatus() {

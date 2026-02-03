@@ -39,8 +39,7 @@ fun MaterialHomeScreen(
 ) {
     val context = LocalContext.current
     
-    // Status bar data
-    val statusBarData = id.xms.xtrakernelmanager.ui.components.statusbar.rememberStatusBarData()
+    // Remove custom status bar - use system status bar instead
 
     // Bottom Sheet State
     val powerSheetState = rememberModalBottomSheetState()
@@ -79,16 +78,17 @@ fun MaterialHomeScreen(
             ExpandablePowerFab(onPowerAction = { action -> onPowerAction(action) })
         },
         content = { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 24.dp),
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues) // Apply system padding for status bar
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Spacer(modifier = Modifier.height(44.dp)) // Space for custom status bar (36dp + 8dp safe area)
+                    // Remove custom status bar - use system status bar instead
+                    Spacer(modifier = Modifier.height(16.dp)) // Standard top padding
                 
                     // Header
                     StaggeredEntry(delayMillis = 0) {
@@ -157,21 +157,6 @@ fun MaterialHomeScreen(
                     // Bottom Spacing
                     Spacer(modifier = Modifier.height(80.dp))
                 }
-            
-                // Pixel-style Status Bar (overlay - FIXED position, tidak scroll)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.TopCenter)
-                ) {
-                    id.xms.xtrakernelmanager.ui.components.statusbar.MaterialStatusBar(
-                        batteryLevel = statusBarData.batteryLevel,
-                        isCharging = statusBarData.isCharging,
-                        signalStrength = statusBarData.signalStrength,
-                        wifiEnabled = statusBarData.wifiEnabled
-                    )
-                }
-            }
         },
     )
 
