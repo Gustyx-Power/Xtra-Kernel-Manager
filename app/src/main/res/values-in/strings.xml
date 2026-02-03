@@ -704,6 +704,7 @@
     <string name="game_control_title">Kontrol Game</string>
     <string name="game_tools_mode_monster">Mode\nMonster</string>
     <string name="game_tools_clear_ram">Bersihkan\nRAM</string>
+    <string name="game_tools_boost">Game\nBoost</string>
     <string name="game_tools_clearing">Membersihkan…</string>
     <string name="game_control_grant_usage_access">Aktifkan Izin Akses Penggunaan</string>
 
