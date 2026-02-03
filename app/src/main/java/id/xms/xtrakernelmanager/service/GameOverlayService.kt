@@ -9,6 +9,7 @@ import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.*
 import android.provider.Settings
+import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.compose.animation.*
@@ -19,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.NotificationCompat
@@ -38,6 +40,7 @@ import id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase
 import id.xms.xtrakernelmanager.ui.components.gameoverlay.*
 import androidx.lifecycle.lifecycleScope
 import id.xms.xtrakernelmanager.ui.screens.misc.components.GameMonitorViewModel
+import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 import kotlinx.coroutines.*
 
 class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
@@ -113,6 +116,20 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         }
     }
 
+    // Observe Esports Animation Trigger
+    lifecycleScope.launch {
+        viewModel.esportsAnimationTrigger.collect {
+            showEsportsAnimation()
+        }
+    }
+
+    // Observe Toast Messages
+    lifecycleScope.launch {
+        viewModel.toastMessage.collect { message ->
+            showToast(message)
+        }
+    }
+
     createOverlay()
   }
 
@@ -145,22 +162,92 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
   private fun performHiddenScreenshot() {
       lifecycleScope.launch(Dispatchers.Main) {
-          // 1. Hide Overlay
-          overlayView?.visibility = View.INVISIBLE
-          
-          // 2. Wait for UI update (150ms)
-          delay(150)
-          
-          // 3. Take Screenshot (Background thread)
-          withContext(Dispatchers.IO) {
-              gameControlUseCase.takeScreenshot()
+          try {
+              overlayView?.visibility = View.INVISIBLE
+              
+              delay(150)
+              
+              val result = withContext(Dispatchers.IO) {
+                  gameControlUseCase.takeScreenshot()
+              }
+              
+              delay(500)
+              
+              overlayView?.visibility = View.VISIBLE
+              
+              if (result.isSuccess) {
+                  showToast("Screenshot captured!\nSaved to Pictures/Screenshots/")
+              } else {
+                  val errorMsg = result.exceptionOrNull()?.message ?: "Unknown error"
+                  showToast("Screenshot failed!\n$errorMsg")
+              }
+              
+          } catch (e: Exception) {
+              overlayView?.visibility = View.VISIBLE
+              showToast("Screenshot error: ${e.message}")
+              Log.e("GameOverlayService", "Screenshot error", e)
           }
-          
-          // 4. Wait for system capture (500ms)
-          delay(500)
-          
-          // 5. Restore Overlay
-          overlayView?.visibility = View.VISIBLE
+      }
+  }
+
+  private fun showEsportsAnimation() {
+      lifecycleScope.launch(Dispatchers.Main) {
+          try {
+              val animationView = ComposeView(this@GameOverlayService).apply {
+                  setViewTreeLifecycleOwner(this@GameOverlayService)
+                  setViewTreeSavedStateRegistryOwner(this@GameOverlayService)
+                  
+                  setContent {
+                      MaterialTheme(
+                          colorScheme = darkColorScheme(
+                              primary = Color(0xFF5C6BC0),
+                              secondary = Color(0xFF7986CB),
+                              surface = Color(0xFF1E1E1E),
+                              background = Color(0xFF121212),
+                          )
+                      ) {
+                          EsportsActivationAnimation(
+                              modifier = Modifier.fillMaxSize(),
+                              onAnimationComplete = {
+                                  lifecycleScope.launch {
+                                      delay(500)
+                                      try {
+                                          windowManager.removeView(this@apply)
+                                      } catch (e: Exception) {
+                                          Log.e("GameOverlayService", "Error removing animation view", e)
+                                      }
+                                  }
+                              }
+                          )
+                      }
+                  }
+              }
+
+              val animationParams = WindowManager.LayoutParams(
+                  WindowManager.LayoutParams.MATCH_PARENT,
+                  WindowManager.LayoutParams.MATCH_PARENT,
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                  } else {
+                      @Suppress("DEPRECATION")
+                      WindowManager.LayoutParams.TYPE_PHONE
+                  },
+                  WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                          WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                          WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                          WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                  PixelFormat.TRANSLUCENT
+              ).apply {
+                  gravity = Gravity.CENTER
+              }
+
+              windowManager.addView(animationView, animationParams)
+              
+              Log.d("GameOverlayService", "Esports animation started successfully")
+              
+          } catch (e: Exception) {
+              Log.e("GameOverlayService", "Error showing esports animation", e)
+          }
       }
   }
 
