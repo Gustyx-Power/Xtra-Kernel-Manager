@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
@@ -117,14 +118,36 @@ class GameMonitorViewModel(
         preferencesManager.isThreeFingerSwipeEnabled().collect { _threeFingerSwipe.value = it }
     }
     viewModelScope.launch {
-        // Detect max brightness value for this device
-        maxBrightnessValue = withContext(Dispatchers.IO) { 
-            gameControlUseCase.getMaxBrightness() 
+        try {
+            val brightnessMethod = withContext(Dispatchers.IO) {
+                gameControlUseCase.detectBrightnessControlMethod()
+            }
+            
+            if (brightnessMethod != null) {
+                Log.d("GameMonitorViewModel", "Using sysfs brightness control: $brightnessMethod")
+            } else {
+                Log.d("GameMonitorViewModel", "Using Android settings brightness control")
+            }
+            
+            maxBrightnessValue = withContext(Dispatchers.IO) { 
+                gameControlUseCase.getMaxBrightness() 
+            }
+            
+            Log.d("GameMonitorViewModel", "Max brightness detected: $maxBrightnessValue")
+            
+            val sysBrightness = withContext(Dispatchers.IO) { gameControlUseCase.getBrightness() }
+            val normalizedBrightness = if (maxBrightnessValue > 0) {
+                (sysBrightness.toFloat() / maxBrightnessValue).coerceIn(0f, 1f)
+            } else {
+                0.5f
+            }
+            
+            Log.d("GameMonitorViewModel", "Current brightness: $sysBrightness/$maxBrightnessValue, normalized: $normalizedBrightness")
+            _brightness.value = normalizedBrightness
+        } catch (e: Exception) {
+            Log.e("GameMonitorViewModel", "Error initializing brightness", e)
+            _brightness.value = 0.5f
         }
-        
-        // Load current brightness and normalize to 0-1 range
-        val sysBrightness = withContext(Dispatchers.IO) { gameControlUseCase.getBrightness() }
-        _brightness.value = (sysBrightness.toFloat() / maxBrightnessValue).coerceIn(0f, 1f)
     }
     viewModelScope.launch {
       _currentPerformanceMode.value = gameControlUseCase.getCurrentPerformanceMode()
@@ -350,13 +373,29 @@ class GameMonitorViewModel(
   private val _brightness = MutableStateFlow(0.5f)
   val brightness: StateFlow<Float> = _brightness.asStateFlow()
   
-  private var maxBrightnessValue = 255 // Default, will be updated on init
+  private var maxBrightnessValue = 255
 
   fun setBrightness(value: Float) {
-      _brightness.value = value
+      val clampedValue = value.coerceIn(0f, 1f)
+      _brightness.value = clampedValue
+      
       viewModelScope.launch {
-          val sysVal = (value * maxBrightnessValue).toInt().coerceIn(0, maxBrightnessValue)
-          withContext(Dispatchers.IO) { gameControlUseCase.setBrightness(sysVal) }
+          try {
+              val sysVal = if (maxBrightnessValue > 0) {
+                  (clampedValue * maxBrightnessValue).toInt().coerceIn(1, maxBrightnessValue)
+              } else {
+                  (clampedValue * 255).toInt().coerceIn(1, 255)
+              }
+              
+              Log.d("GameMonitorViewModel", "Setting brightness: slider=$clampedValue, system=$sysVal, max=$maxBrightnessValue")
+              
+              val result = withContext(Dispatchers.IO) { gameControlUseCase.setBrightness(sysVal) }
+              if (!result.isSuccess) {
+                  Log.e("GameMonitorViewModel", "Failed to set brightness: ${result.exceptionOrNull()?.message}")
+              }
+          } catch (e: Exception) {
+              Log.e("GameMonitorViewModel", "Error setting brightness", e)
+          }
       }
   }
   private val _screenshotTrigger = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(replay = 0)
