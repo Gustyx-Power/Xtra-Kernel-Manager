@@ -18,6 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -82,7 +84,7 @@ fun LiquidTuningScreen(
                 ) {
                     // Title
                     Text(
-                        text = "Tuning",
+                        text = stringResource(R.string.liquid_tuning_title),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),
@@ -103,7 +105,7 @@ fun LiquidTuningScreen(
                             IconButton(onClick = onImportClick) {
                                 Icon(
                                     imageVector = Icons.Rounded.FolderOpen,
-                                    contentDescription = "Import Profile",
+                                    contentDescription = stringResource(R.string.liquid_tuning_import_profile),
                                     modifier = Modifier.size(18.dp),
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )
@@ -119,7 +121,7 @@ fun LiquidTuningScreen(
                             IconButton(onClick = onExportClick) {
                                 Icon(
                                     imageVector = Icons.Rounded.Save,
-                                    contentDescription = "Export Profile",
+                                    contentDescription = stringResource(R.string.liquid_tuning_export_profile),
                                     modifier = Modifier.size(18.dp),
                                     tint = MaterialTheme.colorScheme.onSurface
                                 )

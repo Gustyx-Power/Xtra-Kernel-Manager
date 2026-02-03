@@ -65,7 +65,7 @@ fun LiquidAdditionalSettingsScreen(
                             )
                         }
                         Text(
-                            text = "Additional Settings",
+                            text = stringResource(R.string.liquid_additional_settings),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()

@@ -98,7 +98,7 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
         ) {
           Icon(
               imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-              contentDescription = if (expanded) "Collapse" else "Expand",
+              contentDescription = if (expanded) stringResource(R.string.liquid_tuning_collapse) else stringResource(R.string.liquid_tuning_expand),
               modifier = Modifier.size(32.dp),
               tint = MaterialTheme.colorScheme.secondary,
           )
@@ -433,7 +433,7 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
                               else FontWeight.Normal, // FIXED
                       )
                       Text(
-                          text = "Power saving mode",
+                          text = stringResource(R.string.liquid_perf_power_saving_mode),
                           style = MaterialTheme.typography.bodySmall,
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                       )
@@ -497,7 +497,7 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
                               else FontWeight.Normal, // FIXED
                       )
                       Text(
-                          text = "Balanced performance",
+                          text = stringResource(R.string.liquid_perf_balanced_performance),
                           style = MaterialTheme.typography.bodySmall,
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                       )
@@ -561,7 +561,7 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
                               else FontWeight.Normal, // FIXED
                       )
                       Text(
-                          text = "Maximum performance",
+                          text = stringResource(R.string.liquid_perf_maximum_performance),
                           style = MaterialTheme.typography.bodySmall,
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                       )
@@ -615,12 +615,12 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
         title = {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Select I/O Scheduler",
+                text = stringResource(R.string.liquid_io_select_scheduler),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Choose disk scheduling algorithm",
+                text = stringResource(R.string.liquid_io_choose_disk_scheduling),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -676,7 +676,7 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
           }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = { showIODialog = false }) { Text("Close") } },
+        dismissButton = { TextButton(onClick = { showIODialog = false }) { Text(stringResource(R.string.liquid_dialog_close)) } },
     )
   }
 
@@ -711,12 +711,12 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
         title = {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Select TCP Algorithm",
+                text = stringResource(R.string.liquid_tcp_select_algorithm),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Choose network congestion control",
+                text = stringResource(R.string.liquid_tcp_choose_network_congestion),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -772,7 +772,7 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
           }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = { showTCPDialog = false }) { Text("Close") } },
+        dismissButton = { TextButton(onClick = { showTCPDialog = false }) { Text(stringResource(R.string.liquid_dialog_close)) } },
     )
   }
 }

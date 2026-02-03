@@ -964,4 +964,59 @@
     <string name="material_temp_pmic">PMIC</string>
     <string name="material_temp_thermal">Thermal</string>
 
+    <!-- Liquid Tuning Screen Strings -->
+    <string name="liquid_tuning_title">Tuning</string>
+    <string name="liquid_tuning_import_profile">Import Profile</string>
+    <string name="liquid_tuning_export_profile">Export Profile</string>
+    <string name="liquid_tuning_expand">Expand</string>
+    <string name="liquid_tuning_collapse">Collapse</string>
+
+    <!-- Liquid Additional Control Strings -->
+    <string name="liquid_perf_power_saving_mode">Power saving mode</string>
+    <string name="liquid_perf_balanced_performance">Balanced performance</string>
+    <string name="liquid_perf_maximum_performance">Maximum performance</string>
+    <string name="liquid_io_select_scheduler">Select I/O Scheduler</string>
+    <string name="liquid_io_choose_disk_scheduling">Choose disk scheduling algorithm</string>
+    <string name="liquid_tcp_select_algorithm">Select TCP Algorithm</string>
+    <string name="liquid_tcp_choose_network_congestion">Choose network congestion control</string>
+    <string name="liquid_dialog_close">Close</string>
+
+    <!-- Liquid RAM Control Strings -->
+    <string name="liquid_ram_virtual_memory_management">Virtual memory management</string>
+    <string name="liquid_ram_value">Value</string>
+    <string name="liquid_ram_percentage">Percentage</string>
+    <string name="liquid_ram_size_kb">Size (KB)</string>
+    <string name="liquid_ram_configure_zram">Configure ZRAM</string>
+    <string name="liquid_ram_tap_to_adjust_size">Tap to adjust size</string>
+    <string name="liquid_ram_compression_algorithm">Compression Algorithm</string>
+    <string name="liquid_ram_applying_zram">Applying ZRAM</string>
+    <string name="liquid_ram_applying_swap">Applying Swap File</string>
+    <string name="liquid_ram_please_wait">Please wait...</string>
+    <string name="liquid_ram_starting_zram_config">Starting ZRAM configuration...</string>
+    <string name="liquid_ram_starting_swap_config">Starting swap file configuration...</string>
+
+    <!-- Liquid Thermal Settings Strings -->
+    <string name="liquid_thermal_apply_on_startup">Apply on device startup</string>
+    <string name="liquid_thermal_about_title">About Thermal Control</string>
+    <string name="liquid_thermal_about_desc">Thermal presets control how your device manages heat. Choose a preset that matches your usage pattern for optimal performance and temperature management.</string>
+
+    <!-- Liquid Network Settings Strings -->
+    <string name="liquid_network_hostname">Hostname</string>
+    <string name="liquid_network_tcp_congestion">TCP Congestion</string>
+    <string name="liquid_network_private_dns">Private DNS</string>
+
+    <!-- Liquid GPU Settings Strings -->
+    <string name="liquid_gpu_power_level">Power Level</string>
+    <string name="liquid_gpu_level_format">Level %d</string>
+
+    <!-- Liquid Additional Settings Strings -->
+    <string name="liquid_additional_settings">Additional Settings</string>
+
+    <!-- Liquid Per-App Profile Strings -->
+    <string name="liquid_per_app_profiles">Per-App Profiles</string>
+    <string name="liquid_per_app_profiles_configured">%d profiles configured</string>
+
+    <!-- Liquid I/O Control Strings -->
+    <string name="liquid_io_scheduler">I/O Scheduler</string>
+
 </resources>

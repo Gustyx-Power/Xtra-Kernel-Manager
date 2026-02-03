@@ -137,12 +137,12 @@ fun LiquidPerAppProfileCard(
 
                     Column {
                         Text(
-                            text = "Per-App Profiles",
+                            text = stringResource(R.string.liquid_per_app_profiles),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "$profileCount profiles configured",
+                            text = stringResource(R.string.liquid_per_app_profiles_configured, profileCount),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

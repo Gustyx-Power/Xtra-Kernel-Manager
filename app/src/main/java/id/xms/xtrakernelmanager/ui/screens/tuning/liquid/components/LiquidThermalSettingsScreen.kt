@@ -217,7 +217,7 @@ fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = "Apply on device startup",
+                                text = stringResource(R.string.liquid_thermal_apply_on_startup),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -238,12 +238,12 @@ fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "About Thermal Control",
+                        text = stringResource(R.string.liquid_thermal_about_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Thermal presets control how your device manages heat. Choose a preset that matches your usage pattern for optimal performance and temperature management.",
+                        text = stringResource(R.string.liquid_thermal_about_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
@@ -315,7 +315,7 @@ fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -
             },
             confirmButton = {
                 LiquidDialogButton(
-                    text = "Close",
+                    text = stringResource(R.string.liquid_dialog_close),
                     onClick = { showDialog = false },
                     isPrimary = true
                 )

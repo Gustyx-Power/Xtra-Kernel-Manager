@@ -625,7 +625,7 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
             verticalAlignment = Alignment.CenterVertically
         ) {
           Text(
-              text = "Power Level",
+              text = stringResource(R.string.liquid_gpu_power_level),
               style = MaterialTheme.typography.titleSmall,
               fontWeight = FontWeight.SemiBold,
               color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
@@ -635,7 +635,7 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
               shape = RoundedCornerShape(8.dp)
           ) {
             Text(
-                text = "Level ${powerLevel.toInt()}",
+                text = stringResource(R.string.liquid_gpu_level_format, powerLevel.toInt()),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFF59E0B),

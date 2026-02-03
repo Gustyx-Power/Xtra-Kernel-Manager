@@ -130,7 +130,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Virtual memory management",
+                text = stringResource(R.string.liquid_ram_virtual_memory_management),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -201,7 +201,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                   verticalAlignment = Alignment.Bottom,
               ) {
                 Text(
-                    text = "Value",
+                    text = stringResource(R.string.liquid_ram_value),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -264,7 +264,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                   verticalAlignment = Alignment.Bottom,
               ) {
                 Text(
-                    text = "Percentage",
+                    text = stringResource(R.string.liquid_ram_percentage),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -327,7 +327,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                   verticalAlignment = Alignment.Bottom,
               ) {
                 Text(
-                    text = "Size (KB)",
+                    text = stringResource(R.string.liquid_ram_size_kb),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -462,12 +462,12 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                     }
                     Column {
                       Text(
-                          text = "Configure ZRAM",
+                          text = stringResource(R.string.liquid_ram_configure_zram),
                           style = MaterialTheme.typography.titleMedium,
                           fontWeight = FontWeight.Bold,
                       )
                       Text(
-                          text = "Tap to adjust size",
+                          text = stringResource(R.string.liquid_ram_tap_to_adjust_size),
                           style = MaterialTheme.typography.bodySmall,
                           color = MaterialTheme.colorScheme.onSurfaceVariant,
                       )
@@ -696,7 +696,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                     modifier = Modifier.size(18.dp),
                 )
                 Text(
-                    text = "Compression Algorithm",
+                    text = stringResource(R.string.liquid_ram_compression_algorithm),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -1033,12 +1033,12 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
         title = {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Applying ZRAM",
+                text = stringResource(R.string.liquid_ram_applying_zram),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Please wait...",
+                text = stringResource(R.string.liquid_ram_please_wait),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1057,7 +1057,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
               Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
                 if (zramLogs.isEmpty()) {
                   Text(
-                      text = "Starting ZRAM configuration...",
+                      text = stringResource(R.string.liquid_ram_starting_zram_config),
                       fontFamily = FontFamily.Monospace,
                       fontSize = 12.sp,
                       color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1102,12 +1102,12 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
         title = {
           Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "Applying Swap File",
+                text = stringResource(R.string.liquid_ram_applying_swap),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Please wait...",
+                text = stringResource(R.string.liquid_ram_please_wait),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1126,7 +1126,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
               Column(modifier = Modifier.padding(12.dp).verticalScroll(rememberScrollState())) {
                 if (swapLogs.isEmpty()) {
                   Text(
-                      text = "Starting swap file configuration...",
+                      text = stringResource(R.string.liquid_ram_starting_swap_config),
                       fontFamily = FontFamily.Monospace,
                       fontSize = 12.sp,
                       color = MaterialTheme.colorScheme.onSurfaceVariant,

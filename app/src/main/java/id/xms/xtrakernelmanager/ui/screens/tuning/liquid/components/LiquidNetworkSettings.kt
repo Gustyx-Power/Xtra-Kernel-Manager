@@ -9,8 +9,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton
@@ -66,7 +68,7 @@ fun LiquidNetworkSettings(viewModel: TuningViewModel) {
 
                     Column {
                         Text(
-                            text = "Hostname",
+                            text = stringResource(R.string.liquid_network_hostname),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -120,7 +122,7 @@ fun LiquidNetworkSettings(viewModel: TuningViewModel) {
 
                     Column {
                         Text(
-                            text = "TCP Congestion",
+                            text = stringResource(R.string.liquid_network_tcp_congestion),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -174,7 +176,7 @@ fun LiquidNetworkSettings(viewModel: TuningViewModel) {
 
                     Column {
                         Text(
-                            text = "Private DNS",
+                            text = stringResource(R.string.liquid_network_private_dns),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -213,7 +215,7 @@ fun LiquidNetworkSettings(viewModel: TuningViewModel) {
             },
             confirmButton = {
                 LiquidDialogButton(
-                    text = "Save",
+                    text = stringResource(R.string.save),
                     onClick = {
                         viewModel.setHostname(hostnameInput)
                         showHostnameDialog = false
@@ -223,7 +225,7 @@ fun LiquidNetworkSettings(viewModel: TuningViewModel) {
             },
             dismissButton = {
                 LiquidDialogButton(
-                    text = "Cancel",
+                    text = stringResource(R.string.cancel),
                     onClick = { showHostnameDialog = false }
                 )
             }
@@ -319,7 +321,7 @@ private fun LiquidSelectionDialog(
         },
         confirmButton = {
             LiquidDialogButton(
-                text = "Close",
+                text = stringResource(R.string.liquid_dialog_close),
                 onClick = onDismiss,
                 isPrimary = true
             )

@@ -798,4 +798,82 @@
     <string name="default_unknown_gpu">GPU Tidak Dikenal</string>
     <string name="default_unknown_governor">Tidak Dikenal</string>
 
+    <!-- Missing Material App Info Strings -->
+    <string name="material_app_info_debug">Debug</string>
+    <string name="material_app_info_stable">Stabil</string>
+    <string name="material_app_info_github">GitHub</string>
+    <string name="material_app_info_credit">Kredit</string>
+
+    <!-- Missing Material Memory Strings -->
+    <string name="material_memory_zram">ZRAM</string>
+    <string name="material_memory_swap">Swap</string>
+
+    <!-- Missing Material Power Insight Strings -->
+    <string name="material_power_insight_charging">Mengisi Daya</string>
+    <string name="material_power_insight_screen_on">Layar Menyala</string>
+    <string name="material_power_insight_screen_off">Layar Mati</string>
+    <string name="material_power_insight_deep_sleep">Tidur Dalam</string>
+    <string name="material_power_insight_drain_rate">Tingkat Pengurasan</string>
+
+    <!-- Missing Material Temperature Strings -->
+    <string name="material_temp_cpu">CPU</string>
+    <string name="material_temp_gpu">GPU</string>
+    <string name="material_temp_pmic">PMIC</string>
+    <string name="material_temp_thermal">Termal</string>
+
+    <!-- Liquid Tuning Screen Strings -->
+    <string name="liquid_tuning_title">Tuning</string>
+    <string name="liquid_tuning_import_profile">Impor Profil</string>
+    <string name="liquid_tuning_export_profile">Ekspor Profil</string>
+    <string name="liquid_tuning_expand">Perluas</string>
+    <string name="liquid_tuning_collapse">Ciutkan</string>
+
+    <!-- Liquid Additional Control Strings -->
+    <string name="liquid_perf_power_saving_mode">Mode hemat daya</string>
+    <string name="liquid_perf_balanced_performance">Performa seimbang</string>
+    <string name="liquid_perf_maximum_performance">Performa maksimum</string>
+    <string name="liquid_io_select_scheduler">Pilih I/O Scheduler</string>
+    <string name="liquid_io_choose_disk_scheduling">Pilih algoritma penjadwalan disk</string>
+    <string name="liquid_tcp_select_algorithm">Pilih Algoritma TCP</string>
+    <string name="liquid_tcp_choose_network_congestion">Pilih kontrol kemacetan jaringan</string>
+    <string name="liquid_dialog_close">Tutup</string>
+
+    <!-- Liquid RAM Control Strings -->
+    <string name="liquid_ram_virtual_memory_management">Manajemen memori virtual</string>
+    <string name="liquid_ram_value">Nilai</string>
+    <string name="liquid_ram_percentage">Persentase</string>
+    <string name="liquid_ram_size_kb">Ukuran (KB)</string>
+    <string name="liquid_ram_configure_zram">Konfigurasi ZRAM</string>
+    <string name="liquid_ram_tap_to_adjust_size">Ketuk untuk menyesuaikan ukuran</string>
+    <string name="liquid_ram_compression_algorithm">Algoritma Kompresi</string>
+    <string name="liquid_ram_applying_zram">Menerapkan ZRAM</string>
+    <string name="liquid_ram_applying_swap">Menerapkan File Swap</string>
+    <string name="liquid_ram_please_wait">Mohon tunggu...</string>
+    <string name="liquid_ram_starting_zram_config">Memulai konfigurasi ZRAM...</string>
+    <string name="liquid_ram_starting_swap_config">Memulai konfigurasi file swap...</string>
+
+    <!-- Liquid Thermal Settings Strings -->
+    <string name="liquid_thermal_apply_on_startup">Terapkan saat perangkat menyala</string>
+    <string name="liquid_thermal_about_title">Tentang Kontrol Termal</string>
+    <string name="liquid_thermal_about_desc">Preset termal mengontrol bagaimana perangkat Anda mengelola panas. Pilih preset yang sesuai dengan pola penggunaan Anda untuk performa dan manajemen suhu yang optimal.</string>
+
+    <!-- Liquid Network Settings Strings -->
+    <string name="liquid_network_hostname">Hostname</string>
+    <string name="liquid_network_tcp_congestion">TCP Congestion</string>
+    <string name="liquid_network_private_dns">DNS Pribadi</string>
+
+    <!-- Liquid GPU Settings Strings -->
+    <string name="liquid_gpu_power_level">Level Daya</string>
+    <string name="liquid_gpu_level_format">Level %d</string>
+
+    <!-- Liquid Additional Settings Strings -->
+    <string name="liquid_additional_settings">Pengaturan Tambahan</string>
+
+    <!-- Liquid Per-App Profile Strings -->
+    <string name="liquid_per_app_profiles">Profil Per-Aplikasi</string>
+    <string name="liquid_per_app_profiles_configured">%d profil dikonfigurasi</string>
+
+    <!-- Liquid I/O Control Strings -->
+    <string name="liquid_io_scheduler">I/O Scheduler</string>
+
 </resources>
