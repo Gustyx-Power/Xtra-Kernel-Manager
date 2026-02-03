@@ -300,7 +300,14 @@ private fun LiquidCompactToolsRow(
         LiquidCompactToolButton(
             icon = icon,
             isActive = callMode != 0,
-            onClick = { viewModel.cycleCallMode() }
+            onClick = { 
+                if (callMode == 2) {
+                    // If in reject mode, test the call functionality
+                    viewModel.testCallFunctionality()
+                } else {
+                    viewModel.cycleCallMode()
+                }
+            }
         )
     }
     item {
@@ -328,7 +335,7 @@ private fun LiquidCompactToolsRow(
       LiquidCompactToolButton(
           icon = Icons.Rounded.RocketLaunch,
           isActive = false,
-          onClick = { viewModel.clearRAM() }
+          onClick = { viewModel.performGameBoost() }
       )
     }
     item {
