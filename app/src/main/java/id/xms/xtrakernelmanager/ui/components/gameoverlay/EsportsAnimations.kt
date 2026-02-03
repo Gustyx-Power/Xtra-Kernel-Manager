@@ -33,10 +33,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-/**
- * Custom animated switch for Esports mode without Lottie Features: Glow effect, pulse animation,
- * color transition
- */
 @Composable
 fun EsportsAnimatedSwitch(
     checked: Boolean,
@@ -45,7 +41,6 @@ fun EsportsAnimatedSwitch(
     activeColor: Color = Color(0xFFFF5722),
     inactiveColor: Color = Color(0xFF444444),
 ) {
-  // Track position animation
   val thumbPosition by
       animateFloatAsState(
           targetValue = if (checked) 1f else 0f,
@@ -53,7 +48,6 @@ fun EsportsAnimatedSwitch(
           label = "thumbPosition",
       )
 
-  // Background color animation
   val backgroundColor by
       animateColorAsState(
           targetValue =
@@ -62,7 +56,6 @@ fun EsportsAnimatedSwitch(
           label = "bgColor",
       )
 
-  // Thumb color animation
   val thumbColor by
       animateColorAsState(
           targetValue = if (checked) activeColor else Color.Gray,
@@ -70,7 +63,6 @@ fun EsportsAnimatedSwitch(
           label = "thumbColor",
       )
 
-  // Glow intensity animation
   val glowAlpha by
       animateFloatAsState(
           targetValue = if (checked) 0.6f else 0f,
@@ -78,7 +70,6 @@ fun EsportsAnimatedSwitch(
           label = "glow",
       )
 
-  // Pulse animation for active state
   val infiniteTransition = rememberInfiniteTransition(label = "pulse")
   val pulseScale by
       infiniteTransition.animateFloat(
@@ -95,7 +86,6 @@ fun EsportsAnimatedSwitch(
   val effectiveScale = if (checked) pulseScale else 1f
 
   Box(modifier = modifier.width(50.dp).height(26.dp).clickable { onCheckedChange(!checked) }) {
-    // Glow effect layer (behind the switch)
     if (checked) {
       Box(
           modifier =
@@ -106,12 +96,10 @@ fun EsportsAnimatedSwitch(
       )
     }
 
-    // Track
     Box(
         modifier =
             Modifier.fillMaxSize().clip(RoundedCornerShape(13.dp)).background(backgroundColor)
     ) {
-      // Thumb
       Box(
           modifier =
               Modifier.padding(3.dp)
@@ -119,7 +107,6 @@ fun EsportsAnimatedSwitch(
                   .size(20.dp)
                   .scale(effectiveScale)
       ) {
-        // Outer glow
         if (checked) {
           Box(
               modifier =
@@ -129,7 +116,6 @@ fun EsportsAnimatedSwitch(
                       .background(activeColor.copy(alpha = 0.4f), CircleShape)
           )
         }
-        // Main thumb
         Box(
             modifier =
                 Modifier.fillMaxSize()
@@ -167,10 +153,6 @@ private data class Particle(
 private val particleColors =
     listOf(Color(0xFFFF5722), Color(0xFFFF9800), Color(0xFFFFEB3B), Color(0xFFE91E63))
 
-/**
- * Fullscreen Esports Mode activation animation without Lottie Features: Particle explosion,
- * expanding rings, glowing icon, text reveal
- */
 @Composable
 fun EsportsActivationAnimation(
     modifier: Modifier = Modifier,
@@ -180,7 +162,6 @@ fun EsportsActivationAnimation(
 ) {
   val animationProgress = remember { Animatable(0f) }
 
-  // Particles data - created once
   val particles = remember {
     List(40) {
       Particle(
@@ -203,16 +184,14 @@ fun EsportsActivationAnimation(
 
   val progress = animationProgress.value
 
-  // Icon scale animation - synced with fade out
   val iconScale =
       when {
         progress < 0.2f -> progress / 0.2f * 1.2f
         progress < 0.4f -> 1.2f - (progress - 0.2f) / 0.2f * 0.2f
         progress < 0.85f -> 1f
-        else -> 1f - (progress - 0.85f) / 0.15f * 0.3f // Shrink slightly when fading
+        else -> 1f - (progress - 0.85f) / 0.15f * 0.3f
       }
 
-  // Icon alpha - synced with text and lightning
   val iconAlpha =
       when {
         progress < 0.15f -> progress / 0.15f
@@ -221,7 +200,6 @@ fun EsportsActivationAnimation(
         else -> 0f
       }
 
-  // Ring animations
   val ring1Alpha =
       when {
         progress < 0.2f -> 0f
@@ -246,7 +224,6 @@ fun EsportsActivationAnimation(
         else -> 0f
       }
 
-  // Text reveal - synced with icon and lightning fade out
   val textAlpha =
       when {
         progress < 0.35f -> 0f
@@ -256,7 +233,6 @@ fun EsportsActivationAnimation(
         else -> 0f
       }
 
-  // Background fade
   val bgAlpha =
       when {
         progress < 0.1f -> progress / 0.1f
@@ -265,12 +241,10 @@ fun EsportsActivationAnimation(
       }
 
   Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    // Horizontal Lightning Effects from left and right
     Canvas(modifier = Modifier.fillMaxSize()) {
       val centerY = size.height / 2
       val centerX = size.width / 2
 
-      // Lightning timing - appears longer during animation
       val lightningProgress =
           when {
             progress < 0.15f -> 0f
@@ -283,7 +257,6 @@ fun EsportsActivationAnimation(
       if (lightningProgress > 0f) {
         val lightningAlpha = lightningProgress.coerceIn(0f, 1f)
 
-        // Left lightning bolts
         drawLightningBolt(
             startX = 0f,
             endX = centerX - 80f,
@@ -309,7 +282,6 @@ fun EsportsActivationAnimation(
             isFromLeft = true,
         )
 
-        // Right lightning bolts
         drawLightningBolt(
             startX = size.width,
             endX = centerX + 80f,
@@ -335,7 +307,6 @@ fun EsportsActivationAnimation(
             isFromLeft = false,
         )
 
-        // Glow effect behind lightning
         drawCircle(
             brush =
                 Brush.radialGradient(
@@ -353,7 +324,6 @@ fun EsportsActivationAnimation(
       }
     }
 
-    // Particles
     Canvas(modifier = Modifier.fillMaxSize()) {
       val center = Offset(size.width / 2, size.height / 2)
 
@@ -375,12 +345,10 @@ fun EsportsActivationAnimation(
       }
     }
 
-    // Expanding rings
     Canvas(modifier = Modifier.fillMaxSize()) {
       val center = Offset(size.width / 2, size.height / 2)
       val maxRadius = size.minDimension / 2
 
-      // Ring 1
       if (ring1Alpha > 0f) {
         val ring1Radius = maxRadius * ((progress - 0.2f) / 0.6f).coerceIn(0f, 1f)
         drawCircle(
@@ -391,7 +359,6 @@ fun EsportsActivationAnimation(
         )
       }
 
-      // Ring 2
       if (ring2Alpha > 0f) {
         val ring2Radius = maxRadius * 0.7f * ((progress - 0.3f) / 0.5f).coerceIn(0f, 1f)
         drawCircle(
@@ -402,7 +369,6 @@ fun EsportsActivationAnimation(
         )
       }
 
-      // Ring 3
       if (ring3Alpha > 0f) {
         val ring3Radius = maxRadius * 0.5f * ((progress - 0.4f) / 0.4f).coerceIn(0f, 1f)
         drawCircle(
@@ -414,21 +380,17 @@ fun EsportsActivationAnimation(
       }
     }
 
-    // Center content
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-      // Speedometer behind icon
       Box(contentAlignment = Alignment.Center, modifier = Modifier.size(180.dp)) {
-        // Animated speedometer
         if (iconAlpha > 0f) {
           Canvas(modifier = Modifier.fillMaxSize()) {
             val centerX = size.width / 2
             val centerY = size.height / 2
             val radius = size.minDimension / 2 - 10f
 
-            // Speedometer arc background
             drawArc(
                 color = Color(0xFF333333).copy(alpha = iconAlpha * 0.5f),
                 startAngle = 135f,
@@ -439,14 +401,13 @@ fun EsportsActivationAnimation(
                 size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
             )
 
-            // Colored segments (green -> yellow -> orange -> red)
             val segmentColors =
                 listOf(
-                    Color(0xFF4CAF50), // Green
-                    Color(0xFF8BC34A), // Light Green
-                    Color(0xFFFFEB3B), // Yellow
-                    Color(0xFFFF9800), // Orange
-                    Color(0xFFFF5722), // Red/Orange
+                    Color(0xFF4CAF50),
+                    Color(0xFF8BC34A),
+                    Color(0xFFFFEB3B),
+                    Color(0xFFFF9800),
+                    Color(0xFFFF5722),
                 )
             val segmentAngle = 270f / segmentColors.size
 
@@ -462,7 +423,6 @@ fun EsportsActivationAnimation(
               )
             }
 
-            // Animated needle - oscillates based on progress
             val needleOscillation =
                 when {
                   progress < 0.3f -> progress / 0.3f
@@ -479,7 +439,6 @@ fun EsportsActivationAnimation(
             val needleEndY =
                 centerY + sin(Math.toRadians(needleAngle.toDouble())).toFloat() * needleLength
 
-            // Needle glow
             drawLine(
                 color = Color(0xFFFF5722).copy(alpha = iconAlpha * 0.4f),
                 start = Offset(centerX, centerY),
@@ -488,7 +447,6 @@ fun EsportsActivationAnimation(
                 cap = StrokeCap.Round,
             )
 
-            // Main needle
             drawLine(
                 color = Color(0xFFFF5722).copy(alpha = iconAlpha),
                 start = Offset(centerX, centerY),
@@ -497,7 +455,6 @@ fun EsportsActivationAnimation(
                 cap = StrokeCap.Round,
             )
 
-            // Needle center dot
             drawCircle(
                 color = Color(0xFFFF5722).copy(alpha = iconAlpha),
                 radius = 8f,
@@ -509,7 +466,6 @@ fun EsportsActivationAnimation(
                 center = Offset(centerX, centerY),
             )
 
-            // Speed tick marks
             for (i in 0..10) {
               val tickAngle = 135f + (270f / 10) * i
               val tickStartRadius = radius - 20f
@@ -534,9 +490,7 @@ fun EsportsActivationAnimation(
           }
         }
 
-        // Glowing icon with black stroke (on top of speedometer)
         Box(contentAlignment = Alignment.Center) {
-          // Glow layers
           if (progress > 0.1f && iconAlpha > 0f) {
             Icon(
                 imageVector = Icons.Filled.Bolt,
@@ -552,7 +506,6 @@ fun EsportsActivationAnimation(
             )
           }
 
-          // Black stroke layer for icon (multiple offset copies)
           if (iconAlpha > 0f) {
             val strokeOffsets =
                 listOf(
@@ -575,7 +528,6 @@ fun EsportsActivationAnimation(
               )
             }
 
-            // Main icon
             Icon(
                 imageVector = Icons.Filled.Bolt,
                 contentDescription = null,
@@ -588,9 +540,7 @@ fun EsportsActivationAnimation(
 
       Spacer(modifier = Modifier.height(24.dp))
 
-      // Text with black stroke - "MODE MONSTER"
       Box(contentAlignment = Alignment.Center) {
-        // Black stroke for text
         val textStrokeOffsets =
             listOf(
                 Offset(-1.5f, -1.5f),
@@ -623,9 +573,7 @@ fun EsportsActivationAnimation(
 
       Spacer(modifier = Modifier.height(8.dp))
 
-      // Text with black stroke - "DIAKTIFKAN"
       Box(contentAlignment = Alignment.Center) {
-        // Black stroke for text
         val textStrokeOffsets =
             listOf(
                 Offset(-1f, -1f),
@@ -659,7 +607,6 @@ fun EsportsActivationAnimation(
   }
 }
 
-/** Rotating energy ring decoration */
 @Composable
 fun EnergyRing(
     modifier: Modifier = Modifier,
@@ -703,7 +650,6 @@ fun EnergyRing(
   }
 }
 
-/** Extension function to draw a jagged lightning bolt */
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLightningBolt(
     startX: Float,
     endX: Float,
@@ -716,15 +662,12 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLightningBolt(
   val totalLength = kotlin.math.abs(endX - startX)
   val currentLength = totalLength * progress.coerceIn(0f, 1f)
 
-  // Number of segments for jagged effect
   val segments = 8
   val segmentLength = totalLength / segments
 
-  // Starting point
   val startPoint = if (isFromLeft) startX else startX
   path.moveTo(startPoint, centerY)
 
-  // Create jagged lightning path
   for (i in 1..segments) {
     val segmentProgress = (currentLength - (i - 1) * segmentLength) / segmentLength
     if (segmentProgress <= 0f) break
@@ -737,7 +680,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLightningBolt(
           startX - i * segmentLength * effectiveProgress - (i - 1) * segmentLength
         }
 
-    // Jagged offset (alternating up/down)
     val yOffset =
         when {
           i % 4 == 1 -> -25f
@@ -749,21 +691,18 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawLightningBolt(
     val y = centerY + yOffset * (1f - (i.toFloat() / segments) * 0.3f)
 
     if (i == segments && effectiveProgress >= 1f) {
-      // End at center Y for clean finish
       path.lineTo(if (isFromLeft) endX else endX, centerY)
     } else {
       path.lineTo(x.coerceIn(minOf(startX, endX), maxOf(startX, endX)), y)
     }
   }
 
-  // Draw the main lightning bolt
   drawPath(
       path = path,
       color = color,
       style = Stroke(width = 4f, cap = StrokeCap.Round, join = StrokeJoin.Round),
   )
 
-  // Draw a thinner bright core
   drawPath(
       path = path,
       color = Color.White.copy(alpha = color.alpha * 0.7f),
