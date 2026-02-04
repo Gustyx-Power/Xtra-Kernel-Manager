@@ -27,9 +27,20 @@ class PreferencesManager(private val context: Context) {
   // Expose context for use cases that need it
   fun getContext(): Context = context
 
+  // DPI Mode Functions
+  suspend fun setDPIMode(mode: String) {
+    context.dataStore.edit { prefs -> prefs[DPI_MODE] = mode }
+  }
+
+  fun getDPIMode(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[DPI_MODE] ?: "SMART" }
+
   // Theme and boot preference
   private val THEME_MODE = intPreferencesKey("theme_mode")
   private val SET_ON_BOOT = booleanPreferencesKey("set_on_boot")
+  
+  // DPI Mode preference
+  private val DPI_MODE = stringPreferencesKey("dpi_mode")
 
   // Performance mode
   private val PERF_MODE = stringPreferencesKey("perf_mode")
