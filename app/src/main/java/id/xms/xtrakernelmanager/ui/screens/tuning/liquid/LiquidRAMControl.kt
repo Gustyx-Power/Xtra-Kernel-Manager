@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import java.util.Locale
 
@@ -595,6 +596,62 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                   }
                 }
               }
+            }
+          }
+          
+          // RAM Set on Boot Toggle
+          val ramSetOnBoot by viewModel.preferencesManager.getRAMSetOnBoot().collectAsState(initial = false)
+          
+          Card(
+              modifier = Modifier.fillMaxWidth(),
+              elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+              colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+          ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(12.dp),
+              ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(
+                            if (ramSetOnBoot) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                  Icon(
+                      imageVector = Icons.Default.PowerSettingsNew,
+                      contentDescription = null,
+                      tint = if (ramSetOnBoot) MaterialTheme.colorScheme.onPrimary
+                             else MaterialTheme.colorScheme.onSurfaceVariant,
+                      modifier = Modifier.size(20.dp)
+                  )
+                }
+                Column {
+                  Text(
+                      text = stringResource(R.string.set_on_boot),
+                      style = MaterialTheme.typography.titleMedium,
+                      fontWeight = FontWeight.Bold,
+                  )
+                  Text(
+                      text = "Apply RAM settings on startup",
+                      style = MaterialTheme.typography.bodySmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  )
+                }
+              }
+              
+              LiquidToggle(
+                  checked = ramSetOnBoot,
+                  onCheckedChange = { viewModel.setRAMSetOnBoot(it) },
+              )
             }
           }
         }
