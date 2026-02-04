@@ -46,6 +46,18 @@ class BootReceiver : BroadcastReceiver() {
 
           // Apply RAM configuration (ZRAM, Swap, VM params)
           applyRamConfigOnBoot(context)
+
+          // Apply CPU configuration if enabled
+          applyCpuConfigOnBoot(context)
+
+          // Apply I/O scheduler configuration if enabled
+          applyIOConfigOnBoot(context)
+
+          // Apply TCP congestion configuration if enabled
+          applyTCPConfigOnBoot(context)
+
+          // Apply additional RAM configuration if enabled
+          applyAdditionalRAMConfigOnBoot(context)
         } finally {
           pendingResult.finish()
         }
@@ -248,6 +260,179 @@ class BootReceiver : BroadcastReceiver() {
     } catch (e: Exception) {
       Log.e(TAG, "Failed to apply RAM config: ${e.message}")
       activateSwapFile() // Ultimate fallback
+    }
+  }
+
+  private suspend fun applyCpuConfigOnBoot(context: Context) {
+    try {
+      val preferencesManager = PreferencesManager(context)
+      val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+
+      if (!cpuSetOnBoot) {
+        Log.d(TAG, "CPU set on boot disabled, skipping CPU configuration")
+        return
+      }
+
+      Log.d(TAG, "Applying CPU configuration on boot...")
+      val cpuUseCase = id.xms.xtrakernelmanager.domain.usecase.CPUControlUseCase()
+
+      // Get current CPU clusters
+      val clusters = cpuUseCase.detectClusters()
+      if (clusters.isEmpty()) {
+        Log.w(TAG, "No CPU clusters detected, skipping CPU configuration")
+        return
+      }
+
+      // Apply CPU frequency and governor settings from preferences
+      clusters.forEach { cluster ->
+        try {
+          // Get saved cluster configuration from preferences
+          val clusterMinFreq = preferencesManager.getClusterMinFreq(cluster.clusterNumber).first()
+          val clusterMaxFreq = preferencesManager.getClusterMaxFreq(cluster.clusterNumber).first()
+          val clusterGovernor = preferencesManager.getClusterGovernor(cluster.clusterNumber).first()
+
+          // Apply frequency settings if they were saved
+          if (clusterMinFreq > 0 && clusterMaxFreq > 0) {
+            Log.d(TAG, "Setting cluster ${cluster.clusterNumber} frequency: $clusterMinFreq - $clusterMaxFreq MHz")
+            cpuUseCase.setClusterFrequency(cluster.clusterNumber, clusterMinFreq, clusterMaxFreq)
+          }
+
+          // Apply governor if it was saved and is available
+          if (clusterGovernor.isNotBlank() && cluster.availableGovernors.contains(clusterGovernor)) {
+            Log.d(TAG, "Setting cluster ${cluster.clusterNumber} governor: $clusterGovernor")
+            cpuUseCase.setClusterGovernor(cluster.clusterNumber, clusterGovernor)
+          }
+
+          // Apply core online/offline states
+          cluster.cores.forEach { coreId ->
+            val coreEnabled = preferencesManager.isCpuCoreEnabled(coreId).first()
+            if (!coreEnabled && coreId != 0) { // Never disable core 0
+              Log.d(TAG, "Disabling CPU core $coreId")
+              cpuUseCase.setCoreOnline(coreId, false)
+            }
+          }
+        } catch (e: Exception) {
+          Log.e(TAG, "Failed to apply configuration for cluster ${cluster.clusterNumber}: ${e.message}")
+        }
+      }
+
+      Log.d(TAG, "CPU configuration applied successfully on boot")
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to apply CPU config on boot: ${e.message}")
+    }
+  }
+
+  private suspend fun applyIOConfigOnBoot(context: Context) {
+    try {
+      val preferencesManager = PreferencesManager(context)
+      val ioSetOnBoot = preferencesManager.getIOSetOnBoot().first()
+
+      if (!ioSetOnBoot) {
+        Log.d(TAG, "I/O set on boot disabled, skipping I/O scheduler configuration")
+        return
+      }
+
+      val ioScheduler = preferencesManager.getIOScheduler().first()
+      if (ioScheduler.isBlank()) {
+        Log.d(TAG, "No I/O scheduler configured, skipping")
+        return
+      }
+
+      Log.d(TAG, "Applying I/O scheduler configuration on boot: $ioScheduler")
+
+      // Apply I/O scheduler to all block devices
+      val blockDevices = listOf("sda", "sdb", "sdc", "mmcblk0", "mmcblk1", "nvme0n1")
+      
+      blockDevices.forEach { device ->
+        val schedulerPath = "/sys/block/$device/queue/scheduler"
+        val checkDevice = RootManager.executeCommand("test -f $schedulerPath && echo exists || echo notfound")
+        
+        if (checkDevice.getOrNull()?.trim() == "exists") {
+          Log.d(TAG, "Setting I/O scheduler for $device to $ioScheduler")
+          val result = RootManager.executeCommand("echo '$ioScheduler' > $schedulerPath 2>/dev/null")
+          if (result.isFailure) {
+            Log.w(TAG, "Failed to set I/O scheduler for $device: ${result.exceptionOrNull()?.message}")
+          }
+        }
+      }
+
+      Log.d(TAG, "I/O scheduler configuration applied successfully on boot")
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to apply I/O config on boot: ${e.message}")
+    }
+  }
+
+  private suspend fun applyTCPConfigOnBoot(context: Context) {
+    try {
+      val preferencesManager = PreferencesManager(context)
+      val tcpSetOnBoot = preferencesManager.getTCPSetOnBoot().first()
+
+      if (!tcpSetOnBoot) {
+        Log.d(TAG, "TCP set on boot disabled, skipping TCP congestion configuration")
+        return
+      }
+
+      val tcpCongestion = preferencesManager.getTCPCongestion().first()
+      if (tcpCongestion.isBlank()) {
+        Log.d(TAG, "No TCP congestion algorithm configured, skipping")
+        return
+      }
+
+      Log.d(TAG, "Applying TCP congestion configuration on boot: $tcpCongestion")
+
+      // Apply TCP congestion control algorithm
+      val result = RootManager.executeCommand("echo '$tcpCongestion' > /proc/sys/net/ipv4/tcp_congestion_control 2>/dev/null")
+      
+      if (result.isSuccess) {
+        Log.d(TAG, "TCP congestion control set to $tcpCongestion successfully")
+      } else {
+        Log.e(TAG, "Failed to set TCP congestion control: ${result.exceptionOrNull()?.message}")
+      }
+
+      Log.d(TAG, "TCP congestion configuration applied successfully on boot")
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to apply TCP config on boot: ${e.message}")
+    }
+  }
+
+  private suspend fun applyAdditionalRAMConfigOnBoot(context: Context) {
+    try {
+      val preferencesManager = PreferencesManager(context)
+      val ramSetOnBoot = preferencesManager.getRAMSetOnBoot().first()
+
+      if (!ramSetOnBoot) {
+        Log.d(TAG, "Additional RAM set on boot disabled, skipping additional RAM configuration")
+        return
+      }
+
+      Log.d(TAG, "Applying additional RAM configuration on boot...")
+      val ramUseCase = RAMControlUseCase()
+
+      // Get current RAM configuration from preferences
+      val ramConfig = preferencesManager.getRamConfig().first()
+      val swappiness = ramConfig.swappiness
+      val dirtyRatio = ramConfig.dirtyRatio
+      val minFreeMem = ramConfig.minFreeMem
+
+      // Apply VM parameters if they are non-default values
+      if (swappiness != 60) { // Default swappiness is 60
+        Log.d(TAG, "Setting swappiness to $swappiness")
+        ramUseCase.setSwappiness(swappiness)
+      }
+
+      if (dirtyRatio != 20) { // Default dirty ratio is 20
+        Log.d(TAG, "Setting dirty ratio to $dirtyRatio")
+        ramUseCase.setDirtyRatio(dirtyRatio)
+      }
+
+      if (minFreeMem > 0) {
+        Log.d(TAG, "Setting min free memory to $minFreeMem KB")
+        ramUseCase.setMinFreeMem(minFreeMem)
+      }
+
+      Log.d(TAG, "Additional RAM configuration applied successfully on boot")
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to apply additional RAM config on boot: ${e.message}")
     }
   }
 
