@@ -140,6 +140,11 @@ fun LiquidCPUSettingsScreen(
                   viewModel = viewModel,
               )
             }
+            
+            // CPU Set on Boot Toggle
+            item {
+              LiquidCPUSetOnBootCard(viewModel = viewModel)
+            }
           }
         }
         
@@ -488,33 +493,6 @@ private fun SmartFrequencyLockDialog(
                 onSelect = { onPolicySelected(policy) }
             )
           }
-          
-          // Thermal Policy (only for SMART)
-          if (selectedPolicy == LockPolicyType.SMART) {
-            item {
-              HorizontalDivider(
-                  color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-              )
-            }
-            
-            item {
-              Text(
-                  text = stringResource(R.string.liquid_smart_lock_thermal_policy_title),
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = FontWeight.SemiBold,
-                  color = MaterialTheme.colorScheme.onSurface
-              )
-            }
-            
-            items(ThermalPolicyPresets.getAllPolicies().size) { index ->
-              val policy = ThermalPolicyPresets.getAllPolicies()[index]
-              ThermalPolicyCard(
-                  policy = policy,
-                  isSelected = policy.name == selectedThermalPolicy,
-                  onSelect = { onThermalPolicySelected(policy.name) }
-              )
-            }
-          }
         }
       },
       confirmButton = {
@@ -737,51 +715,6 @@ internal fun PolicySelectionCard(
               LockPolicyType.GAME -> stringResource(R.string.liquid_lock_policy_game_desc)
               LockPolicyType.BATTERY_SAVING -> stringResource(R.string.liquid_lock_policy_battery_saving_desc)
             },
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-      }
-    }
-  }
-}
-
-@Composable
-internal fun ThermalPolicyCard(
-    policy: id.xms.xtrakernelmanager.data.model.ThermalPolicy,
-    isSelected: Boolean,
-    onSelect: () -> Unit
-) {
-  Surface(
-      onClick = onSelect,
-      shape = RoundedCornerShape(12.dp),
-      color = if (isSelected)
-        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-      else
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-      border = if (isSelected)
-        BorderStroke(2.dp, MaterialTheme.colorScheme.tertiary)
-      else
-        BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-  ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-      RadioButton(
-          selected = isSelected,
-          onClick = onSelect
-      )
-      Column(modifier = Modifier.weight(1f)) {
-        Text(
-            text = policy.name,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-        )
-        Text(
-            text = stringResource(R.string.liquid_thermal_policy_format, policy.emergencyThreshold, policy.warningThreshold),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -1735,4 +1668,64 @@ fun CpuLockNotificationOverlay(viewModel: TuningViewModel) {
             }
         }
     }
+}
+
+@Composable
+private fun LiquidCPUSetOnBootCard(viewModel: TuningViewModel) {
+  val cpuSetOnBoot by viewModel.preferencesManager.getCpuSetOnBoot().collectAsState(initial = false)
+
+  GlassmorphicCard(
+      modifier = Modifier.fillMaxWidth(),
+      shape = RoundedCornerShape(24.dp),
+      contentPadding = PaddingValues(24.dp)
+  ) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(
+                    if (cpuSetOnBoot) MaterialTheme.colorScheme.primaryContainer
+                    else MaterialTheme.colorScheme.surfaceVariant
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+              imageVector = Icons.Rounded.PowerSettingsNew,
+              contentDescription = null,
+              tint = if (cpuSetOnBoot) MaterialTheme.colorScheme.onPrimaryContainer
+                     else MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier = Modifier.size(24.dp)
+          )
+        }
+        Column {
+          Text(
+              text = stringResource(R.string.set_on_boot),
+              style = MaterialTheme.typography.titleLarge,
+              fontWeight = FontWeight.Bold,
+              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+          )
+          Text(
+              text = stringResource(R.string.apply_cpu_on_boot_desc),
+              style = MaterialTheme.typography.bodyMedium,
+              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.7f)
+          )
+        }
+      }
+      
+      LiquidToggle(
+          checked = cpuSetOnBoot,
+          onCheckedChange = { enabled -> viewModel.setCpuSetOnBoot(enabled) },
+          modifier = Modifier.size(56.dp)
+      )
+    }
+  }
 }
