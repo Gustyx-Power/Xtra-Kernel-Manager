@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base dimensions for phones and default configurations -->
+    
+    <!-- Spacing -->
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_tiny">4dp</dimen>
+    
+    <!-- Padding -->
+    <dimen name="screen_horizontal_padding">16dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+    <dimen name="card_padding_small">12dp</dimen>
+    <dimen name="item_padding">12dp</dimen>
+    
+    <!-- Corner Radius -->
+    <dimen name="corner_radius_large">24dp</dimen>
+    <dimen name="corner_radius_medium">16dp</dimen>
+    <dimen name="corner_radius_small">12dp</dimen>
+    
+    <!-- Component Sizes -->
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="icon_size_large">24dp</dimen>
+    <dimen name="icon_size_medium">20dp</dimen>
+    <dimen name="icon_size_small">16dp</dimen>
+    
+    <!-- Avatar Sizes -->
+    <dimen name="avatar_size_large">72dp</dimen>
+    <dimen name="avatar_size_medium">48dp</dimen>
+    <dimen name="avatar_size_small">32dp</dimen>
+    
+    <!-- Layout Constraints -->
+    <dimen name="max_content_width">600dp</dimen>
+    <integer name="grid_columns">1</integer>
+</resources>
