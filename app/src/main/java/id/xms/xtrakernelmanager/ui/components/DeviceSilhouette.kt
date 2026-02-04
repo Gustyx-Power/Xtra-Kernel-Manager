@@ -83,6 +83,14 @@ fun DeviceSilhouette(
           cameraSize = 8.dp
           cameraPadding = 6.dp
         }
+        ScreenSizeClass.LARGE -> {
+          phoneWidth = 96.dp
+          phoneHeight = 124.dp
+          cornerRadius = 18.dp
+          innerCornerRadius = 14.dp
+          cameraSize = 9.dp
+          cameraPadding = 7.dp
+        }
       }
   }
 
