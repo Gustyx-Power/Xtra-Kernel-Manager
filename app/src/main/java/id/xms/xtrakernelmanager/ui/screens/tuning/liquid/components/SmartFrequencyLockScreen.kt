@@ -145,31 +145,6 @@ fun SmartFrequencyLockScreen(
                     )
                 }
                 
-                // Thermal Policy (only for SMART)
-                if (selectedPolicy == LockPolicyType.SMART) {
-                    item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    item {
-                        Text(
-                            text = stringResource(R.string.liquid_smart_lock_thermal_policy_title),
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    
-                    items(ThermalPolicyPresets.getAllPolicies().size) { index ->
-                        val policy = ThermalPolicyPresets.getAllPolicies()[index]
-                        ThermalPolicyCard(
-                            policy = policy,
-                            isSelected = policy.name == selectedThermalPolicy,
-                            onSelect = { selectedThermalPolicy = policy.name }
-                        )
-                    }
-                }
-                
                 // Action Buttons
                 item {
                     Spacer(modifier = Modifier.height(24.dp))

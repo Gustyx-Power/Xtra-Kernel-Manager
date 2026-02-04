@@ -1,28 +1,32 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.model.ThermalPolicyPresets
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog
@@ -30,14 +34,230 @@ import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Unit) {
+fun LiquidThermalSettingsScreen(
+    viewModel: TuningViewModel,
+    onNavigateBack: () -> Unit,
+    onNavigateToIndexSelection: () -> Unit,
+    onNavigateToPolicySelection: () -> Unit
+) {
+    val selectedThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
     val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
     val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
-    val isLightTheme = !isSystemInDarkTheme()
-    
-    var showDialog by remember { mutableStateOf(false) }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        WavyBlobOrnament(modifier = Modifier.fillMaxSize())
+        
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                ModernTopBar(
+                    title = "Thermal Management",
+                    onNavigateBack = onNavigateBack
+                )
+            }
+        ) { paddingValues ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = PaddingValues(20.dp)
+            ) {
+                // Hero Section
+                item {
+                    HeroThermalCard(
+                        prefsThermal = prefsThermal,
+                        selectedPolicy = selectedThermalPolicy
+                    )
+                }
+                
+                // Thermal Index Section
+                item {
+                    ModernThermalIndexCard(
+                        prefsThermal = prefsThermal,
+                        prefsOnBoot = prefsOnBoot,
+                        onShowDialog = onNavigateToIndexSelection,
+                        viewModel = viewModel
+                    )
+                }
+                
+                // Thermal Policy Section
+                item {
+                    ModernThermalPolicyCard(
+                        selectedPolicy = selectedThermalPolicy,
+                        onShowDialog = onNavigateToPolicySelection
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModernTopBar(
+    title: String,
+    onNavigateBack: () -> Unit
+) {
+    GlassmorphicCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        shape = RoundedCornerShape(24.dp),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onNavigateBack,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            // Placeholder for balance
+            Spacer(modifier = Modifier.size(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun HeroThermalCard(
+    prefsThermal: String,
+    selectedPolicy: String
+) {
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            Color.Transparent
+                        ),
+                        radius = 300f
+                    )
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Central Icon
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.secondary
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Thermostat,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                
+                Text(
+                    text = "Thermal Control Center",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                
+                // Status indicators
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    StatusChip(
+                        label = "Index",
+                        value = prefsThermal,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    StatusChip(
+                        label = "Policy",
+                        value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else "",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusChip(
+    label: String,
+    value: String,
+    color: Color
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = color.copy(alpha = 0.1f),
+        modifier = Modifier.padding(4.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp, 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = color,
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModernThermalIndexCard(
+    prefsThermal: String,
+    prefsOnBoot: Boolean,
+    onShowDialog: () -> Unit,
+    viewModel: TuningViewModel
+) {
     val presetMap = remember {
         mapOf(
             "Not Set" to R.string.thermal_not_set,
@@ -49,277 +269,366 @@ fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -
         )
     }
     
-    val presetIcons = remember {
-        mapOf(
-            "Not Set" to "❌",
-            "Class 0" to "❄️",
-            "Extreme" to "🔥",
-            "Dynamic" to "⚡",
-            "Incalls" to "📞",
-            "Thermal 20" to "🌡️",
-        )
+    val thermalIcon = remember(prefsThermal) {
+        when (prefsThermal) {
+            "Class 0" -> Icons.Default.Speed
+            "Extreme" -> Icons.Default.Whatshot
+            "Dynamic" -> Icons.Default.AutoMode
+            "Incalls" -> Icons.Default.Call
+            "Thermal 20" -> Icons.Default.LocalFireDepartment
+            else -> Icons.Default.Block
+        }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Background decoration
-        WavyBlobOrnament(modifier = Modifier.fillMaxSize())
-
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp)
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Header with back button
-            GlassmorphicCard(
-                modifier = Modifier.fillMaxWidth(),
-                shape = CircleShape,
-                contentPadding = PaddingValues(0.dp),
-                onClick = onNavigateBack
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.error,
+                                    MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = thermalIcon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onError,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Thermal Index",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            
+            // Interactive Selection Card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowDialog() },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                        shape = CircleShape,
-                        modifier = Modifier.size(32.dp).clickable(onClick = onNavigateBack)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.back),
-                                modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = stringResource(R.string.thermal_control),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            // Current Preset Card
-            GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    if (isLightTheme) Color(0xFFFF3B30).copy(0.15f)
-                                    else Color(0xFFFF453A).copy(0.2f)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = presetIcons[prefsThermal] ?: "🌡️",
-                                style = MaterialTheme.typography.headlineMedium
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.thermal_preset),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                            Text(
-                                text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isLightTheme) Color(0xFFFF3B30) else Color(0xFFFF453A)
-                            )
-                        }
-                    }
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-
-                    // Change Preset Button
-                    Button(
-                        onClick = { showDialog = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isLightTheme) Color(0xFFFF3B30) else Color(0xFFFF453A),
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(
-                            Icons.Default.Tune,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.change_preset), fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
-
-            // Set on Boot Card
-            GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        modifier = Modifier.weight(1f)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    if (isLightTheme) Color(0xFF007AFF).copy(0.15f)
-                                    else Color(0xFF0A84FF).copy(0.2f)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PowerSettingsNew,
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                tint = if (isLightTheme) Color(0xFF007AFF) else Color(0xFF0A84FF)
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.set_on_boot),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = stringResource(R.string.liquid_thermal_apply_on_startup),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Change Thermal Index",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     }
-
-                    LiquidToggle(
-                        checked = prefsOnBoot,
-                        onCheckedChange = { viewModel.setThermalPreset(prefsThermal, it) }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
-
-            // Description Card
-            GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.liquid_thermal_about_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(R.string.liquid_thermal_about_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(100.dp))
+            
+            // Set on Boot Toggle
+            ModernToggleCard(
+                title = stringResource(R.string.set_on_boot),
+                subtitle = "Apply thermal index on device startup",
+                checked = prefsOnBoot,
+                onCheckedChange = { viewModel.setThermalPreset(prefsThermal, it) },
+                icon = Icons.Default.PowerSettingsNew
+            )
         }
     }
-    
-    // Preset Selection Dialog
-    if (showDialog) {
-        LiquidDialog(
-            onDismissRequest = { showDialog = false },
-            title = stringResource(R.string.thermal_select_preset),
-            content = {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+}
+
+@Composable
+private fun ModernThermalPolicyCard(
+    selectedPolicy: String,
+    onShowDialog: () -> Unit
+) {
+    val currentPolicy = remember(selectedPolicy) { 
+        ThermalPolicyPresets.getPolicyByName(selectedPolicy) 
+    }
+
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    items(presetMap.toList()) { (preset, stringRes) ->
-                        val isSelected = preset == prefsThermal
-                        Surface(
-                            onClick = {
-                                viewModel.setThermalPreset(preset, prefsOnBoot)
-                                showDialog = false
-                            },
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (isSelected) {
-                                if (isLightTheme) Color(0xFFFF3B30).copy(0.2f)
-                                else Color(0xFFFF453A).copy(0.25f)
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainerHighest.copy(0.5f)
-                            }
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = presetIcons[preset] ?: "🌡️",
-                                    style = MaterialTheme.typography.headlineSmall
-                                )
-                                Text(
-                                    text = stringResource(stringRes),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    modifier = Modifier.weight(1f),
-                                    color = if (isSelected) {
-                                        if (isLightTheme) Color(0xFFFF3B30) else Color(0xFFFF453A)
-                                    } else {
-                                        MaterialTheme.colorScheme.onSurface
-                                    }
-                                )
-                                if (isSelected) {
-                                    Icon(
-                                        Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = if (isLightTheme) Color(0xFFFF3B30) else Color(0xFFFF453A)
-                                    )
-                                }
-                            }
-                        }
+                    Icon(
+                        imageVector = Icons.Default.Psychology,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Thermal Policy",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = selectedPolicy,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            
+            // Policy Details
+            currentPolicy?.let { policy ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ThermalDetailRow(
+                            icon = Icons.Default.Warning,
+                            label = "Emergency",
+                            value = "${policy.emergencyThreshold}°C",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        ThermalDetailRow(
+                            icon = Icons.Default.Info,
+                            label = "Warning",
+                            value = "${policy.warningThreshold}°C",
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                        ThermalDetailRow(
+                            icon = Icons.Default.Restore,
+                            label = "Restore",
+                            value = "${policy.restoreThreshold}°C",
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        ThermalDetailRow(
+                            icon = Icons.Default.Error,
+                            label = "Critical",
+                            value = "${policy.criticalThreshold}°C",
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
-            },
-            confirmButton = {
-                LiquidDialogButton(
-                    text = stringResource(R.string.liquid_dialog_close),
-                    onClick = { showDialog = false },
-                    isPrimary = true
-                )
             }
+            
+            // Change Policy Button
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShowDialog() },
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Change Thermal Policy",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThermalDetailRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    color: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = color
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = color
         )
     }
 }
+
+@Composable
+private fun ModernToggleCard(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    icon: ImageVector
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            LiquidToggle(
+                checked = checked,
+                onCheckedChange = onCheckedChange
+            )
+        }
+    }
+}
+
