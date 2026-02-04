@@ -29,8 +29,14 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSet
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidGPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidRAMSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.ThermalIndexSelectionScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.ThermalPolicySelectionScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidAdditionalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalIndexSelectionScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -197,7 +203,37 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
               )
               "liquid_gpu_settings" -> LiquidGPUSettingsScreen(viewModel) { currentRoute = "main" }
               "liquid_ram_settings" -> LiquidRAMSettingsScreen(viewModel) { currentRoute = "main" }
-              "liquid_thermal_settings" -> LiquidThermalSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_thermal_settings" -> LiquidThermalSettingsScreen(
+                  viewModel = viewModel,
+                  onNavigateBack = { currentRoute = "main" },
+                  onNavigateToIndexSelection = { currentRoute = "thermal_index_selection" },
+                  onNavigateToPolicySelection = { currentRoute = "thermal_policy_selection" }
+              )
+              "thermal_index_selection" -> {
+                  val currentIndex by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
+                  val currentOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
+                  ThermalIndexSelectionScreen(
+                      viewModel = viewModel,
+                      currentIndex = currentIndex,
+                      onNavigateBack = { currentRoute = "liquid_thermal_settings" },
+                      onIndexSelected = { index ->
+                          viewModel.setThermalPreset(index, currentOnBoot)
+                          currentRoute = "liquid_thermal_settings"
+                      }
+                  )
+              }
+              "thermal_policy_selection" -> {
+                  val currentPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
+                  ThermalPolicySelectionScreen(
+                      viewModel = viewModel,
+                      currentPolicy = currentPolicy,
+                      onNavigateBack = { currentRoute = "liquid_thermal_settings" },
+                      onPolicySelected = { policy ->
+                          viewModel.setCpuLockThermalPolicy(policy)
+                          currentRoute = "liquid_thermal_settings"
+                      }
+                  )
+              }
               "liquid_additional_settings" -> LiquidAdditionalSettingsScreen(viewModel, preferencesManager) { currentRoute = "main" }
               else -> Text("Unknown route: $route")
           }

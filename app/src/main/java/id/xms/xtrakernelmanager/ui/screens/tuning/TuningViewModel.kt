@@ -234,6 +234,14 @@ class TuningViewModel(
   fun setCpuClusterFrequency(clusterIndex: Int, minFreqMhz: Int, maxFreqMhz: Int) {
     viewModelScope.launch(Dispatchers.IO) {
       cpuUseCase.setClusterFrequency(clusterIndex, minFreqMhz, maxFreqMhz)
+      
+      // Save configuration if set-on-boot is enabled
+      val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+      if (cpuSetOnBoot) {
+        preferencesManager.setClusterMinFreq(clusterIndex, minFreqMhz)
+        preferencesManager.setClusterMaxFreq(clusterIndex, maxFreqMhz)
+      }
+      
       refreshDynamicValues()
     }
   }
@@ -242,6 +250,13 @@ class TuningViewModel(
   fun setCpuClusterGovernor(clusterIndex: Int, governor: String) {
     viewModelScope.launch(Dispatchers.IO) {
       cpuUseCase.setClusterGovernor(clusterIndex, governor)
+      
+      // Save configuration if set-on-boot is enabled
+      val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+      if (cpuSetOnBoot) {
+        preferencesManager.setClusterGovernor(clusterIndex, governor)
+      }
+      
       refreshDynamicValues()
     }
   }
@@ -784,6 +799,13 @@ class TuningViewModel(
       val result = cpuUseCase.setClusterFrequency(cluster, minFreq, maxFreq)
       if (result.isSuccess) {
         updateClusterUIState(cluster, minFreq.toFloat(), maxFreq.toFloat())
+        
+        // Save configuration if set-on-boot is enabled
+        val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+        if (cpuSetOnBoot) {
+          preferencesManager.setClusterMinFreq(cluster, minFreq)
+          preferencesManager.setClusterMaxFreq(cluster, maxFreq)
+        }
       }
     }
   }
@@ -793,6 +815,12 @@ class TuningViewModel(
       val result = cpuUseCase.setClusterGovernor(cluster, governor)
       if (result.isSuccess) {
         updateClusterGovernor(cluster, governor)
+        
+        // Save configuration if set-on-boot is enabled
+        val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+        if (cpuSetOnBoot) {
+          preferencesManager.setClusterGovernor(cluster, governor)
+        }
       }
     }
   }
@@ -802,6 +830,9 @@ class TuningViewModel(
       preferencesManager.setCpuCoreEnabled(core, !disable)
       // Apply immediately to system
       cpuUseCase.setCoreOnline(core, !disable)
+      
+      // Note: Core enable/disable state is already saved in preferences above
+      // and will be applied on boot regardless of CPU set-on-boot setting
     }
   }
 
@@ -915,6 +946,26 @@ class TuningViewModel(
     viewModelScope.launch(Dispatchers.IO) { preferencesManager.setCpuSetOnBoot(enabled) }
   }
 
+  // I/O Set on Boot
+  fun setIOSetOnBoot(enabled: Boolean) {
+    viewModelScope.launch(Dispatchers.IO) { preferencesManager.setIOSetOnBoot(enabled) }
+  }
+
+  // TCP Set on Boot
+  fun setTCPSetOnBoot(enabled: Boolean) {
+    viewModelScope.launch(Dispatchers.IO) { preferencesManager.setTCPSetOnBoot(enabled) }
+  }
+
+  // RAM Set on Boot
+  fun setRAMSetOnBoot(enabled: Boolean) {
+    viewModelScope.launch(Dispatchers.IO) { preferencesManager.setRAMSetOnBoot(enabled) }
+  }
+
+  // Additional Set on Boot
+  fun setAdditionalSetOnBoot(enabled: Boolean) {
+    viewModelScope.launch(Dispatchers.IO) { preferencesManager.setAdditionalSetOnBoot(enabled) }
+  }
+
   fun setIOScheduler(scheduler: String) {
     viewModelScope.launch(Dispatchers.IO) {
       Log.d("TuningViewModel", "Setting IO Scheduler to: $scheduler")
@@ -937,6 +988,13 @@ class TuningViewModel(
 
       if (anySuccess) {
         preferencesManager.setIOScheduler(scheduler)
+        
+        // Save set-on-boot configuration if enabled
+        val ioSetOnBoot = preferencesManager.getIOSetOnBoot().first()
+        if (ioSetOnBoot) {
+          Log.d("TuningViewModel", "I/O set-on-boot enabled, configuration will be applied on boot")
+        }
+        
         delay(200)
         val verified = getCurrentIOScheduler()
         Log.d("TuningViewModel", "Verified IO Scheduler: $verified")
@@ -959,6 +1017,13 @@ class TuningViewModel(
 
       if (result.isSuccess) {
         preferencesManager.setTCPCongestion(congestion)
+        
+        // Save set-on-boot configuration if enabled
+        val tcpSetOnBoot = preferencesManager.getTCPSetOnBoot().first()
+        if (tcpSetOnBoot) {
+          Log.d("TuningViewModel", "TCP set-on-boot enabled, configuration will be applied on boot")
+        }
+        
         delay(200)
         val verified = getCurrentTCPCongestion()
         Log.d("TuningViewModel", "Verified TCP Congestion: $verified")
@@ -974,6 +1039,12 @@ class TuningViewModel(
       // Save to preferences FIRST for immediate UI feedback
       preferencesManager.setRamConfig(config)
       _currentCompressionAlgorithm.value = config.compressionAlgorithm
+
+      // Save set-on-boot configuration if enabled
+      val ramSetOnBoot = preferencesManager.getRAMSetOnBoot().first()
+      if (ramSetOnBoot) {
+        Log.d("TuningViewModel", "RAM set-on-boot enabled, configuration will be applied on boot")
+      }
 
       // Then apply to system (these operations can take time)
       ramUseCase.setSwappiness(config.swappiness)
@@ -1386,6 +1457,12 @@ class TuningViewModel(
   fun getCpuLockThermalPolicy(): StateFlow<String> {
     return preferencesManager.getCpuLockThermalPolicy()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+  }
+
+  fun setCpuLockThermalPolicy(policy: String) {
+    viewModelScope.launch {
+      preferencesManager.setCpuLockThermalPolicy(policy)
+    }
   }
 
   fun getCpuLockRetryCount(): StateFlow<Int> {
