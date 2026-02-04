@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
@@ -576,6 +577,93 @@ fun LiquidAdditionalControl(viewModel: TuningViewModel) {
                     }
                   }
                 }
+              }
+            }
+          }
+          
+          // Set on Boot Toggles
+          val ioSetOnBoot by viewModel.preferencesManager.getIOSetOnBoot().collectAsState(initial = false)
+          val tcpSetOnBoot by viewModel.preferencesManager.getTCPSetOnBoot().collectAsState(initial = false)
+          val additionalSetOnBoot by viewModel.preferencesManager.getAdditionalSetOnBoot().collectAsState(initial = false)
+          
+          Card(
+              modifier = Modifier.fillMaxWidth(),
+              elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+              colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+          ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+              Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.spacedBy(8.dp),
+              ) {
+                Icon(
+                    imageVector = Icons.Default.PowerSettingsNew,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = stringResource(R.string.set_on_boot),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+              }
+
+              HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+
+              // I/O Set on Boot Toggle
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                    text = stringResource(R.string.io_scheduler),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                )
+                LiquidToggle(
+                    checked = ioSetOnBoot,
+                    onCheckedChange = { viewModel.setIOSetOnBoot(it) },
+                )
+              }
+
+              // TCP Set on Boot Toggle
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                    text = stringResource(R.string.tcp_congestion),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                )
+                LiquidToggle(
+                    checked = tcpSetOnBoot,
+                    onCheckedChange = { viewModel.setTCPSetOnBoot(it) },
+                )
+              }
+
+              // Additional Set on Boot Toggle (Global)
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                    text = "Network Settings",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                )
+                LiquidToggle(
+                    checked = additionalSetOnBoot,
+                    onCheckedChange = { viewModel.setAdditionalSetOnBoot(it) },
+                )
               }
             }
           }
