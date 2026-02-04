@@ -78,10 +78,43 @@ class MainActivity : ComponentActivity() {
   private fun updateDensity(context: Context): Context {
     val configuration = Configuration(context.resources.configuration)
     val displayMetrics = context.resources.displayMetrics
-
-    configuration.densityDpi = DisplayMetrics.DENSITY_420
-    displayMetrics.density = TARGET_DENSITY_DPI / 160f
-    displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
+    
+    // Get DPI mode preference
+    var dpiMode = "SMART" // Default
+    try {
+      val prefs = getSharedPreferences("xtra_settings", Context.MODE_PRIVATE)
+      dpiMode = prefs.getString("dpi_mode", "SMART") ?: "SMART"
+    } catch (e: Exception) {
+      // Fallback to SMART mode
+    }
+    
+    // Get original system DPI before any modifications
+    val systemDensityDpi = configuration.densityDpi
+    
+    // Calculate screen size in inches to better detect tablets
+    val widthInches = configuration.screenWidthDp / 160f
+    val heightInches = configuration.screenHeightDp / 160f
+    val diagonalInches = kotlin.math.sqrt(widthInches * widthInches + heightInches * heightInches)
+    
+    // Device detection
+    val isTablet = (configuration.screenWidthDp >= 600) || 
+                   (diagonalInches >= 7.0f && systemDensityDpi <= 320)
+    val isHighResPhone = !isTablet && systemDensityDpi >= 400
+    
+    // Determine if we should force DPI based on mode and device
+    val shouldForceDPI = when (dpiMode) {
+      "SYSTEM" -> false // Never force, always use system DPI
+      "FORCE_410" -> true // Always force 410 DPI
+      "SMART" -> !isTablet && !isHighResPhone // Smart detection (default)
+      else -> !isTablet && !isHighResPhone // Fallback to smart
+    }
+    
+    if (shouldForceDPI) {
+      configuration.densityDpi = DisplayMetrics.DENSITY_420
+      displayMetrics.density = TARGET_DENSITY_DPI / 160f
+      displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
+    }
+    // For other modes, keep the system DPI (including user modifications)
 
     return context.createConfigurationContext(configuration)
   }
