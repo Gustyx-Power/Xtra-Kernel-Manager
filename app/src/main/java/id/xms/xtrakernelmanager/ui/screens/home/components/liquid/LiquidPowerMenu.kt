@@ -3,17 +3,18 @@ package id.xms.xtrakernelmanager.ui.screens.home.components.liquid
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.model.PowerAction
+import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
+import id.xms.xtrakernelmanager.ui.theme.*
 
 @Composable
 fun LiquidPowerMenu(
@@ -22,47 +23,101 @@ fun LiquidPowerMenu(
 ) {
     LiquidSharedCard(modifier = modifier) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            Text(
+                text = "Power Actions",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            // First Row: Power Off, Reboot
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PowerItem(PowerAction.PowerOff, Color(0xFFEF4444)) { onAction(it) } // Red
-                PowerItem(PowerAction.Reboot, Color(0xFF3B82F6)) { onAction(it) }   // Blue
+                PowerActionButton(
+                    modifier = Modifier.weight(1f),
+                    action = PowerAction.PowerOff,
+                    color = Color(0xFFEF4444), // Red
+                    onClick = { onAction(PowerAction.PowerOff) }
+                )
+                PowerActionButton(
+                    modifier = Modifier.weight(1f),
+                    action = PowerAction.Reboot,
+                    color = Color(0xFF3B82F6), // Blue
+                    onClick = { onAction(PowerAction.Reboot) }
+                )
             }
+            
+            // Second Row: Recovery, Bootloader
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                PowerItem(PowerAction.Recovery, Color(0xFFF59E0B)) { onAction(it) } // Orange
-                PowerItem(PowerAction.Bootloader, Color(0xFF10B981)) { onAction(it) } // Green
+                PowerActionButton(
+                    modifier = Modifier.weight(1f),
+                    action = PowerAction.Recovery,
+                    color = Color(0xFFF59E0B), // Orange
+                    onClick = { onAction(PowerAction.Recovery) }
+                )
+                PowerActionButton(
+                    modifier = Modifier.weight(1f),
+                    action = PowerAction.Bootloader,
+                    color = Color(0xFF10B981), // Green
+                    onClick = { onAction(PowerAction.Bootloader) }
+                )
+            }
+            
+            // Third Row: System UI
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                PowerActionButton(
+                    modifier = Modifier.fillMaxWidth(0.5f),
+                    action = PowerAction.SystemUI,
+                    color = NeonPurple,
+                    onClick = { onAction(PowerAction.SystemUI) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun PowerItem(
+private fun PowerActionButton(
     action: PowerAction,
     color: Color,
-    onClick: (PowerAction) -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(color.copy(alpha = 0.2f))
-            .clickable { onClick(action) },
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(color.copy(alpha = 0.15f))
+            .clickable { onClick() }
+            .padding(12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = action.icon,
-            contentDescription = null, // Icons are self-explanatory or learnable
-            tint = color,
-            modifier = Modifier.size(24.dp)
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = action.icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = action.getLocalizedLabel(),
+                style = MaterialTheme.typography.labelSmall,
+                color = color,
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
 }
