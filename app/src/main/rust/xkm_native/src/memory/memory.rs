@@ -35,7 +35,6 @@ pub struct MemInfoDetailed {
     pub swappiness: i32,
 }
 
-/// Read basic memory info from /proc/meminfo
 pub fn read_memory_info() -> MemoryInfo {
     let mut total = 0i64;
     let mut available = 0i64;
@@ -73,7 +72,6 @@ pub fn read_memory_info() -> MemoryInfo {
     }
 }
 
-/// Read swap information
 pub fn read_swap_info() -> SwapInfo {
     let mut total = 0i64;
     let mut free = 0i64;
@@ -106,8 +104,6 @@ pub fn read_swap_info() -> SwapInfo {
     }
 }
 
-/// Read ZRAM statistics
-
 pub fn read_zram_stats() -> ZramStats {
     let disksize = utils::read_sysfs_int("/sys/block/zram0/disksize", 1000).unwrap_or(0);
 
@@ -139,12 +135,10 @@ pub fn read_zram_stats() -> ZramStats {
     }
 }
 
-/// Read swappiness value
 pub fn read_swappiness() -> i32 {
     utils::read_sysfs_int("/proc/sys/vm/swappiness", 1000).unwrap_or(60) as i32
 }
 
-/// Read all memory info in one call
 pub fn read_memory_info_detailed() -> MemInfoDetailed {
     MemInfoDetailed {
         memory: read_memory_info(),
@@ -154,7 +148,6 @@ pub fn read_memory_info_detailed() -> MemInfoDetailed {
     }
 }
 
-/// Get available ZRAM compression algorithms
 pub fn get_available_zram_algorithms() -> Vec<String> {
     let path = "/sys/block/zram0/comp_algorithm";
 
@@ -168,7 +161,6 @@ pub fn get_available_zram_algorithms() -> Vec<String> {
     vec![]
 }
 
-/// Get current ZRAM compression algorithm
 pub fn get_current_zram_algorithm() -> String {
     let path = "/sys/block/zram0/comp_algorithm";
 
@@ -182,19 +174,6 @@ pub fn get_current_zram_algorithm() -> String {
 
     "unknown".to_string()
 }
-
-/// Get ZRAM device count
-pub fn get_zram_device_count() -> i32 {
-    for i in 0..8 {
-        let path = format!("/sys/block/zram{}/disksize", i);
-        if !utils::file_exists(&path) {
-            return i;
-        }
-    }
-    8
-}
-
-/// Get ZRAM device info for specific device
 
 pub fn read_zram_device_stats(device: i32) -> Option<ZramStats> {
     let disksize_path = format!("/sys/block/zram{}/disksize", device);
@@ -232,7 +211,6 @@ pub fn read_zram_device_stats(device: i32) -> Option<ZramStats> {
     None
 }
 
-/// Get memory pressure percentage
 pub fn get_memory_pressure() -> f32 {
     let info = read_memory_info();
     if info.total_kb > 0 {
@@ -243,42 +221,34 @@ pub fn get_memory_pressure() -> f32 {
     }
 }
 
-/// Get ZRAM compression ratio (quick access)
 pub fn get_zram_compression_ratio() -> f32 {
     read_zram_stats().compression_ratio
 }
 
-/// Get ZRAM compressed size in bytes
 pub fn get_zram_compressed_size() -> i64 {
     read_zram_stats().compr_data_size
 }
 
-/// Get ZRAM original data size in bytes (uncompressed data stored in ZRAM)
 pub fn get_zram_orig_data_size() -> i64 {
     read_zram_stats().orig_data_size
 }
 
-/// Get ZRAM algorithm (alias)
 pub fn get_zram_algorithm() -> String {
     get_current_zram_algorithm()
 }
 
-/// Get swappiness (alias)
 pub fn get_swappiness() -> i32 {
     read_swappiness()
 }
 
-/// Read meminfo (alias for backward compatibility)
 pub fn read_meminfo() -> MemoryInfo {
     read_memory_info()
 }
 
-/// Read ZRAM size (alias for backward compatibility)
 pub fn read_zram_size() -> i64 {
     read_zram_stats().disksize
 }
 
-/// Get detailed memory info as JSON string
 pub fn read_meminfo_detailed() -> String {
     let info = read_memory_info_detailed();
     serde_json::to_string(&info).unwrap_or_else(|_| "{}".to_string())
