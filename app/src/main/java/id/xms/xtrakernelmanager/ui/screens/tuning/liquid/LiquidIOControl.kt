@@ -16,65 +16,125 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
 fun LiquidIOControl(viewModel: TuningViewModel) {
     val ioSchedulers by viewModel.availableIOSchedulers.collectAsState()
     val currentIO by viewModel.currentIOScheduler.collectAsState()
+    val ioSetOnBoot by viewModel.preferencesManager.getIOSetOnBoot().collectAsState(initial = false)
     var showIODialog by remember { mutableStateOf(false) }
 
     if (ioSchedulers.isNotEmpty()) {
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { showIODialog = true }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            GlassmorphicCard(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showIODialog = true }
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.size(48.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Storage,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(24.dp)
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Storage,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                text = stringResource(R.string.liquid_io_scheduler),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = currentIO.ifEmpty { "Not Set" },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    Column {
-                        Text(
-                            text = stringResource(R.string.liquid_io_scheduler),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = currentIO.ifEmpty { "Not Set" },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            }
 
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            // I/O Set on Boot Toggle
+            GlassmorphicCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = if (ioSetOnBoot) MaterialTheme.colorScheme.primaryContainer
+                                   else MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier.size(48.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Rounded.PowerSettingsNew,
+                                    contentDescription = null,
+                                    tint = if (ioSetOnBoot) MaterialTheme.colorScheme.onPrimaryContainer
+                                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        Column {
+                            Text(
+                                text = stringResource(R.string.set_on_boot),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "Apply I/O scheduler on startup",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    LiquidToggle(
+                        checked = ioSetOnBoot,
+                        onCheckedChange = { viewModel.setIOSetOnBoot(it) }
+                    )
+                }
             }
         }
     }
