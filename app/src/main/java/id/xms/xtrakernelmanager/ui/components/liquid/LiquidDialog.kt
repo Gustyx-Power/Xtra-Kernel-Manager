@@ -113,6 +113,96 @@ fun LiquidDialog(
 }
 
 /**
+ * Liquid Glass Dialog component with backdrop blur effect (Composable title version)
+ * Similar to Backdrop Catalog's Dialog implementation
+ */
+@Composable
+fun LiquidDialog(
+    onDismissRequest: () -> Unit,
+    title: @Composable () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+    confirmButton: @Composable () -> Unit,
+    dismissButton: @Composable (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    properties: DialogProperties = DialogProperties()
+) {
+    val isLightTheme = !isSystemInDarkTheme()
+
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = properties
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            GlassmorphicCard(
+                modifier = modifier
+                    .fillMaxWidth(0.85f)
+                    .wrapContentHeight()
+                    .clickable(enabled = false) {}, // Prevent click through
+                shape = RoundedCornerShape(28.dp),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                // Add semi-transparent background layer inside card for better text readability
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            if (isLightTheme) {
+                                Color(0xFFFAFAFA).copy(0.6f)
+                            } else {
+                                Color(0xFF121212).copy(0.4f)
+                            }
+                        )
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Title
+                        Box(
+                            modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
+                        ) {
+                            title()
+                        }
+
+                        // Content
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 12.dp, 24.dp, 12.dp)
+                        ) {
+                            content()
+                        }
+
+                        // Action buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 12.dp, 24.dp, 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Dismiss button (if provided)
+                            dismissButton?.let {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    it()
+                                }
+                            }
+
+                            // Confirm button
+                            Box(modifier = Modifier.weight(1f)) {
+                                confirmButton()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Liquid Glass Dialog Button
  * Styled button for use in LiquidDialog
  */
