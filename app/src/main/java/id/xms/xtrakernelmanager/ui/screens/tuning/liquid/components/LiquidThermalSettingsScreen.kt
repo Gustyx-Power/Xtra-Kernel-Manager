@@ -95,7 +95,7 @@ fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.back),
                                 modifier = Modifier.size(18.dp),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
@@ -174,7 +174,7 @@ fun LiquidThermalSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("Change Preset", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.change_preset), fontWeight = FontWeight.SemiBold)
                     }
                 }
             }

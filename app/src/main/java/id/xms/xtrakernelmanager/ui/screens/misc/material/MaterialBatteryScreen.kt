@@ -25,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.AppBatteryStats
 import id.xms.xtrakernelmanager.data.model.BatteryUsageType
 
@@ -44,19 +46,19 @@ fun MaterialBatteryScreen(
         TopAppBar(
             title = {
               Text(
-                  "Battery Monitor",
+                  stringResource(id.xms.xtrakernelmanager.R.string.battery_monitor_title),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold,
               )
             },
             navigationIcon = {
               IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.back))
               }
             },
             actions = {
               IconButton(onClick = onSettingsClick) {
-                Icon(Icons.Rounded.Settings, contentDescription = "Settings")
+                Icon(Icons.Rounded.Settings, contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.settings))
               }
             },
             colors =
@@ -141,7 +143,7 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
       ) {
         Column {
           Text(
-              text = "History",
+              text = stringResource(id.xms.xtrakernelmanager.R.string.history_title),
               style = MaterialTheme.typography.titleLarge,
               fontWeight = FontWeight.Bold,
               color = Color.White,
@@ -169,7 +171,7 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
                         .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
               Text(
-                  text = "Screen",
+                  text = stringResource(id.xms.xtrakernelmanager.R.string.screen_label),
                   style = MaterialTheme.typography.labelSmall,
                   color = if (showScreenOn) Color.White else Color.White.copy(alpha = 0.5f),
                   fontWeight = FontWeight.Bold,
@@ -185,7 +187,7 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
                         .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
               Text(
-                  text = "Drain",
+                  text = stringResource(id.xms.xtrakernelmanager.R.string.drain_label),
                   style = MaterialTheme.typography.labelSmall,
                   color = if (!showScreenOn) Color.White else Color.White.copy(alpha = 0.5f),
                   fontWeight = FontWeight.Bold,
@@ -266,7 +268,7 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
           }
 
       Text(
-          text = "Total Today: $totalStr",
+          text = "${stringResource(id.xms.xtrakernelmanager.R.string.total_today)}: $totalStr",
           style = MaterialTheme.typography.bodyMedium,
           color = Color.White.copy(alpha = 0.7f),
           modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -305,19 +307,19 @@ fun HistoryChartCard(onCurrentSessionClick: () -> Unit = {}) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-          SummaryStat("Active", "$activeDrain%/h")
+          SummaryStat(stringResource(id.xms.xtrakernelmanager.R.string.session_active), "$activeDrain%/h")
           VerticalDivider(
               modifier = Modifier.height(32.dp),
               thickness = 1.dp,
               color = Color.White.copy(alpha = 0.1f),
           )
-          SummaryStat("Idle", "$idleDrain%/h")
+          SummaryStat(stringResource(id.xms.xtrakernelmanager.R.string.session_idle), "$idleDrain%/h")
           VerticalDivider(
               modifier = Modifier.height(32.dp),
               thickness = 1.dp,
               color = Color.White.copy(alpha = 0.1f),
           )
-          SummaryStat("Session", screenOnStr)
+          SummaryStat(stringResource(id.xms.xtrakernelmanager.R.string.session_duration), screenOnStr)
         }
       }
     }
@@ -342,7 +344,7 @@ fun ElectricCurrentCard(onClick: () -> Unit = {}) {
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
-          text = "Electric Current",
+          text = stringResource(id.xms.xtrakernelmanager.R.string.electric_current_title),
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.Bold,
           color = Color.White,
@@ -397,7 +399,7 @@ fun BatteryCapacityCard() {
     ) {
       Column {
         Text(
-            text = "Battery Health",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.battery_health_title),
             style = MaterialTheme.typography.labelMedium,
             color = Color.White.copy(alpha = 0.6f),
         )
@@ -431,7 +433,7 @@ fun CurrentSessionCard(
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       Text(
-          text = "Current Session",
+          text = stringResource(id.xms.xtrakernelmanager.R.string.current_session_title),
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.Bold,
           color = Color.White,
@@ -439,13 +441,13 @@ fun CurrentSessionCard(
 
       Spacer(modifier = Modifier.height(20.dp))
 
-      StatRowCompact(icon = Icons.Rounded.WbSunny, label = "Screen On", value = screenOnTime)
+      StatRowCompact(icon = Icons.Rounded.WbSunny, label = stringResource(id.xms.xtrakernelmanager.R.string.screen_on), value = screenOnTime)
       Spacer(modifier = Modifier.height(16.dp))
-      StatRowCompact(icon = Icons.Rounded.NightsStay, label = "Screen Off", value = screenOffTime)
+      StatRowCompact(icon = Icons.Rounded.NightsStay, label = stringResource(id.xms.xtrakernelmanager.R.string.screen_off), value = screenOffTime)
       Spacer(modifier = Modifier.height(16.dp))
-      StatRowCompact(icon = Icons.Rounded.Bedtime, label = "Deep Sleep", value = deepSleepTime)
+      StatRowCompact(icon = Icons.Rounded.Bedtime, label = stringResource(id.xms.xtrakernelmanager.R.string.deep_sleep), value = deepSleepTime)
       Spacer(modifier = Modifier.height(16.dp))
-      StatRowCompact(icon = Icons.Rounded.BatteryStd, label = "Charged", value = chargedInfo)
+      StatRowCompact(icon = Icons.Rounded.BatteryStd, label = stringResource(id.xms.xtrakernelmanager.R.string.charged), value = chargedInfo)
     }
   }
 }
@@ -545,7 +547,7 @@ fun AppBatteryUsageList(viewModel: MiscViewModel) {
   Column(modifier = Modifier.fillMaxWidth()) {
     // Header
     Text(
-        text = "Battery usage since last full charge",
+        text = stringResource(id.xms.xtrakernelmanager.R.string.battery_usage_since_last_charge),
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
         color = Color.White,
@@ -565,7 +567,7 @@ fun AppBatteryUsageList(viewModel: MiscViewModel) {
     } else if (filteredList.isEmpty()) {
       Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
         Text(
-            text = "No usage data available",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.no_usage_data),
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White.copy(alpha = 0.5f),
         )
@@ -609,7 +611,7 @@ fun FilterDropdown(isSystem: Boolean, onFilterChange: (Boolean) -> Unit) {
           verticalAlignment = Alignment.CenterVertically,
       ) {
         Text(
-            text = if (isSystem) "View by systems" else "View by apps",
+            text = if (isSystem) stringResource(id.xms.xtrakernelmanager.R.string.view_by_systems) else stringResource(id.xms.xtrakernelmanager.R.string.view_by_apps),
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White,
         )
@@ -628,14 +630,14 @@ fun FilterDropdown(isSystem: Boolean, onFilterChange: (Boolean) -> Unit) {
         containerColor = Color(0xFF2C2D35),
     ) {
       DropdownMenuItem(
-          text = { Text("View by apps", color = Color.White) },
+          text = { Text(stringResource(id.xms.xtrakernelmanager.R.string.view_by_apps), color = Color.White) },
           onClick = {
             onFilterChange(false)
             expanded = false
           },
       )
       DropdownMenuItem(
-          text = { Text("View by systems", color = Color.White) },
+          text = { Text(stringResource(id.xms.xtrakernelmanager.R.string.view_by_systems), color = Color.White) },
           onClick = {
             onFilterChange(true)
             expanded = false
@@ -683,7 +685,7 @@ fun AppUsageItem(app: AppBatteryStats) {
       )
 
       Text(
-          text = "Battery usage", // Generic subtitle since we lack exact screen/bg times
+          text = stringResource(id.xms.xtrakernelmanager.R.string.battery_usage_subtitle), // Generic subtitle since we lack exact screen/bg times
           style = MaterialTheme.typography.bodySmall,
           color = Color.White.copy(alpha = 0.5f),
       )

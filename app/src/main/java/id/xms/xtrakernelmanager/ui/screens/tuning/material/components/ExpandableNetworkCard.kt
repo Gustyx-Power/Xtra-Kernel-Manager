@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 
 @Composable
 fun ExpandableNetworkCard(
@@ -66,12 +68,12 @@ fun ExpandableNetworkCard(
           )
           Column {
             Text(
-                "Network",
+                stringResource(R.string.network_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             Text(
-                "Transmission Control Protocol",
+                text = stringResource(R.string.tcp_protocol_title),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -179,7 +181,7 @@ fun ExpandableNetworkCard(
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    "Network",
+                    stringResource(R.string.network_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -253,7 +255,7 @@ fun ExpandableNetworkCard(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    "Hostname",
+                  text = stringResource(R.string.hostname_label),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -298,7 +300,7 @@ fun ExpandableNetworkCard(
                         editHostnameDialog = false
                       }
                   ) {
-                    Text("Save")
+                    Text(stringResource(id.xms.xtrakernelmanager.R.string.save))
                   }
                 },
                 dismissButton = {

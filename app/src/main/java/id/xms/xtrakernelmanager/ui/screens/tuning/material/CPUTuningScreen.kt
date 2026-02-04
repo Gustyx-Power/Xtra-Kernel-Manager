@@ -158,7 +158,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
       Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         FrequencyDropdownTile(
             modifier = Modifier.weight(1f),
-            label = "Min Frequency",
+            title = stringResource(id.xms.xtrakernelmanager.R.string.min_frequency),
             value = "${cluster.currentMinFreq} MHz",
             options = (cluster.minFreq..cluster.maxFreq step 100).map { "$it MHz" },
             onValueChange = { selectedStr ->
@@ -168,7 +168,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
         )
         FrequencyDropdownTile(
             modifier = Modifier.weight(1f),
-            label = "Max Frequency",
+            title = stringResource(id.xms.xtrakernelmanager.R.string.max_frequency),
             value = "${cluster.currentMaxFreq} MHz",
             options = (cluster.minFreq..cluster.maxFreq step 100).map { "$it MHz" },
             onValueChange = { selectedStr ->
@@ -192,7 +192,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
 @Composable
 fun FrequencyDropdownTile(
     modifier: Modifier = Modifier,
-    label: String,
+    title: String,
     value: String,
     options: List<String> = emptyList(),
     onValueChange: (String) -> Unit = {},
@@ -211,7 +211,7 @@ fun FrequencyDropdownTile(
     Column {
       Column(modifier = Modifier.padding(12.dp)) {
         Text(
-            label,
+            title,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -389,12 +389,12 @@ fun SetOnBootCard(viewModel: TuningViewModel) {
         }
         Column {
           Text(
-              "Set on Boot",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.set_on_boot),
               style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
               color = MaterialTheme.colorScheme.onSurface,
           )
           Text(
-              "Apply CPU settings on startup",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.apply_cpu_on_boot_desc),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
           )

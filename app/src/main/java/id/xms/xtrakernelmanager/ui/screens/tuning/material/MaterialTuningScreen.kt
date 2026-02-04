@@ -46,7 +46,7 @@ fun MaterialTuningScreen(
 
               Box {
                 IconButton(onClick = { showMenu = true }) {
-                  Icon(Icons.Rounded.MoreVert, contentDescription = "Options")
+                  Icon(Icons.Rounded.MoreVert, contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.options_menu))
                 }
                 DropdownMenu(
                     expanded = showMenu,
@@ -54,7 +54,7 @@ fun MaterialTuningScreen(
                     shape = RoundedCornerShape(12.dp),
                 ) {
                   DropdownMenuItem(
-                      text = { Text("Import Profile") },
+                      text = { Text(stringResource(id.xms.xtrakernelmanager.R.string.import_profile)) },
                       onClick = {
                         showMenu = false
                         onImportConfig()
@@ -62,7 +62,7 @@ fun MaterialTuningScreen(
                       leadingIcon = { Icon(Icons.Rounded.FolderOpen, contentDescription = null) },
                   )
                   DropdownMenuItem(
-                      text = { Text("Export Profile") },
+                      text = { Text(stringResource(id.xms.xtrakernelmanager.R.string.export_profile)) },
                       onClick = {
                         showMenu = false
                         onExportConfig()

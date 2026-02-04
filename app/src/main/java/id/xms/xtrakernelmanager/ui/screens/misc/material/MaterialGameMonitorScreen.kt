@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -87,7 +88,7 @@ fun MaterialGameMonitorContent(viewModel: GameMonitorViewModel, modifier: Modifi
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          Text("CPU", style = MaterialTheme.typography.titleSmall)
+          Text(stringResource(id.xms.xtrakernelmanager.R.string.game_tools_monitor), style = MaterialTheme.typography.titleLarge)
           Spacer(Modifier.height(8.dp))
           HardwareGauge(HardwareGaugeType.CPU, cpuLoad, cpuFreq)
         }
@@ -122,7 +123,7 @@ fun MaterialGameMonitorContent(viewModel: GameMonitorViewModel, modifier: Modifi
     // Esports Mode
     EsportsCard(isEnabled = esportsMode, onToggle = { viewModel.setEsportsMode(it) })
 
-    Text("Game Tools", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    Text(stringResource(id.xms.xtrakernelmanager.R.string.game_tools_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
     // Tools Grid
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

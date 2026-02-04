@@ -28,10 +28,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
 import id.xms.xtrakernelmanager.R
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import id.xms.xtrakernelmanager.domain.usecase.RAMControlUseCase
 import id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator
@@ -106,7 +106,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
         // Left: Compression Level
         if (!swapExpanded) {
           ExpandableSelectionCard(
-              title = "Comp.\nLevel",
+              title = stringResource(id.xms.xtrakernelmanager.R.string.compression_algorithm),
               options = availableAlgorithms,
               selectedOption = localCompressionAlgorithm, // Use local state for immediate feedback
               onOptionSelected = { algorithm ->
@@ -171,7 +171,7 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
     // Compression Algorithm Dialog
     if (showAlgoDialog) {
       SelectionDialog(
-          title = "Compression Algorithm",
+          title = stringResource(id.xms.xtrakernelmanager.R.string.compression_algorithm),
           options = availableAlgorithms,
           currentSelection = currentAlgorithm,
           onDismiss = { showAlgoDialog = false },
@@ -520,7 +520,7 @@ fun ExpandableRamCard(
           StatRow(
               icon = Icons.Default.CheckCircle,
               value = "%.1f GB".format(availableRamGb),
-              label = stringResource(R.string.material_memory_available),
+              label = stringResource(id.xms.xtrakernelmanager.R.string.ram_available),
           )
           StatRow(
               icon = Icons.Default.Memory,
@@ -986,7 +986,7 @@ fun ExpandableSwapCard(
             color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-            text = "Partition & File",
+            text = stringResource(id.xms.xtrakernelmanager.R.string.tap_to_adjust_size),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -15,6 +15,8 @@
     <!-- Home Screen -->
     <string name="home_header">Xtra Kernel Manager</string>
     <string name="home_settings">Pengaturan</string>
+    <string name="settings">Pengaturan</string>
+    <string name="back">Kembali</string>
 
     <!-- CPU Information -->
     <string name="cpu_info">Informasi CPU</string>
@@ -250,7 +252,8 @@
     <string name="thermal_control">Kontrol Termal</string>
     <string name="thermal_control_desc">Pengaturan manajemen suhu</string>
     <string name="thermal_preset">Preset Termal</string>
-    <string name="thermal_select_preset">Pilih profil termal</string>
+    <string name="thermal_select_preset">Pilih Thermal</string>
+    <string name="change_preset">Ubah Preset</string>
     <string name="thermal_choose_mode">Pilih mode manajemen termal</string>
     <string name="thermal_tap_to_change">Ketuk untuk mengubah preset</string>
     <string name="thermal_apply_on_boot">Terapkan saat perangkat menyala</string>
@@ -436,6 +439,10 @@
     <string name="gb">GB</string>
     <string name="mah">mAh</string>
     <string name="ma">mA</string>
+    <string name="cpu">CPU</string>
+    <string name="total_load">TOTAL LOAD</string>
+    <string name="temp">Suhu</string>
+    <string name="active">Aktif</string>
 
     <!-- Common Actions -->
     <string name="apply">Terapkan</string>
@@ -445,10 +452,21 @@
     <string name="reset">Reset</string>
     <string name="enable">Aktifkan</string>
     <string name="disable">Nonaktifkan</string>
+    <string name="disabled">Dinonaktifkan</string>
     <string name="expand">Perluas</string>
     <string name="collapse">Ciutkan</string>
     <string name="loading">Memuat…</string>
     <string name="unknown">Tidak diketahui</string>
+    <string name="action_save">Simpan</string>
+    <string name="action_cancel">Batal</string>
+    <string name="action_close">Tutup</string>
+    <string name="action_apply">Terapkan</string>
+    <string name="action_ok">OKE</string>
+    <string name="label_search_apps">Cari aplikasi</string>
+    <string name="label_hostname">Nama Host</string>
+    <string name="title_battery_monitor">Monitor Baterai</string>
+    <string name="title_cpu_tuning">Tuning CPU</string>
+    <string name="title_process_manager">Manajer Proses</string>
 
     <!-- GPU Renderer Reboot (Legacy - might be unused) -->
     <string name="gpu_renderer_reboot_title">Diperlukan mulai ulang</string>
@@ -1036,4 +1054,123 @@
     <string name="liquid_recent_fine_tune_performance">Setel performa sistem dengan detail</string>
     <string name="liquid_recent_per_app_profiles">Profil Per-Aplikasi</string>
     <string name="liquid_recent_balance">Seimbang</string>
+    <!-- New Material UI Strings -->
+    <string name="battery_monitor_title">Monitor Baterai</string>
+    <string name="history_title">Riwayat</string>
+    <string name="screen_label">Layar</string>
+    <string name="drain_label">Boros</string>
+    <string name="electric_current_title">Arus Listrik</string>
+    <string name="battery_health_title">Kesehatan Baterai</string>
+    <string name="current_session_title">Sesi Saat Ini</string>
+    <string name="session_active">Aktif</string>
+    <string name="session_idle">Idle</string>
+    <string name="session_duration">Sesi</string>
+    <string name="view_by_apps">Lihat per Aps</string>
+    <string name="view_by_systems">Lihat per Sistem</string>
+    <string name="battery_usage_since_last_charge">Penggunaan baterai sejak pengisian penuh terakhir</string>
+    <string name="no_usage_data">Tidak ada data penggunaan</string>
+    <string name="battery_usage_subtitle">Penggunaan baterai</string>
+    <string name="screen_on">Layar Hidup</string>
+    <string name="screen_off">Layar Mati</string>
+    <string name="deep_sleep">Tidur Pulas</string>
+    <string name="charged">Terisi</string>
+    <string name="total_today">Total Hari Ini</string>
+
+    <string name="options_menu">Opsi</string>
+    <string name="import_profile">Impor Profil</string>
+    <string name="export_profile">Ekspor Profil</string>
+
+    <string name="fix_dt2w_uninstall_title">Uninstall Fix DT2W?</string>
+
+    <!-- Game Control Localized -->
+    <string name="game_library">Pustaka Game</string>
+    <string name="games_count">%1$d game</string>
+    <string name="registered_in">Terdaftar di %1$s</string>
+    <string name="toast_enable_accessibility">Harap aktifkan Monitor Game di pengaturan Aksesibilitas</string>
+    <string name="toast_grant_overlay">Harap izinkan Overlay</string>
+    <string name="toast_enable_usage">Harap izinkan Akses Penggunaan</string>
+    <string name="toast_permissions_granted">Semua izin diberikan! Pemantauan game aktif</string>
+    <string name="permissions_granted">Semua izin diberikan</string>
+    <string name="configure_permissions">Ketuk untuk mengatur izin</string>
+    <string name="notifications_section">Notifikasi</string>
+    <string name="call_overlay">Overlay Panggilan</string>
+    <string name="call_overlay_desc">Tampilkan overlay minimal untuk jawab/tolak panggilan</string>
+    <string name="in_game_call">Panggilan saat main</string>
+    <string name="action_no_action">Tidak ada tindakan</string>
+    <string name="action_auto_answer">Jawab Otomatis</string>
+    <string name="action_auto_reject">Tolak Otomatis</string>
+    <string name="in_game_ringer">Mode dering game</string>
+    <string name="action_no_change">Jangan ubah</string>
+    <string name="action_silent">Senyap</string>
+    <string name="action_vibrate">Getar</string>
+    <string name="display_gestures">Tampilan &amp; Gestur</string>
+    <string name="disable_auto_brightness">Nonaktifkan kecerahan otomatis</string>
+    <string name="disable_auto_brightness_desc">Jaga kecerahan tetap stabil saat main game</string>
+    <string name="disable_three_finger">Nonaktifkan usap tiga jari</string>
+    <string name="disable_three_finger_desc">Nonaktifkan sementara gestur usap tiga jari saat main</string>
+    <string name="overlay_enabled">Overlay aktif</string>
+    <string name="action_add">Tambah</string>
+    <string name="cpu_tuning_title">Tuning CPU</string>
+    <string name="apply_cpu_on_boot_desc">Terapkan pengaturan CPU saat startup</string>
+    <string name="advanced_freq_lock_desc">Konfigurasi penguncian frekuensi lanjutan</string>
+
+    <string name="compression_algorithm">Algoritma Kompresi</string>
+    <string name="tap_to_collapse">Ketuk untuk menutup</string>
+    <string name="manage_disk_io">Kelola disk I/O</string>
+
+    <string name="size_label">Ukuran</string>
+
+    <string name="network_title">Jaringan</string>
+    <string name="tcp_protocol_title">Protokol Kontrol Transmisi</string>
+    <string name="set_hostname_title">Atur Hostname</string>
+    <string name="hostname_label">Hostname</string>
+
+    <string name="thermal_title">Termal</string>
+    <string name="thermal_profile_label">Profil Termal</string>
+    <string name="system_healthy">Sistem Sehat</string>
+    <string name="system_warm">Sistem Hangat</string>
+    <string name="system_throttling">Throttling</string>
+    <string name="temp_normal">Normal</string>
+    <string name="temp_warm">Hangat</string>
+    <string name="temp_overheat">Overheat</string>
+
+
+    <string name="policy_performance">Performa</string>
+    <string name="policy_efficiency">Efisiensi</string>
+    <string name="mode_manual">Manual</string>
+    <string name="mode_smart">Pintar</string>
+    <string name="mode_game">Game</string>
+    <string name="mode_game_optimized">Mode game dioptimalkan</string>
+    <string name="mode_battery_saving">Hemat Baterai</string>
+
+    <string name="add_games_title">Tambah Game</string>
+    <string name="search_apps_placeholder">Cari aplikasi...</string>
+    <string name="filter_all">Semua</string>
+    <string name="filter_added">Ditambahkan</string>
+    <string name="filter_not_added">Belum Ditambahkan</string>
+
+    <string name="process_manager_title">Manajer Proses</string>
+    <string name="all_clear_message">Semua bersih</string>
+    <string name="cpu_cores_label">Inti CPU</string>
+    <string name="profile_default">Bawaan</string>
+    <string name="profile_performance">Performa</string>
+    <string name="profile_balanced">Seimbang</string>
+    <string name="profile_power_save">Hemat Daya</string>
+    <string name="profile_gaming">Gaming</string>
+    <string name="profile_desc_default">Gunakan bawaan sistem</string>
+    <string name="profile_desc_performance">Performa maksimal</string>
+    <string name="profile_desc_balanced">Keseimbangan optimal</string>
+    <string name="profile_desc_power_save">Perpanjang baterai</string>
+    <string name="profile_desc_gaming">Optimasi game</string>
+
+    <string name="refresh_rate_default">Bawaan</string>
+    <string name="refresh_rate_60">60 Hz</string>
+    <string name="refresh_rate_90">90 Hz</string>
+    <string name="refresh_rate_120">120 Hz</string>
+    <string name="refresh_rate_144">144 Hz</string>
+
+    <string name="per_app_active_configs">Konfigurasi Aktif</string>
+    <string name="per_app_all_apps">Semua Aplikasi</string>
+    <string name="per_app_performance_profile">Profil Performa</string>
+    <string name="per_app_refresh_rate">Refresh Rate</string>
 </resources>

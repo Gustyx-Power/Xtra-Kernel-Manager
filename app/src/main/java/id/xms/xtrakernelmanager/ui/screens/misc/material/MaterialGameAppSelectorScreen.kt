@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import id.xms.xtrakernelmanager.data.model.AppInfo
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,8 +36,12 @@ fun MaterialGameAppSelectorScreen(
   val installedApps by viewModel.installedApps.collectAsState()
   val isLoading by viewModel.isLoadingApps.collectAsState()
 
+  val filterAll = stringResource(id.xms.xtrakernelmanager.R.string.filter_all)
+  val filterAdded = stringResource(id.xms.xtrakernelmanager.R.string.filter_added)
+  val filterNotAdded = stringResource(id.xms.xtrakernelmanager.R.string.filter_not_added)
+  
   var searchQuery by remember { mutableStateOf("") }
-  var filterMode by remember { mutableStateOf("All") } // All, Added, Not Added
+  var filterMode by remember { mutableStateOf(filterAll) }
   var showFilterMenu by remember { mutableStateOf(false) }
 
   // Load apps on enter
@@ -60,8 +65,8 @@ fun MaterialGameAppSelectorScreen(
 
         val filteredByMode =
             when (filterMode) {
-              "Added" -> sortedApps.filter { viewModel.isGameApp(it.packageName) }
-              "Not Added" -> sortedApps.filter { !viewModel.isGameApp(it.packageName) }
+              filterAdded -> sortedApps.filter { viewModel.isGameApp(it.packageName) }
+              filterNotAdded -> sortedApps.filter { !viewModel.isGameApp(it.packageName) }
               else -> sortedApps
             }
 
@@ -74,7 +79,7 @@ fun MaterialGameAppSelectorScreen(
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
         TopAppBar(
-            title = { Text("Add Games", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
+            title = { Text(stringResource(id.xms.xtrakernelmanager.R.string.add_games_title), fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
             navigationIcon = {
               IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back") }
             },
@@ -99,7 +104,7 @@ fun MaterialGameAppSelectorScreen(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Search apps...") },
+            placeholder = { Text(stringResource(id.xms.xtrakernelmanager.R.string.search_apps_placeholder)) },
             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
             trailingIcon = {
               if (searchQuery.isNotEmpty()) {
@@ -125,7 +130,7 @@ fun MaterialGameAppSelectorScreen(
               colors =
                   IconButtonDefaults.filledTonalIconButtonColors(
                       containerColor =
-                          if (filterMode != "All") MaterialTheme.colorScheme.primaryContainer
+                          if (filterMode != filterAll) MaterialTheme.colorScheme.primaryContainer
                           else MaterialTheme.colorScheme.surfaceContainerHigh
                   ),
           ) {
@@ -133,35 +138,35 @@ fun MaterialGameAppSelectorScreen(
                 Icons.Rounded.FilterList,
                 contentDescription = "Filter",
                 tint =
-                    if (filterMode != "All") MaterialTheme.colorScheme.primary
+                    if (filterMode != filterAll) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
             )
           }
 
           DropdownMenu(expanded = showFilterMenu, onDismissRequest = { showFilterMenu = false }) {
             DropdownMenuItem(
-                text = { Text("All") },
+                text = { Text(stringResource(id.xms.xtrakernelmanager.R.string.filter_all)) },
                 onClick = {
-                  filterMode = "All"
+                  filterMode = filterAll
                   showFilterMenu = false
                 },
-                leadingIcon = { if (filterMode == "All") Icon(Icons.Rounded.Check, null) },
+                leadingIcon = { if (filterMode == filterAll) Icon(Icons.Rounded.Check, null) },
             )
             DropdownMenuItem(
-                text = { Text("Added") },
+                text = { Text(filterAdded) },
                 onClick = {
-                  filterMode = "Added"
+                  filterMode = filterAdded
                   showFilterMenu = false
                 },
-                leadingIcon = { if (filterMode == "Added") Icon(Icons.Rounded.Check, null) },
+                leadingIcon = { if (filterMode == filterAdded) Icon(Icons.Rounded.Check, null) },
             )
             DropdownMenuItem(
-                text = { Text("Not Added") },
+                text = { Text(filterNotAdded) },
                 onClick = {
-                  filterMode = "Not Added"
+                  filterMode = filterNotAdded
                   showFilterMenu = false
                 },
-                leadingIcon = { if (filterMode == "Not Added") Icon(Icons.Rounded.Check, null) },
+                leadingIcon = { if (filterMode == filterNotAdded) Icon(Icons.Rounded.Check, null) },
             )
           }
         }

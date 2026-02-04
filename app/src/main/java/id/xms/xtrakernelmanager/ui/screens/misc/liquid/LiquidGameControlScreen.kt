@@ -143,7 +143,7 @@ fun LiquidGameControlScreen(
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.back),
                                 modifier = Modifier.size(18.dp),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
@@ -166,7 +166,7 @@ fun LiquidGameControlScreen(
                             shape = CircleShape
                         ) {
                             Text(
-                                text = "$enabledCount games",
+                                text = stringResource(R.string.games_count, enabledCount),
                                 style = MaterialTheme.typography.labelSmall,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                 color = if (isLightTheme) Color(0xFFAF52DE) else Color(0xFFBF5AF2),
@@ -241,7 +241,7 @@ private fun LiquidGameLibrarySection(
     
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "Game Library",
+            text = stringResource(R.string.game_library),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
@@ -261,12 +261,12 @@ private fun LiquidGameLibrarySection(
                 ) {
                     Column {
                         Text(
-                            text = "${gameApps.size} Games",
+                            text = stringResource(R.string.games_count, gameApps.size),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = "Registered in ${stringResource(R.string.game_control)}",
+                            text = stringResource(R.string.registered_in, stringResource(R.string.game_control)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
                         )
@@ -281,7 +281,7 @@ private fun LiquidGameLibrarySection(
                     ) {
                         Icon(Icons.Rounded.Add, null, modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
-                        Text("Add")
+                        Text(stringResource(R.string.action_add))
                     }
                 }
 
@@ -293,7 +293,7 @@ private fun LiquidGameLibrarySection(
                         if (!hasAccessibilityPermission) {
                             android.widget.Toast.makeText(
                                 context,
-                                "Please enable Game Monitor in Accessibility settings",
+                                context.getString(id.xms.xtrakernelmanager.R.string.toast_enable_accessibility),
                                 android.widget.Toast.LENGTH_LONG
                             ).show()
                             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
@@ -304,7 +304,7 @@ private fun LiquidGameLibrarySection(
                         if (!hasOverlayPermission) {
                             android.widget.Toast.makeText(
                                 context,
-                                "Please grant Overlay permission",
+                                context.getString(id.xms.xtrakernelmanager.R.string.toast_grant_overlay),
                                 android.widget.Toast.LENGTH_LONG
                             ).show()
                             val intent = Intent(
@@ -318,7 +318,7 @@ private fun LiquidGameLibrarySection(
                         if (!hasUsageAccessPermission) {
                             android.widget.Toast.makeText(
                                 context,
-                                "Please enable Usage Access permission",
+                                context.getString(id.xms.xtrakernelmanager.R.string.toast_enable_usage),
                                 android.widget.Toast.LENGTH_LONG
                             ).show()
                             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
@@ -328,7 +328,7 @@ private fun LiquidGameLibrarySection(
 
                         android.widget.Toast.makeText(
                             context,
-                            "All permissions granted! Game monitoring is active",
+                            context.getString(id.xms.xtrakernelmanager.R.string.toast_permissions_granted),
                             android.widget.Toast.LENGTH_SHORT
                         ).show()
 
@@ -367,15 +367,15 @@ private fun LiquidGameLibrarySection(
                             }
                             Column {
                                 Text(
-                                    "Performance Monitor",
+                                    stringResource(R.string.game_tools_monitor),
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
                                     if (hasAccessibilityPermission && hasOverlayPermission && hasUsageAccessPermission) {
-                                        "All permissions granted"
+                                        stringResource(R.string.permissions_granted)
                                     } else {
-                                        "Tap to configure permissions"
+                                        stringResource(R.string.configure_permissions)
                                     },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
@@ -430,7 +430,7 @@ private fun LiquidNotificationsSection(
     
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "Notifications",
+            text = stringResource(R.string.notifications_section),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
@@ -445,8 +445,8 @@ private fun LiquidNotificationsSection(
                 // Call overlay
                 LiquidSwitchRow(
                     icon = Icons.Rounded.Call,
-                    title = "Call overlay",
-                    subtitle = "Show minimal call overlay to answer/reject calls",
+                    title = stringResource(R.string.call_overlay),
+                    subtitle = stringResource(R.string.call_overlay_desc),
                     checked = callOverlay,
                     onCheckedChange = { viewModel.setCallOverlay(it) },
                     isLightTheme = isLightTheme
@@ -457,17 +457,17 @@ private fun LiquidNotificationsSection(
                 // In-game call action
                 LiquidExpandableRow(
                     icon = Icons.Rounded.PhoneInTalk,
-                    title = "In-game call",
+                    title = stringResource(R.string.in_game_call),
                     subtitle = when (inGameCallAction) {
-                        "no_action" -> "No action"
-                        "answer" -> "Auto Answer"
-                        "reject" -> "Auto Reject"
-                        else -> "No action"
+                        "no_action" -> stringResource(R.string.action_no_action)
+                        "answer" -> stringResource(R.string.action_auto_answer)
+                        "reject" -> stringResource(R.string.action_auto_reject)
+                        else -> stringResource(R.string.action_no_action)
                     },
                     options = listOf(
-                        "no_action" to "No action",
-                        "answer" to "Auto Answer",
-                        "reject" to "Auto Reject"
+                        "no_action" to stringResource(R.string.action_no_action),
+                        "answer" to stringResource(R.string.action_auto_answer),
+                        "reject" to stringResource(R.string.action_auto_reject)
                     ),
                     selectedOption = inGameCallAction,
                     onOptionSelected = { viewModel.setInGameCallAction(it) },
@@ -479,17 +479,17 @@ private fun LiquidNotificationsSection(
                 // In-game ringer mode
                 LiquidExpandableRow(
                     icon = Icons.Rounded.VolumeUp,
-                    title = "In-game ringer mode",
+                    title = stringResource(R.string.in_game_ringer),
                     subtitle = when (inGameRingerMode) {
-                        "no_change" -> "Do not change"
-                        "silent" -> "Silent"
-                        "vibrate" -> "Vibrate"
-                        else -> "Do not change"
+                        "no_change" -> stringResource(R.string.action_no_change)
+                        "silent" -> stringResource(R.string.action_silent)
+                        "vibrate" -> stringResource(R.string.action_vibrate)
+                        else -> stringResource(R.string.action_no_change)
                     },
                     options = listOf(
-                        "no_change" to "Do not change",
-                        "silent" to "Silent",
-                        "vibrate" to "Vibrate"
+                        "no_change" to stringResource(R.string.action_no_change),
+                        "silent" to stringResource(R.string.action_silent),
+                        "vibrate" to stringResource(R.string.action_vibrate)
                     ),
                     selectedOption = inGameRingerMode,
                     onOptionSelected = { viewModel.setInGameRingerMode(it) },
@@ -511,7 +511,7 @@ private fun LiquidDisplayGesturesSection(
     
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "Display & Gestures",
+            text = stringResource(R.string.display_gestures),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
@@ -526,8 +526,8 @@ private fun LiquidDisplayGesturesSection(
                 // Disable auto-brightness
                 LiquidSwitchRow(
                     icon = Icons.Rounded.BrightnessAuto,
-                    title = "Disable auto-brightness",
-                    subtitle = "Keep brightness settled while in-game",
+                    title = stringResource(R.string.disable_auto_brightness),
+                    subtitle = stringResource(R.string.disable_auto_brightness_desc),
                     checked = disableAutoBrightness,
                     onCheckedChange = { viewModel.setDisableAutoBrightness(it) },
                     isLightTheme = isLightTheme
@@ -538,8 +538,8 @@ private fun LiquidDisplayGesturesSection(
                 // Disable three finger swipe
                 LiquidSwitchRow(
                     icon = Icons.Rounded.Gesture,
-                    title = "Disable three fingers swipe gesture",
-                    subtitle = "Temporary disable three fingers swipe gesture while in-game",
+                    title = stringResource(R.string.disable_three_finger),
+                    subtitle = stringResource(R.string.disable_three_finger_desc),
                     checked = disableThreeFingerSwipe,
                     onCheckedChange = { viewModel.setDisableThreeFingerSwipe(it) },
                     isLightTheme = isLightTheme
@@ -777,7 +777,7 @@ private fun GameAppItemCard(
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = if (game.enabled) "Overlay enabled" else "Disabled",
+                text = if (game.enabled) stringResource(R.string.overlay_enabled) else stringResource(R.string.disabled),
                 style = MaterialTheme.typography.bodySmall,
                 color = if (game.enabled) {
                     if (isLightTheme) Color(0xFFAF52DE) else Color(0xFFBF5AF2)

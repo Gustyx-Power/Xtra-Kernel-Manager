@@ -23,6 +23,7 @@ import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.ui.theme.NeonBlue
 import id.xms.xtrakernelmanager.ui.theme.NeonGreen
 import id.xms.xtrakernelmanager.ui.theme.NeonRose
+import androidx.compose.ui.res.stringResource
 import java.util.Locale
 
 @Composable
@@ -49,10 +50,10 @@ fun LiquidCPUCard(cpuInfo: CPUInfo, modifier: Modifier = Modifier) {
                         modifier = Modifier.size(16.dp)
                     )
                 }
-                Text("CPU", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(stringResource(id.xms.xtrakernelmanager.R.string.cpu), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             }
             Text(
-                text = cpuInfo.cores.firstOrNull()?.governor ?: "unknown",
+                text = cpuInfo.cores.firstOrNull()?.governor ?: stringResource(id.xms.xtrakernelmanager.R.string.unknown),
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace),
                 color = NeonGreen,
                 modifier = Modifier
@@ -80,7 +81,7 @@ fun LiquidCPUCard(cpuInfo: CPUInfo, modifier: Modifier = Modifier) {
                 )
             }
             Text(
-                text = "TOTAL LOAD",
+                text = stringResource(id.xms.xtrakernelmanager.R.string.total_load),
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, letterSpacing = 1.sp),
                 color = Color.Gray
             )
@@ -103,7 +104,7 @@ fun LiquidCPUCard(cpuInfo: CPUInfo, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Temp", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                Text(stringResource(id.xms.xtrakernelmanager.R.string.temp), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                 Text(
                     "${cpuInfo.temperature}°C",
                     style = MaterialTheme.typography.labelSmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontWeight = FontWeight.Bold),
@@ -111,7 +112,7 @@ fun LiquidCPUCard(cpuInfo: CPUInfo, modifier: Modifier = Modifier) {
                 )
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Active", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                Text(stringResource(id.xms.xtrakernelmanager.R.string.active), style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                 Text(
                     "${cpuInfo.cores.count { it.isOnline }}/${cpuInfo.cores.size}",
                     style = MaterialTheme.typography.labelSmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace, fontWeight = FontWeight.Bold),
@@ -126,7 +127,7 @@ fun LiquidCPUCard(cpuInfo: CPUInfo, modifier: Modifier = Modifier) {
 fun LiquidExpandedCoresCard(cpuInfo: CPUInfo, modifier: Modifier = Modifier) {
     LiquidSharedCard(modifier = modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
-             Text("CPU Cores", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+             Text(stringResource(id.xms.xtrakernelmanager.R.string.cpu_cores), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
              Spacer(modifier = Modifier.height(16.dp))
              
              // Simple grid logic for 8 cores

@@ -28,6 +28,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import androidx.compose.ui.res.stringResource
 import id.xms.xtrakernelmanager.ui.screens.misc.shared.ProcessInfo
 import id.xms.xtrakernelmanager.ui.screens.misc.shared.loadRunningProcesses
 import id.xms.xtrakernelmanager.ui.screens.misc.shared.getAppIconSafe
@@ -159,7 +160,7 @@ fun MaterialProcessManagerScreen(
               tint = MaterialTheme.colorScheme.primary,
           )
           Spacer(modifier = Modifier.height(16.dp))
-          Text("All clear", style = MaterialTheme.typography.titleLarge)
+              Text(stringResource(id.xms.xtrakernelmanager.R.string.all_clear_message), style = MaterialTheme.typography.titleLarge)
         }
       }
     } else {

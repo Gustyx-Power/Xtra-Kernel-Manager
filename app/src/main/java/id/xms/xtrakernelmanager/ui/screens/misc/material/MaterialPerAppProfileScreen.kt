@@ -1,6 +1,7 @@
 package id.xms.xtrakernelmanager.ui.screens.misc.material
 
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
+import androidx.annotation.StringRes
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import androidx.compose.ui.res.stringResource
+import id.xms.xtrakernelmanager.R
 
 data class AppProfile(
     val packageName: String,
@@ -37,20 +40,21 @@ data class AppProfile(
     val refreshRate: RefreshRate = RefreshRate.DEFAULT,
 )
 
-enum class ProfileType(val displayName: String, val description: String) {
-  DEFAULT("Default", "Use system defaults"),
-  PERFORMANCE("Performance", "Max performance"),
-  BALANCED("Balanced", "Optimal balance"),
-  POWER_SAVE("Power Save", "Extend battery"),
-  GAMING("Gaming", "Gaming optimization"),
+
+enum class ProfileType(@StringRes val displayNameRes: Int, @StringRes val descriptionRes: Int) {
+  DEFAULT(R.string.profile_default, R.string.profile_desc_default),
+  PERFORMANCE(R.string.profile_performance, R.string.profile_desc_performance),
+  BALANCED(R.string.profile_balanced, R.string.profile_desc_balanced),
+  POWER_SAVE(R.string.profile_power_save, R.string.profile_desc_power_save),
+  GAMING(R.string.profile_gaming, R.string.profile_desc_gaming),
 }
 
-enum class RefreshRate(val displayName: String, val value: String) {
-  DEFAULT("Default", "def"),
-  HZ_60("60 Hz", "60"),
-  HZ_90("90 Hz", "90"),
-  HZ_120("120 Hz", "120"),
-  HZ_144("144 Hz", "144"),
+enum class RefreshRate(@StringRes val displayNameRes: Int, val value: String) {
+  DEFAULT(R.string.refresh_rate_default, "def"),
+  HZ_60(R.string.refresh_rate_60, "60"),
+  HZ_90(R.string.refresh_rate_90, "90"),
+  HZ_120(R.string.refresh_rate_120, "120"),
+  HZ_144(R.string.refresh_rate_144, "144"),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,7 +96,7 @@ fun MaterialPerAppProfileScreen(
       containerColor = MaterialTheme.colorScheme.background,
       topBar = {
         TopAppBar(
-            title = { Text("Per App Profile", fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
+            title = { Text(stringResource(id.xms.xtrakernelmanager.R.string.per_app_profile), fontWeight = FontWeight.SemiBold, fontSize = 24.sp) },
             navigationIcon = {
               IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, "Back") }
             },
@@ -118,7 +122,7 @@ fun MaterialPerAppProfileScreen(
             value = searchQuery,
             onValueChange = { searchQuery = it },
             modifier = Modifier.weight(1f),
-            placeholder = { Text("Search apps...") },
+            placeholder = { Text(stringResource(id.xms.xtrakernelmanager.R.string.search_apps_placeholder)) },
             leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null) },
             trailingIcon = {
               if (searchQuery.isNotEmpty()) {
@@ -173,7 +177,7 @@ fun MaterialPerAppProfileScreen(
               containerColor = MaterialTheme.colorScheme.surfaceContainer,
           ) {
             DropdownMenuItem(
-                text = { Text("All Apps") },
+                text = { Text(stringResource(id.xms.xtrakernelmanager.R.string.filter_all)) },
                 onClick = {
                   selectedFilter = null
                   filterExpanded = false
@@ -187,7 +191,7 @@ fun MaterialPerAppProfileScreen(
                 .filter { it != ProfileType.DEFAULT }
                 .forEach { type ->
                   DropdownMenuItem(
-                      text = { Text(type.displayName, color = getProfileColor(type)) },
+                      text = { Text(stringResource(type.displayNameRes), color = getProfileColor(type)) },
                       onClick = {
                         selectedFilter = type
                         filterExpanded = false
@@ -219,7 +223,7 @@ fun MaterialPerAppProfileScreen(
         if (searchQuery.isEmpty() && selectedFilter == null && activeConfigs.isNotEmpty()) {
           item {
             Text(
-                "Active Configurations",
+                stringResource(id.xms.xtrakernelmanager.R.string.per_app_active_configs),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp),
@@ -239,7 +243,7 @@ fun MaterialPerAppProfileScreen(
 
           item {
             Text(
-                "All Applications",
+                stringResource(id.xms.xtrakernelmanager.R.string.per_app_all_apps),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp, start = 8.dp),
@@ -314,7 +318,7 @@ fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            if(app.profileType != ProfileType.DEFAULT) app.profileType.displayName else app.refreshRate.displayName,
+            if(app.profileType != ProfileType.DEFAULT) stringResource(app.profileType.displayNameRes) else stringResource(app.refreshRate.displayNameRes),
             style = MaterialTheme.typography.labelMedium,
             color = color,
             fontWeight = FontWeight.Bold,
@@ -423,7 +427,7 @@ fun ExpressiveAppItem(
                            shape = RoundedCornerShape(8.dp)
                        ) {
                            Text(
-                               app.profileType.displayName,
+                                stringResource(app.profileType.displayNameRes),
                                style = MaterialTheme.typography.labelSmall,
                                color = profileColor,
                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -436,7 +440,7 @@ fun ExpressiveAppItem(
                            shape = RoundedCornerShape(8.dp)
                        ) {
                            Text(
-                               app.refreshRate.displayName,
+                                stringResource(app.refreshRate.displayNameRes),
                                style = MaterialTheme.typography.labelSmall,
                                color = MaterialTheme.colorScheme.secondary,
                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -467,14 +471,14 @@ fun ExpressiveAppItem(
               
               // Performance Profile Dropdown
               ConfigDropdownRow(
-                  label = "Performance Profile",
-                  currentValue = app.profileType.displayName,
+                  label = stringResource(id.xms.xtrakernelmanager.R.string.per_app_performance_profile),
+                  currentValue = stringResource(app.profileType.displayNameRes),
                   icon = Icons.Rounded.Settings,
                   isModified = app.profileType != ProfileType.DEFAULT
               ) { dismiss ->
                   ProfileType.entries.forEach { type ->
                       DropdownMenuItem(
-                          text = { Text(type.displayName) },
+                          text = { Text(stringResource(type.displayNameRes)) },
                           onClick = { 
                               onUpdate(app.copy(profileType = type))
                               dismiss()
@@ -493,14 +497,14 @@ fun ExpressiveAppItem(
 
              // Refresh Rate Dropdown
               ConfigDropdownRow(
-                  label = "Refresh Rate",
-                  currentValue = app.refreshRate.displayName,
+                  label = stringResource(id.xms.xtrakernelmanager.R.string.per_app_refresh_rate),
+                  currentValue = stringResource(app.refreshRate.displayNameRes),
                   icon = Icons.Rounded.Refresh,
                   isModified = app.refreshRate != RefreshRate.DEFAULT
               ) { dismiss ->
                   RefreshRate.entries.forEach { rate ->
                       DropdownMenuItem(
-                          text = { Text(rate.displayName) },
+                          text = { Text(stringResource(rate.displayNameRes)) },
                           onClick = { 
                               onUpdate(app.copy(refreshRate = rate))
                               dismiss()

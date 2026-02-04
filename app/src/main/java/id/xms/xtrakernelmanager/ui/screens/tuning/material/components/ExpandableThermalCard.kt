@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.WavyCircularProgressIndicator
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun ExpandableThermalCard(
@@ -114,19 +115,19 @@ fun ExpandableThermalCard(
                     cpuTemp < 60 ->
                         Triple(
                             Icons.Rounded.CheckCircle,
-                            "System Healthy",
+                            stringResource(id.xms.xtrakernelmanager.R.string.system_healthy),
                             MaterialTheme.colorScheme.primary,
                         )
                     cpuTemp < 80 ->
                         Triple(
                             Icons.Rounded.Warning,
-                            "System Warm",
+                            stringResource(id.xms.xtrakernelmanager.R.string.system_warm),
                             MaterialTheme.colorScheme.tertiary,
                         )
                     else ->
                         Triple(
                             Icons.Rounded.Dangerous,
-                            "Throttling",
+                            stringResource(id.xms.xtrakernelmanager.R.string.system_throttling),
                             MaterialTheme.colorScheme.error,
                         )
                   }
@@ -210,9 +211,9 @@ fun ExpandableThermalCard(
 
                 val statusText =
                     when {
-                      cpuTemp < 45 -> "Normal"
-                      cpuTemp < 65 -> "Warm"
-                      else -> "Overheat"
+                      cpuTemp < 45 -> stringResource(id.xms.xtrakernelmanager.R.string.temp_normal)
+                      cpuTemp < 65 -> stringResource(id.xms.xtrakernelmanager.R.string.temp_warm)
+                      else -> stringResource(id.xms.xtrakernelmanager.R.string.temp_overheat)
                     }
 
                 WavyCircularProgressIndicator(
@@ -261,7 +262,7 @@ fun ThermalPresetDropdown(viewModel: TuningViewModel) {
     ) {
       Column(modifier = Modifier.padding(12.dp)) {
         Text(
-            "Thermal Profile",
+            stringResource(id.xms.xtrakernelmanager.R.string.thermal_profile_label),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -15,6 +15,8 @@
     <!-- Home Screen -->
     <string name="home_header">Xtra Kernel Manager</string>
     <string name="home_settings">Settings</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
 
     <!-- CPU Information -->
     <string name="cpu_info">CPU Information</string>
@@ -251,6 +253,7 @@
     <string name="thermal_control_desc">Temperature management settings</string>
     <string name="thermal_preset">Thermal Preset</string>
     <string name="thermal_select_preset">Select Thermal</string>
+    <string name="change_preset">Change Preset</string>
     <string name="thermal_choose_mode">Choose thermal management mode</string>
     <string name="thermal_tap_to_change">Tap to change preset</string>
     <string name="thermal_apply_on_boot">Apply on device startup</string>
@@ -437,6 +440,10 @@
     <string name="gb">GB</string>
     <string name="mah">mAh</string>
     <string name="ma">mA</string>
+    <string name="cpu">CPU</string>
+    <string name="total_load">TOTAL LOAD</string>
+    <string name="temp">Temp</string>
+    <string name="active">Active</string>
 
     <!-- Common Actions -->
     <string name="apply">Apply</string>
@@ -446,10 +453,21 @@
     <string name="reset">Reset</string>
     <string name="enable">Enable</string>
     <string name="disable">Disable</string>
+    <string name="disabled">Disabled</string>
     <string name="expand">Expand</string>
     <string name="collapse">Collapse</string>
     <string name="loading">Loading…</string>
     <string name="unknown">Unknown</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_apply">Apply</string>
+    <string name="action_ok">OK</string>
+    <string name="label_search_apps">Search apps</string>
+    <string name="label_hostname">Hostname</string>
+    <string name="title_battery_monitor">Battery Monitor</string>
+    <string name="title_cpu_tuning">CPU Tuning</string>
+    <string name="title_process_manager">Process Manager</string>
 
     <!-- GPU Renderer Reboot (Legacy - might be unused) -->
     <string name="gpu_renderer_reboot_title">Reboot Required</string>
@@ -638,6 +656,35 @@
 
     <!-- Fix DT2W Uninstall Dialog -->
     <string name="fix_dt2w_uninstall_title">Uninstall Fix DT2W?</string>
+
+    <!-- Game Control Localized -->
+    <string name="game_library">Game Library</string>
+    <string name="games_count">%1$d games</string>
+    <string name="registered_in">Registered in %1$s</string>
+    <string name="toast_enable_accessibility">Please enable Game Monitor in Accessibility settings</string>
+    <string name="toast_grant_overlay">Please grant Overlay permission</string>
+    <string name="toast_enable_usage">Please enable Usage Access permission</string>
+    <string name="toast_permissions_granted">All permissions granted! Game monitoring is active</string>
+    <string name="permissions_granted">All permissions granted</string>
+    <string name="configure_permissions">Tap to configure permissions</string>
+    <string name="notifications_section">Notifications</string>
+    <string name="call_overlay">Call overlay</string>
+    <string name="call_overlay_desc">Show minimal call overlay to answer/reject calls</string>
+    <string name="in_game_call">In-game call</string>
+    <string name="action_no_action">No action</string>
+    <string name="action_auto_answer">Auto Answer</string>
+    <string name="action_auto_reject">Auto Reject</string>
+    <string name="in_game_ringer">In-game ringer mode</string>
+    <string name="action_no_change">Do not change</string>
+    <string name="action_silent">Silent</string>
+    <string name="action_vibrate">Vibrate</string>
+    <string name="display_gestures">Display &amp; Gestures</string>
+    <string name="disable_auto_brightness">Disable auto-brightness</string>
+    <string name="disable_auto_brightness_desc">Keep brightness settled while in-game</string>
+    <string name="disable_three_finger">Disable three fingers swipe gesture</string>
+    <string name="disable_three_finger_desc">Temporary disable three fingers swipe gesture while in-game</string>
+    <string name="overlay_enabled">Overlay enabled</string>
+    <string name="action_add">Add</string>
     <string name="fix_dt2w_uninstall_message">This will remove both Fix DT2W and OverlayFS modules.\n\nYour device will reboot automatically to apply changes.</string>
     <string name="fix_dt2w_uninstall_confirm">Uninstall &amp; Reboot</string>
 
@@ -1180,4 +1227,93 @@
     <string name="liquid_recent_per_app_profiles">Per-App Profiles</string>
     <string name="liquid_recent_balance">Balance</string>
 
+    <!-- New Material UI Strings -->
+    <string name="battery_monitor_title">Battery Monitor</string>
+    <string name="history_title">History</string>
+    <string name="screen_label">Screen</string>
+    <string name="drain_label">Drain</string>
+    <string name="electric_current_title">Electric Current</string>
+    <string name="battery_health_title">Battery Health</string>
+    <string name="current_session_title">Current Session</string>
+    <string name="session_active">Active</string>
+    <string name="session_idle">Idle</string>
+    <string name="session_duration">Session</string>
+    <string name="view_by_apps">View by apps</string>
+    <string name="view_by_systems">View by systems</string>
+    <string name="battery_usage_since_last_charge">Battery usage since last full charge</string>
+    <string name="no_usage_data">No usage data available</string>
+    <string name="battery_usage_subtitle">Battery usage</string>
+    <string name="screen_on">Screen On</string>
+    <string name="screen_off">Screen Off</string>
+    <string name="deep_sleep">Deep Sleep</string>
+    <string name="charged">Charged</string>
+    <string name="total_today">Total Today</string>
+
+    <string name="options_menu">Options</string>
+    <string name="import_profile">Import Profile</string>
+    <string name="export_profile">Export Profile</string>
+
+    <string name="cpu_tuning_title">CPU Tuning</string>
+    <string name="apply_cpu_on_boot_desc">Apply CPU settings on startup</string>
+    <string name="advanced_freq_lock_desc">Configure advanced frequency locking</string>
+
+    <string name="compression_algorithm">Compression Algorithm</string>
+    <string name="tap_to_collapse">Tap to collapse</string>
+    <string name="manage_disk_io">Manage disk I/O</string>
+
+    <string name="size_label">Size</string>
+
+    <string name="network_title">Network</string>
+    <string name="tcp_protocol_title">Transmission Control Protocol</string>
+    <string name="set_hostname_title">Set Hostname</string>
+    <string name="hostname_label">Hostname</string>
+
+    <string name="thermal_title">Thermal</string>
+    <string name="thermal_profile_label">Thermal Profile</string>
+    <string name="system_healthy">System Healthy</string>
+    <string name="system_warm">System Warm</string>
+    <string name="system_throttling">Throttling</string>
+    <string name="temp_normal">Normal</string>
+    <string name="temp_warm">Warm</string>
+    <string name="temp_overheat">Overheat</string>
+
+
+    <string name="policy_performance">Performance</string>
+    <string name="policy_efficiency">Efficiency</string>
+    <string name="mode_manual">Manual</string>
+    <string name="mode_smart">Smart</string>
+    <string name="mode_game">Game</string>
+    <string name="mode_game_optimized">Game mode optimized</string>
+    <string name="mode_battery_saving">Battery Saving</string>
+
+    <string name="add_games_title">Add Games</string>
+    <string name="search_apps_placeholder">Search apps...</string>
+    <string name="filter_all">All</string>
+    <string name="filter_added">Added</string>
+    <string name="filter_not_added">Not Added</string>
+
+    <string name="process_manager_title">Process Manager</string>
+    <string name="all_clear_message">All clear</string>
+    <string name="cpu_cores_label">CPU Cores</string>
+    <string name="profile_default">Default</string>
+    <string name="profile_performance">Performance</string>
+    <string name="profile_balanced">Balanced</string>
+    <string name="profile_power_save">Power Save</string>
+    <string name="profile_gaming">Gaming</string>
+    <string name="profile_desc_default">Use system defaults</string>
+    <string name="profile_desc_performance">Max performance</string>
+    <string name="profile_desc_balanced">Optimal balance</string>
+    <string name="profile_desc_power_save">Extend battery</string>
+    <string name="profile_desc_gaming">Gaming optimization</string>
+
+    <string name="refresh_rate_default">Default</string>
+    <string name="refresh_rate_60">60 Hz</string>
+    <string name="refresh_rate_90">90 Hz</string>
+    <string name="refresh_rate_120">120 Hz</string>
+    <string name="refresh_rate_144">144 Hz</string>
+
+    <string name="per_app_active_configs">Active Configurations</string>
+    <string name="per_app_all_apps">All Applications</string>
+    <string name="per_app_performance_profile">Performance Profile</string>
+    <string name="per_app_refresh_rate">Refresh Rate</string>
 </resources>

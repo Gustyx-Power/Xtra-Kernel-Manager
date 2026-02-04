@@ -148,7 +148,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
         ) {
           Icon(
               imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-              contentDescription = if (expanded) "Collapse" else "Expand",
+              contentDescription = if (expanded) stringResource(R.string.collapse) else stringResource(R.string.expand),
               modifier = Modifier.size(32.dp),
               tint = MaterialTheme.colorScheme.primary,
           )
@@ -389,7 +389,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                       color = MaterialTheme.colorScheme.primaryContainer,
                   ) {
                     Text(
-                        text = if (zramSize.toInt() > 0) "${zramSize.toInt()} MB" else "Disabled",
+                        text = if (zramSize.toInt() > 0) "${zramSize.toInt()} MB" else stringResource(R.string.disabled),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -525,7 +525,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                       if (swapSize.toInt() > 0) {
                         val gb = swapSize / 1024f
                         String.format(Locale.US, "%.1f GB", gb)
-                      } else "Disabled"
+                      } else stringResource(R.string.disabled)
                   Text(
                       text = swapText,
                       style = MaterialTheme.typography.labelMedium,
@@ -775,7 +775,7 @@ fun LiquidRAMControl(viewModel: TuningViewModel) {
                     color = MaterialTheme.colorScheme.primaryContainer,
                 ) {
                   Text(
-                      text = if (tempZram.toInt() == 0) "Disabled" else "${tempZram.toInt()} MB",
+                      text = if (tempZram.toInt() == 0) stringResource(R.string.disabled) else "${tempZram.toInt()} MB",
                       style = MaterialTheme.typography.labelLarge,
                       fontWeight = FontWeight.Bold,
                       color = MaterialTheme.colorScheme.onPrimaryContainer,

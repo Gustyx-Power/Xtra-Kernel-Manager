@@ -321,7 +321,7 @@ private fun MaterialClusterFrequencyCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Cluster $clusterIndex",
+                        text = stringResource(id.xms.xtrakernelmanager.R.string.policy_performance),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -426,7 +426,7 @@ private fun MaterialPolicySelectionCard(
     val (icon, title, description) = when (policy) {
         LockPolicyType.MANUAL -> Triple(
             Icons.Rounded.Settings,
-            "Manual",
+            stringResource(id.xms.xtrakernelmanager.R.string.mode_manual),
             "User-controlled, no thermal override"
         )
         LockPolicyType.SMART -> Triple(
@@ -437,11 +437,11 @@ private fun MaterialPolicySelectionCard(
         LockPolicyType.GAME -> Triple(
             Icons.Rounded.SportsEsports,
             "Game",
-            "Game mode optimized"
+            stringResource(id.xms.xtrakernelmanager.R.string.mode_game_optimized),
         )
         LockPolicyType.BATTERY_SAVING -> Triple(
             Icons.Rounded.BatteryChargingFull,
-            "Battery Saving",
+            stringResource(id.xms.xtrakernelmanager.R.string.mode_battery_saving),
             "Power-efficient"
         )
     }
