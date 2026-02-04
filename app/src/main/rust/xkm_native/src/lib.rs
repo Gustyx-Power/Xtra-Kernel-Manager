@@ -5,7 +5,7 @@ mod power;
 mod utils;
 
 use jni::objects::{JClass, JString};
-use jni::sys::{jboolean, jfloat, jint, jlong, jstring};
+use jni::sys::{jfloat, jint, jlong, jstring};
 use jni::JNIEnv;
 
 #[unsafe(no_mangle)]
@@ -16,7 +16,6 @@ pub extern "system" fn JNI_OnLoad(
     jni::sys::JNI_VERSION_1_6
 }
 
-// Helper: Safe JString creation
 #[inline]
 fn create_jstring_safe(env: &JNIEnv, s: String) -> jstring {
     env.new_string(s)
