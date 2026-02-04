@@ -61,7 +61,12 @@ class XtraKernelApp : Application() {
 
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
+    
+    // Log DPI changes for debugging
+    Log.d(TAG, "Configuration changed - New DPI: ${newConfig.densityDpi}, Screen: ${newConfig.screenWidthDp}x${newConfig.screenHeightDp}dp")
+    
     // Re-apply density when configuration changes
+    // This will respect user DPI changes from Developer Options
     setAppDensity()
   }
 
@@ -137,13 +142,52 @@ class XtraKernelApp : Application() {
   private fun setAppDensity() {
     val displayMetrics = resources.displayMetrics
     val configuration = resources.configuration
-
-    // Set density to 410 DPI (using 420 as closest standard value)
-    configuration.densityDpi = DisplayMetrics.DENSITY_420
-    displayMetrics.density = TARGET_DENSITY_DPI / 160f
-    displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
-
-    // Apply the configuration
-    resources.updateConfiguration(configuration, displayMetrics)
+    
+    // Get DPI mode preference
+    val preferencesManager = id.xms.xtrakernelmanager.data.preferences.PreferencesManager(this)
+    var dpiMode = "SMART" // Default
+    
+    // Try to get preference synchronously (for app startup)
+    try {
+      val prefs = getSharedPreferences("xtra_settings", Context.MODE_PRIVATE)
+      dpiMode = prefs.getString("dpi_mode", "SMART") ?: "SMART"
+    } catch (e: Exception) {
+      Log.w(TAG, "Could not read DPI preference, using SMART mode")
+    }
+    
+    // Get original system DPI before any modifications
+    val systemDensityDpi = configuration.densityDpi
+    
+    // Calculate screen size in inches to better detect tablets
+    val widthInches = configuration.screenWidthDp / 160f
+    val heightInches = configuration.screenHeightDp / 160f
+    val diagonalInches = kotlin.math.sqrt(widthInches * widthInches + heightInches * heightInches)
+    
+    // Device detection
+    val isTablet = (configuration.screenWidthDp >= 600) || 
+                   (diagonalInches >= 7.0f && systemDensityDpi <= 320)
+    val isHighResPhone = !isTablet && systemDensityDpi >= 400
+    
+    // Determine if we should force DPI based on mode and device
+    val shouldForceDPI = when (dpiMode) {
+      "SYSTEM" -> false // Never force, always use system DPI
+      "FORCE_410" -> true // Always force 410 DPI
+      "SMART" -> !isTablet && !isHighResPhone // Smart detection (default)
+      else -> !isTablet && !isHighResPhone // Fallback to smart
+    }
+    
+    if (shouldForceDPI) {
+      // Set density to 410 DPI (using 420 as closest standard value)
+      configuration.densityDpi = DisplayMetrics.DENSITY_420
+      displayMetrics.density = TARGET_DENSITY_DPI / 160f
+      displayMetrics.scaledDensity = displayMetrics.density * configuration.fontScale
+      
+      // Apply the configuration
+      resources.updateConfiguration(configuration, displayMetrics)
+      
+      Log.d(TAG, "Applied 410 DPI (mode: $dpiMode, device: ${if (isTablet) "tablet" else "phone"}, originalDPI: $systemDensityDpi)")
+    } else {
+      Log.d(TAG, "Using system DPI (mode: $dpiMode, device: ${if (isTablet) "tablet" else "phone"}, systemDPI: $systemDensityDpi)")
+    }
   }
 }
