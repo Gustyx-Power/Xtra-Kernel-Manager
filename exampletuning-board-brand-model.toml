@@ -1,0 +1,55 @@
+# Xtra Kernel Manager Configuration
+# Export Date: 177xxxxx
+
+[device_info]
+hardware = "qcom"
+platform = "board"
+soc = "SDxxx"
+device = "brand"
+model = "model"
+
+[cpu.cluster0]
+min_freq = 1555
+max_freq = 1804
+governor = "schedutil"
+set_on_boot = true
+
+[cpu.cluster1]
+min_freq = 1881
+max_freq = 2496
+governor = "schedutil"
+set_on_boot = true
+
+[cpu.cluster2]
+min_freq = 2246
+max_freq = 2918
+governor = "schedutil"
+set_on_boot = true
+
+[cpu]
+set_on_boot = true
+
+[gpu]
+min_freq = 220
+max_freq = 580
+power_level = 0
+renderer = "auto"
+
+[thermal]
+preset = "Not Set"
+set_on_boot = true
+
+[ram]
+swappiness = 60
+zram_size = 0
+dirty_ratio = 20
+min_free_mem = 0
+swap_size = 0
+compression_algorithm = "lz4"
+set_on_boot = false
+
+[additional]
+io_scheduler = "bfq"
+tcp_congestion = "bbr"
+perf_mode = "balanced"
+set_on_boot = false
