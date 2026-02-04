@@ -51,7 +51,6 @@ static CPU_STATS: Lazy<Mutex<CpuStats>> = Lazy::new(|| {
 
 static CPU_MODEL: OnceCell<String> = OnceCell::new();
 
-/// Detect CPU clusters based on frequency ranges
 pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
     let mut clusters: HashMap<(i32, i32), Vec<i32>> = HashMap::new();
 
@@ -93,7 +92,6 @@ pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
                 .unwrap_or_else(|| "unknown".to_string());
             let available_governors = get_available_governors(first_core);
 
-            // Read scaling_min/max_freq (current limits)
             let cur_min_path = format!(
                 "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_min_freq",
                 first_core
@@ -108,8 +106,8 @@ pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
             CpuCluster {
                 cluster_number: idx as i32,
                 cores,
-                min_freq: min, // Hardware min
-                max_freq: max, // Hardware max
+                min_freq: min,
+                max_freq: max,
                 cur_min_freq,
                 cur_max_freq,
                 governor,
@@ -128,7 +126,6 @@ pub fn detect_cpu_clusters() -> Vec<CpuCluster> {
     result
 }
 
-/// Read comprehensive core data as JSON string
 pub fn read_core_data() -> String {
     let mut cores = Vec::new();
 
@@ -184,7 +181,6 @@ pub fn read_core_data() -> String {
     serde_json::to_string(&cores).unwrap_or_else(|_| "[]".to_string())
 }
 
-/// Read CPU load (total + per-core)
 pub fn read_cpu_load_detailed() -> CpuLoadInfo {
     let mut per_core_load = Vec::with_capacity(16);
 
@@ -255,12 +251,10 @@ pub fn read_cpu_load_detailed() -> CpuLoadInfo {
     }
 }
 
-/// Quick total CPU load
 pub fn read_cpu_load() -> f32 {
     read_cpu_load_detailed().total_load
 }
 
-/// Read per-core temperature
 pub fn read_core_temperature(core: i32) -> f32 {
     let paths = [
         format!("/sys/class/hwmon/hwmon1/temp{}_input", core + 1),
@@ -279,7 +273,6 @@ pub fn read_core_temperature(core: i32) -> f32 {
     0.0
 }
 
-/// Get CPU model name
 pub fn get_cpu_model() -> String {
     CPU_MODEL
         .get_or_init(|| {
@@ -305,7 +298,6 @@ pub fn get_cpu_model() -> String {
         .clone()
 }
 
-/// Get available CPU governors
 pub fn get_available_governors(cpu: i32) -> Vec<String> {
     let path = format!(
         "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_available_governors",
@@ -317,82 +309,4 @@ pub fn get_available_governors(cpu: i32) -> Vec<String> {
     }
 
     vec![]
-}
-
-/// Get current governor for CPU
-pub fn get_current_governor(cpu: i32) -> String {
-    let path = format!(
-        "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_governor",
-        cpu
-    );
-    utils::read_sysfs_cached(&path, 1000).unwrap_or_else(|| "unknown".to_string())
-}
-
-/// Get available CPU frequencies
-pub fn get_available_frequencies(cpu: i32) -> Vec<i32> {
-    let path = format!(
-        "/sys/devices/system/cpu/cpu{}/cpufreq/scaling_available_frequencies",
-        cpu
-    );
-
-    if let Some(content) = utils::read_sysfs_cached(&path, 0) {
-        return content
-            .split_whitespace()
-            .filter_map(|s| s.parse::<i32>().ok())
-            .map(|khz| khz / 1000)
-            .collect();
-    }
-
-    vec![]
-}
-
-/// Get available CPU scaling governors (system-wide)
-pub fn get_system_available_governors() -> Vec<String> {
-    // Try CPU0 first
-    let governors = get_available_governors(0);
-    if !governors.is_empty() {
-        return governors;
-    }
-
-    // Fallback: try other CPUs
-    for cpu in 1..8 {
-        let governors = get_available_governors(cpu);
-        if !governors.is_empty() {
-            return governors;
-        }
-    }
-
-    vec![]
-}
-
-/// Get CPU frequency scaling driver
-pub fn get_cpu_freq_driver() -> String {
-    let path = "/sys/devices/system/cpu/cpu0/cpufreq/scaling_driver";
-    utils::read_sysfs_cached(path, 0).unwrap_or_else(|| "unknown".to_string())
-}
-
-/// Get CPU frequency policy (per-cluster info)
-pub fn get_cpu_policy_info(cpu: i32) -> Option<CpuPolicyInfo> {
-    let base = format!("/sys/devices/system/cpu/cpu{}/cpufreq", cpu);
-
-    if !utils::file_exists(&format!("{}/scaling_governor", base)) {
-        return None;
-    }
-
-    Some(CpuPolicyInfo {
-        cpu,
-        governor: utils::read_sysfs_cached(&format!("{}/scaling_governor", base), 1000)?,
-        min_freq: utils::read_sysfs_int(&format!("{}/scaling_min_freq", base), 1000)? as i32 / 1000,
-        max_freq: utils::read_sysfs_int(&format!("{}/scaling_max_freq", base), 1000)? as i32 / 1000,
-        cur_freq: utils::read_sysfs_int(&format!("{}/scaling_cur_freq", base), 100)? as i32 / 1000,
-    })
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CpuPolicyInfo {
-    pub cpu: i32,
-    pub governor: String,
-    pub min_freq: i32,
-    pub max_freq: i32,
-    pub cur_freq: i32,
 }
