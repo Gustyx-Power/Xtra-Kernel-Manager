@@ -28,6 +28,8 @@ data class BatteryRealtimeState(
     val idleDrainRate: Float = 0f,
     val totalCapacity: Int = 0,
     val currentCapacity: Int = 0,
+    val status: Int = -1,
+    val plugged: Int = 0,
 )
 
 object BatteryRepository {

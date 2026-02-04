@@ -214,7 +214,15 @@ class MiscViewModel(
                   currentNow = state.currentNow,
                   voltage = state.voltage,
                   temperature = state.temp / 10f,
-                  status = if (state.isCharging) "Charging" else "Discharging",
+                  status =
+                      when (state.status) {
+                        android.os.BatteryManager.BATTERY_STATUS_CHARGING -> "Charging"
+                        android.os.BatteryManager.BATTERY_STATUS_DISCHARGING -> "Discharging"
+                        android.os.BatteryManager.BATTERY_STATUS_FULL -> "Full"
+                        android.os.BatteryManager.BATTERY_STATUS_NOT_CHARGING ->
+                            if (state.plugged > 0) "Plugged" else "Not Charging"
+                        else -> "Unknown"
+                      },
               )
 
           // Update current stats

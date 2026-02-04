@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,7 +51,7 @@ fun MaterialBatteryScreen(
             },
             navigationIcon = {
               IconButton(onClick = onBack) {
-                Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
               }
             },
             actions = {
@@ -100,7 +101,7 @@ fun MaterialBatteryScreen(
                 screenOffTime = screenOffTime,
                 deepSleepTime = deepSleepTime,
                 chargedInfo =
-                    "${batteryInfo.level}% • ${kotlin.math.abs(batteryInfo.currentNow)} mA",
+                    "${batteryInfo.level}% • ${if (batteryInfo.currentNow > 0) "+ " else if (batteryInfo.currentNow < 0) "- " else ""}${kotlin.math.abs(batteryInfo.currentNow)} mA",
             )
           }
         }
@@ -350,7 +351,7 @@ fun ElectricCurrentCard(onClick: () -> Unit = {}) {
       Spacer(modifier = Modifier.height(16.dp))
 
       Text(
-          text = "$currentMa mA",
+          text = "${if (currentMa > 0) "+ " else if (currentMa < 0) "- " else ""}${kotlin.math.abs(currentMa)} mA",
           style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp),
           fontWeight = FontWeight.Medium,
           color =

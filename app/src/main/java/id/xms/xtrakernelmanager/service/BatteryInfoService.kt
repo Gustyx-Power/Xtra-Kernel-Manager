@@ -48,6 +48,9 @@ class BatteryInfoService : Service() {
   private var cachedVoltage: Int = 0
   private var cachedHealth: String = "Unknown"
   private var cachedCurrent: Int = 0
+  private var cachedStatus: Int = -1
+  private var cachedPlugged: Int = 0
+  private var cachedStatusPath: String? = null
   private var currentIconType: String = "battery_icon"
   private var refreshRateMs: Long = 1000 // Default 1s
   private var isSecureLockScreen: Boolean = false
@@ -275,10 +278,11 @@ class BatteryInfoService : Service() {
           override fun onReceive(context: Context?, intent: Intent?) {
             if (intent == null) return
             val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-            val health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
-            val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
             val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+            val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
+            val health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
+            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
             val isCharging =
                 (status == BatteryManager.BATTERY_STATUS_CHARGING ||
                     status == BatteryManager.BATTERY_STATUS_FULL)
@@ -340,6 +344,8 @@ class BatteryInfoService : Service() {
             cachedVoltage = voltage
             cachedHealth = healthTxt
             cachedCurrent = currentNow
+            cachedStatus = status
+            cachedPlugged = plugged
 
             // Throttling Logic
             val now = SystemClock.elapsedRealtime()
@@ -453,6 +459,8 @@ class BatteryInfoService : Service() {
             currentCapacity =
                 id.xms.xtrakernelmanager.data.repository.BatteryRepository
                     .getCachedCurrentCapacity(),
+            status = cachedStatus,
+            plugged = cachedPlugged,
         )
     id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
 
@@ -1043,14 +1051,73 @@ class BatteryInfoService : Service() {
                 
                 if (rootTemp != null) temp = rootTemp
 
-                // Read Status
-                val statusStr = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
-                  "/sys/class/power_supply/battery/status"
-                ).getOrNull()?.trim()
-              
+
+
+                // Read Status (Optimized with Caching & Direct Read)
+                // 1. Resolve Path if not cached
+                if (cachedStatusPath == null) {
+                    val statusPaths = listOf(
+                        "/sys/class/power_supply/battery/status",
+                        "/sys/class/power_supply/bms/status",
+                        "/sys/class/power_supply/usb/status",
+                        "/sys/class/power_supply/main/status"
+                    )
+                    
+                    for (path in statusPaths) {
+                        try {
+                             val file = File(path)
+                             if (file.exists() && file.canRead()) {
+                                 cachedStatusPath = path
+                                 break
+                             } else {
+                                 // Try root check
+                                 val check = id.xms.xtrakernelmanager.domain.root.RootManager.executeCommand(
+                                     "[ -f $path ] && echo exists"
+                                 ).getOrNull()?.trim()
+                                 if (check == "exists") {
+                                     cachedStatusPath = path
+                                     break
+                                 }
+                             }
+                        } catch (e: Exception) { continue }
+                    }
+                }
+
+                // 2. Read Status String
+                var statusStr: String? = null
+                if (cachedStatusPath != null) {
+                     // Try Direct Read First (Fastest)
+                     try {
+                         statusStr = File(cachedStatusPath!!).readText().trim()
+                     } catch (e: Exception) {
+                         // Fallback to Root Read
+                         statusStr = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                             cachedStatusPath!!
+                         ).getOrNull()?.trim()
+                     }
+                }
+
                 if (statusStr != null) {
-                   isCharging = statusStr.equals("Charging", ignoreCase = true) || 
-                                statusStr.equals("Full", ignoreCase = true)
+                   // Map to BatteryManager constants
+                   cachedStatus = when {
+                       statusStr.equals("Charging", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_CHARGING
+                       statusStr.equals("Discharging", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_DISCHARGING
+                       statusStr.equals("Not charging", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_NOT_CHARGING
+                       statusStr.equals("Full", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_FULL
+                       else -> BatteryManager.BATTERY_STATUS_UNKNOWN
+                   }
+
+                   // Update Plugged State based on Status
+                   cachedPlugged = if (cachedStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
+                                       cachedStatus == BatteryManager.BATTERY_STATUS_FULL || 
+                                       cachedStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING) {
+                                       1 // Generic plugged
+                                   } else {
+                                       0 // Unplugged/Discharging
+                                   }
+
+                   isCharging = cachedStatus == BatteryManager.BATTERY_STATUS_CHARGING || 
+                                cachedStatus == BatteryManager.BATTERY_STATUS_FULL
                 }
 
                 dataRead = true
