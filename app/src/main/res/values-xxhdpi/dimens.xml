@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- High-resolution phone dimensions (1080p, 1260p, 1440p phones) -->
+    <!-- These values are optimized for high-DPI phones with native DPI -->
+    
+    <!-- Spacing - slightly reduced for high-DPI screens -->
+    <dimen name="spacing_large">12dp</dimen>
+    <dimen name="spacing_medium">8dp</dimen>
+    <dimen name="spacing_small">5dp</dimen>
+    <dimen name="spacing_tiny">3dp</dimen>
+    
+    <!-- Padding - optimized for high-DPI -->
+    <dimen name="screen_horizontal_padding">14dp</dimen>
+    <dimen name="card_padding">12dp</dimen>
+    <dimen name="card_padding_small">8dp</dimen>
+    <dimen name="item_padding">8dp</dimen>
+    
+    <!-- Corner Radius -->
+    <dimen name="corner_radius_large">18dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_small">8dp</dimen>
+    
+    <!-- Component Sizes -->
+    <dimen name="button_height">42dp</dimen>
+    <dimen name="chip_height">26dp</dimen>
+    <dimen name="icon_size_large">20dp</dimen>
+    <dimen name="icon_size_medium">16dp</dimen>
+    <dimen name="icon_size_small">12dp</dimen>
+    
+    <!-- Avatar Sizes -->
+    <dimen name="avatar_size_large">56dp</dimen>
+    <dimen name="avatar_size_medium">40dp</dimen>
+    <dimen name="avatar_size_small">26dp</dimen>
+</resources>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Large tablet-specific dimensions for screens >= 720dp width -->
+    
+    <!-- Spacing -->
+    <dimen name="spacing_large">28dp</dimen>
+    <dimen name="spacing_medium">20dp</dimen>
+    <dimen name="spacing_small">14dp</dimen>
+    <dimen name="spacing_tiny">10dp</dimen>
+    
+    <!-- Padding -->
+    <dimen name="screen_horizontal_padding">40dp</dimen>
+    <dimen name="card_padding">28dp</dimen>
+    <dimen name="card_padding_small">20dp</dimen>
+    <dimen name="item_padding">20dp</dimen>
+    
+    <!-- Corner Radius -->
+    <dimen name="corner_radius_large">36dp</dimen>
+    <dimen name="corner_radius_medium">28dp</dimen>
+    <dimen name="corner_radius_small">20dp</dimen>
+    
+    <!-- Component Sizes -->
+    <dimen name="button_height">60dp</dimen>
+    <dimen name="chip_height">42dp</dimen>
+    <dimen name="icon_size_large">34dp</dimen>
+    <dimen name="icon_size_medium">30dp</dimen>
+    <dimen name="icon_size_small">26dp</dimen>
+    
+    <!-- Avatar Sizes -->
+    <dimen name="avatar_size_large">96dp</dimen>
+    <dimen name="avatar_size_medium">68dp</dimen>
+    <dimen name="avatar_size_small">48dp</dimen>
+    
+    <!-- Layout Constraints -->
+    <dimen name="max_content_width">1200dp</dimen>
+    <integer name="grid_columns">3</integer>
+</resources>
