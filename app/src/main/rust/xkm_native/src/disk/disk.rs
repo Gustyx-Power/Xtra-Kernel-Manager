@@ -1,5 +1,3 @@
-// src/disk/disk.rs - Disk I/O monitoring
-
 use crate::utils;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
