@@ -1,10 +1,7 @@
 use crate::utils;
 use once_cell::sync::{Lazy, OnceCell};
-use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::sync::Mutex;
-
-static GPU_THERMAL_ZONE: OnceCell<i32> = OnceCell::new();
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GpuVendor {
@@ -27,14 +24,6 @@ impl std::fmt::Display for GpuVendor {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GpuLoad {
-    pub frequency_mhz: i32,
-    pub busy_percent: i32,
-    pub temperature: f32,
-    pub throttled: bool,
-}
-
 struct GpuBusyStats {
     busy: i64,
     total: i64,
@@ -43,9 +32,7 @@ struct GpuBusyStats {
 static GPU_INFO: OnceCell<(GpuVendor, String)> = OnceCell::new();
 static LAST_GPU_BUSY: Lazy<Mutex<Option<GpuBusyStats>>> = Lazy::new(|| Mutex::new(None));
 
-/// Detect GPU vendor and model
 fn detect_gpu() -> (GpuVendor, String) {
-    // Method 1
     if utils::file_exists("/sys/class/kgsl/kgsl-3d0/gpuclk") {
         if let Some(model) = detect_adreno_model() {
             return (GpuVendor::Qualcomm, model);
@@ -53,7 +40,6 @@ fn detect_gpu() -> (GpuVendor, String) {
         return (GpuVendor::Qualcomm, "Adreno".to_string());
     }
 
-    // Method 2
     let mali_paths = [
         "/sys/class/misc/mali0/device/gpuinfo",
         "/sys/devices/platform/mali/gpuinfo",
@@ -69,17 +55,14 @@ fn detect_gpu() -> (GpuVendor, String) {
         }
     }
 
-    // Method 3
     if let Some((vendor, model)) = detect_via_surfaceflinger() {
         return (vendor, model);
     }
 
-    // Method 4
     if let Some((vendor, model)) = detect_via_cpuinfo() {
         return (vendor, model);
     }
 
-    // Method 5
     if let Some((vendor, model)) = detect_via_getprop() {
         return (vendor, model);
     }
@@ -180,7 +163,6 @@ fn detect_via_cpuinfo() -> Option<(GpuVendor, String)> {
 }
 
 fn detect_via_getprop() -> Option<(GpuVendor, String)> {
-    // Try native property getter (faster)
     if let Some(vulkan_hw) = utils::get_system_property("ro.hardware.vulkan") {
         if vulkan_hw.to_lowercase().contains("adreno") {
             return Some((GpuVendor::Qualcomm, "Adreno".to_string()));
@@ -307,7 +289,6 @@ pub fn reset_gpu_stats() {
 }
 
 fn read_adreno_busy() -> i32 {
-    // 1. Try raw counters first for better real-time responsiveness
     if let Some(content) = utils::read_sysfs("/sys/class/kgsl/kgsl-3d0/gpubusy") {
         let parts: Vec<&str> = content.split_whitespace().collect();
         if parts.len() >= 2 {
@@ -320,9 +301,7 @@ fn read_adreno_busy() -> i32 {
                     let delta_busy;
                     let delta_total;
 
-                    // Check for reset/overflow
                     if curr_total < last.total {
-                        // Reset: Treat current values as the delta
                         delta_busy = curr_busy;
                         delta_total = curr_total;
                     } else {
@@ -330,16 +309,13 @@ fn read_adreno_busy() -> i32 {
                         delta_total = curr_total.saturating_sub(last.total);
                     }
 
-                    // Update state
                     *last_processed = Some(GpuBusyStats {
                         busy: curr_busy,
                         total: curr_total,
                     });
 
                     if delta_total > 0 {
-                        // Calculate percentage
                         let load = (delta_busy * 100) / delta_total;
-                        // If there was ANY activity but load rounded to 0, show 1% to indicate aliveness
                         if load == 0 && delta_busy > 0 {
                             eprintln!(
                                 "GPU: busy={}/{} delta={}/{} load=1 (bumped)",
@@ -353,23 +329,19 @@ fn read_adreno_busy() -> i32 {
                         );
                         return load.min(100) as i32;
                     } else {
-                        // No change in cycles = 0% load
                         eprintln!("GPU: busy={}/{} delta=0/0 load=0", curr_busy, curr_total);
                         return 0;
                     }
                 } else {
-                    // First run, initialize state
                     *last_processed = Some(GpuBusyStats {
                         busy: curr_busy,
                         total: curr_total,
                     });
-                    // Fallthrough to percentage file for first run
                 }
             }
         }
     }
 
-    // 2. Fallback to system percentage or first run
     if let Some(busy) = utils::read_sysfs_int("/sys/class/kgsl/kgsl-3d0/gpu_busy_percentage", 0) {
         return busy as i32;
     }
@@ -392,7 +364,6 @@ fn read_mali_busy() -> i32 {
     0
 }
 
-/// Get GPU available frequencies (for UI sliders/charts)
 pub fn get_gpu_available_frequencies() -> Vec<i32> {
     let paths = [
         "/sys/class/kgsl/kgsl-3d0/gpu_available_frequencies",
@@ -424,86 +395,6 @@ pub fn get_gpu_available_frequencies() -> Vec<i32> {
     vec![]
 }
 
-/// Get GPU min/max frequency range
-pub fn get_gpu_freq_range() -> (i32, i32) {
-    let freqs = get_gpu_available_frequencies();
-    if freqs.is_empty() {
-        return (0, 0);
-    }
-
-    let min = *freqs.iter().min().unwrap_or(&0);
-    let max = *freqs.iter().max().unwrap_or(&0);
-    (min, max)
-}
-
-/// Get comprehensive GPU load info (frequency + busy + temp + throttling)
-pub fn read_gpu_load() -> GpuLoad {
-    let freq = read_gpu_freq();
-    let busy = read_gpu_busy();
-    let temp = read_gpu_temperature();
-
-    // Check if throttled (current freq < 90% of max)
-    let (_, max_freq) = get_gpu_freq_range();
-    let throttled = max_freq > 0 && freq > 0 && freq < max_freq * 9 / 10;
-
-    GpuLoad {
-        frequency_mhz: freq,
-        busy_percent: busy,
-        temperature: temp,
-        throttled,
-    }
-}
-
-/// Read GPU temperature from thermal zones
-fn read_gpu_temperature() -> f32 {
-    let cached_zone = GPU_THERMAL_ZONE.get_or_init(|| {
-        let zone_names = ["gpu", "gpuss", "gpu0", "gpu1"];
-        
-        for zone in 0..20 {
-            let type_path = format!("/sys/class/thermal/thermal_zone{}/type", zone);
-            if let Some(zone_type) = utils::read_sysfs_cached(&type_path, 0) {
-                let zone_lower = zone_type.to_lowercase();
-                
-                for name in &zone_names {
-                    if zone_lower.contains(name) {
-                        return zone;
-                    }
-                }
-            }
-        }
-        -1
-    });
-    
-    if *cached_zone >= 0 {
-        let temp_path = format!("/sys/class/thermal/thermal_zone{}/temp", cached_zone);
-        if let Some(temp) = utils::read_sysfs_int(&temp_path, 500) {
-            let temp_c = temp as f32 / 1000.0;
-            if temp_c > 0.0 && temp_c < 150.0 {
-                return temp_c;
-            }
-        }
-    }
-    
-    0.0
-}
-
-/// Get GPU power policy (if available)
-pub fn get_gpu_power_policy() -> String {
-    let paths = [
-        "/sys/class/kgsl/kgsl-3d0/devfreq/governor",
-        "/sys/class/kgsl/kgsl-3d0/governor",
-    ];
-
-    for path in &paths {
-        if let Some(policy) = utils::read_sysfs_cached(path, 1000) {
-            return policy;
-        }
-    }
-
-    "unknown".to_string()
-}
-
-/// Get available GPU power policies
 pub fn get_gpu_available_policies() -> Vec<String> {
     let paths = [
         "/sys/class/kgsl/kgsl-3d0/devfreq/available_governors",
@@ -512,23 +403,27 @@ pub fn get_gpu_available_policies() -> Vec<String> {
 
     for path in &paths {
         if let Some(content) = utils::read_sysfs_cached(path, 0) {
-            return content.split_whitespace().map(|s| s.to_string()).collect();
+            return content
+                .split_whitespace()
+                .map(|s| s.to_string())
+                .collect();
         }
     }
 
     vec![]
 }
 
-/// Get GPU driver info
 pub fn get_gpu_driver_info() -> String {
     let paths = [
         "/sys/class/kgsl/kgsl-3d0/gpu_model",
-        "/sys/class/kgsl/kgsl-3d0/devfreq/gpu_model",
+        "/sys/class/kgsl/kgsl-3d0/devfreq/name",
     ];
 
     for path in &paths {
-        if let Some(model) = utils::read_sysfs_cached(path, 0) {
-            return model;
+        if let Some(info) = utils::read_sysfs_cached(path, 0) {
+            if !info.is_empty() && info != "unknown" {
+                return info;
+            }
         }
     }
 
