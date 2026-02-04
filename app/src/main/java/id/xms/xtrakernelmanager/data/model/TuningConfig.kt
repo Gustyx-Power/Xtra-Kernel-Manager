@@ -7,6 +7,7 @@ data class TuningConfig(
     val thermal: ThermalConfig = ThermalConfig(),
     val ram: RAMConfig = RAMConfig(),
     val additional: AdditionalConfig = AdditionalConfig(),
+    val cpuSetOnBoot: Boolean = false,
 )
 
 annotation class Serializable
@@ -18,6 +19,7 @@ data class CPUClusterConfig(
     val maxFreq: Int,
     val governor: String,
     val disabledCores: List<Int> = emptyList(),
+    val setOnBoot: Boolean = false,
 )
 
 @Serializable
@@ -34,6 +36,7 @@ data class RAMConfig(
     val dirtyRatio: Int = 20, // /proc/sys/vm/dirty_ratio
     val minFreeMem: Int = 0, // /proc/sys/vm/min_free_kbytes
     val compressionAlgorithm: String = "lz4", // ZRAM compression algorithm
+    val setOnBoot: Boolean = false,
 )
 
 @Serializable
@@ -41,4 +44,5 @@ data class AdditionalConfig(
     val ioScheduler: String = "",
     val tcpCongestion: String = "",
     val perfMode: String = "balance",
+    val setOnBoot: Boolean = false,
 )
