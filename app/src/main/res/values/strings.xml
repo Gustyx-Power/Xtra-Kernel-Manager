@@ -271,6 +271,24 @@
     <string name="thermal_not_set_desc">No thermal profile applied</string>
     <string name="thermal_unknown_desc">Unknown preset</string>
 
+    <!-- Smart Thermal Policy -->
+    <string name="smart_thermal_policy">Smart Thermal Policy</string>
+    <string name="smart_thermal_policy_desc">Intelligent temperature management for CPU frequency locking</string>
+    <string name="thermal_policy_settings">Thermal Policy Settings</string>
+    <string name="thermal_policy_settings_desc">Configure thermal behavior for smart frequency locking</string>
+    <string name="current_thermal_policy">Current Thermal Policy</string>
+    <string name="current_policy">Current Policy</string>
+    <string name="available_thermal_policies">Available Thermal Policies</string>
+    <string name="select_thermal_policy">Select Thermal Policy</string>
+    <string name="choose_thermal_behavior">Choose thermal behavior for smart frequency locking</string>
+    <string name="change_thermal_policy">Change Thermal Policy</string>
+    <string name="emergency_threshold">Emergency Threshold</string>
+    <string name="warning_threshold">Warning Threshold</string>
+    <string name="restore_threshold">Restore Threshold</string>
+    <string name="critical_threshold">Critical Threshold</string>
+    <string name="emergency_temp">Emergency</string>
+    <string name="liquid_thermal_policy_format">Emergency: %1$.0f°C, Warning: %2$.0f°C</string>
+
     <!-- RAM Control -->
     <string name="ram_control">RAM Control</string>
     <string name="ram_control_desc">Virtual memory management</string>
@@ -1078,9 +1096,6 @@
     <string name="liquid_lock_policy_smart_desc">Thermal aware with auto-restore</string>
     <string name="liquid_lock_policy_game_desc">Optimized for gaming</string>
     <string name="liquid_lock_policy_battery_saving_desc">Power saving</string>
-    
-    <!-- Thermal Policy Format -->
-    <string name="liquid_thermal_policy_format">Emergency: %1$.0f°C, Warning: %2$.0f°C</string>
 
     <!-- Liquid RAM Control Strings -->
     <string name="liquid_ram_virtual_memory_management">Virtual memory management</string>
