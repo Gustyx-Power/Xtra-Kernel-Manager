@@ -16,12 +16,14 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton
+import id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
 fun LiquidNetworkSettings(viewModel: TuningViewModel) {
     val currentTCP by viewModel.currentTCPCongestion.collectAsState()
     val availableTCP by viewModel.availableTCPCongestion.collectAsState()
+    val tcpSetOnBoot by viewModel.preferencesManager.getTCPSetOnBoot().collectAsState(initial = false)
     val currentDNS by viewModel.currentDNS.collectAsState()
     val availableDNS = viewModel.availableDNS
     val currentHostname by viewModel.currentHostname.collectAsState()
@@ -192,6 +194,60 @@ fun LiquidNetworkSettings(viewModel: TuningViewModel) {
                     imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        // TCP Set on Boot Toggle
+        GlassmorphicCard(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (tcpSetOnBoot) MaterialTheme.colorScheme.primaryContainer
+                               else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Rounded.PowerSettingsNew,
+                                contentDescription = null,
+                                tint = if (tcpSetOnBoot) MaterialTheme.colorScheme.onPrimaryContainer
+                                       else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Column {
+                        Text(
+                            text = stringResource(R.string.set_on_boot),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Apply TCP settings on startup",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                LiquidToggle(
+                    checked = tcpSetOnBoot,
+                    onCheckedChange = { viewModel.setTCPSetOnBoot(it) }
                 )
             }
         }
