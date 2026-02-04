@@ -34,6 +34,18 @@ fn ensure_init() {
     });
 }
 
+#[cfg(windows)]
+#[inline]
+unsafe fn libc_read_safe(fd: i32, buf: *mut libc::c_void, len: usize) -> isize {
+    unsafe { libc::read(fd, buf, len as u32) as isize }
+}
+
+#[cfg(not(windows))]
+#[inline]
+unsafe fn libc_read_safe(fd: i32, buf: *mut libc::c_void, len: usize) -> isize {
+    unsafe { libc::read(fd, buf, len) }
+}
+
 #[inline(always)]
 unsafe fn read_fd_int(fd: RawFd) -> Option<i64> {
     if fd < 0 {
@@ -46,7 +58,7 @@ unsafe fn read_fd_int(fd: RawFd) -> Option<i64> {
         libc::lseek(fd, 0, libc::SEEK_SET);
     }
 
-    let n = unsafe { libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len() as u32) };
+    let n = unsafe { libc_read_safe(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
 
     if n <= 0 {
         return None;

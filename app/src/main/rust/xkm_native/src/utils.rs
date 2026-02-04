@@ -5,6 +5,17 @@ use std::time::{Duration, Instant};
 use once_cell::sync::Lazy;
 use parking_lot::RwLock;
 
+#[cfg(windows)]
+#[inline]
+unsafe fn libc_read_safe(fd: i32, buf: *mut libc::c_void, len: usize) -> isize {
+    unsafe { libc::read(fd, buf, len as u32) as isize }
+}
+
+#[cfg(not(windows))]
+#[inline]
+unsafe fn libc_read_safe(fd: i32, buf: *mut libc::c_void, len: usize) -> isize {
+    unsafe { libc::read(fd, buf, len) }
+}
 
 #[cfg(unix)]
 #[inline]
@@ -38,10 +49,10 @@ pub fn read_file_libc(path: &str) -> Option<String> {
         }
 
         let mut buffer = [0u8; 512];
-        let bytes_read = libc::read(
+        let bytes_read = libc_read_safe(
             fd,
             buffer.as_mut_ptr() as *mut libc::c_void,
-            buffer.len() as u32,
+            buffer.len(),
         );
 
         libc::close(fd);
@@ -95,7 +106,11 @@ pub fn read_file_libc_buf(path: &str, buf: &mut [u8]) -> Option<usize> {
             return None;
         }
 
-        let bytes_read = libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len() as u32);
+        let bytes_read = libc_read_safe(
+            fd, 
+            buf.as_mut_ptr() as *mut libc::c_void, 
+            buf.len()
+        );
         libc::close(fd);
 
         if bytes_read <= 0 {
