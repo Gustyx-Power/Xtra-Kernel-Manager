@@ -1,7 +1,8 @@
 use crate::utils;
-use once_cell::sync::{Lazy, OnceCell};
-use serde::{Deserialize, Serialize};
+#[cfg(unix)]
 use std::os::unix::io::RawFd;
+#[cfg(windows)]
+type RawFd = i32;
 use std::sync::Once;
 
 static mut CAPACITY_FD: RawFd = -1;
@@ -10,9 +11,6 @@ static mut VOLTAGE_FD: RawFd = -1;
 static mut CURRENT_FD: RawFd = -1;
 
 static INIT: Once = Once::new();
-
-static GPU_THERMAL_ZONE: OnceCell<i32> = OnceCell::new();
-static CPU_THERMAL_ZONE: OnceCell<i32> = OnceCell::new();
 
 #[inline]
 fn ensure_init() {
@@ -48,7 +46,7 @@ unsafe fn read_fd_int(fd: RawFd) -> Option<i64> {
         libc::lseek(fd, 0, libc::SEEK_SET);
     }
 
-    let n = unsafe { libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len()) };
+    let n = unsafe { libc::read(fd, buf.as_mut_ptr() as *mut libc::c_void, buf.len() as u32) };
 
     if n <= 0 {
         return None;
@@ -62,7 +60,6 @@ unsafe fn read_fd_int(fd: RawFd) -> Option<i64> {
     }
 }
 
-/// Read battery level percentage
 #[inline(always)]
 pub fn read_battery_level() -> i32 {
     ensure_init();
@@ -73,11 +70,9 @@ pub fn read_battery_level() -> i32 {
         }
     }
 
-    // Fallback
     utils::read_sysfs_int("/sys/class/power_supply/battery/capacity", 500).unwrap_or(0) as i32
 }
 
-/// Read battery temperature
 #[inline(always)]
 pub fn read_battery_temp() -> i32 {
     ensure_init();
@@ -91,7 +86,6 @@ pub fn read_battery_temp() -> i32 {
     utils::read_sysfs_int("/sys/class/power_supply/battery/temp", 500).unwrap_or(0) as i32
 }
 
-/// Read battery voltage in millivolts
 #[inline(always)]
 pub fn read_battery_voltage_mv() -> i32 {
     ensure_init();
@@ -107,7 +101,6 @@ pub fn read_battery_voltage_mv() -> i32 {
     (voltage_uv / 1000) as i32
 }
 
-/// Read battery drain rate in milliamps
 #[inline(always)]
 pub fn read_drain_rate_ma() -> i32 {
     let raw_value = unsafe {
@@ -129,7 +122,6 @@ pub fn read_drain_rate_ma() -> i32 {
     }
 }
 
-/// Check if battery is charging
 pub fn is_charging() -> bool {
     let path = "/sys/class/power_supply/battery/status";
     if let Some(status) = utils::read_sysfs_cached(path, 500) {
@@ -139,17 +131,14 @@ pub fn is_charging() -> bool {
     }
 }
 
-/// Read wakeup count
 pub fn read_wakeup_count() -> i32 {
     utils::read_sysfs_int("/sys/power/wakeup_count", 1000).unwrap_or(0) as i32
 }
 
-/// Read suspend count
 pub fn read_suspend_count() -> i32 {
     utils::read_sysfs_int("/sys/kernel/debug/suspend_stats/success", 1000).unwrap_or(0) as i32
 }
 
-/// Read battery cycle count
 pub fn read_cycle_count() -> i32 {
     let paths = [
         "/sys/class/power_supply/bms/cycle_count",
@@ -166,13 +155,11 @@ pub fn read_cycle_count() -> i32 {
     -1
 }
 
-/// Read battery health status
 pub fn read_battery_health() -> String {
     let path = "/sys/class/power_supply/battery/health";
     utils::read_sysfs_cached(path, 1000).unwrap_or_else(|| "Unknown".to_string())
 }
 
-/// Read battery capacity level
 pub fn read_battery_capacity_level() -> f32 {
     let design_path = "/sys/class/power_supply/battery/charge_full_design";
     let current_path = "/sys/class/power_supply/battery/charge_full";
