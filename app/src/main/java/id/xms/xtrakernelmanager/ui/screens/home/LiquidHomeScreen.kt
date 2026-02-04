@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.BuildConfig
 import id.xms.xtrakernelmanager.data.model.BatteryInfo
 import id.xms.xtrakernelmanager.data.model.CPUInfo
@@ -31,8 +32,24 @@ import id.xms.xtrakernelmanager.data.model.GPUInfo
 import id.xms.xtrakernelmanager.data.model.SystemInfo
 import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.screens.home.components.liquid.*
+import id.xms.xtrakernelmanager.ui.screens.home.HomeViewModel
+import id.xms.xtrakernelmanager.ui.theme.*
 import kotlinx.coroutines.delay
 import java.util.Locale
+
+// Helper function for safe division
+private fun safeDivide(numerator: Long, denominator: Long): Long {
+    return if (denominator > 0) numerator / denominator else 0
+}
+
+// Convert bytes to MB
+private fun bytesToMB(bytes: Long): Long {
+    return if (bytes > 0) bytes / (1024 * 1024) else 0
+}
+
+private fun safePercentage(used: Long, total: Long): Int {
+    return if (total > 0) ((used * 100) / total).toInt() else 0
+}
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -47,13 +64,10 @@ fun LiquidHomeScreen(
     onPowerAction: (id.xms.xtrakernelmanager.ui.model.PowerAction) -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    val viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-    val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-    val isCompact =
-          dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
+    val viewModel: HomeViewModel = viewModel()
+    val dimens = rememberResponsiveDimens()
+    val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
     
-    // Remove custom status bar - use system status bar instead
-
     // Check accessibility service status
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     var hasCheckedAccessibility by remember { mutableStateOf(false) }
@@ -78,18 +92,18 @@ fun LiquidHomeScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Content Scrollable Column with pure Liquid Backdrop
+        // Content Scrollable Column
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = dimens.screenHorizontalPadding)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)
         ) {
-            // Remove custom status bar - use system status bar instead
-            Spacer(modifier = Modifier.height(16.dp)) // Standard top padding
+            // Top padding
+            Spacer(modifier = Modifier.height(dimens.spacingLarge))
      
-            // 1. Header (Redesigned Liquid Header) - Index 0
+            // 1. Header
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 0
@@ -100,7 +114,7 @@ fun LiquidHomeScreen(
                 )
             }
 
-            // 2. Liquid Device Card - Index 1
+            // 2. Device Card
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 100
@@ -108,22 +122,22 @@ fun LiquidHomeScreen(
                 LiquidDeviceCard(systemInfo = systemInfo, modifier = Modifier.fillMaxWidth())
             }
 
-            // 3. CPU & GPU Tiles (Rich Tiles) - Index 2
+            // 3. CPU & GPU Tiles
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 200
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(dimens.spacingLarge)
                 ) {
                     LiquidStatTile(
                         modifier = Modifier.weight(1f).fillMaxHeight(),
                         icon = Icons.Rounded.Memory,
                         label = "CPU",
-                        value = "${(cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0) / 1000} MHz",
+                        value = "${safeDivide((cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0).toLong(), 1000)} MHz",
                         subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
-                        color = id.xms.xtrakernelmanager.ui.theme.NeonGreen,
+                        color = NeonGreen,
                         badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%"
                     )
                     
@@ -133,12 +147,12 @@ fun LiquidHomeScreen(
                         gpuTemp = gpuInfo.temperature.toInt(),
                         pmicTemp = batteryInfo.pmicTemp.toInt(),
                         thermalTemp = batteryInfo.temperature.toInt(),
-                        color = id.xms.xtrakernelmanager.ui.theme.NeonPurple
+                        color = NeonPurple
                     )
                 }
             }
 
-            // 4. Liquid GPU Card (Detailed) - Index 3
+            // 4. GPU Card
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 300
@@ -146,7 +160,7 @@ fun LiquidHomeScreen(
                 LiquidGPUCard(gpuInfo = gpuInfo, modifier = Modifier.fillMaxWidth())
             }
 
-            // 5. Liquid Battery Card (Detailed) - Index 4
+            // 5. Battery Card
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 400
@@ -154,114 +168,109 @@ fun LiquidHomeScreen(
                 LiquidBatteryCard(batteryInfo = batteryInfo, modifier = Modifier.fillMaxWidth())
             }
             
-            // 6. Memory & Storage Row - Index 5
+            // 6. RAM Card
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 500
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    val totalMem = systemInfo.totalRam
-                    val availMem = systemInfo.availableRam
-                    val usedMem = totalMem - availMem
-                    val memProgress = if (totalMem > 0) usedMem.toFloat() / totalMem.toFloat() else 0f
-                    val usedGb = String.format("%.1f GB", usedMem / (1024f * 1024f * 1024f))
-
-                    LiquidCircularStatsCard(
-                        title = "RAM",
-                        value = usedGb,
-                        progress = memProgress,
-                        color = id.xms.xtrakernelmanager.ui.theme.NeonBlue,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    val totalStorage = systemInfo.totalStorage
-                    val availStorage = systemInfo.availableStorage
-                    val usedStorage = totalStorage - availStorage
-                    val storageProgress = if (totalStorage > 0) usedStorage.toFloat() / totalStorage.toFloat() else 0f
-                    val usedStorageGb = String.format("%.0f GB", usedStorage / (1024f * 1024f * 1024f))
-
-                    LiquidCircularStatsCard(
-                        title = "ROM",
-                        value = usedStorageGb,
-                        progress = storageProgress,
-                        color = id.xms.xtrakernelmanager.ui.theme.NeonPurple,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                LiquidStatTile(
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = Icons.Filled.Memory,
+                    label = "RAM",
+                    value = "${bytesToMB(systemInfo.totalRam)} MB",
+                    subValue = "${bytesToMB(systemInfo.availableRam)} MB Free",
+                    color = NeonBlue,
+                    badgeText = "${safePercentage(systemInfo.totalRam - systemInfo.availableRam, systemInfo.totalRam)}%"
+                )
             }
             
-            // 7. Actions Row - Index 6
+            // 7. Storage Card
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 550
+            ) {
+                LiquidStatTile(
+                    modifier = Modifier.fillMaxWidth(),
+                    icon = Icons.Filled.Folder,
+                    label = "Storage",
+                    value = "${bytesToMB(systemInfo.totalStorage)} MB",
+                    subValue = "${bytesToMB(systemInfo.availableStorage)} MB Free",
+                    color = NeonOrange,
+                    badgeText = "${safePercentage(systemInfo.totalStorage - systemInfo.availableStorage, systemInfo.totalStorage)}%"
+                )
+            }
+            
+            // 8. Profile Selection Row
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 600
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    LiquidPowerMenu(
-                        onAction = onPowerAction,
-                        modifier = Modifier.weight(1f).height(140.dp)
-                    )
-                    
-                    LiquidProfileCard(
-                        currentProfile = currentProfile,
-                        onNextProfile = {
-                            val next = when (currentProfile) {
-                                "Balance" -> "Performance"
-                                "Performance" -> "Battery"
-                                else -> "Balance"
-                            }
-                            onProfileChange(next)
-                        },
-                        modifier = Modifier.weight(1f).height(140.dp)
-                    )
-                }
+                LiquidProfileCard(
+                    currentProfile = currentProfile,
+                    onProfileChange = onProfileChange,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-
+            
+            // 9. Power Actions Grid
+            AnimatedComponent(
+                visible = isVisible,
+                delayMillis = 650
+            ) {
+                LiquidPowerMenu(
+                    onAction = onPowerAction,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            
+            // Bottom padding
             Spacer(modifier = Modifier.height(100.dp))
         }
-    }
-    
-    // Accessibility Service Dialog
-    if (showAccessibilityDialog) {
-        id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
-            onDismissRequest = { showAccessibilityDialog = false },
-            title = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_disabled),
-            content = {
-                Text(
-                    text = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_message),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            confirmButton = {
-                id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
-                    text = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_enable),
-                    onClick = {
-                        showAccessibilityDialog = false
-                        val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                        context.startActivity(intent)
-                    },
-                    isPrimary = true
-                )
-            },
-            dismissButton = {
-                id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
-                    text = stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_later),
-                    onClick = { showAccessibilityDialog = false },
-                    isPrimary = false
-                )
-            }
-        )
+
+        // Accessibility Service Dialog
+        if (showAccessibilityDialog) {
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
+                onDismissRequest = { showAccessibilityDialog = false },
+                title = "Accessibility Service Required",
+                content = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "This app requires accessibility service to function properly.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
+                        )
+                        Text(
+                            text = "Please enable the accessibility service in settings.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
+                    }
+                },
+                confirmButton = {
+                    id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                        text = "Enable",
+                        onClick = {
+                            showAccessibilityDialog = false
+                            val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            context.startActivity(intent)
+                        },
+                        isPrimary = true
+                    )
+                },
+                dismissButton = {
+                    id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+                        text = "Later",
+                        onClick = { showAccessibilityDialog = false },
+                        isPrimary = false
+                    )
+                }
+            )
+        }
     }
 }
 
 @Composable
-private fun AnimatedComponent(
+fun AnimatedComponent(
     visible: Boolean,
     delayMillis: Int,
     content: @Composable () -> Unit
