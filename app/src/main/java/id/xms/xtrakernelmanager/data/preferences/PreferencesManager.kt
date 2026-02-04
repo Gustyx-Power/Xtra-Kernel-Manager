@@ -48,6 +48,11 @@ class PreferencesManager(private val context: Context) {
   // CPU core enable/disable keys
   private fun cpuCoreKey(core: Int) = booleanPreferencesKey("cpu_core_$core")
 
+  // CPU cluster configuration keys
+  private fun clusterMinFreqKey(cluster: Int) = intPreferencesKey("cluster_${cluster}_min_freq")
+  private fun clusterMaxFreqKey(cluster: Int) = intPreferencesKey("cluster_${cluster}_max_freq")
+  private fun clusterGovernorKey(cluster: Int) = stringPreferencesKey("cluster_${cluster}_governor")
+
   // Thermal configuration keys
   private val THERMAL_PRESET = stringPreferencesKey("thermal_preset")
   private val THERMAL_SET_ON_BOOT = booleanPreferencesKey("thermal_set_on_boot")
@@ -57,9 +62,11 @@ class PreferencesManager(private val context: Context) {
 
   // I/O scheduler key
   private val IO_SCHEDULER = stringPreferencesKey("io_scheduler")
+  private val IO_SET_ON_BOOT = booleanPreferencesKey("io_set_on_boot")
 
   // TCP congestion control key
   private val TCP_CONGESTION = stringPreferencesKey("tcp_congestion")
+  private val TCP_SET_ON_BOOT = booleanPreferencesKey("tcp_set_on_boot")
 
   // RAM configuration keys
   private val RAM_SWAPPINESS = intPreferencesKey("ram_swappiness")
@@ -67,6 +74,10 @@ class PreferencesManager(private val context: Context) {
   private val RAM_SWAP_SIZE = intPreferencesKey("ram_swap_size")
   private val RAM_DIRTY_RATIO = intPreferencesKey("ram_dirty_ratio")
   private val RAM_MIN_FREE_MEM = intPreferencesKey("ram_min_free_mem")
+  private val RAM_SET_ON_BOOT = booleanPreferencesKey("ram_set_on_boot")
+
+  // Additional/Network configuration keys
+  private val ADDITIONAL_SET_ON_BOOT = booleanPreferencesKey("additional_set_on_boot")
 
   // Misc features
   private val SHOW_BATTERY_NOTIF = booleanPreferencesKey("show_battery_notif")
@@ -429,6 +440,10 @@ class PreferencesManager(private val context: Context) {
   fun getCpuLockThermalPolicy(): Flow<String> =
       context.dataStore.data.map { prefs -> prefs[CPU_LOCK_THERMAL_POLICY] ?: "PolicyB" }
 
+  suspend fun setCpuLockThermalPolicy(policy: String) {
+    context.dataStore.edit { prefs -> prefs[CPU_LOCK_THERMAL_POLICY] = policy }
+  }
+
   // Game Apps (apps that trigger game overlay)
   suspend fun saveGameApps(jsonString: String) {
     context.dataStore.edit { prefs -> prefs[GAME_APPS] = jsonString }
@@ -788,4 +803,66 @@ class PreferencesManager(private val context: Context) {
 
   fun getFunctionalRomChargingLimitValue(): Flow<Int> =
       context.dataStore.data.map { prefs -> prefs[FUNCTIONAL_ROM_CHARGING_LIMIT_VALUE] ?: 80 }
+
+  // CPU Cluster Configuration Methods
+  suspend fun setClusterMinFreq(cluster: Int, minFreq: Int) {
+    context.dataStore.edit { prefs -> prefs[clusterMinFreqKey(cluster)] = minFreq }
+  }
+
+  fun getClusterMinFreq(cluster: Int): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[clusterMinFreqKey(cluster)] ?: 0 }
+
+  suspend fun setClusterMaxFreq(cluster: Int, maxFreq: Int) {
+    context.dataStore.edit { prefs -> prefs[clusterMaxFreqKey(cluster)] = maxFreq }
+  }
+
+  fun getClusterMaxFreq(cluster: Int): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[clusterMaxFreqKey(cluster)] ?: 0 }
+
+  suspend fun setClusterGovernor(cluster: Int, governor: String) {
+    context.dataStore.edit { prefs -> prefs[clusterGovernorKey(cluster)] = governor }
+  }
+
+  fun getClusterGovernor(cluster: Int): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[clusterGovernorKey(cluster)] ?: "" }
+
+  suspend fun saveClusterConfiguration(cluster: Int, minFreq: Int, maxFreq: Int, governor: String) {
+    context.dataStore.edit { prefs ->
+      prefs[clusterMinFreqKey(cluster)] = minFreq
+      prefs[clusterMaxFreqKey(cluster)] = maxFreq
+      prefs[clusterGovernorKey(cluster)] = governor
+    }
+  }
+
+  // I/O Scheduler Set on Boot
+  suspend fun setIOSetOnBoot(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[IO_SET_ON_BOOT] = enabled }
+  }
+
+  fun getIOSetOnBoot(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[IO_SET_ON_BOOT] ?: false }
+
+  // TCP Congestion Set on Boot
+  suspend fun setTCPSetOnBoot(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[TCP_SET_ON_BOOT] = enabled }
+  }
+
+  fun getTCPSetOnBoot(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[TCP_SET_ON_BOOT] ?: false }
+
+  // RAM Set on Boot
+  suspend fun setRAMSetOnBoot(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[RAM_SET_ON_BOOT] = enabled }
+  }
+
+  fun getRAMSetOnBoot(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[RAM_SET_ON_BOOT] ?: false }
+
+  // Additional/Network Set on Boot
+  suspend fun setAdditionalSetOnBoot(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[ADDITIONAL_SET_ON_BOOT] = enabled }
+  }
+
+  fun getAdditionalSetOnBoot(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[ADDITIONAL_SET_ON_BOOT] ?: false }
 }

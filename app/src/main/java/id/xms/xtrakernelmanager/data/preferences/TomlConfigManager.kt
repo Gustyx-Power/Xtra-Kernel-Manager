@@ -68,11 +68,17 @@ class TomlConfigManager {
       lines.add("min_freq = ${cluster.minFreq}")
       lines.add("max_freq = ${cluster.maxFreq}")
       lines.add("governor = \"${cluster.governor}\"")
+      lines.add("set_on_boot = ${cluster.setOnBoot}")
       if (cluster.disabledCores.isNotEmpty()) {
         lines.add("disabled_cores = [${cluster.disabledCores.joinToString(", ")}]")
       }
       lines.add("")
     }
+
+    // CPU Global Settings
+    lines.add("[cpu]")
+    lines.add("set_on_boot = ${config.cpuSetOnBoot}")
+    lines.add("")
 
     // GPU
     config.gpu?.let { gpu ->
@@ -97,12 +103,16 @@ class TomlConfigManager {
     lines.add("dirty_ratio = ${config.ram.dirtyRatio}")
     lines.add("min_free_mem = ${config.ram.minFreeMem}")
     lines.add("swap_size = ${config.ram.swapSize}")
+    lines.add("compression_algorithm = \"${config.ram.compressionAlgorithm}\"")
+    lines.add("set_on_boot = ${config.ram.setOnBoot}")
     lines.add("")
 
     // Additional
     lines.add("[additional]")
     lines.add("io_scheduler = \"${config.additional.ioScheduler}\"")
     lines.add("tcp_congestion = \"${config.additional.tcpCongestion}\"")
+    lines.add("perf_mode = \"${config.additional.perfMode}\"")
+    lines.add("set_on_boot = ${config.additional.setOnBoot}")
 
     return lines.joinToString("\n")
   }
@@ -195,6 +205,7 @@ class TomlConfigManager {
                 minFreq = clusterTable.getLong("min_freq")?.toInt() ?: 0,
                 maxFreq = clusterTable.getLong("max_freq")?.toInt() ?: 0,
                 governor = clusterTable.getString("governor") ?: "schedutil",
+                setOnBoot = clusterTable.getBoolean("set_on_boot") ?: false,
                 disabledCores =
                     clusterTable.getArray("disabled_cores")?.toList()?.mapNotNull {
                       it.toString().toIntOrNull()
@@ -204,6 +215,10 @@ class TomlConfigManager {
       }
       clusterIndex++
     }
+
+    // CPU Global Settings
+    val cpuTable = toml.getTable("cpu")
+    val cpuSetOnBoot = cpuTable?.getBoolean("set_on_boot") ?: false
 
     val gpu =
         if (toml.contains("gpu")) {
@@ -231,6 +246,8 @@ class TomlConfigManager {
             dirtyRatio = ramTable?.getLong("dirty_ratio")?.toInt() ?: 20,
             minFreeMem = ramTable?.getLong("min_free_mem")?.toInt() ?: 8192,
             swapSize = ramTable?.getLong("swap_size")?.toInt() ?: 0,
+            compressionAlgorithm = ramTable?.getString("compression_algorithm") ?: "lz4",
+            setOnBoot = ramTable?.getBoolean("set_on_boot") ?: false,
         )
 
     val additionalTable = toml.getTable("additional")
@@ -238,6 +255,8 @@ class TomlConfigManager {
         AdditionalConfig(
             ioScheduler = additionalTable?.getString("io_scheduler") ?: "",
             tcpCongestion = additionalTable?.getString("tcp_congestion") ?: "",
+            perfMode = additionalTable?.getString("perf_mode") ?: "balance",
+            setOnBoot = additionalTable?.getBoolean("set_on_boot") ?: false,
         )
 
     return TuningConfig(
@@ -246,6 +265,7 @@ class TomlConfigManager {
         thermal = thermal,
         ram = ram,
         additional = additional,
+        cpuSetOnBoot = cpuSetOnBoot,
     )
   }
 
