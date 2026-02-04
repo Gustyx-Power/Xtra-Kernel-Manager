@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -197,6 +198,38 @@ fun MemoryTuningScreen(viewModel: TuningViewModel, navController: NavController)
           },
           valueFormatter = { if (it.toInt() == 0) disabledText else "${it.toInt()} MB" },
       )
+
+      // RAM Set on Boot Toggle
+      val ramSetOnBoot by viewModel.preferencesManager.getRAMSetOnBoot().collectAsState(initial = false)
+      
+      Card(
+          modifier = Modifier.fillMaxWidth(),
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+      ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Column {
+            Text(
+                text = stringResource(R.string.set_on_boot),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Apply RAM settings on startup",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+          Switch(
+              checked = ramSetOnBoot,
+              onCheckedChange = { viewModel.setRAMSetOnBoot(it) },
+          )
+        }
+      }
     }
 
     // I/O Scheduler Dialog

@@ -95,7 +95,7 @@ fun MaterialTuningScreen(
               viewModel = viewModel,
               expanded = true,
               onExpandChange = { thermalCardExpanded = it },
-              onClickNav = { onNavigate("thermal_tuning") },
+              onClickNav = { onNavigate("material_thermal_settings") },
               topLeftContent = {
                 ExpandableCPUCard(
                     viewModel = viewModel,
@@ -116,7 +116,7 @@ fun MaterialTuningScreen(
               viewModel = viewModel,
               expanded = false,
               onExpandChange = { thermalCardExpanded = it },
-              onClickNav = { onNavigate("thermal_tuning") },
+              onClickNav = { onNavigate("material_thermal_settings") },
           )
         }
       }
