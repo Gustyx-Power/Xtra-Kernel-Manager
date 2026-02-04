@@ -234,7 +234,7 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
 
   Card(
       modifier =
-          Modifier.fillMaxWidth().height(300.dp), // Increased height to fit content comfortably
+          Modifier.fillMaxWidth().wrapContentHeight(),
       shape = RoundedCornerShape(32.dp),
       colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E24)),
       elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -243,7 +243,7 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
     Box(modifier = Modifier.fillMaxSize().padding(24.dp)) {
       Column(
           verticalArrangement = Arrangement.spacedBy(20.dp)
-      ) { // Increased spacing to fill vertical space
+      ) { 
         // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -278,15 +278,16 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
           }
 
           // Charging Status Badge
-          val isPluggedIn =
-              batteryInfo.status.contains("Charging", ignoreCase = true) ||
-                  batteryInfo.status.contains("Full", ignoreCase = true)
+          val statusText = if (batteryInfo.status.isNotEmpty()) batteryInfo.status else "Unknown"
+          val isCharging = statusText.contains("Charging", ignoreCase = true) || statusText.contains("Full", ignoreCase = true)
+          
           Surface(
-              color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+              color = if (isCharging) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) 
+                      else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
               shape = RoundedCornerShape(50),
           ) {
             Text(
-                text = if (isPluggedIn) "Plugged In" else "Unplugged",
+                text = statusText,
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,

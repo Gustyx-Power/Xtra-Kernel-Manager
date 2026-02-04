@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -285,7 +286,7 @@ fun MaterialGameSpaceScreen(
                         "vibrate" -> "Vibrate"
                         else -> "Do not change"
                       },
-                  icon = Icons.Rounded.VolumeUp,
+                  icon = Icons.AutoMirrored.Rounded.VolumeUp,
                   options =
                       listOf(
                           "no_change" to "Do not change",

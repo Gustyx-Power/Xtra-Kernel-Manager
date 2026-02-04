@@ -6,4 +6,6 @@
 
     <!-- Material 3 Seed Color -->
     <color name="seed">#6750A4</color>
+    <!-- App Icon Background -->
+    <color name="ic_launcher_background">#31342b</color>
 </resources>

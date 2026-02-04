@@ -19,10 +19,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class BatteryInfoService : Service() {
-  private val NOTIF_ID = 1001
-  private val CHANNEL_ID = "battery_info"
+  companion object {
+    const val NOTIF_ID = 1001
+    const val CHANNEL_ID = "battery_info"
+  }
+  
   private var receiver: BroadcastReceiver? = null
   private var screenReceiver: BroadcastReceiver? = null
+  private val serviceJob = kotlinx.coroutines.SupervisorJob()
+  private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
   // Tracking variables
   private var screenOnTime: Long = 0
@@ -43,6 +48,9 @@ class BatteryInfoService : Service() {
   private var cachedVoltage: Int = 0
   private var cachedHealth: String = "Unknown"
   private var cachedCurrent: Int = 0
+  private var cachedStatus: Int = -1
+  private var cachedPlugged: Int = 0
+  private var cachedStatusPath: String? = null
   private var currentIconType: String = "battery_icon"
   private var refreshRateMs: Long = 1000 // Default 1s
   private var isSecureLockScreen: Boolean = false
@@ -93,9 +101,9 @@ class BatteryInfoService : Service() {
     registerScreenReceiver()
 
     // Observe Preference Changes
-    // Observe Preference Changes
     val prefs = id.xms.xtrakernelmanager.data.preferences.PreferencesManager(applicationContext)
-    val scope = CoroutineScope(Dispatchers.IO)
+    // Use serviceScope instead of local scope
+    val scope = serviceScope
 
     // Master Toggle
     scope.launch {
@@ -204,6 +212,21 @@ class BatteryInfoService : Service() {
     } else {
       startForeground(NOTIF_ID, notif)
     }
+
+    // Safety: Verify we should actually be running
+    CoroutineScope(Dispatchers.IO).launch {
+      val prefs = id.xms.xtrakernelmanager.data.preferences.PreferencesManager(applicationContext)
+      try {
+        if (!prefs.isShowBatteryNotif().first()) {
+           Log.w("BatteryInfoService", "Service started but pref is disabled! Stopping.")
+           stopForeground(STOP_FOREGROUND_REMOVE)
+           stopSelf()
+        }
+      } catch (e: Exception) {
+        Log.e("BatteryInfoService", "Failed to verify startup state: ${e.message}")
+      }
+    }
+
     return START_STICKY
   }
 
@@ -255,10 +278,11 @@ class BatteryInfoService : Service() {
           override fun onReceive(context: Context?, intent: Intent?) {
             if (intent == null) return
             val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
-            val health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
-            val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
             val voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
+            val temp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
+            val health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
+            val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+            val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
             val isCharging =
                 (status == BatteryManager.BATTERY_STATUS_CHARGING ||
                     status == BatteryManager.BATTERY_STATUS_FULL)
@@ -320,6 +344,8 @@ class BatteryInfoService : Service() {
             cachedVoltage = voltage
             cachedHealth = healthTxt
             cachedCurrent = currentNow
+            cachedStatus = status
+            cachedPlugged = plugged
 
             // Throttling Logic
             val now = SystemClock.elapsedRealtime()
@@ -433,6 +459,8 @@ class BatteryInfoService : Service() {
             currentCapacity =
                 id.xms.xtrakernelmanager.data.repository.BatteryRepository
                     .getCachedCurrentCapacity(),
+            status = cachedStatus,
+            plugged = cachedPlugged,
         )
     id.xms.xtrakernelmanager.data.repository.BatteryRepository.updateState(newState)
 
@@ -545,7 +573,9 @@ class BatteryInfoService : Service() {
     val wattsStr = "%.1f".format(watts)
 
     // Format current (Always signed) with Watts if charging
-    val currentStr = "$currentNow mA"
+    val absCurrent = kotlin.math.abs(currentNow)
+    val sign = if (currentNow > 0) "+ " else if (currentNow < 0) "- " else ""
+    val currentStr = "$sign$absCurrent mA"
     val powerStr = if (charging && watts > 0) "($wattsStr W)" else ""
     
     // Charging/Discharging status
@@ -573,31 +603,86 @@ class BatteryInfoService : Service() {
     // Title: 55% • Charging • +351 mA (1.4 W) • 32.6°C
     val title = "$level% • $statusStr • $currentStr $powerStr • $tempStr"
 
-    // BigText Content
+    // Use Native Builder for O+ to avoid Compat issues with dynamic icons
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val bigTextStyle =
+          Notification.BigTextStyle()
+              .setBigContentTitle(title)
+              .bigText(
+                  buildString {
+                    if (showScreen) {
+                      appendLine("Screen On: $screenOnStr ($screenOnPercent%)")
+                      appendLine("Screen Off: $screenOffStr ($screenOffPercent%)")
+                    }
+                    if (showActiveIdle) {
+                      appendLine("Active Drain: $activeDrainStr%/h")
+                      appendLine("Idle Drain: $idleDrainStr%/h")
+                    }
+                    if (showAwakeSleep) {
+                      appendLine("Awake: $awakeStr ($awakePercent%)")
+                      append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
+                    }
+                    if (!showScreen && !showActiveIdle && !showAwakeSleep) {
+                      append("Battery monitoring active")
+                    }
+                  }
+              )
+
+      val builder =
+          Notification.Builder(this, CHANNEL_ID)
+              .setContentTitle(title)
+              .setContentText(
+                  if (showScreen) "Screen On: $screenOnStr • Charge: $level%"
+                  else "Battery: $level% • ${if (charging) "Charging" else "Discharging"}"
+              )
+              .setStyle(bigTextStyle)
+              .setOngoing(true)
+              .setColor(if (charging) Color.parseColor("#4CAF50") else Color.parseColor("#FFC107"))
+              .setOnlyAlertOnce(true)
+              .setVisibility(
+                  if (isSecureLockScreen) Notification.VISIBILITY_PUBLIC
+                  else Notification.VISIBILITY_SECRET
+              )
+      
+      // Category Service
+      if (isForceOnTop) {
+        builder.setCategory(Notification.CATEGORY_SERVICE)
+      }
+
+      // Small Icon
+      val nativeIcon =
+          NotificationHelper.generateNativeIcon(
+              this,
+              currentIconType,
+              level,
+              charging,
+              temp,
+              currentNow,
+              voltage,
+          )
+      builder.setSmallIcon(nativeIcon)
+
+      return builder.build()
+    }
+
+    // Fallback: NotificationCompat for Pre-Oreo
     val bigTextStyle =
         NotificationCompat.BigTextStyle()
             .setBigContentTitle(title)
             .bigText(
                 buildString {
-                  // Show Screen Stats (Screen On/Off with percentages and drain rates)
                   if (showScreen) {
                     appendLine("Screen On: $screenOnStr ($screenOnPercent%)")
                     appendLine("Screen Off: $screenOffStr ($screenOffPercent%)")
                   }
-                  
-                  // Show Active/Idle Drain Stats
                   if (showActiveIdle) {
                     appendLine("Active Drain: $activeDrainStr%/h")
                     appendLine("Idle Drain: $idleDrainStr%/h")
                   }
-
-                  // Show Awake/Sleep Stats (only if not charging)
-                  if (showAwakeSleep && !charging) {
+                  if (showAwakeSleep) {
                     appendLine("Awake: $awakeStr ($awakePercent%)")
                     append("Deep Sleep: $deepSleepStr ($deepSleepPercent%)")
                   }
-                  
-                  // If all stats are disabled, show basic info
                   if (!showScreen && !showActiveIdle && !showAwakeSleep) {
                     append("Battery monitoring active")
                   }
@@ -622,9 +707,12 @@ class BatteryInfoService : Service() {
                 else NotificationCompat.VISIBILITY_SECRET
             )
             .setPriority(
-                if (isForceOnTop) NotificationCompat.PRIORITY_MAX
-                else NotificationCompat.PRIORITY_LOW
-            ) // For pre-O
+                when {
+                    isForceOnTop -> NotificationCompat.PRIORITY_MAX
+                    isHighPriority -> NotificationCompat.PRIORITY_HIGH
+                    else -> NotificationCompat.PRIORITY_LOW
+                }
+            )
 
     // Force On Top (Ongoing + High Priority usually does it)
     if (isForceOnTop) {
@@ -633,6 +721,7 @@ class BatteryInfoService : Service() {
 
     // Set dynamic small icon using NotificationHelper
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      Log.d("BatteryInfoService", "Building COMPAT notification with icon: '$currentIconType'")
       val icon =
           NotificationHelper.generateIcon(
               this,
@@ -643,7 +732,7 @@ class BatteryInfoService : Service() {
               currentNow,
               voltage,
           )
-      builder.setSmallIcon(androidx.core.graphics.drawable.IconCompat.createFromIcon(icon))
+      builder.setSmallIcon(icon)
     } else {
       // Fallback for older APIs (though minSdk is likely higher)
       builder.setSmallIcon(if (charging) R.drawable.ic_battery_charging else R.drawable.ic_battery)
@@ -849,6 +938,17 @@ class BatteryInfoService : Service() {
   override fun onDestroy() {
     receiver?.let { unregisterReceiver(it) }
     screenReceiver?.let { unregisterReceiver(it) }
+    
+    // Cancel all coroutines
+    serviceJob.cancel()
+    
+    // Explicitly remove notification and stop foreground
+    try {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(NOTIF_ID)
+    } catch (e: Exception) {
+        Log.e("BatteryInfoService", "Failed to cancel notification: ${e.message}")
+    }
     stopForeground(STOP_FOREGROUND_REMOVE)
     super.onDestroy()
   }
@@ -868,127 +968,213 @@ class BatteryInfoService : Service() {
 
   private fun startNativePolling(scope: CoroutineScope) {
     scope.launch(Dispatchers.IO) {
-      Log.d("BatteryInfoService", "Starting native polling with rate: ${refreshRateMs}ms")
+      Log.d("BatteryInfoService", "Starting polling with rate: ${refreshRateMs}ms")
       while (isActive) {
         try {
-          if (id.xms.xtrakernelmanager.domain.native.NativeLib.isAvailable()) {
-            // Read directly from native (sysfs via JNI) - Fast & Low Overhead
-            // Read directly from native (sysfs via JNI)
-            var level = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryLevel() ?: -1
-            var current = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCurrent() ?: 0
-            var voltage =
-                (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryVoltage()?.times(1000))
-                    ?.toInt() ?: 0
-            var temp =
-                (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryTemp()?.times(10))
-                    ?.toInt() ?: 0
-
-            // Root Fallback if native fails (returns 0 or -1 continuously)
-            if (level <= 0 || voltage == 0) {
-              try {
-                val rootLevel =
-                    id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
-                            "/sys/class/power_supply/battery/capacity"
-                        )
-                        .getOrNull()
-                        ?.replace("\n", "")
-                        ?.toIntOrNull()
-                if (rootLevel != null && rootLevel > 0) level = rootLevel
-
-                val rootCurrent =
-                    id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
-                            "/sys/class/power_supply/battery/current_now"
-                        )
-                        .getOrNull()
-                        ?.replace("\n", "")
-                        ?.toIntOrNull()
-                if (rootCurrent != null)
-                    current = kotlin.math.abs(rootCurrent / 1000) // Convert uA to mA, use abs (sign applied later)
-
-                val rootVoltage =
-                    id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
-                            "/sys/class/power_supply/battery/voltage_now"
-                        )
-                        .getOrNull()
-                        ?.replace("\n", "")
-                        ?.toIntOrNull()
-                if (rootVoltage != null) voltage = rootVoltage / 1000 // Convert uV to mV
-
-                val rootTemp =
-                    id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
-                            "/sys/class/power_supply/battery/temp"
-                        )
-                        .getOrNull()
-                        ?.replace("\n", "")
-                        ?.toIntOrNull()
-                if (rootTemp != null) temp = rootTemp // Usually deciCelcius
-
-                Log.d(
-                    "BatteryInfoService",
-                    "Used Root Fallback: L=$level, C=$current, V=$voltage, T=$temp",
-                )
-              } catch (e: Exception) {
-                Log.e("BatteryInfoService", "Root fallback failed: ${e.message}")
-              }
-            }
-            // Get charging status: Use root (sysfs) first as requested by user
-            // API can get stuck, so sysfs is more reliable
-            var isCharging = false
-            var statusReadSuccess = false
-            
-            try {
-              val statusStr = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
-                  "/sys/class/power_supply/battery/status"
-              ).getOrNull()?.trim()
-              
-              if (statusStr != null) {
-                // Use equals instead of contains because "Discharging" contains "Charging"!
-                isCharging = statusStr.equals("Charging", ignoreCase = true) || 
-                             statusStr.equals("Full", ignoreCase = true)
-                statusReadSuccess = true
-              }
-            } catch (_: Exception) { }
-            
-            // Fallback to API if sysfs access failed
-            if (!statusReadSuccess) {
-              val batteryManager = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
-              isCharging = batteryManager?.isCharging ?: false
-            }
-            
-            val health =
-                id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryHealth() ?: "Unknown"
-
-            current = if (isCharging) kotlin.math.abs(current) else -kotlin.math.abs(current)
-          
-            if (current != 0) {
-              if (!isCurrentInitialized) {
-                smoothedCurrent = current.toDouble()
-                isCurrentInitialized = true
-              } else {
-                val alpha = getEmaAlpha()
-                smoothedCurrent = alpha * current + (1 - alpha) * smoothedCurrent
-              }
-              current = smoothedCurrent.toInt()
-            } else if (isCurrentInitialized) {
-              current = smoothedCurrent.toInt()
-            }
-
-            // Update cache if valid read
-            if (level != -1) cachedLevel = level
-            cachedCurrent = current
-            cachedVoltage = voltage
-            cachedTemp = temp
-            cachedIsCharging = isCharging
-            cachedHealth = health
-
-            refreshState()
-          }
+          updateRealtimeData()
         } catch (e: Exception) {
-          Log.e("BatteryInfoService", "Error in native polling: ${e.message}")
+          Log.e("BatteryInfoService", "Error in polling loop: ${e.message}")
         }
-
         kotlinx.coroutines.delay(refreshRateMs)
       }
+    }
+  }
+
+  /**
+   * Reads battery data from available sources (Native -> Root -> System)
+   * updates the cached values, and triggers a state refresh.
+   */
+  private suspend fun updateRealtimeData() {
+    var level = -1
+    var current = 0
+    var voltage = 0
+    var temp = 0
+    var isCharging = false
+    var health = "Unknown"
+    
+    var dataRead = false
+
+    // 1. Try Native Library (Fastest)
+    if (id.xms.xtrakernelmanager.domain.native.NativeLib.isAvailable()) {
+        try {
+            val nLevel = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryLevel()
+            if (nLevel != null) {
+                level = nLevel
+                current = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryCurrent() ?: 0
+                voltage = (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryVoltage()?.times(1000))?.toInt() ?: 0
+                temp = (id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryTemp()?.times(10))?.toInt() ?: 0
+                health = id.xms.xtrakernelmanager.domain.native.NativeLib.readBatteryHealth() ?: "Unknown"
+                
+                // Native isCharging check
+                val nCharging = id.xms.xtrakernelmanager.domain.native.NativeLib.isCharging()
+                if (nCharging != null) isCharging = nCharging
+                
+                dataRead = level != -1 && voltage != 0
+            }
+        } catch (e: Exception) {
+            Log.d("BatteryInfoService", "Native read failed: ${e.message}")
+        }
+    }
+
+    // 2. Try Root Fallback (If native failed or unavailable)
+    if (!dataRead) {
+         try {
+            // Read Level
+            val rootLevel = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                "/sys/class/power_supply/battery/capacity"
+            ).getOrNull()?.replace("\n", "")?.toIntOrNull()
+            
+            if (rootLevel != null && rootLevel > 0) {
+                level = rootLevel
+                
+                // Read Current
+                val rootCurrent = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                    "/sys/class/power_supply/battery/current_now"
+                ).getOrNull()?.replace("\n", "")?.toIntOrNull()
+                
+                if (rootCurrent != null) {
+                    // Convert uA to mA, take abs (sign handled later)
+                    current = kotlin.math.abs(rootCurrent / 1000)
+                }
+
+                // Read Voltage
+                val rootVoltage = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                    "/sys/class/power_supply/battery/voltage_now"
+                ).getOrNull()?.replace("\n", "")?.toIntOrNull()
+                
+                if (rootVoltage != null) voltage = rootVoltage / 1000 // uV to mV
+                
+                // Read Temp
+                val rootTemp = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                    "/sys/class/power_supply/battery/temp"
+                ).getOrNull()?.replace("\n", "")?.toIntOrNull()
+                
+                if (rootTemp != null) temp = rootTemp
+
+
+
+                // Read Status (Optimized with Caching & Direct Read)
+                // 1. Resolve Path if not cached
+                if (cachedStatusPath == null) {
+                    val statusPaths = listOf(
+                        "/sys/class/power_supply/battery/status",
+                        "/sys/class/power_supply/bms/status",
+                        "/sys/class/power_supply/usb/status",
+                        "/sys/class/power_supply/main/status"
+                    )
+                    
+                    for (path in statusPaths) {
+                        try {
+                             val file = File(path)
+                             if (file.exists() && file.canRead()) {
+                                 cachedStatusPath = path
+                                 break
+                             } else {
+                                 // Try root check
+                                 val check = id.xms.xtrakernelmanager.domain.root.RootManager.executeCommand(
+                                     "[ -f $path ] && echo exists"
+                                 ).getOrNull()?.trim()
+                                 if (check == "exists") {
+                                     cachedStatusPath = path
+                                     break
+                                 }
+                             }
+                        } catch (e: Exception) { continue }
+                    }
+                }
+
+                // 2. Read Status String
+                var statusStr: String? = null
+                if (cachedStatusPath != null) {
+                     // Try Direct Read First (Fastest)
+                     try {
+                         statusStr = File(cachedStatusPath!!).readText().trim()
+                     } catch (e: Exception) {
+                         // Fallback to Root Read
+                         statusStr = id.xms.xtrakernelmanager.domain.root.RootManager.readFile(
+                             cachedStatusPath!!
+                         ).getOrNull()?.trim()
+                     }
+                }
+
+                if (statusStr != null) {
+                   // Map to BatteryManager constants
+                   cachedStatus = when {
+                       statusStr.equals("Charging", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_CHARGING
+                       statusStr.equals("Discharging", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_DISCHARGING
+                       statusStr.equals("Not charging", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_NOT_CHARGING
+                       statusStr.equals("Full", ignoreCase = true) -> BatteryManager.BATTERY_STATUS_FULL
+                       else -> BatteryManager.BATTERY_STATUS_UNKNOWN
+                   }
+
+                   // Update Plugged State based on Status
+                   cachedPlugged = if (cachedStatus == BatteryManager.BATTERY_STATUS_CHARGING ||
+                                       cachedStatus == BatteryManager.BATTERY_STATUS_FULL || 
+                                       cachedStatus == BatteryManager.BATTERY_STATUS_NOT_CHARGING) {
+                                       1 // Generic plugged
+                                   } else {
+                                       0 // Unplugged/Discharging
+                                   }
+
+                   isCharging = cachedStatus == BatteryManager.BATTERY_STATUS_CHARGING || 
+                                cachedStatus == BatteryManager.BATTERY_STATUS_FULL
+                }
+
+                dataRead = true
+                Log.d("BatteryInfoService", "Used Root Fallback: L=$level, C=$current")
+            }
+         } catch (e: Exception) {
+             Log.d("BatteryInfoService", "Root fallback failed: ${e.message}")
+         }
+    }
+
+    // 3. System API Fallback (Last Resort)
+    if (!dataRead) {
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        if (batteryManager != null) {
+            level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            isCharging = batteryManager.isCharging
+            
+            val microAmps = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            if (microAmps != Int.MIN_VALUE) current = kotlin.math.abs(microAmps / 1000)
+            
+            // Cannot reliably get Temp/Voltage/Health via BatteryManager without Intent
+            // So we partially update or rely on the last BroadcastReceiver intent values
+            if (cachedTemp != 0) temp = cachedTemp
+            if (cachedVoltage != 0) voltage = cachedVoltage
+            if (cachedHealth != "Unknown") health = cachedHealth
+            
+            dataRead = true
+        }
+    }
+
+    if (dataRead) {
+        // Apply logic for current sign based on charging status
+        current = if (isCharging) kotlin.math.abs(current) else -kotlin.math.abs(current)
+
+        // Smoothing
+        if (current != 0) {
+          if (!isCurrentInitialized) {
+            smoothedCurrent = current.toDouble()
+            isCurrentInitialized = true
+          } else {
+            val alpha = getEmaAlpha()
+            smoothedCurrent = alpha * current + (1 - alpha) * smoothedCurrent
+          }
+          current = smoothedCurrent.toInt()
+        } else if (isCurrentInitialized) {
+          current = smoothedCurrent.toInt()
+        }
+
+        // Update Cache
+        cachedLevel = level
+        cachedCurrent = current
+        cachedVoltage = voltage
+        cachedTemp = temp
+        cachedIsCharging = isCharging
+        cachedHealth = health
+
+        refreshState()
     }
   }
 }

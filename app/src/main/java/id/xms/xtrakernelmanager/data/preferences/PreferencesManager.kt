@@ -475,7 +475,7 @@ class PreferencesManager(private val context: Context) {
   }
 
   fun getBatteryNotifIconType(): Flow<String> =
-      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_ICON_TYPE] ?: "circle_percent" }
+      context.dataStore.data.map { prefs -> prefs[BATTERY_NOTIF_ICON_TYPE] ?: "temp" }
 
   // Changed to Long for milliseconds support (Real-time = 500ms)
   private val BATTERY_NOTIF_REFRESH_RATE_MS =
@@ -487,8 +487,8 @@ class PreferencesManager(private val context: Context) {
 
   fun getBatteryNotifRefreshRate(): Flow<Long> =
       context.dataStore.data.map { prefs ->
-        prefs[BATTERY_NOTIF_REFRESH_RATE_MS] ?: 1000L
-      } // Default 1s
+        prefs[BATTERY_NOTIF_REFRESH_RATE_MS] ?: 5000L
+      } // Default 5s
 
   suspend fun setBatteryNotifSecureLockScreen(enabled: Boolean) {
     context.dataStore.edit { prefs -> prefs[BATTERY_NOTIF_SECURE_LOCK_SCREEN] = enabled }

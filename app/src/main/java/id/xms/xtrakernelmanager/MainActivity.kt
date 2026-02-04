@@ -18,6 +18,8 @@ import id.xms.xtrakernelmanager.service.KernelConfigService
 import id.xms.xtrakernelmanager.ui.navigation.Navigation
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 import id.xms.xtrakernelmanager.utils.AccessibilityServiceHelper
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
   private val preferencesManager by lazy { PreferencesManager(this) }
@@ -38,12 +40,19 @@ class MainActivity : ComponentActivity() {
 
     // Start foreground kernel config service (persistent tuning)
     startService(Intent(this, KernelConfigService::class.java))
-    // Start battery info service to populate real-time stats
-    startService(Intent(this, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java))
-    // GameMonitorService is an AccessibilityService and cannot be started programmatically
-    // It must be enabled by the user through Android's accessibility settings
+    
+    // Start battery info service conditionally
+    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+        try {
+            val enabled = preferencesManager.isShowBatteryNotif().first()
+            if (enabled) {
+                startService(Intent(this@MainActivity, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java))
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Failed to check battery notif pref: ${e.message}")
+        }
+    }
     checkGameMonitorServiceStatus()
-    // Start AppProfileService
     startService(Intent(this, id.xms.xtrakernelmanager.service.AppProfileService::class.java))
 
     setContent {
