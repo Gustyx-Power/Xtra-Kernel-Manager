@@ -273,6 +273,18 @@ class MiscViewModel(
         } catch (e: Exception) {
           Log.e("MiscViewModel", "Failed to start BatteryInfoService: ${e.message}")
         }
+      } else {
+        try {
+          // Explicitly cancel notification first for immediate feedback
+          val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+          nm.cancel(id.xms.xtrakernelmanager.service.BatteryInfoService.NOTIF_ID)
+          
+          val intent =
+              Intent(context, id.xms.xtrakernelmanager.service.BatteryInfoService::class.java)
+          context.stopService(intent)
+        } catch (e: Exception) {
+          Log.e("MiscViewModel", "Failed to stop BatteryInfoService: ${e.message}")
+        }
       }
     }
   }
@@ -281,7 +293,7 @@ class MiscViewModel(
   val batteryNotifIconType =
       preferencesManager
           .getBatteryNotifIconType()
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "circle_percent")
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "temp")
 
   fun setBatteryNotifIconType(type: String) {
     viewModelScope.launch {
@@ -293,7 +305,7 @@ class MiscViewModel(
   val batteryNotifRefreshRate =
       preferencesManager
           .getBatteryNotifRefreshRate()
-          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1000L)
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 5000L)
 
   fun setBatteryNotifRefreshRate(ms: Long) {
     viewModelScope.launch {
