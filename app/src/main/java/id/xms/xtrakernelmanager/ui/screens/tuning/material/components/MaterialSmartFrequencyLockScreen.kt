@@ -140,31 +140,6 @@ fun MaterialSmartFrequencyLockScreen(
                 )
             }
             
-            // Thermal Policy (only for SMART)
-            if (selectedPolicy == LockPolicyType.SMART) {
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-                
-                item {
-                    Text(
-                        text = stringResource(R.string.material_cpu_thermal_policy),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                
-                items(ThermalPolicyPresets.getAllPolicies().size) { index ->
-                    val policy = ThermalPolicyPresets.getAllPolicies()[index]
-                    MaterialThermalPolicyCard(
-                        policy = policy,
-                        isSelected = policy.name == selectedThermalPolicy,
-                        onSelect = { selectedThermalPolicy = policy.name }
-                    )
-                }
-            }
-            
             // Action Buttons
             item {
                 Spacer(modifier = Modifier.height(24.dp))
@@ -515,89 +490,6 @@ private fun MaterialPolicySelectionCard(
                     Icons.Rounded.CheckCircle,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun MaterialThermalPolicyCard(
-    policy: id.xms.xtrakernelmanager.data.model.ThermalPolicy,
-    isSelected: Boolean,
-    onSelect: () -> Unit
-) {
-    val description = "Emergency: ${policy.emergencyThreshold}°C, Warning: ${policy.warningThreshold}°C"
-    
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected)
-                MaterialTheme.colorScheme.secondaryContainer
-            else
-                MaterialTheme.colorScheme.surfaceContainer
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect),
-        border = if (isSelected)
-            BorderStroke(2.dp, MaterialTheme.colorScheme.secondary)
-        else null
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (isSelected)
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
-                        else
-                            MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Rounded.Thermostat,
-                    contentDescription = null,
-                    tint = if (isSelected)
-                        MaterialTheme.colorScheme.secondary
-                    else
-                        MaterialTheme.colorScheme.onSurface
-                )
-            }
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = policy.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                    else
-                        MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected)
-                        MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            if (isSelected) {
-                Icon(
-                    Icons.Rounded.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.secondary
                 )
             }
         }

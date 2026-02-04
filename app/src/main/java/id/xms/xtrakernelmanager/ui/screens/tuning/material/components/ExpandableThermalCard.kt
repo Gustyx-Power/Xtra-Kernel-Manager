@@ -53,7 +53,7 @@ fun ExpandableThermalCard(
           subtitle = "Monitor & Profiles",
           icon = Icons.Rounded.Thermostat,
           badgeText = tempDisplay, // Now shows real temperature
-          onClick = { onExpandChange(true) },
+          onClick = onClickNav, // Navigate to thermal settings instead of just expanding
       )
     } else {
       val cornerRadius = 24.dp
@@ -238,6 +238,30 @@ fun ExpandableThermalCard(
             ThermalPresetDropdown(viewModel)
             Spacer(modifier = Modifier.height(16.dp))
             ThermalSetOnBootToggle(viewModel)
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Navigation Button to Thermal Settings
+            Button(
+                onClick = onClickNav,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Settings,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Thermal Settings",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Medium
+                )
+            }
           }
         }
       }

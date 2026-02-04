@@ -24,6 +24,9 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 fun AdditionalControlCard(viewModel: TuningViewModel) {
   val ioSchedulers by viewModel.availableIOSchedulers.collectAsState()
   val currentIOScheduler by viewModel.currentIOScheduler.collectAsState()
+  val ioSetOnBoot by viewModel.preferencesManager.getIOSetOnBoot().collectAsState(initial = false)
+  val tcpSetOnBoot by viewModel.preferencesManager.getTCPSetOnBoot().collectAsState(initial = false)
+  val additionalSetOnBoot by viewModel.preferencesManager.getAdditionalSetOnBoot().collectAsState(initial = false)
 
   var expanded by remember { mutableStateOf(false) }
 
@@ -131,6 +134,74 @@ fun AdditionalControlCard(viewModel: TuningViewModel) {
                 )
               }
             }
+          }
+
+          Spacer(modifier = Modifier.height(16.dp))
+
+          // Set on Boot Section
+          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+          Spacer(modifier = Modifier.height(16.dp))
+
+          Text(
+              text = stringResource(R.string.set_on_boot),
+              style = MaterialTheme.typography.labelMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          Spacer(modifier = Modifier.height(8.dp))
+
+          // I/O Set on Boot Toggle
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+                text = stringResource(R.string.material_io_scheduler),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+            )
+            Switch(
+                checked = ioSetOnBoot,
+                onCheckedChange = { viewModel.setIOSetOnBoot(it) },
+            )
+          }
+
+          Spacer(modifier = Modifier.height(8.dp))
+
+          // TCP Set on Boot Toggle
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+                text = "TCP Congestion",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+            )
+            Switch(
+                checked = tcpSetOnBoot,
+                onCheckedChange = { viewModel.setTCPSetOnBoot(it) },
+            )
+          }
+
+          Spacer(modifier = Modifier.height(8.dp))
+
+          // Additional Set on Boot Toggle (Global)
+          Row(
+              modifier = Modifier.fillMaxWidth(),
+              horizontalArrangement = Arrangement.SpaceBetween,
+              verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(
+                text = "Network Settings",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+            )
+            Switch(
+                checked = additionalSetOnBoot,
+                onCheckedChange = { viewModel.setAdditionalSetOnBoot(it) },
+            )
           }
         }
       }
