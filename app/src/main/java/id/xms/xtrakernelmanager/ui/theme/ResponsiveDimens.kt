@@ -15,12 +15,14 @@ import androidx.compose.ui.unit.sp
  * Detection based on actual screen width:
  * - COMPACT: <= 392dp (covers 720p/HD phones with high density)
  * - MEDIUM: 393dp - 600dp (standard 1080p/FHD phones)
- * - EXPANDED: > 600dp (tablets, foldables)
+ * - EXPANDED: 601dp - 840dp (small tablets, foldables)
+ * - LARGE: > 840dp (large tablets)
  */
 enum class ScreenSizeClass {
   COMPACT, // Small phones, 720p, high density devices
   MEDIUM, // Standard phones 1080p
-  EXPANDED, // Tablets, foldables
+  EXPANDED, // Small tablets, foldables
+  LARGE, // Large tablets
 }
 
 data class ResponsiveDimens(
@@ -69,18 +71,40 @@ fun rememberResponsiveDimens(): ResponsiveDimens {
   val screenHeightDp = configuration.screenHeightDp
   val densityDpi = configuration.densityDpi
 
-  return remember(screenWidthDp, densityDpi) {
-    // Calculate scale factor based on screen width
-    // Reference: 400dp = 1.0f scale (typical modern phone)
-    val scaleFactor = (screenWidthDp / 400f).coerceIn(0.7f, 1.3f)
+  return remember(screenWidthDp, screenHeightDp, densityDpi) {
+    // Calculate physical screen size for better device classification
+    val widthInches = screenWidthDp / 160f
+    val heightInches = screenHeightDp / 160f
+    val diagonalInches = kotlin.math.sqrt(widthInches * widthInches + heightInches * heightInches)
+    
+    // Calculate scale factor based on screen width and density
+    // For high-resolution phones (1080p+), we consider both width and DPI
+    val baseScaleFactor = (screenWidthDp / 400f).coerceIn(0.7f, 1.5f)
+    
+    // Adjust scale factor for high-DPI devices
+    val dpiAdjustment = when {
+      densityDpi >= 560 -> 0.9f  // Very high DPI (1440p+ phones)
+      densityDpi >= 480 -> 0.95f // High DPI (1080p+ phones)
+      densityDpi >= 320 -> 1.0f  // Standard DPI
+      else -> 1.1f               // Low DPI (tablets)
+    }
+    
+    val scaleFactor = (baseScaleFactor * dpiAdjustment).coerceIn(0.7f, 1.3f)
 
-    // Determine screen class
-    val screenClass =
-        when {
-          screenWidthDp <= 392 -> ScreenSizeClass.COMPACT
-          screenWidthDp <= 600 -> ScreenSizeClass.MEDIUM
-          else -> ScreenSizeClass.EXPANDED
-        }
+    // Determine screen class with better detection
+    val screenClass = when {
+      // Small phones (regardless of resolution)
+      screenWidthDp <= 392 -> ScreenSizeClass.COMPACT
+      
+      // Standard phones (including 1080p, 1260p, 1440p phones)
+      screenWidthDp <= 600 -> ScreenSizeClass.MEDIUM
+      
+      // Small tablets or foldables
+      screenWidthDp <= 840 -> ScreenSizeClass.EXPANDED
+      
+      // Large tablets
+      else -> ScreenSizeClass.LARGE
+    }
 
     // Create dimensions scaled by factor
     createScaledDimens(screenClass, screenWidthDp, scaleFactor)
@@ -176,6 +200,33 @@ private fun createScaledDimens(
             avatarSizeSmall = (36f * scaleFactor).dp,
             fontScale = 1.0f,
         )
+
+    ScreenSizeClass.LARGE ->
+        ResponsiveDimens(
+            screenSizeClass = screenClass,
+            screenWidthDp = screenWidthDp,
+            scaleFactor = scaleFactor,
+            screenHorizontalPadding = (32f * scaleFactor).dp,
+            cardPadding = (24f * scaleFactor).dp,
+            cardPaddingSmall = (18f * scaleFactor).dp,
+            itemPadding = (18f * scaleFactor).dp,
+            spacingLarge = (24f * scaleFactor).dp,
+            spacingMedium = (18f * scaleFactor).dp,
+            spacingSmall = (12f * scaleFactor).dp,
+            spacingTiny = (8f * scaleFactor).dp,
+            cornerRadiusLarge = (32f * scaleFactor).dp,
+            cornerRadiusMedium = (24f * scaleFactor).dp,
+            cornerRadiusSmall = (16f * scaleFactor).dp,
+            iconSizeLarge = (30f * scaleFactor).dp,
+            iconSizeMedium = (26f * scaleFactor).dp,
+            iconSizeSmall = (22f * scaleFactor).dp,
+            buttonHeight = (56f * scaleFactor).dp,
+            chipHeight = (38f * scaleFactor).dp,
+            avatarSizeLarge = (88f * scaleFactor).dp,
+            avatarSizeMedium = (60f * scaleFactor).dp,
+            avatarSizeSmall = (42f * scaleFactor).dp,
+            fontScale = 1.1f,
+        )
   }
 }
 
@@ -188,6 +239,31 @@ fun screenWidthFraction(fraction: Float): Dp {
 
 // Extension functions for scaled font sizes
 fun ResponsiveDimens.scaledSp(baseSp: Float): TextUnit = (baseSp * fontScale).sp
+
+// Tablet layout utilities
+@Composable
+fun ResponsiveDimens.isTablet(): Boolean = 
+  screenSizeClass == ScreenSizeClass.EXPANDED || screenSizeClass == ScreenSizeClass.LARGE
+
+@Composable
+fun ResponsiveDimens.isLargeTablet(): Boolean = 
+  screenSizeClass == ScreenSizeClass.LARGE
+
+@Composable
+fun ResponsiveDimens.getGridColumns(): Int = when (screenSizeClass) {
+  ScreenSizeClass.COMPACT -> 1
+  ScreenSizeClass.MEDIUM -> 1
+  ScreenSizeClass.EXPANDED -> 2
+  ScreenSizeClass.LARGE -> 3
+}
+
+@Composable
+fun ResponsiveDimens.getMaxContentWidth(): Dp = when (screenSizeClass) {
+  ScreenSizeClass.COMPACT -> Dp.Unspecified
+  ScreenSizeClass.MEDIUM -> Dp.Unspecified
+  ScreenSizeClass.EXPANDED -> 800.dp
+  ScreenSizeClass.LARGE -> 1200.dp
+}
 
 // Quick access composable for common use
 object Dimens {
