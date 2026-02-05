@@ -107,7 +107,7 @@ class SplashActivity : ComponentActivity() {
       XtraKernelManagerTheme {
         val context = LocalContext.current
         val prefsManager = remember { PreferencesManager(context) }
-        val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = "liquid")
+        val layoutStyle by prefsManager.getLayoutStyle().collectAsState(initial = null)
 
         val navigateToMain: () -> Unit = {
           startActivity(Intent(this, MainActivity::class.java))
@@ -115,27 +115,33 @@ class SplashActivity : ComponentActivity() {
           overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
 
-        if (layoutStyle == "material") {
-          // Material layout uses ExpressiveSplashScreen
-          ExpressiveSplashScreen(
-              onNavigateToMain = navigateToMain,
-              isInternetAvailable = { isInternetAvailable(it) },
-              checkRootAccess = { checkRootAccess() },
-              fetchUpdateConfig = { fetchUpdateConfig() },
-              isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) },
-          )
-        } else if (layoutStyle == "liquid") {
-          // Liquid Layout uses LiquidSplashActivity
-          // We start the activity and finish this one
-          LaunchedEffect(Unit) {
-               val intent = Intent(context, LiquidSplashActivity::class.java)
-               context.startActivity(intent)
-               (context as? android.app.Activity)?.finish()
-               (context as? android.app.Activity)?.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-          }
-        } else {
-          // Legacy layout uses SplashScreenContent
-          SplashScreenContent(onNavigateToMain = navigateToMain)
+        when (layoutStyle) {
+            "material" -> {
+                ExpressiveSplashScreen(
+                    onNavigateToMain = navigateToMain,
+                    isInternetAvailable = { isInternetAvailable(it) },
+                    checkRootAccess = { checkRootAccess() },
+                    fetchUpdateConfig = { fetchUpdateConfig() },
+                    isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) },
+                )
+            }
+            "liquid" -> {
+                LaunchedEffect(Unit) {
+                    val intent = Intent(context, LiquidSplashActivity::class.java)
+                    context.startActivity(intent)
+                    (context as? android.app.Activity)?.finish()
+                    (context as? android.app.Activity)?.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                }
+            }
+            "legacy" -> {
+                 SplashScreenContent(onNavigateToMain = navigateToMain)
+            }
+            null -> {
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+            }
+            else -> {
+                 SplashScreenContent(onNavigateToMain = navigateToMain)
+            }
         }
       }
     }

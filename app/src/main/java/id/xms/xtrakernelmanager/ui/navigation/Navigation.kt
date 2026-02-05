@@ -207,7 +207,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
           startDestination = startDest,
           modifier = Modifier
               .padding(paddingValues)
-              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 100.dp),
+              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 120.dp),
       ) {
         composable("setup") {
           SetupScreen(
@@ -453,9 +453,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
             onNavigate = navigateToRoute,
             items = bottomNavItems,
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = 24.dp),
+                .align(Alignment.BottomCenter),
         )
       }
     }

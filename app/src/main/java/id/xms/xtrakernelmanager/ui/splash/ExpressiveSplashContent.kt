@@ -2,25 +2,39 @@ package id.xms.xtrakernelmanager.ui.splash
 
 import android.content.Context
 import androidx.activity.ComponentActivity
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.graphics.graphicsLayer
 import id.xms.xtrakernelmanager.BuildConfig
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
+import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.ui.components.WavyCircularProgressIndicator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -40,9 +54,13 @@ fun ExpressiveSplashScreen(
   var showNoRootDialog by remember { mutableStateOf(false) }
   var isChecking by remember { mutableStateOf(true) }
   var startExitAnimation by remember { mutableStateOf(false) }
+  
+  // Animation State
+  var visible by remember { mutableStateOf(false) }
 
   LaunchedEffect(Unit) {
-    val minSplashTime = launch { delay(2500) } // Slightly longer for animation to play
+    visible = true // Trigger entrance animation
+    val minSplashTime = launch { delay(2000) }
 
     // Check root access first
     val hasRoot = checkRootAccess()
@@ -112,27 +130,106 @@ fun ExpressiveSplashScreen(
 
   if (startExitAnimation) {
     LaunchedEffect(Unit) {
-      delay(600) // Allow exit transition
+      visible = false // Trigger exit animation
+      delay(500) // Transition duration
       onNavigateToMain()
     }
   }
 
+  // --- MATERIAL 3 LAYOUT ---
   Box(
-      modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface),
+      modifier = Modifier
+          .fillMaxSize()
+          .background(MaterialTheme.colorScheme.surface),
       contentAlignment = Alignment.Center,
   ) {
+      
+    // Branding Content with Animated Visibility
     AnimatedVisibility(
-        visible = !startExitAnimation,
-        exit =
-            fadeOut(animationSpec = tween(500)) +
-                scaleOut(targetScale = 1.2f, animationSpec = tween(500)),
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(500)) + scaleIn(initialScale = 0.8f, animationSpec = tween(500, easing = FastOutSlowInEasing)),
+        exit = fadeOut(animationSpec = tween(500)) + scaleOut(targetScale = 1.1f, animationSpec = tween(500))
     ) {
-      Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        ShapeMorphingLoader()
-      }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Material 3 Logo Container
+            Surface(
+                shape = RoundedCornerShape(28.dp), // M3 Medium Radius
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(108.dp),
+                shadowElevation = 6.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo_a),
+                        contentDescription = "App Logo",
+                        modifier = Modifier
+                            .size(64.dp)
+                            .scale(1.1f)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // App Title
+            Text(
+                text = "Xtra Kernel Manager",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Version Badge
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "v${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            // Discrete Loading Indicator
+            AnimatedVisibility(visible = isChecking) {
+                // Simulate indeterminate loading by rotating a fixed progress wavy indicator
+                val infiniteTransition = rememberInfiniteTransition(label = "wavy_loader")
+                val angle by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(2000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "rotation"
+                )
+
+                WavyCircularProgressIndicator(
+                    progress = 0.5f, // Half circle
+                    modifier = Modifier
+                        .size(36.dp)
+                        .graphicsLayer { rotationZ = angle },
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    strokeWidth = 3.dp,
+                    amplitude = 2.dp, // Subtle waves
+                    frequency = 8
+                )
+            }
+        }
     }
 
-    // Dialogs
+    // Dialogs (Reused logic)
     if (showUpdateDialog && updateConfig != null) {
       ForceUpdateDialog(config = updateConfig!!, onUpdateClick = { /* ... */ })
     }
@@ -159,197 +256,3 @@ fun ExpressiveSplashScreen(
   }
 }
 
-/* ===========================
- *  MAIN COMPOSABLE
- * =========================== */
-@Composable
-fun ShapeMorphingLoader(modifier: Modifier = Modifier, sizeDp: Int = 96) {
-  val dimens = id.xms.xtrakernelmanager.ui.theme.rememberResponsiveDimens()
-  val isCompact =
-      dimens.screenSizeClass == id.xms.xtrakernelmanager.ui.theme.ScreenSizeClass.COMPACT
-  val actualSize = if (isCompact) 72 else sizeDp
-  // 1. Endless Rotation & Breathing (Independent)
-  val infinite = rememberInfiniteTransition(label = "loader_effects")
-
-  val rotation by
-      infinite.animateFloat(
-          initialValue = 0f,
-          targetValue = 360f,
-          animationSpec = infiniteRepeatable(animation = tween(4000, easing = LinearEasing)),
-          label = "rotation",
-      )
-
-  val scale by
-      infinite.animateFloat(
-          initialValue = 0.85f,
-          targetValue = 1.1f,
-          animationSpec =
-              infiniteRepeatable(
-                  animation = tween(700, easing = FastOutSlowInEasing),
-                  repeatMode = RepeatMode.Reverse,
-              ),
-          label = "scale",
-      )
-
-  val interestingShapes = remember {
-    ShapeType.values().filter {
-      it != ShapeType.Circle && it != ShapeType.Oval && it != ShapeType.Pill
-    }
-  }
-
-  var currentShape by remember { mutableStateOf(interestingShapes.random()) }
-  var nextShape by remember { mutableStateOf(interestingShapes.random()) }
-  val morphProgress = remember { Animatable(0f) }
-
-  LaunchedEffect(Unit) {
-    // Initial random start
-    currentShape = interestingShapes.random()
-
-    while (true) {
-      // Pick a DIFFERENT random shape
-      var candidate: ShapeType
-      do {
-        candidate = interestingShapes.random()
-      } while (candidate == currentShape)
-      nextShape = candidate
-
-      // Animate 0 -> 1 with smoother timing (400ms)
-      morphProgress.snapTo(0f)
-      morphProgress.animateTo(
-          targetValue = 1f,
-          animationSpec = tween(400, easing = FastOutSlowInEasing),
-      )
-
-      // Swap state
-      currentShape = nextShape
-
-      // Short delay to pause on the shape briefly
-      delay(100)
-    }
-  }
-
-  // FIX: Extract color access outside of Canvas draw scope
-  val primaryColor = MaterialTheme.colorScheme.primary
-
-  Canvas(modifier = modifier.size(actualSize.dp).scale(scale)) {
-    val cx = size.width / 2
-    val cy = size.height / 2
-    val R = size.minDimension / 2
-    val points = 360 // Increased resolution for smoother curves
-
-    val t = morphProgress.value
-
-    val path = Path()
-
-    repeat(points + 1) { i ->
-      val theta = (2 * Math.PI * i / points).toFloat()
-      val rot = Math.toRadians(rotation.toDouble()).toFloat()
-
-      // Smooth interpolation between shapes
-      val r = lerp(getRadius(currentShape, theta, R), getRadius(nextShape, theta, R), t)
-
-      val x = cx + r * cos(theta + rot)
-      val y = cy + r * sin(theta + rot)
-
-      if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-    }
-
-    path.close()
-    drawPath(path, primaryColor)
-  }
-}
-
-enum class ShapeType {
-  Arch,
-  Arrow,
-  Bun,
-  Burst,
-  Circle,
-  ClamShell,
-  Clover4Leaf,
-  Clover8Leaf,
-  Cookie4Sided,
-  Cookie6Sided,
-  Cookie7Sided,
-  Cookie9Sided,
-  Cookie12Sided,
-  Diamond,
-  Fan,
-  Flower,
-  Gem,
-  Ghostish,
-  Heart,
-  Oval,
-  Pentagon,
-  Pill,
-  PixelCircle,
-  Puffy,
-  PuffyDiamond,
-  SemiCircle,
-  Slanted,
-  SoftBoom,
-  SoftBurst,
-  Square,
-  Sunny,
-  Triangle,
-  VerySunny,
-}
-
-fun getRadius(type: ShapeType, theta: Float, R: Float): Float {
-  return when (type) {
-    ShapeType.Circle -> R
-    ShapeType.Oval -> R * (0.9f + 0.1f * cos(2 * theta))
-    ShapeType.Pill -> R * (0.8f + 0.2f * cos(2 * theta)) // Similar to Oval but narrower
-
-    ShapeType.Triangle -> R * (0.8f + 0.2f * cos(3 * theta))
-    ShapeType.Square -> R * (0.85f + 0.15f * cos(4 * theta))
-    ShapeType.Pentagon -> R * (0.9f + 0.1f * cos(5 * theta))
-
-    // Cookies (Rounded Polygons)
-    ShapeType.Cookie4Sided -> R * (0.85f + 0.15f * cos(4 * theta))
-    ShapeType.Cookie6Sided -> R * (0.9f + 0.1f * cos(6 * theta))
-    ShapeType.Cookie7Sided -> R * (0.9f + 0.1f * cos(7 * theta))
-    ShapeType.Cookie9Sided -> R * (0.9f + 0.1f * cos(9 * theta))
-    ShapeType.Cookie12Sided -> R * (0.95f + 0.05f * cos(12 * theta))
-
-    // Nature / Floral
-    ShapeType.Clover4Leaf -> R * (0.8f + 0.2f * cos(4 * theta))
-    ShapeType.Clover8Leaf -> R * (0.85f + 0.15f * cos(8 * theta))
-    ShapeType.Flower -> R * (0.75f + 0.25f * cos(6 * theta))
-    ShapeType.Sunny -> R * (0.8f + 0.2f * cos(8 * theta))
-    ShapeType.VerySunny -> R * (0.8f + 0.2f * cos(16 * theta))
-
-    // Bursts / Spikes
-    ShapeType.Burst -> R * (0.7f + 0.3f * cos(12 * theta))
-    ShapeType.SoftBurst -> R * (0.8f + 0.2f * cos(12 * theta))
-    ShapeType.SoftBoom -> R * (0.7f + 0.3f * cos(5 * theta))
-
-    // Abstract / Geometric
-    ShapeType.Diamond ->
-        R * (0.7f + 0.3f * abs(cos(theta)) * abs(sin(theta)) + 0.5f) // Experimental diamond
-    ShapeType.Gem -> R * (0.85f + 0.15f * cos(6 * theta))
-    ShapeType.Arrow -> R * (0.7f + 0.3f * cos(3 * theta + 1.57f)) // Rotate to point up/down
-
-    // Fun / Organic
-    ShapeType.Ghostish -> R * (0.8f + 0.1f * sin(5 * theta) + 0.1f * cos(theta))
-    ShapeType.Puffy -> R * (0.85f + 0.15f * sin(4 * theta))
-    ShapeType.PuffyDiamond -> R * (0.8f + 0.2f * cos(2 * theta))
-    ShapeType.Bun -> R * (0.8f + 0.15f * cos(2 * theta) - 0.05f * cos(4 * theta))
-    ShapeType.ClamShell -> R * (0.8f + 0.2f * cos(10 * theta) * (sin(theta) + 1) / 2)
-    ShapeType.Fan -> R * (0.7f + 0.3f * cos(3 * theta))
-    ShapeType.Slanted -> R * (0.9f + 0.1f * sin(2 * theta))
-
-    // Pixels / Tech
-    ShapeType.PixelCircle -> if ((theta * 10).toInt() % 2 == 0) R else R * 0.9f
-
-    // ShapeType.Heart approx (difficult in pure polar, using 2-lobe approximation)
-    ShapeType.Heart -> R * (0.8f - 0.2f * sin(theta) + 0.1f * cos(2 * theta))
-
-    ShapeType.Arch -> R * (0.7f + 0.3f * sin(theta))
-    ShapeType.SemiCircle -> if (sin(theta) > 0) R else R * 0.5f
-
-    else -> R
-  }
-}
-
-fun lerp(a: Float, b: Float, t: Float): Float = a + (b - a) * t
