@@ -160,7 +160,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
             modifier = Modifier.weight(1f),
             title = stringResource(id.xms.xtrakernelmanager.R.string.min_frequency),
             value = "${cluster.currentMinFreq} MHz",
-            options = (cluster.minFreq..cluster.maxFreq step 100).map { "$it MHz" },
+            options = cluster.availableFrequencies.sortedDescending().map { "$it MHz" },
             onValueChange = { selectedStr ->
               val freq = selectedStr.removeSuffix(" MHz").toIntOrNull() ?: cluster.minFreq
               viewModel.setCpuClusterFrequency(cluster.clusterNumber, freq, cluster.currentMaxFreq)
@@ -170,7 +170,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
             modifier = Modifier.weight(1f),
             title = stringResource(id.xms.xtrakernelmanager.R.string.max_frequency),
             value = "${cluster.currentMaxFreq} MHz",
-            options = (cluster.minFreq..cluster.maxFreq step 100).map { "$it MHz" },
+            options = cluster.availableFrequencies.sortedDescending().map { "$it MHz" },
             onValueChange = { selectedStr ->
               val freq = selectedStr.removeSuffix(" MHz").toIntOrNull() ?: cluster.maxFreq
               viewModel.setCpuClusterFrequency(cluster.clusterNumber, cluster.currentMinFreq, freq)

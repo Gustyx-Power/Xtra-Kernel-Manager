@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 class TuningViewModel(
     val preferencesManager: PreferencesManager,
@@ -233,13 +234,40 @@ class TuningViewModel(
   // CPU Frequency Control - sets min/max freq for a specific cluster
   fun setCpuClusterFrequency(clusterIndex: Int, minFreqMhz: Int, maxFreqMhz: Int) {
     viewModelScope.launch(Dispatchers.IO) {
-      cpuUseCase.setClusterFrequency(clusterIndex, minFreqMhz, maxFreqMhz)
-      
-      // Save configuration if set-on-boot is enabled
-      val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
-      if (cpuSetOnBoot) {
-        preferencesManager.setClusterMinFreq(clusterIndex, minFreqMhz)
-        preferencesManager.setClusterMaxFreq(clusterIndex, maxFreqMhz)
+      // Validate frequencies against available frequencies
+      val cluster = _cpuClusters.value.find { it.clusterNumber == clusterIndex }
+      if (cluster != null) {
+        val validMinFreq = if (cluster.availableFrequencies.contains(minFreqMhz)) {
+          minFreqMhz
+        } else {
+          // Find closest valid frequency
+          cluster.availableFrequencies.minByOrNull { abs(it - minFreqMhz) } ?: minFreqMhz
+        }
+        
+        val validMaxFreq = if (cluster.availableFrequencies.contains(maxFreqMhz)) {
+          maxFreqMhz
+        } else {
+          // Find closest valid frequency
+          cluster.availableFrequencies.minByOrNull { abs(it - maxFreqMhz) } ?: maxFreqMhz
+        }
+        
+        cpuUseCase.setClusterFrequency(clusterIndex, validMinFreq, validMaxFreq)
+        
+        // Save configuration if set-on-boot is enabled
+        val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+        if (cpuSetOnBoot) {
+          preferencesManager.setClusterMinFreq(clusterIndex, validMinFreq)
+          preferencesManager.setClusterMaxFreq(clusterIndex, validMaxFreq)
+        }
+      } else {
+        // Fallback to original behavior if cluster not found
+        cpuUseCase.setClusterFrequency(clusterIndex, minFreqMhz, maxFreqMhz)
+        
+        val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+        if (cpuSetOnBoot) {
+          preferencesManager.setClusterMinFreq(clusterIndex, minFreqMhz)
+          preferencesManager.setClusterMaxFreq(clusterIndex, maxFreqMhz)
+        }
       }
       
       refreshDynamicValues()
