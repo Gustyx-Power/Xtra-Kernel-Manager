@@ -71,9 +71,14 @@ class CPUControlUseCase {
                   ?.split("\\s+".toRegex())
                   ?.mapNotNull { it.toIntOrNull()?.div(1000) }
                   ?: emptyList()
-          normalizedCluster.copy(availableFrequencies = freqs)
+          
+          // Apply device-specific frequency overrides
+          val enhancedFreqs = applyDeviceSpecificFrequencies(freqs, normalizedCluster)
+          normalizedCluster.copy(availableFrequencies = enhancedFreqs)
         } else {
-          normalizedCluster
+          // Apply device-specific frequency overrides even if frequencies exist
+          val enhancedFreqs = applyDeviceSpecificFrequencies(normalizedCluster.availableFrequencies, normalizedCluster)
+          normalizedCluster.copy(availableFrequencies = enhancedFreqs)
         }
       }
     }
@@ -156,6 +161,9 @@ class CPUControlUseCase {
               ?.mapNotNull { it.toIntOrNull()?.div(1000) }
               ?: emptyList()
 
+      // Apply device-specific frequency overrides for shell detection too
+      val enhancedFreqs = applyDeviceSpecificFrequencies(availableFreqs, null)
+
       val policyPath = "/sys/devices/system/cpu/cpufreq/policy${firstCore}"
       clusters.add(
           ClusterInfo(
@@ -167,7 +175,7 @@ class CPUControlUseCase {
               currentMaxFreq = currentMax / 1000,
               governor = governor,
               availableGovernors = availableGovs,
-              availableFrequencies = availableFreqs,
+              availableFrequencies = enhancedFreqs,
               policyPath = policyPath,
           )
       )
@@ -441,5 +449,299 @@ class CPUControlUseCase {
       Log.e(TAG, "Failed to check cluster safety", e)
       true // Assume safe on error
     }
+  }
+
+  /**
+   * Enhanced frequency detection that reads from multiple kernel sources
+   * This fixes issues where scaling_available_frequencies doesn't show all frequencies
+   */
+  private suspend fun applyDeviceSpecificFrequencies(
+    originalFreqs: List<Int>, 
+    cluster: ClusterInfo?
+  ): List<Int> {
+    if (cluster == null) return originalFreqs
+    
+    Log.d(TAG, "Enhanced frequency detection for cluster ${cluster.clusterNumber}")
+    
+    val enhancedFreqs = mutableSetOf<Int>()
+    enhancedFreqs.addAll(originalFreqs)
+    
+    // Method 1: Read from cpuinfo_max_freq and cpuinfo_min_freq (hardware limits)
+    val hardwareFreqs = readHardwareFrequencyLimits(cluster)
+    enhancedFreqs.addAll(hardwareFreqs)
+    
+    // Method 2: Read from OPP (Operating Performance Points) table
+    val oppFreqs = readOppTableFrequencies(cluster)
+    enhancedFreqs.addAll(oppFreqs)
+    
+    // Method 3: Read from cpufreq policy files
+    val policyFreqs = readPolicyFrequencies(cluster)
+    enhancedFreqs.addAll(policyFreqs)
+    
+    // Method 4: Read from devfreq if available
+    val devfreqFreqs = readDevfreqFrequencies(cluster)
+    enhancedFreqs.addAll(devfreqFreqs)
+    
+    // Method 5: Parse from cpufreq stats
+    val statsFreqs = readCpufreqStats(cluster)
+    enhancedFreqs.addAll(statsFreqs)
+    
+    // Method 6: Read from thermal cooling device frequencies
+    val thermalFreqs = readThermalCoolingFrequencies(cluster)
+    enhancedFreqs.addAll(thermalFreqs)
+    
+    val finalFreqs = enhancedFreqs.filter { it > 0 }.sorted()
+    
+    Log.d(TAG, "Frequency detection results:")
+    Log.d(TAG, "  Original: ${originalFreqs.size} frequencies (${originalFreqs.minOrNull()}-${originalFreqs.maxOrNull()} MHz)")
+    Log.d(TAG, "  Enhanced: ${finalFreqs.size} frequencies (${finalFreqs.minOrNull()}-${finalFreqs.maxOrNull()} MHz)")
+    Log.d(TAG, "  Added: ${finalFreqs.size - originalFreqs.size} new frequencies")
+    
+    return finalFreqs
+  }
+  
+  /**
+   * Read hardware frequency limits from cpuinfo files
+   */
+  private suspend fun readHardwareFrequencyLimits(cluster: ClusterInfo): List<Int> {
+    val frequencies = mutableSetOf<Int>()
+    
+    cluster.cores.forEach { coreNum ->
+      val basePath = "/sys/devices/system/cpu/cpu$coreNum/cpufreq"
+      
+      // Read hardware max frequency
+      val maxFreq = RootManager.executeCommand("cat $basePath/cpuinfo_max_freq 2>/dev/null")
+        .getOrNull()?.trim()?.toIntOrNull()?.div(1000)
+      if (maxFreq != null && maxFreq > 0) {
+        frequencies.add(maxFreq)
+      }
+      
+      // Read hardware min frequency
+      val minFreq = RootManager.executeCommand("cat $basePath/cpuinfo_min_freq 2>/dev/null")
+        .getOrNull()?.trim()?.toIntOrNull()?.div(1000)
+      if (minFreq != null && minFreq > 0) {
+        frequencies.add(minFreq)
+      }
+    }
+    
+    return frequencies.toList()
+  }
+  
+  /**
+   * Read frequencies from OPP (Operating Performance Points) table
+   */
+  private suspend fun readOppTableFrequencies(cluster: ClusterInfo): List<Int> {
+    val frequencies = mutableSetOf<Int>()
+    
+    // Try different OPP table locations
+    val oppPaths = listOf(
+      "/sys/devices/system/cpu/cpu${cluster.cores.first()}/cpufreq/opp_table",
+      "/sys/kernel/debug/opp/cpu${cluster.cores.first()}",
+      "/proc/cpufreq/MT_CPU_DVFS_L", // MediaTek
+      "/proc/cpufreq/MT_CPU_DVFS_B", // MediaTek
+      "/sys/devices/platform/soc/soc:qcom,cpufreq-hw/opp_table" // Qualcomm
+    )
+    
+    oppPaths.forEach { path ->
+      val oppData = RootManager.executeCommand("cat $path 2>/dev/null")
+        .getOrNull()
+      
+      if (!oppData.isNullOrBlank()) {
+        // Parse OPP table format (frequency voltage pairs)
+        val freqPattern = Regex("""(\d+)\s*Hz""")
+        val matches = freqPattern.findAll(oppData)
+        matches.forEach { match ->
+          val freqHz = match.groupValues[1].toLongOrNull()
+          if (freqHz != null) {
+            val freqMhz = (freqHz / 1000000).toInt()
+            if (freqMhz > 0) frequencies.add(freqMhz)
+          }
+        }
+      }
+    }
+    
+    return frequencies.toList()
+  }
+  
+  /**
+   * Read frequencies from cpufreq policy files
+   */
+  private suspend fun readPolicyFrequencies(cluster: ClusterInfo): List<Int> {
+    val frequencies = mutableSetOf<Int>()
+    
+    val policyPath = "/sys/devices/system/cpu/cpufreq/policy${cluster.cores.first()}"
+    
+    // Read from policy directory
+    val policyFiles = listOf(
+      "$policyPath/scaling_available_frequencies",
+      "$policyPath/scaling_boost_frequencies",
+      "$policyPath/cpuinfo_max_freq",
+      "$policyPath/cpuinfo_min_freq"
+    )
+    
+    policyFiles.forEach { file ->
+      val content = RootManager.executeCommand("cat $file 2>/dev/null")
+        .getOrNull()?.trim()
+      
+      if (!content.isNullOrBlank()) {
+        content.split("\\s+".toRegex()).forEach { freqStr ->
+          val freq = freqStr.toIntOrNull()?.div(1000)
+          if (freq != null && freq > 0) {
+            frequencies.add(freq)
+          }
+        }
+      }
+    }
+    
+    return frequencies.toList()
+  }
+  
+  /**
+   * Read frequencies from devfreq (if CPU uses devfreq)
+   */
+  private suspend fun readDevfreqFrequencies(cluster: ClusterInfo): List<Int> {
+    val frequencies = mutableSetOf<Int>()
+    
+    // Check devfreq paths
+    val devfreqPaths = listOf(
+      "/sys/class/devfreq/soc:qcom,cpufreq-hw-cpu${cluster.cores.first()}",
+      "/sys/class/devfreq/cpufreq-cpu${cluster.cores.first()}",
+      "/sys/devices/platform/soc/18321000.qcom,cpufreq-hw/devfreq"
+    )
+    
+    devfreqPaths.forEach { basePath ->
+      val availableFreqs = RootManager.executeCommand("cat $basePath/available_frequencies 2>/dev/null")
+        .getOrNull()?.trim()
+      
+      if (!availableFreqs.isNullOrBlank()) {
+        availableFreqs.split("\\s+".toRegex()).forEach { freqStr ->
+          val freq = freqStr.toIntOrNull()?.div(1000)
+          if (freq != null && freq > 0) {
+            frequencies.add(freq)
+          }
+        }
+      }
+    }
+    
+    return frequencies.toList()
+  }
+  
+  /**
+   * Read frequencies from cpufreq stats
+   */
+  private suspend fun readCpufreqStats(cluster: ClusterInfo): List<Int> {
+    val frequencies = mutableSetOf<Int>()
+    
+    cluster.cores.forEach { coreNum ->
+      val statsPath = "/sys/devices/system/cpu/cpu$coreNum/cpufreq/stats/time_in_state"
+      val statsContent = RootManager.executeCommand("cat $statsPath 2>/dev/null")
+        .getOrNull()
+      
+      if (!statsContent.isNullOrBlank()) {
+        statsContent.lines().forEach { line ->
+          val parts = line.trim().split("\\s+".toRegex())
+          if (parts.size >= 2) {
+            val freq = parts[0].toIntOrNull()?.div(1000)
+            if (freq != null && freq > 0) {
+              frequencies.add(freq)
+            }
+          }
+        }
+      }
+    }
+    
+    return frequencies.toList()
+  }
+  
+  /**
+   * Read frequencies from thermal cooling device
+   */
+  private suspend fun readThermalCoolingFrequencies(cluster: ClusterInfo): List<Int> {
+    val frequencies = mutableSetOf<Int>()
+    
+    // Find thermal cooling devices for CPU
+    val coolingDevices = RootManager.executeCommand("find /sys/class/thermal -name 'cooling_device*' -type d 2>/dev/null")
+      .getOrNull()?.lines() ?: emptyList()
+    
+    coolingDevices.forEach { devicePath ->
+      val type = RootManager.executeCommand("cat $devicePath/type 2>/dev/null")
+        .getOrNull()?.trim()
+      
+      if (type != null && (type.contains("cpu") || type.contains("cluster"))) {
+        // Read available frequencies from thermal cooling device
+        val freqTable = RootManager.executeCommand("cat $devicePath/user_vote 2>/dev/null")
+          .getOrNull()
+        
+        if (!freqTable.isNullOrBlank()) {
+          val freqPattern = Regex("""(\d+)""")
+          val matches = freqPattern.findAll(freqTable)
+          matches.forEach { match ->
+            val freq = match.groupValues[1].toIntOrNull()?.div(1000)
+            if (freq != null && freq > 0) {
+              frequencies.add(freq)
+            }
+          }
+        }
+      }
+    }
+    
+    return frequencies.toList()
+  }
+  
+  /**
+   * Debug function to test frequency detection on current device
+   * This can be called from UI for troubleshooting
+   */
+  suspend fun debugFrequencyDetection(): String {
+    val clusters = detectClusters()
+    val debugInfo = StringBuilder()
+    
+    debugInfo.appendLine("=== CPU Frequency Detection Debug ===")
+    debugInfo.appendLine("Device: ${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}")
+    debugInfo.appendLine("Hardware: ${android.os.Build.HARDWARE}")
+    debugInfo.appendLine("Board: ${android.os.Build.BOARD}")
+    debugInfo.appendLine()
+    
+    clusters.forEachIndexed { index, cluster ->
+      debugInfo.appendLine("--- Cluster $index (Cores: ${cluster.cores.joinToString()}) ---")
+      debugInfo.appendLine("Original frequencies: ${cluster.availableFrequencies.size} found")
+      debugInfo.appendLine("Range: ${cluster.availableFrequencies.minOrNull()}-${cluster.availableFrequencies.maxOrNull()} MHz")
+      debugInfo.appendLine()
+      
+      // Test each detection method
+      val hardwareFreqs = readHardwareFrequencyLimits(cluster)
+      debugInfo.appendLine("Hardware limits: ${hardwareFreqs.size} frequencies")
+      debugInfo.appendLine("  ${hardwareFreqs.joinToString()}")
+      
+      val oppFreqs = readOppTableFrequencies(cluster)
+      debugInfo.appendLine("OPP table: ${oppFreqs.size} frequencies")
+      debugInfo.appendLine("  ${oppFreqs.joinToString()}")
+      
+      val policyFreqs = readPolicyFrequencies(cluster)
+      debugInfo.appendLine("Policy files: ${policyFreqs.size} frequencies")
+      debugInfo.appendLine("  ${policyFreqs.joinToString()}")
+      
+      val devfreqFreqs = readDevfreqFrequencies(cluster)
+      debugInfo.appendLine("Devfreq: ${devfreqFreqs.size} frequencies")
+      debugInfo.appendLine("  ${devfreqFreqs.joinToString()}")
+      
+      val statsFreqs = readCpufreqStats(cluster)
+      debugInfo.appendLine("Stats: ${statsFreqs.size} frequencies")
+      debugInfo.appendLine("  ${statsFreqs.joinToString()}")
+      
+      val thermalFreqs = readThermalCoolingFrequencies(cluster)
+      debugInfo.appendLine("Thermal: ${thermalFreqs.size} frequencies")
+      debugInfo.appendLine("  ${thermalFreqs.joinToString()}")
+      
+      // Show enhanced result
+      val enhancedFreqs = applyDeviceSpecificFrequencies(cluster.availableFrequencies, cluster)
+      debugInfo.appendLine()
+      debugInfo.appendLine("Enhanced result: ${enhancedFreqs.size} frequencies")
+      debugInfo.appendLine("Range: ${enhancedFreqs.minOrNull()}-${enhancedFreqs.maxOrNull()} MHz")
+      debugInfo.appendLine("Added: ${enhancedFreqs.size - cluster.availableFrequencies.size} new frequencies")
+      debugInfo.appendLine()
+    }
+    
+    return debugInfo.toString()
   }
 }
