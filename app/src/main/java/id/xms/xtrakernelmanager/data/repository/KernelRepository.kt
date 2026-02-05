@@ -22,12 +22,31 @@ class KernelRepository {
         val clusters =
             cachedClusters
                 ?: run {
-                  val nativeClusters = NativeLib.detectCpuClusters()
-                  if (nativeClusters != null && nativeClusters.isNotEmpty()) {
-                    nativeClusters.also { cachedClusters = it }
-                  } else {
-                    detectClustersAdvanced().also { cachedClusters = it }
-                  }
+                  // Fetch from Native or Fallback
+                  val rawClusters =
+                      NativeLib.detectCpuClusters()?.takeIf { it.isNotEmpty() }
+                          ?: detectClustersAdvanced()
+
+                  // Process: Fix missing freqs -> Sort by Performance -> Re-index
+                  val processedClusters =
+                      rawClusters
+                          .map { cluster ->
+                            // Fix missing max frequency (e.g. Poco F1 boost freq)
+                            if (cluster.maxFreq > 0 &&
+                                    !cluster.availableFrequencies.contains(cluster.maxFreq)
+                            ) {
+                              val newFreqs = cluster.availableFrequencies.toMutableList()
+                              newFreqs.add(cluster.maxFreq)
+                              newFreqs.sortDescending()
+                              cluster.copy(availableFrequencies = newFreqs)
+                            } else {
+                              cluster
+                            }
+                          }
+                          .sortedBy { it.maxFreq } // Fix "jumping" clusters (Poco F5 etc)
+                          .mapIndexed { index, cluster -> cluster.copy(clusterNumber = index) }
+
+                  processedClusters.also { cachedClusters = it }
                 }
 
         val nativeCoreData = NativeLib.readCoreData()
@@ -118,7 +137,7 @@ class KernelRepository {
               ?.split(" ")
               ?.filter { it.isNotBlank() }
               ?: listOf("schedutil", "performance", "powersave", "ondemand", "conservative")
-      val availableFreqs =
+      val rawAvailableFreqs =
           RootManager.executeCommand(
                   "cat $basePath/cpufreq/scaling_available_frequencies 2>/dev/null"
               )
@@ -127,6 +146,19 @@ class KernelRepository {
               ?.split("\\s+".toRegex())
               ?.mapNotNull { it.toIntOrNull()?.div(1000) }
               ?: emptyList()
+
+      val availableFreqs = rawAvailableFreqs.toMutableList()
+
+      // Ensure cpuinfo_max_freq is included in available frequencies
+      // Some kernels (like on Poco F1) don't list the boost frequency in scaling_available_frequencies
+      val maxFreqMhz = maxFreq / 1000
+      if (maxFreqMhz > 0 && !availableFreqs.contains(maxFreqMhz)) {
+          availableFreqs.add(maxFreqMhz)
+          availableFreqs.sortDescending() 
+      } else if (availableFreqs.isEmpty() && maxFreqMhz > 0) {
+          // Fallback if scaling_available_frequencies is empty/unreadable
+          availableFreqs.add(maxFreqMhz)
+      }
 
       val policyPath = "/sys/devices/system/cpu/cpufreq/policy${firstCore}"
       clusters.add(
