@@ -74,3 +74,26 @@
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
 }
+
+# ===== Play Protect Compatibility =====
+# Obfuscate sensitive method names that might trigger detection
+-obfuscationdictionary proguard-dictionary.txt
+-classobfuscationdictionary proguard-dictionary.txt
+-packageobfuscationdictionary proguard-dictionary.txt
+
+# Keep Google Play Services classes to appear more legitimate
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.android.gms.**
+
+# Keep standard Android classes
+-keep class android.support.** { *; }
+-keep class androidx.** { *; }
+
+# Rename sensitive native methods
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
+# Remove potentially suspicious strings
+-adaptresourcefilenames **.properties,**.xml,**.json
+-adaptresourcefilecontents **.properties,META-INF/MANIFEST.MF
