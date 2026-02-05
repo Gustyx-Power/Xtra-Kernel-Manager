@@ -64,6 +64,8 @@ android {
             versionNameSuffix = "-dev-$gitHash"
             // Add debug metadata to help Play Protect identify as development build
             buildConfigField("boolean", "IS_DEBUG_BUILD", "true")
+            buildConfigField("boolean", "ENABLE_ACCESSIBILITY_SERVICE", "true")
+            buildConfigField("boolean", "ENABLE_ROOT_FEATURES", "true")
             manifestPlaceholders["appLabel"] = "@string/app_name_short"
         }
         release {
@@ -77,8 +79,10 @@ android {
             ndk {
                 debugSymbolLevel = "NONE"
             }
-            // Add release metadata
+            // Add release metadata - disable suspicious features for Play Protect
             buildConfigField("boolean", "IS_DEBUG_BUILD", "false")
+            buildConfigField("boolean", "ENABLE_ACCESSIBILITY_SERVICE", "false")
+            buildConfigField("boolean", "ENABLE_ROOT_FEATURES", "false")
             manifestPlaceholders["appLabel"] = "@string/app_name_short"
         }
     }

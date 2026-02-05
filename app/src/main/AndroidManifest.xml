@@ -6,10 +6,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- Required for kernel management and system optimization -->
-    <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
+    <!-- <uses-permission android:name="android.permission.ACCESS_SUPERUSER" /> -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Required for system reboot after kernel changes -->
-    <uses-permission android:name="android.permission.REBOOT" tools:ignore="ProtectedPermissions" />
+    <!-- <uses-permission android:name="android.permission.REBOOT" tools:ignore="ProtectedPermissions" /> -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Required for game overlay functionality -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -24,7 +24,7 @@
     <!-- Required for app usage monitoring and optimization -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <!-- Required for per-app profile management -->
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
+    <!-- <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" /> -->
 
     <!-- Permissions for fullscreen and overlay (OOS, MIUI, AOSP) -->
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" tools:ignore="ProtectedPermissions" />
@@ -78,11 +78,28 @@
         </service>
 
     <!-- Game Monitor Service - Accessibility Service for instant detection -->
-        <service android:name=".service.GameMonitorService" android:label="@string/game_monitor_service_label" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" android:exported="true" android:stopWithTask="false" android:enabled="true" android:description="@string/accessibility_service_description">
+        <!-- Disabled by default to prevent Play Protect detection -->
+        <service android:name=".service.GameMonitorService" 
+                 android:label="@string/game_monitor_service_label" 
+                 android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" 
+                 android:exported="true" 
+                 android:stopWithTask="false" 
+                 android:enabled="false"
+                 android:description="@string/accessibility_service_description">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_config" />
+        </service>
+
+        <!-- Alternative Game Detection Service using UsageStats API -->
+        <!-- Safer alternative to Accessibility Service -->
+        <service android:name=".service.AlternativeGameDetectionService" 
+                 android:enabled="true" 
+                 android:exported="false" 
+                 android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" 
+                      android:value="Game detection using usage statistics for performance optimization" />
         </service>
 
         <!-- Banking App Detection Receiver -->
