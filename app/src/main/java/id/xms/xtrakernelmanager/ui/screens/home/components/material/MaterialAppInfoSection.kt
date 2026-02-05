@@ -115,7 +115,9 @@ fun MaterialAppInfoSection() {
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                    maxLines = 1,
+                                    softWrap = false,
                                 )
                             }
                         }
@@ -318,7 +320,9 @@ fun MaterialAppInfoSection() {
                             Text(
                                 stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_github),
                                 color = MaterialTheme.colorScheme.onSurface,
-                                style = MaterialTheme.typography.labelLarge,
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
 
@@ -336,7 +340,12 @@ fun MaterialAppInfoSection() {
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_credit), style = MaterialTheme.typography.labelLarge)
+                            Text(
+                                stringResource(id.xms.xtrakernelmanager.R.string.material_app_info_credit),
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
