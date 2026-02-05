@@ -160,7 +160,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.defaults.outputs.version }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -190,12 +190,72 @@ jobs:
           # Debug output
           echo "Telegram Response: $RESPONSE"
 
+      - name: Create Progress Helper
+        run: |
+          cat > update_progress.sh << 'EOF'
+          #!/bin/bash
+          MESSAGE_ID=$1
+          PROGRESS=$2
+          STATUS=$3
+          
+          # Check variables
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ] || [ -z "$MESSAGE_ID" ]; then
+            echo "Missing variables for progress update"
+            exit 0
+          fi
+          
+          BAR_LENGTH=14
+          FILLED_LENGTH=$(( $PROGRESS * $BAR_LENGTH / 100 ))
+          UNFILLED_LENGTH=$(( $BAR_LENGTH - $FILLED_LENGTH ))
+          
+          # Create bar
+          BAR=""
+          for ((i=0; i<FILLED_LENGTH; i++)); do BAR+="▓"; done
+          for ((i=0; i<UNFILLED_LENGTH; i++)); do BAR+="░"; done
+          
+          # Reconstruct message (variables taken from env)
+          MESSAGE="<b>XKM Release Build</b>
+          Version: $VERSION
+          Branch: $BRANCH
+          
+          <blockquote><code>$COMMIT_MSG</code></blockquote>
+          
+          <b>Status:</b> $STATUS
+          <code>[$BAR] $PROGRESS%</code>
+          
+          <a href=\"$COMMIT_URL\">Commit</a> | <a href=\"$WORKFLOW_URL\">Workflow</a>"
+          
+          curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/editMessageText" \
+            -d chat_id="$CHAT_ID" \
+            -d message_id="$MESSAGE_ID" \
+            -d parse_mode="HTML" \
+            --data-urlencode "text=$MESSAGE" \
+            -d disable_web_page_preview="true"
+          EOF
+          chmod +x update_progress.sh
+
       - name: Setup JDK
         uses: actions/setup-java@v5
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: gradle
+
+      - name: Update Progress (10%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message || github.event.inputs.message || 'Manual Build' }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "10" "Setting up Environment..."
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -226,8 +286,21 @@ jobs:
 
       - name: Build Rust Native Library
         run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "${{ steps.notify_start.outputs.message_id }}" "40" "Building Native Libraries..."
+          
           cd app/src/main/rust/xkm_native
-          cargo ndk -t arm64-v8a -o ../../jniLibs build --release
+          cargo ndk -t arm64-v8a -o ../../jniLibs build --release 2>&1 | tee ../../../../../rust_build.log
+          cat ../../../../../rust_build.log >> ../../../../../build.log
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
       - name: Verify Native Library
         run: |
@@ -289,13 +362,24 @@ jobs:
         if: |
           (github.event_name == 'push') || 
           (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "60" "Building APK..."
+          
           ./gradlew assembleRelease \
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
             -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
-            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
-            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
+            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }} 2>&1 | tee -a build.log
 
       - name: Optimize APK for Play Protect
         if: |
@@ -372,7 +456,7 @@ jobs:
         id: rename
         run: |
           mkdir -p app/dist
-          VERSION="${{ steps.version.outputs.version }}"
+          VERSION="${{ steps.defaults.outputs.version }}"
           
           # Determine build type
           if [ "${{ github.event_name }}" == "push" ]; then
@@ -403,7 +487,7 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ steps.defaults.outputs.version }}
           APK_SIZE: ${{ steps.rename.outputs.apk_size }}
           APK_NAME: ${{ steps.rename.outputs.apk_name }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
@@ -457,12 +541,23 @@ jobs:
           # Check if upload was successful
           if echo "$RESPONSE" | grep -q '"ok":true'; then
             echo "APK uploaded successfully!"
+            ./update_progress.sh "$MESSAGE_ID" "100" "Build Complete!"
           else
             echo "Failed to upload APK!"
             echo "$RESPONSE"
+            ./update_progress.sh "$MESSAGE_ID" "100" "Upload Failed!"
           fi
           
-          # Delete start message
+          # Upload Build Log
+          if [ -f "build.log" ]; then
+            echo "Uploading Build Log..."
+            curl -sS -F chat_id="$CHAT_ID" \
+              -F document=@"build.log" \
+              -F caption="Build Log" \
+              "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument"
+          fi
+          
+          # Delete start message (optional, kept based on previous logic)
           if [ -n "$START_MESSAGE_ID" ]; then
             curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
               -d chat_id="$CHAT_ID" \
@@ -478,13 +573,42 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
         run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          
+          # Update status to Failed
           if [ -n "$START_MESSAGE_ID" ]; then
-            curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
-              -d chat_id="$CHAT_ID" \
-              -d message_id="$START_MESSAGE_ID"
+             ./update_progress.sh "$START_MESSAGE_ID" "0" "Build Failed! ❌"
           fi
+
+          # Upload Build Log if exists
+          if [ -f "build.log" ]; then
+            echo "Uploading Build Log..."
+            curl -sS -F chat_id="$CHAT_ID" \
+              -F document=@"build.log" \
+              -F caption="Build Failed! Log attached." \
+              "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument"
+          fi
+          
+          # Delete start message logic (commented out to preserve error status, or keep if preferred)
+          # Keeping original logic to delete if requested, but update_progress modifies the message, so maybe we shouldn't delete it?
+          # The original logic deleted the "Starting" message. Since we are now EDITING that message for progress, 
+          # we probably want to keep it as the "Status" board, or delete it if we want to clean up.
+          # However, the user asked for progress bar.
+          # If we delete it, we lose the progress bar.
+          # I will REMOVE the delete logic for the start message so the status remains visible.
+          
+          # if [ -n "$START_MESSAGE_ID" ]; then
+          #   curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
+          #     -d chat_id="$CHAT_ID" \
+          #     -d message_id="$START_MESSAGE_ID"
+          # fi
 
       - name: Save last build commit
         if: success()
