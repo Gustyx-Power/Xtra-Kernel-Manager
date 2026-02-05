@@ -139,22 +139,31 @@ jobs:
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          COMMIT_MSG=$(git log -1 --pretty=%s)
-          MESSAGE=$(printf "<b>XKM Release Build</b>\nVersion: %s\nBranch: %s\n\n<blockquote><code>%s</code></blockquote>\n\n<a href=\"%s\">Commit</a> | <a href=\"%s\">Workflow</a>" \
-            "$VERSION" \
-            "$GITHUB_REF_NAME" \
-            "$COMMIT_MSG" \
-            "$COMMIT_URL" \
-            "$WORKFLOW_URL")
+          # Get commit message and escape special characters
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           
+          # Create message with proper escaping
+          MESSAGE="<b>XKM Release Build</b>
+          Version: $VERSION
+          Branch: $GITHUB_REF_NAME
+          
+          <blockquote><code>$COMMIT_MSG</code></blockquote>
+          
+          <a href=\"$COMMIT_URL\">Commit</a> | <a href=\"$WORKFLOW_URL\">Workflow</a>"
+          
+          # Send message to Telegram
           RESPONSE=$(curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendMessage" \
             -d chat_id="$CHAT_ID" \
             --data-urlencode "text=$MESSAGE" \
             -d parse_mode="HTML" \
             -d disable_web_page_preview="true")
           
+          # Extract message ID
           MESSAGE_ID=$(echo "$RESPONSE" | grep -o '"message_id":[0-9]*' | cut -d: -f2)
           echo "message_id=$MESSAGE_ID" >> $GITHUB_OUTPUT
+          
+          # Debug output
+          echo "Telegram Response: $RESPONSE"
 
       - name: Setup JDK
         uses: actions/setup-java@v5
@@ -301,25 +310,29 @@ jobs:
             exit 1
           fi
           
-          COMMIT_MSG=$(git log -1 --pretty=%s)
+          # Get commit message and escape special characters
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           
+          # Determine build label
           if [ "$BUILD_TYPE" = "release" ]; then
             BUILD_LABEL="Release Build"
           else
             BUILD_LABEL="Debug Build"
           fi
           
-          CAPTION=$(printf "<b>XKM %s</b>\nVersion: %s\nSize: %s\n\n<blockquote><code>%s</code></blockquote>\n\n<a href=\"%s\">Commit</a> | <a href=\"%s\">Workflow</a>" \
-            "$BUILD_LABEL" \
-            "$VERSION" \
-            "$APK_SIZE" \
-            "$COMMIT_MSG" \
-            "$COMMIT_URL" \
-            "$WORKFLOW_URL")
+          # Create caption with proper formatting
+          CAPTION="<b>XKM $BUILD_LABEL</b>
+          Version: $VERSION
+          Size: $APK_SIZE
+          
+          <blockquote><code>$COMMIT_MSG</code></blockquote>
+          
+          <a href=\"$COMMIT_URL\">Commit</a> | <a href=\"$WORKFLOW_URL\">Workflow</a>"
           
           echo "Uploading APK: $APK_FILE"
           echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
           
+          # Upload APK to Telegram
           RESPONSE=$(curl -sS -F chat_id="$CHAT_ID" \
             -F document=@"$APK_FILE" \
             -F parse_mode="HTML" \
@@ -328,6 +341,7 @@ jobs:
           
           echo "Telegram Response: $RESPONSE"
           
+          # Check if upload was successful
           if echo "$RESPONSE" | grep -q '"ok":true'; then
             echo "APK uploaded successfully!"
           else
