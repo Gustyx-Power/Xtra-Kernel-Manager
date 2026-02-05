@@ -9,11 +9,12 @@
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
+# -keep class androidx.** { *; } <-- Removed for shrinking
 
 # ===== Kotlin =====
 -dontwarn kotlin.**
 -dontwarn kotlinx.**
--keep class kotlin.** { *; }
+# -keep class kotlin.** { *; }  <-- Removed for shrinking
 -keep class kotlin.Metadata { *; }
 
 # ===== Coroutines =====
@@ -24,7 +25,7 @@
 }
 
 # ===== Compose =====
--keep class androidx.compose.** { *; }
+# -keep class androidx.compose.** { *; } <-- Removed for shrinking
 -dontwarn androidx.compose.**
 
 # ===== Data classes & Models =====
@@ -57,7 +58,7 @@
 -keepattributes SourceFile,LineNumberTable
 
 # ===== Firebase optimizations =====
--keep class com.google.firebase.** { *; }
+# -keep class com.google.firebase.** { *; } <-- Removed for shrinking
 -dontwarn com.google.firebase.**
 
 # ===== JNI Native =====
@@ -87,7 +88,7 @@
 
 # Keep standard Android classes
 -keep class android.support.** { *; }
--keep class androidx.** { *; }
+# -keep class androidx.** { *; } <-- Removed for shrinking
 
 # Rename sensitive native methods
 -keepclasseswithmembernames class * {
