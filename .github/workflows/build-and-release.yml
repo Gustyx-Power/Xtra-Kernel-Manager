@@ -213,6 +213,20 @@ jobs:
           for ((i=0; i<FILLED_LENGTH; i++)); do BAR+="▓"; done
           for ((i=0; i<UNFILLED_LENGTH; i++)); do BAR+="░"; done
           
+          # Gather System Info (One Time)
+          if [ -z "$SYS_INFO" ]; then
+            CPU=$(grep -m1 'model name' /proc/cpuinfo | cut -d: -f2 | xargs | cut -d' ' -f1-3)
+            CORES=$(nproc)
+            RAM=$(free -h | awk '/^Mem:/ {print $2}')
+            OS=$(grep -oP 'PRETTY_NAME="\K[^"]+' /etc/os-release | head -n 1)
+            KERNEL=$(uname -r)
+            SYS_INFO="
+          <b>Runner Specs:</b>
+          💻 <code>$CPU ($CORES CORES)</code>
+          🧠 <code>RAM: $RAM</code>
+          🐧 <code>$OS ($KERNEL)</code>"
+          fi
+
           # Reconstruct message (variables taken from env)
           MESSAGE="<b>XKM Release Build</b>
           Version: $VERSION
@@ -222,6 +236,8 @@ jobs:
           
           <b>Status:</b> $STATUS
           <code>[$BAR] $PROGRESS%</code>
+          
+          $SYS_INFO
           
           <a href=\"$COMMIT_URL\">Commit</a> | <a href=\"$WORKFLOW_URL\">Workflow</a>"
           
@@ -557,12 +573,13 @@ jobs:
               "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument"
           fi
           
-          # Delete start message (optional, kept based on previous logic)
-          if [ -n "$START_MESSAGE_ID" ]; then
-            curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
-              -d chat_id="$CHAT_ID" \
-              -d message_id="$START_MESSAGE_ID"
-          fi
+          # Delete start message logic moved to Cleanup only
+          # We want to KEEP the progress bar message on success as a record
+          # if [ -n "$START_MESSAGE_ID" ]; then
+          #   curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
+          #     -d chat_id="$CHAT_ID" \
+          #     -d message_id="$START_MESSAGE_ID"
+          # fi
 
       - name: Cleanup on Failure
         if: |
