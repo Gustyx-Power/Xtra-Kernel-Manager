@@ -48,7 +48,9 @@ private fun bytesToMB(bytes: Long): Long {
 }
 
 private fun safePercentage(used: Long, total: Long): Int {
-    return if (total > 0) ((used * 100) / total).toInt() else 0
+    return if (total > 0 && used >= 0) {
+        ((used * 100) / total).toInt().coerceIn(0, 100)
+    } else 0
 }
 
 @SuppressLint("DefaultLocale")
@@ -177,10 +179,10 @@ fun LiquidHomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     icon = Icons.Filled.Memory,
                     label = "RAM",
-                    value = "${bytesToMB(systemInfo.totalRam)} MB",
-                    subValue = "${bytesToMB(systemInfo.availableRam)} MB Free",
+                    value = "${bytesToMB(maxOf(systemInfo.totalRam, 0))} MB",
+                    subValue = "${bytesToMB(maxOf(systemInfo.availableRam, 0))} MB Free",
                     color = NeonBlue,
-                    badgeText = "${safePercentage(systemInfo.totalRam - systemInfo.availableRam, systemInfo.totalRam)}%"
+                    badgeText = "${safePercentage(maxOf(systemInfo.totalRam - systemInfo.availableRam, 0), maxOf(systemInfo.totalRam, 1))}%"
                 )
             }
             
@@ -193,10 +195,10 @@ fun LiquidHomeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     icon = Icons.Filled.Folder,
                     label = "Storage",
-                    value = "${bytesToMB(systemInfo.totalStorage)} MB",
-                    subValue = "${bytesToMB(systemInfo.availableStorage)} MB Free",
+                    value = "${bytesToMB(maxOf(systemInfo.totalStorage, 0))} MB",
+                    subValue = "${bytesToMB(maxOf(systemInfo.availableStorage, 0))} MB Free",
                     color = NeonOrange,
-                    badgeText = "${safePercentage(systemInfo.totalStorage - systemInfo.availableStorage, systemInfo.totalStorage)}%"
+                    badgeText = "${safePercentage(maxOf(systemInfo.totalStorage - systemInfo.availableStorage, 0), maxOf(systemInfo.totalStorage, 1))}%"
                 )
             }
             

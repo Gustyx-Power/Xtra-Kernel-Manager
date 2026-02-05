@@ -45,7 +45,6 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
   val haptic = LocalHapticFeedback.current
   val currentLayout by preferencesManager.getLayoutStyle().collectAsState(initial = "material")
   val isLayoutSwitching by preferencesManager.isLayoutSwitching().collectAsState(initial = false)
-  val bankingModeEnabled by preferencesManager.getBankingModeEnabled().collectAsState(initial = false)
 
   Column(
       modifier = Modifier.fillMaxWidth().padding(24.dp),
@@ -79,28 +78,6 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
-    }
-
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-    // Banking Mode Setting
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-      Text(
-          text = "Banking Mode",
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.SemiBold,
-          color = MaterialTheme.colorScheme.onSurface,
-      )
-      
-      BankingModeCard(
-          enabled = bankingModeEnabled,
-          onToggle = { enabled ->
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            scope.launch {
-              preferencesManager.setBankingModeEnabled(enabled)
-            }
-          }
-      )
     }
 
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
@@ -211,53 +188,3 @@ fun LayoutOptionCard(
   }
 }
 
-@Composable
-fun BankingModeCard(
-    enabled: Boolean,
-    onToggle: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = if (enabled) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainer,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Banking Mode",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (enabled) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = if (enabled) "Accessibility service disabled for banking security" else "Normal operation mode",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (enabled) MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                androidx.compose.material3.Switch(
-                    checked = enabled,
-                    onCheckedChange = onToggle
-                )
-            }
-            
-            if (enabled) {
-                Text(
-                    text = "⚠️ Game overlay and accessibility features are disabled to prevent banking app detection",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                )
-            }
-        }
-    }
-}
