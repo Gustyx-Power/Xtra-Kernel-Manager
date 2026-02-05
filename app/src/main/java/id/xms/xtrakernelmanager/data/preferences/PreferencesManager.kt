@@ -732,6 +732,9 @@ class PreferencesManager(private val context: Context) {
   private val RINGER_MODE = intPreferencesKey("ringer_mode") 
   private val CALL_MODE = intPreferencesKey("call_mode") 
   private val THREE_FINGER_SWIPE_ENABLED = booleanPreferencesKey("three_finger_swipe_enabled")
+  
+  // Banking Mode - Disable accessibility service for banking security
+  private val BANKING_MODE_ENABLED = booleanPreferencesKey("banking_mode_enabled")
 
   suspend fun setRingerMode(mode: Int) {
     context.dataStore.edit { prefs -> prefs[RINGER_MODE] = mode }
@@ -753,6 +756,14 @@ class PreferencesManager(private val context: Context) {
 
   fun isThreeFingerSwipeEnabled(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[THREE_FINGER_SWIPE_ENABLED] ?: true } // Default ON
+
+  // Banking Mode Functions
+  suspend fun setBankingModeEnabled(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[BANKING_MODE_ENABLED] = enabled }
+  }
+
+  fun getBankingModeEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[BANKING_MODE_ENABLED] ?: false }
 
   // ==================== SYNC PREFERENCES ====================
   // Using SharedPreferences for simple synchronous access
