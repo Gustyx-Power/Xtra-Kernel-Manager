@@ -7,6 +7,9 @@ import android.util.Log
 import android.view.accessibility.AccessibilityManager
 import id.xms.xtrakernelmanager.service.GameMonitorService
 
+import com.topjohnwu.superuser.Shell
+import android.os.Build
+
 object AccessibilityServiceHelper {
     private const val TAG = "AccessibilityServiceHelper"
 
@@ -37,6 +40,20 @@ object AccessibilityServiceHelper {
             context.startActivity(intent)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to open accessibility settings: ${e.message}")
+        }
+    }
+
+    /**
+     * Try to bypass Android 13+ Restricted Settings using Root
+     */
+    fun bypassRestrictedSettings(context: Context) {
+        if (Build.VERSION.SDK_INT >= 33) {
+            try {
+                Shell.cmd("appops set ${context.packageName} ACCESS_RESTRICTED_SETTINGS allow").submit()
+                Log.d(TAG, "Attempted to bypass Restricted Settings via Root")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to bypass restricted settings: ${e.message}")
+            }
         }
     }
 

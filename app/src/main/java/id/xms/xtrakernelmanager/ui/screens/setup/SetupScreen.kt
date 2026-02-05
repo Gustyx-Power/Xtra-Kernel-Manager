@@ -60,6 +60,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import id.xms.xtrakernelmanager.utils.AccessibilityServiceHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -500,6 +501,7 @@ fun PermissionsPage(
           isGranted = isAccessibilityGranted,
           isMandatory = false,
           onGrant = {
+            AccessibilityServiceHelper.bypassRestrictedSettings(context)
             val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             context.startActivity(intent)
           }
