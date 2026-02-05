@@ -105,7 +105,6 @@ build.sh
 
 # Additional folders to ignore
 .kiro/
-.github/
 .vscode/
 .kotlin/
 .gradle/

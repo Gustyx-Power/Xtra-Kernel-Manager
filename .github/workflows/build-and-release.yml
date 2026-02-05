@@ -1,6 +1,13 @@
 name: Build & Release to Telegram
 
 on:
+  push:
+    branches: [ master, main ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+      - 'LICENSE'
   workflow_dispatch:
     inputs:
       build_type:
@@ -60,6 +67,7 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
+          # For manual triggers, always build
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "should_build=true" >> $GITHUB_OUTPUT
             echo "commit_count=manual" >> $GITHUB_OUTPUT
@@ -67,6 +75,15 @@ jobs:
             exit 0
           fi
           
+          # For push events, always build (since we added path filters)
+          if [ "${{ github.event_name }}" == "push" ]; then
+            echo "should_build=true" >> $GITHUB_OUTPUT
+            echo "commit_count=push" >> $GITHUB_OUTPUT
+            echo "Push trigger - will build"
+            exit 0
+          fi
+          
+          # For tag pushes, always build
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "should_build=true" >> $GITHUB_OUTPUT
             echo "commit_count=tag" >> $GITHUB_OUTPUT
@@ -74,6 +91,7 @@ jobs:
             exit 0
           fi
           
+          # Legacy commit count logic (fallback)
           if [ -f ".last-build-commit" ]; then
             LAST_BUILD_COMMIT=$(cat .last-build-commit)
             echo "Last build commit: $LAST_BUILD_COMMIT"
@@ -123,8 +141,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get Version Info
-        id: version
+      - name: Set Build Defaults
+        id: defaults
+        run: |
+          # Set defaults based on trigger type
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "build_type=${{ inputs.build_type || 'release' }}" >> $GITHUB_OUTPUT
+            echo "upload_telegram=${{ inputs.upload_telegram || 'true' }}" >> $GITHUB_OUTPUT
+            echo "sign_apk=${{ inputs.sign_apk || 'true' }}" >> $GITHUB_OUTPUT
+          else
+            # Auto trigger defaults
+            echo "build_type=release" >> $GITHUB_OUTPUT
+            echo "upload_telegram=true" >> $GITHUB_OUTPUT
+            echo "sign_apk=true" >> $GITHUB_OUTPUT
+          fi
         run: |
           VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts | head -n 1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -257,7 +287,7 @@ jobs:
             -keypass ${{ secrets.KEY_PASSWORD }}
 
       - name: Build Signed Release APK
-        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')) && (github.event_name == 'push' || inputs.sign_apk == true)
         run: |
           ./gradlew assembleRelease \
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
@@ -266,7 +296,7 @@ jobs:
             -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
 
       - name: Optimize APK for Play Protect
-        if: inputs.build_type == 'release'
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
         run: |
           # Verify APK signature
           APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
@@ -292,15 +322,15 @@ jobs:
           fi
 
       - name: Build Unsigned Release APK
-        if: inputs.build_type == 'release' && inputs.sign_apk == false
+        if: github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == false
         run: ./gradlew assembleRelease
 
       - name: Build Debug APK
-        if: inputs.build_type == 'debug'
+        if: github.event_name == 'workflow_dispatch' && inputs.build_type == 'debug'
         run: ./gradlew assembleDebug
 
       - name: Generate Build Reproducibility Info
-        if: inputs.build_type == 'release'
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
         run: |
           mkdir -p build-info
           
@@ -367,7 +397,13 @@ jobs:
         run: |
           mkdir -p app/dist
           VERSION="${{ steps.version.outputs.version }}"
-          BUILD_TYPE="${{ inputs.build_type }}"
+          
+          # Determine build type
+          if [ "${{ github.event_name }}" == "push" ]; then
+            BUILD_TYPE="release"
+          else
+            BUILD_TYPE="${{ inputs.build_type }}"
+          fi
           
           if [ "$BUILD_TYPE" = "release" ]; then
             APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
@@ -385,14 +421,13 @@ jobs:
           fi
 
       - name: Notify Build Complete
-        if: ${{ inputs.upload_telegram != false }}
+        if: github.event_name == 'push' || inputs.upload_telegram != false
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.version.outputs.version }}
           APK_SIZE: ${{ steps.rename.outputs.apk_size }}
           APK_NAME: ${{ steps.rename.outputs.apk_name }}
-          BUILD_TYPE: ${{ inputs.build_type }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
@@ -407,11 +442,17 @@ jobs:
           # Get commit message and escape special characters
           COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           
-          # Determine build label
-          if [ "$BUILD_TYPE" = "release" ]; then
-            BUILD_LABEL="Release Build"
+          # Determine build label and type
+          if [ "${{ github.event_name }}" == "push" ]; then
+            BUILD_LABEL="Auto Release Build"
+            BUILD_TYPE="release"
           else
-            BUILD_LABEL="Debug Build"
+            BUILD_TYPE="${{ inputs.build_type }}"
+            if [ "$BUILD_TYPE" = "release" ]; then
+              BUILD_LABEL="Manual Release Build"
+            else
+              BUILD_LABEL="Debug Build"
+            fi
           fi
           
           # Create caption with proper formatting
