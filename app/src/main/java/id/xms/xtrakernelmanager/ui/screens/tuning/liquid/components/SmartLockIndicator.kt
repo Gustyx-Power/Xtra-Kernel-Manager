@@ -40,9 +40,11 @@ fun SmartLockIndicator(
     
     // Auto-hide thermal events after 5 seconds for warnings
     LaunchedEffect(thermalEvent) {
-        if (thermalEvent != null && thermalEvent!!.type == ThermalEventType.WARNING) {
-            delay(5000)
-            // Reset thermal event state for warnings only
+        thermalEvent?.let { event ->
+            if (event.type == ThermalEventType.WARNING) {
+                delay(5000)
+                // Reset thermal event state for warnings only
+            }
         }
     }
     
@@ -55,7 +57,7 @@ fun SmartLockIndicator(
                 thermalEvent?.type == ThermalEventType.CRITICAL -> Color.Red
                 thermalEvent?.type == ThermalEventType.EMERGENCY -> Color(0xFFFF9800)
                 thermalEvent?.type == ThermalEventType.WARNING -> Color(0xFFFFC107)
-                lockStatus?.isThermalOverrideActive == true -> Color(0xFFFF9800)
+                lockStatus.isThermalOverrideActive -> Color(0xFFFF9800)
                 isLocked -> Color(0xFF4CAF50)
                 else -> MaterialTheme.colorScheme.surfaceVariant
             },
@@ -69,7 +71,7 @@ fun SmartLockIndicator(
                         thermalEvent?.type == ThermalEventType.CRITICAL -> Icons.Default.Warning
                         thermalEvent?.type == ThermalEventType.EMERGENCY -> Icons.Default.Whatshot
                         thermalEvent?.type == ThermalEventType.WARNING -> Icons.Default.Thermostat
-                        isLocked && lockStatus?.isThermalOverrideActive == true -> Icons.Default.LockOpen
+                        isLocked && lockStatus.isThermalOverrideActive -> Icons.Default.LockOpen
                         isLocked -> Icons.Default.Lock
                         else -> Icons.Default.LockOpen
                     },
@@ -92,7 +94,7 @@ fun SmartLockIndicator(
                     thermalEvent?.type == ThermalEventType.CRITICAL -> Color.Red
                     thermalEvent?.type == ThermalEventType.EMERGENCY -> Color(0xFFFF9800)
                     thermalEvent?.type == ThermalEventType.WARNING -> Color(0xFFFFC107)
-                    lockStatus?.isThermalOverrideActive == true -> Color(0xFFFF9800)
+                    lockStatus.isThermalOverrideActive -> Color(0xFFFF9800)
                     else -> Color(0xFF4CAF50)
                 },
                 modifier = Modifier.padding(top = 4.dp)
@@ -102,7 +104,7 @@ fun SmartLockIndicator(
                         thermalEvent?.type == ThermalEventType.CRITICAL -> "CRITICAL"
                         thermalEvent?.type == ThermalEventType.EMERGENCY -> "EMERGENCY"
                         thermalEvent?.type == ThermalEventType.WARNING -> "WARNING"
-                        lockStatus?.isThermalOverrideActive == true -> "OVERRIDE"
+                        lockStatus.isThermalOverrideActive -> "OVERRIDE"
                         isLocked -> "LOCKED"
                         else -> "UNLOCKED"
                     },
@@ -134,11 +136,11 @@ fun SmartLockIndicator(
                     modifier = Modifier.padding(12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    if (thermalEvent != null) {
+                    thermalEvent?.let { event ->
                         Text(
-                            text = thermalEvent!!.message,
+                            text = event.message,
                             style = MaterialTheme.typography.bodySmall,
-                            color = when (thermalEvent!!.type) {
+                            color = when (event.type) {
                                 ThermalEventType.CRITICAL -> Color.Red
                                 ThermalEventType.EMERGENCY -> Color(0xFFFF9800)
                                 ThermalEventType.WARNING -> Color(0xFFFFC107)
@@ -148,24 +150,24 @@ fun SmartLockIndicator(
                             }
                         )
                         Text(
-                            text = "Temp: ${"%.1f".format(thermalEvent!!.temperature)}°C",
+                            text = "Temp: ${"%.1f".format(event.temperature)}°C",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
-                    if (isLocked && lockStatus != null) {
+                    if (isLocked) {
                         Text(
-                            text = "Policy: ${lockStatus!!.policyType.name.replace("_", " ")}",
+                            text = "Policy: ${lockStatus.policyType.name.replace("_", " ")}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Thermal: ${lockStatus!!.thermalPolicy}",
+                            text = "Thermal: ${lockStatus.thermalPolicy}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        if (lockStatus!!.isThermalOverrideActive) {
+                        if (lockStatus.isThermalOverrideActive) {
                             Text(
                                 text = "🔥 Thermal Override Active",
                                 style = MaterialTheme.typography.bodySmall,
@@ -173,7 +175,7 @@ fun SmartLockIndicator(
                                 fontWeight = FontWeight.Bold
                             )
                         }
-                        if (lockStatus!!.needsAttention) {
+                        if (lockStatus.needsAttention) {
                             Text(
                                 text = "⚠️ Needs Attention",
                                 style = MaterialTheme.typography.bodySmall,

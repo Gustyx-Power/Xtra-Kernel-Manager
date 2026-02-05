@@ -385,8 +385,22 @@ class TuningViewModel(
   val isCpuFrequencyLocked: StateFlow<Boolean>
     get() = _isCpuFrequencyLocked.asStateFlow()
 
-  private val _cpuLockStatus = MutableStateFlow<LockStatus?>(null)
-  val cpuLockStatus: StateFlow<LockStatus?>
+  // Create safe default instances to prevent null access
+  private val defaultLockStatus = LockStatus(
+      isLocked = false,
+      policyType = LockPolicyType.MANUAL,
+      thermalPolicy = "PolicyB",
+      isThermalOverrideActive = false,
+      lastTemperature = 0f,
+      lastUpdate = System.currentTimeMillis(),
+      clusterCount = 0,
+      lockedClusters = emptyList(),
+      retryCount = 0,
+      canRetry = false
+  )
+
+  private val _cpuLockStatus = MutableStateFlow(defaultLockStatus)
+  val cpuLockStatus: StateFlow<LockStatus>
     get() = _cpuLockStatus.asStateFlow()
 
   private val _thermalEvents = MutableStateFlow<ThermalEvent?>(null)
@@ -1421,7 +1435,7 @@ class TuningViewModel(
         is SmartLockResult.SuccessWithWarning -> {
           _isCpuFrequencyLocked.value = false
           preferencesManager.clearCpuLockState()
-          _cpuLockStatus.value = null
+          _cpuLockStatus.value = defaultLockStatus
           Log.d("TuningViewModel", "CPU frequencies unlocked successfully")
         }
         is SmartLockResult.Error -> {

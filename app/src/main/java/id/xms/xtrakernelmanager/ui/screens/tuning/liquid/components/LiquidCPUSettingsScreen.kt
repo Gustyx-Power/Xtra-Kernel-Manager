@@ -242,7 +242,7 @@ private fun SmartFrequencyLockSection(
       }
       
       // Status Info
-      if (isLocked && lockStatus != null) {
+      if (isLocked) {
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         )
@@ -266,7 +266,7 @@ private fun SmartFrequencyLockSection(
                 color = MaterialTheme.colorScheme.secondaryContainer
             ) {
               Text(
-                  text = lockStatus!!.policyType.name.replace("_", " "),
+                  text = lockStatus.policyType.name.replace("_", " "),
                   style = MaterialTheme.typography.bodyMedium,
                   fontWeight = FontWeight.Medium,
                   color = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -276,7 +276,7 @@ private fun SmartFrequencyLockSection(
           }
           
           // Thermal Policy
-          if (lockStatus!!.policyType == LockPolicyType.SMART) {
+          if (lockStatus.policyType == LockPolicyType.SMART) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -292,7 +292,7 @@ private fun SmartFrequencyLockSection(
                   color = MaterialTheme.colorScheme.tertiaryContainer
               ) {
                 Text(
-                    text = lockStatus!!.thermalPolicy,
+                    text = lockStatus.thermalPolicy,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onTertiaryContainer,
@@ -314,7 +314,7 @@ private fun SmartFrequencyLockSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = stringResource(R.string.liquid_smart_lock_clusters_format, lockStatus!!.clusterCount),
+                text = stringResource(R.string.liquid_smart_lock_clusters_format, lockStatus.clusterCount),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface
@@ -1249,9 +1249,9 @@ private fun CPULockControls(
                    else MaterialTheme.colorScheme.onSurface
         )
         
-        if (isLocked && lockStatus != null) {
+        if (isLocked) {
           Text(
-            text = "${lockStatus!!.policyType.name} • ${lockStatus!!.thermalPolicy}",
+            text = "${lockStatus.policyType.name} • ${lockStatus.thermalPolicy}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
           )
@@ -1285,9 +1285,9 @@ private fun CPULockControls(
     }
     
     // Show policy indicator if locked
-    if (isLocked && lockStatus != null) {
+    if (isLocked) {
       LockPolicyIndicator(
-        policyType = lockStatus!!.policyType,
+        policyType = lockStatus.policyType,
         modifier = Modifier.align(Alignment.End)
       )
     }
