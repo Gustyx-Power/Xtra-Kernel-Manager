@@ -40,20 +40,9 @@ fun GlassmorphicCard(
   val finalPadding = contentPadding ?: PaddingValues(dimens.cardPadding)
   val isDark = isSystemInDarkTheme()
 
-  // Manual fallback colors
-  val glassColor =
-          if (isDark) {
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.05f)
-          } else {
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
-          }
-
-  val glassBorder =
-          if (isDark) {
-            Color.White.copy(alpha = 0.15f)
-          } else {
-            Color.White.copy(alpha = 0.4f)
-          }
+  // Force Light Mode style glass effect (White tint + higher opacity) as requested
+  val glassColor = Color.White.copy(alpha = 0.4f)
+  val glassBorder = Color.White.copy(alpha = 0.4f)
   val shadowColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
 
   // Base modifier without shadow to avoid artifacts behind transparent content
@@ -92,19 +81,35 @@ fun GlassmorphicCard(
     baseModifier = baseModifier.background(glassColor).border(1.dp, glassBorder, shape)
   }
 
+  // Override internal theme to force dark text on the white glass card
+  val currentColorScheme = MaterialTheme.colorScheme
+  val forcedContentScheme = if (isDark) {
+      currentColorScheme.copy(
+          onSurface = Color.Black,
+          onSurfaceVariant = Color.DarkGray, // or Color(0xFF444444)
+          primary = currentColorScheme.primary // Keep primary color
+      )
+  } else {
+      currentColorScheme
+  }
+
   if (onClick != null) {
     Box(modifier = baseModifier.clickable(enabled = enabled, onClick = onClick)) {
-      Column(
-              modifier = Modifier.padding(finalPadding),
-              verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
-      ) { content() }
+      MaterialTheme(colorScheme = forcedContentScheme) {
+          Column(
+                  modifier = Modifier.padding(finalPadding),
+                  verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+          ) { content() }
+      }
     }
   } else {
     Box(modifier = baseModifier) {
-      Column(
-              modifier = Modifier.padding(finalPadding),
-              verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
-      ) { content() }
+      MaterialTheme(colorScheme = forcedContentScheme) {
+          Column(
+                  modifier = Modifier.padding(finalPadding),
+                  verticalArrangement = Arrangement.spacedBy(dimens.spacingSmall)
+          ) { content() }
+      }
     }
   }
 }

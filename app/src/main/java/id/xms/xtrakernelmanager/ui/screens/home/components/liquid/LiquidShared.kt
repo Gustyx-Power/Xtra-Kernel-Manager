@@ -22,44 +22,29 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
 /**
  * Returns adaptive text color based on system theme
- * - Dark mode: White
- * - Light mode: Black
+ * - ACCESSIBILITY UPDATE: Now always returns Black to match the forced White Glassmorphic cards.
  */
 @Composable
 fun adaptiveTextColor(): Color {
-    return if (isSystemInDarkTheme()) {
-        Color.White
-    } else {
-        Color.Black
-    }
+    return Color.Black
 }
 
 /**
  * Returns adaptive text color with alpha based on system theme
- * - Dark mode: White with alpha
- * - Light mode: Black with alpha
+ * - ACCESSIBILITY UPDATE: Now always returns Black with alpha to match the forced White Glassmorphic cards.
  */
 @Composable
 fun adaptiveTextColor(alpha: Float): Color {
-    return if (isSystemInDarkTheme()) {
-        Color.White.copy(alpha = alpha)
-    } else {
-        Color.Black.copy(alpha = alpha)
-    }
+    return Color.Black.copy(alpha = alpha)
 }
 
 /**
  * Returns adaptive surface color based on system theme
- * - Dark mode: White with low alpha
- * - Light mode: Black with low alpha
+ * - ACCESSIBILITY UPDATE: Now always returns Black with alpha (shadow-like) to match the forced White Glassmorphic cards.
  */
 @Composable
 fun adaptiveSurfaceColor(alpha: Float = 0.1f): Color {
-    return if (isSystemInDarkTheme()) {
-        Color.White.copy(alpha = alpha)
-    } else {
-        Color.Black.copy(alpha = alpha)
-    }
+    return Color.Black.copy(alpha = alpha)
 }
 
 // --- SHARED CONTAINER ---

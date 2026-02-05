@@ -326,7 +326,7 @@ fun GlassmorphicCommunityCard(onClick: () -> Unit) {
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
-                .background(containerColor.copy(alpha = if(isLight) 0.8f else 0.6f))
+                .background(containerColor.copy(alpha = 0.85f))
         ) {
             Icon(
                 Icons.Rounded.Groups,
@@ -367,41 +367,58 @@ fun GlassmorphicBentoCard(
     color: Color,
     onClick: () -> Unit,
 ) {
-    val contentColor = color
     val isLight = !isSystemInDarkTheme()
+    val contentColor = Color.White
 
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth().height(110.dp)
             .clickable(onClick = onClick),
-        contentPadding = PaddingValues(16.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.SpaceBetween,
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color.copy(alpha = 0.85f))
         ) {
-            Box(
-                 modifier = Modifier
-                     .size(32.dp)
-                     .clip(RoundedCornerShape(8.dp))
-                     .background(color.copy(if (isLight) 0.15f else 0.2f)),
-                 contentAlignment = Alignment.Center
-             ) {
-                 Icon(icon, null, modifier = Modifier.size(18.dp), tint = color)
-             }
-            Column {
-                Text(
-                    title,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                )
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            // Decorative background icon
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(80.dp)
+                    .align(Alignment.BottomEnd)
+                    .offset(x = 16.dp, y = 16.dp),
+                tint = contentColor.copy(alpha = 0.15f)
+            )
+
+            Column(
+                modifier = Modifier.fillMaxSize().padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Box(
+                     modifier = Modifier
+                         .size(32.dp)
+                         .clip(RoundedCornerShape(8.dp))
+                         .background(Color.White.copy(0.2f)),
+                     contentAlignment = Alignment.Center
+                 ) {
+                     Icon(icon, null, modifier = Modifier.size(18.dp), tint = contentColor)
+                 }
+                Column {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = contentColor.copy(alpha = 0.8f),
+                    )
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }
@@ -429,101 +446,118 @@ private fun LiquidTeamMemberCard(
 ) {
   val memberShape = remember(member.shapeIndex) { ExpressiveShapes.getShape(member.shapeIndex) }
   val hasSocial = member.githubUrl != null || member.telegramUrl != null
-  val iconTint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
   val isLight = !isSystemInDarkTheme()
+
+  // Determine card color based on role
+  val cardColor =
+      when {
+        member.role.contains("Founder", ignoreCase = true) -> Color(0xFF007AFF) // Blue
+        member.role.contains("Contributor", ignoreCase = true) -> Color(0xFF34C759) // Green
+        member.role.contains("Tester", ignoreCase = true) -> Color(0xFFFF2D55) // Pink
+        else -> Color(0xFF8E8E93) // Gray
+      }
+
+  val contentColor = Color.White
+  val socialIconTint = contentColor.copy(alpha = 0.8f)
 
   GlassmorphicCard(
       modifier = Modifier.width(160.dp).height(240.dp),
-      contentPadding = PaddingValues(16.dp)
+      contentPadding = PaddingValues(0.dp)
   ) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
+    Box(
+        modifier =
+            Modifier.fillMaxSize()
+                .background(cardColor.copy(alpha = 0.85f))
     ) {
-      // Avatar
-      Box(
-          modifier =
-              Modifier.size(90.dp)
-                  .clip(memberShape)
-                  .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f))
+      Column(
+          modifier = Modifier.fillMaxSize().padding(16.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Top,
       ) {
-        if (member.githubUsername != null) {
-          AsyncImage(
-              model = "https://github.com/${member.githubUsername}.png",
-              contentDescription = "${member.name} avatar",
-              placeholder = painterResource(member.imageRes),
-              error = painterResource(member.imageRes),
-              modifier = Modifier.fillMaxSize(),
-              contentScale = ContentScale.Crop,
-          )
-        } else {
-          Image(
-              painter = painterResource(member.imageRes),
-              contentDescription = "${member.name} avatar",
-              modifier = Modifier.fillMaxSize(),
-              contentScale = ContentScale.Crop,
-          )
-        }
-      }
-
-      Spacer(modifier = Modifier.height(12.dp))
-
-      // Name
-      Text(
-          text = member.name,
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.Bold,
-          textAlign = TextAlign.Center,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.fillMaxWidth(),
-          color = MaterialTheme.colorScheme.onSurface
-      )
-
-      Spacer(modifier = Modifier.height(4.dp))
-
-      // Role
-      Text(
-          text = member.role,
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.primary,
-          textAlign = TextAlign.Center,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.fillMaxWidth(),
-      )
-
-      // Social Icons
-      if (hasSocial) {
-        Spacer(modifier = Modifier.weight(1f))
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-          member.githubUrl?.let { url ->
-            IconButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.size(40.dp)) {
-              Icon(
-                  imageVector = SimpleIcons.Github,
-                  contentDescription = "GitHub",
-                  tint = iconTint,
-                  modifier = Modifier.size(20.dp),
-              )
+            // Avatar
+            Box(
+                modifier =
+                    Modifier.size(90.dp)
+                        .clip(memberShape)
+                        .background(contentColor.copy(alpha = 0.2f))
+            ) {
+              if (member.githubUsername != null) {
+                AsyncImage(
+                    model = "https://github.com/${member.githubUsername}.png",
+                    contentDescription = "${member.name} avatar",
+                    placeholder = painterResource(member.imageRes),
+                    error = painterResource(member.imageRes),
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+              } else {
+                Image(
+                    painter = painterResource(member.imageRes),
+                    contentDescription = "${member.name} avatar",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+              }
             }
-          }
 
-          member.telegramUrl?.let { url ->
-            IconButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.size(40.dp)) {
-              Icon(
-                  imageVector = SimpleIcons.Telegram,
-                  contentDescription = "Telegram",
-                  tint = iconTint,
-                  modifier = Modifier.size(20.dp),
-              )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Name
+            Text(
+                text = member.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+                color = contentColor
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Role
+            Text(
+                text = member.role,
+                style = MaterialTheme.typography.bodyMedium,
+                color = contentColor.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            // Social Icons
+            if (hasSocial) {
+              Spacer(modifier = Modifier.weight(1f))
+              Row(
+                  horizontalArrangement = Arrangement.Center,
+                  verticalAlignment = Alignment.CenterVertically,
+                  modifier = Modifier.fillMaxWidth(),
+              ) {
+                member.githubUrl?.let { url ->
+                  IconButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = SimpleIcons.Github,
+                        contentDescription = "GitHub",
+                        tint = socialIconTint,
+                        modifier = Modifier.size(20.dp),
+                    )
+                  }
+                }
+
+                member.telegramUrl?.let { url ->
+                  IconButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        imageVector = SimpleIcons.Telegram,
+                        contentDescription = "Telegram",
+                        tint = socialIconTint,
+                        modifier = Modifier.size(20.dp),
+                    )
+                  }
+                }
+              }
             }
-          }
-        }
       }
     }
   }
