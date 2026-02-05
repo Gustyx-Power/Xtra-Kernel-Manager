@@ -24,7 +24,7 @@
     <!-- Required for app usage monitoring and optimization -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions" />
     <!-- Required for per-app profile management -->
-    <!-- <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" /> -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" />
 
     <!-- Permissions for fullscreen and overlay (OOS, MIUI, AOSP) -->
     <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" tools:ignore="ProtectedPermissions" />
@@ -78,13 +78,13 @@
         </service>
 
     <!-- Game Monitor Service - Accessibility Service for instant detection -->
-        <!-- Disabled by default to prevent Play Protect detection -->
+        <!-- Enabled for game overlay functionality -->
         <service android:name=".service.GameMonitorService" 
                  android:label="@string/game_monitor_service_label" 
                  android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" 
                  android:exported="true" 
                  android:stopWithTask="false" 
-                 android:enabled="false"
+                 android:enabled="true"
                  android:description="@string/accessibility_service_description">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />

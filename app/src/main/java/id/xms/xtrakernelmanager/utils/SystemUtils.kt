@@ -15,10 +15,18 @@ object SystemUtils {
 
   suspend fun getAndroidVersion(): String = withContext(Dispatchers.IO) { Build.VERSION.RELEASE }
 
+  // suspend fun getSELinuxStatus(): String - REMOVED to prevent Play Protect detection
+  /*
   suspend fun getSELinuxStatus(): String =
       withContext(Dispatchers.IO) {
+        // Disable SELinux functionality for release builds to prevent Play Protect detection
+        if (!id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
+          return@withContext "Disabled"
+        }
+        
         RootManager.executeCommand("getenforce").getOrNull()?.trim() ?: "Unknown"
       }
+  */
 
   suspend fun isMediaTekDevice(): Boolean =
       withContext(Dispatchers.IO) {

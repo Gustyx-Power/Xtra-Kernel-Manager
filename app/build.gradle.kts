@@ -79,9 +79,9 @@ android {
             ndk {
                 debugSymbolLevel = "NONE"
             }
-            // Add release metadata - disable suspicious features for Play Protect
+            // Add release metadata - enable accessibility for game overlay but disable other suspicious features
             buildConfigField("boolean", "IS_DEBUG_BUILD", "false")
-            buildConfigField("boolean", "ENABLE_ACCESSIBILITY_SERVICE", "false")
+            buildConfigField("boolean", "ENABLE_ACCESSIBILITY_SERVICE", "true")
             buildConfigField("boolean", "ENABLE_ROOT_FEATURES", "false")
             manifestPlaceholders["appLabel"] = "@string/app_name_short"
         }

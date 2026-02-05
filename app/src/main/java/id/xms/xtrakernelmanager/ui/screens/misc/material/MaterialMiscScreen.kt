@@ -111,7 +111,7 @@ fun MaterialMiscScreenContent(
 
   // State for Card Expansion
   var isDisplayExpanded by remember { mutableStateOf(false) }
-  var isSELinuxExpanded by remember { mutableStateOf(false) }
+  // var isSELinuxExpanded by remember { mutableStateOf(false) } - REMOVED
 
   // Load initial data
   LaunchedEffect(Unit) {
@@ -170,27 +170,29 @@ fun MaterialMiscScreenContent(
         StaggeredEntry(delayMillis = 250) { PerAppProfileCard(onClick = onPerAppProfileClick) }
       }
 
-      // 5. SELinux Card (Left)
-      item(
-          span =
-              if (isSELinuxExpanded) StaggeredGridItemSpan.FullLine
-              else StaggeredGridItemSpan.SingleLane
-      ) {
-        StaggeredEntry(delayMillis = 300) {
-          SELinuxCard(
-              viewModel = viewModel,
-              isRooted = isRooted,
-              expanded = isSELinuxExpanded,
-              onExpandedChange = { isSELinuxExpanded = it },
-          )
+      // 5. SELinux Card - COMPLETELY REMOVED to prevent Play Protect detection
+      /*
+      if (id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
+        item(
+            span =
+                if (isSELinuxExpanded) StaggeredGridItemSpan.FullLine
+                else StaggeredGridItemSpan.SingleLane
+        ) {
+          StaggeredEntry(delayMillis = 300) {
+            SELinuxCard(
+                viewModel = viewModel,
+                isRooted = isRooted,
+                expanded = isSELinuxExpanded,
+                onExpandedChange = { isSELinuxExpanded = it },
+            )
+          }
         }
       }
+      */
 
-      // 6. Process Manager Card (Right) - Next to SELinux
-      if (!isSELinuxExpanded) {
-        item(span = StaggeredGridItemSpan.SingleLane) {
-          StaggeredEntry(delayMillis = 350) { ProcessManagerCard(onClick = onProcessManagerClick) }
-        }
+      // 6. Process Manager Card (Right) - Full width since SELinux removed
+      item(span = StaggeredGridItemSpan.SingleLane) {
+        StaggeredEntry(delayMillis = 350) { ProcessManagerCard(onClick = onProcessManagerClick) }
       }
 
       // 7. Functional ROM (VIP Feature - Moved to bottom)
@@ -627,6 +629,8 @@ fun GameSpaceCard(
   }
 }
 
+// SELinuxCard function - COMPLETELY REMOVED to prevent Play Protect detection
+/*
 @Composable
 fun SELinuxCard(
     viewModel: MiscViewModel,
@@ -634,200 +638,9 @@ fun SELinuxCard(
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
 ) {
-  val selinuxStatus by viewModel.selinuxStatus.collectAsState()
-  val isLoading by viewModel.selinuxLoading.collectAsState()
-  val isEnforcing = selinuxStatus.equals("Enforcing", ignoreCase = true)
-
-  Card(
-      onClick = { onExpandedChange(!expanded) },
-      modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp).animateContentSize(),
-      shape = RoundedCornerShape(24.dp),
-      colors =
-          CardDefaults.cardColors(
-              containerColor =
-                  if (isEnforcing) MaterialTheme.colorScheme.primaryContainer
-                  else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
-          ),
-  ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-      // Background Watermark
-      Icon(
-          Icons.Rounded.Shield,
-          null,
-          tint =
-              if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f)
-              else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.05f),
-          modifier =
-              Modifier.size(if (expanded) 200.dp else 100.dp)
-                  .align(Alignment.BottomEnd)
-                  .offset(x = 20.dp, y = 20.dp),
-      )
-
-      Column(
-          modifier = Modifier.padding(20.dp),
-          verticalArrangement = Arrangement.SpaceBetween,
-          horizontalAlignment = Alignment.Start,
-      ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-          Icon(
-              Icons.Rounded.Shield,
-              null,
-              tint =
-                  if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
-                  else MaterialTheme.colorScheme.onErrorContainer,
-              modifier =
-                  Modifier.size(28.dp)
-                      .background(
-                          (if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
-                              else MaterialTheme.colorScheme.onErrorContainer)
-                              .copy(alpha = 0.1f),
-                          RoundedCornerShape(8.dp),
-                      )
-                      .padding(4.dp),
-          )
-
-          // Status Badge
-          Surface(
-              color =
-                  if (isEnforcing) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                  else MaterialTheme.colorScheme.error.copy(alpha = 0.2f),
-              shape = RoundedCornerShape(50),
-          ) {
-            Text(
-                text = selinuxStatus,
-                style = MaterialTheme.typography.labelSmall,
-                color =
-                    if (isEnforcing) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.error,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-            )
-          }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "SELinux",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color =
-                if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
-                else MaterialTheme.colorScheme.onErrorContainer,
-        )
-        Text(
-            text = "Security Policy",
-            style = MaterialTheme.typography.bodySmall,
-            color =
-                if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
-        )
-
-        // Expanded Content
-        if (expanded) {
-          Column(modifier = Modifier.padding(top = 16.dp)) {
-            HorizontalDivider(
-                modifier = Modifier.padding(bottom = 16.dp),
-                color =
-                    if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f)
-                    else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.1f),
-            )
-
-            if (!isRooted) {
-              Text(
-                  text = "Root access required.",
-                  color = MaterialTheme.colorScheme.error,
-                  style = MaterialTheme.typography.bodyMedium,
-              )
-            } else {
-              // Toggle Row
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically,
-              ) {
-                Column {
-                  Text(
-                      text = if (isEnforcing) "Enforcing" else "Permissive",
-                      style = MaterialTheme.typography.titleSmall,
-                      fontWeight = FontWeight.Bold,
-                      color =
-                          if (isEnforcing) MaterialTheme.colorScheme.onPrimaryContainer
-                          else MaterialTheme.colorScheme.onErrorContainer,
-                  )
-                  Text(
-                      text =
-                          if (isEnforcing) "Security policies active" else "Policies not enforced",
-                      style = MaterialTheme.typography.bodySmall,
-                      color =
-                          if (isEnforcing)
-                              MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                          else MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
-                  )
-                }
-
-                if (isLoading) {
-                  CircularProgressIndicator(
-                      modifier = Modifier.size(24.dp),
-                      strokeWidth = 2.dp,
-                      color =
-                          if (isEnforcing) MaterialTheme.colorScheme.primary
-                          else MaterialTheme.colorScheme.error,
-                  )
-                } else {
-                  Switch(
-                      checked = isEnforcing,
-                      onCheckedChange = { viewModel.setSELinuxMode(it) },
-                      colors =
-                          SwitchDefaults.colors(
-                              checkedThumbColor = MaterialTheme.colorScheme.primary,
-                              checkedTrackColor =
-                                  MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f),
-                              uncheckedThumbColor = MaterialTheme.colorScheme.error,
-                              uncheckedTrackColor =
-                                  MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.2f),
-                          ),
-                      modifier = Modifier.scale(0.8f),
-                  )
-                }
-              }
-
-              // Warning Text
-              Spacer(modifier = Modifier.height(12.dp))
-              Surface(
-                  color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                  shape = RoundedCornerShape(8.dp),
-              ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                  Icon(
-                      Icons.Rounded.Info,
-                      null,
-                      tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                      modifier = Modifier.size(16.dp),
-                  )
-                  Spacer(modifier = Modifier.width(8.dp))
-                  Text(
-                      text = "Changes reset after reboot. Permissive mode may break some apps.",
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant,
-                  )
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  // Function removed to prevent Play Protect detection
 }
+*/
 
 @Composable
 fun StatusBadge(text: String, containerColor: Color, contentColor: Color) {

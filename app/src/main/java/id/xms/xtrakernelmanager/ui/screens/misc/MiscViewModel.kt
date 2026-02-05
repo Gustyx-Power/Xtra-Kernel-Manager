@@ -133,12 +133,12 @@ class MiscViewModel(
   private val _isLoadingAppUsage = MutableStateFlow(false)
   val isLoadingAppUsage: StateFlow<Boolean> = _isLoadingAppUsage.asStateFlow()
 
-  // SELinux State
-  private val _selinuxStatus = MutableStateFlow("Unknown")
-  val selinuxStatus: StateFlow<String> = _selinuxStatus.asStateFlow()
+  // SELinux State - REMOVED to prevent Play Protect detection
+  // private val _selinuxStatus = MutableStateFlow("Unknown")
+  // val selinuxStatus: StateFlow<String> = _selinuxStatus.asStateFlow()
 
-  private val _selinuxLoading = MutableStateFlow(false)
-  val selinuxLoading: StateFlow<Boolean> = _selinuxLoading.asStateFlow()
+  // private val _selinuxLoading = MutableStateFlow(false)
+  // val selinuxLoading: StateFlow<Boolean> = _selinuxLoading.asStateFlow()
 
   // Game Space
   private val _callOverlay = MutableStateFlow(true)
@@ -153,7 +153,7 @@ class MiscViewModel(
   init {
     checkRoot()
     loadCurrentPerformanceMode()
-    loadSELinuxStatus()
+    // loadSELinuxStatus() - REMOVED to prevent Play Protect detection
   }
 
   private fun checkRoot() {
@@ -163,9 +163,17 @@ class MiscViewModel(
     }
   }
 
-  // SELinux Functions
+  // SELinux Functions - COMPLETELY REMOVED to prevent Play Protect detection
+  /*
   fun loadSELinuxStatus() {
     viewModelScope.launch {
+      // Disable SELinux functionality for release builds
+      if (!id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
+        _selinuxStatus.value = "Disabled"
+        Log.d("MiscViewModel", "SELinux functionality disabled for release build")
+        return@launch
+      }
+      
       val result = RootManager.executeCommand("getenforce")
       _selinuxStatus.value = result.getOrNull()?.trim() ?: "Unknown"
       Log.d("MiscViewModel", "SELinux status: ${_selinuxStatus.value}")
@@ -174,6 +182,12 @@ class MiscViewModel(
 
   fun setSELinuxMode(enforcing: Boolean) {
     viewModelScope.launch {
+      // Disable SELinux functionality for release builds
+      if (!id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
+        Log.d("MiscViewModel", "SELinux functionality disabled for release build")
+        return@launch
+      }
+      
       if (!_isRootAvailable.value) {
         Log.e("MiscViewModel", "Cannot set SELinux: Root not available")
         return@launch
@@ -193,6 +207,7 @@ class MiscViewModel(
       _selinuxLoading.value = false
     }
   }
+  */
 
   fun loadBatteryInfo(context: Context) {
     viewModelScope.launch {

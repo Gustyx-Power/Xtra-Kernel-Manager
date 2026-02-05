@@ -113,12 +113,12 @@ fun LiquidMiscMainScreen(
     
     var isVipCommunity by remember { mutableStateOf<Boolean?>(null) }
     var showSecurityWarning by remember { mutableStateOf(false) }
-    var showSELinuxDialog by remember { mutableStateOf(false) }
+    // var showSELinuxDialog by remember { mutableStateOf(false) } - REMOVED
     
-    val selinuxStatus by viewModel.selinuxStatus.collectAsState()
+    // val selinuxStatus by viewModel.selinuxStatus.collectAsState() - REMOVED
     val isRooted by viewModel.isRootAvailable.collectAsState()
-    val selinuxLoading by viewModel.selinuxLoading.collectAsState()
-    val isEnforcing = selinuxStatus.equals("Enforcing", ignoreCase = true)
+    // val selinuxLoading by viewModel.selinuxLoading.collectAsState() - REMOVED
+    // val isEnforcing = selinuxStatus.equals("Enforcing", ignoreCase = true) - REMOVED
 
     LaunchedEffect(Unit) {
         isVipCommunity = useCase.checkVipCommunity()
@@ -155,8 +155,9 @@ fun LiquidMiscMainScreen(
         )
     }
     
-    // SELinux Toggle Dialog
-    if (showSELinuxDialog) {
+    // SELinux Toggle Dialog - COMPLETELY REMOVED to prevent Play Protect detection
+    /*
+    if (showSELinuxDialog && id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
         AlertDialog(
             onDismissRequest = { showSELinuxDialog = false },
             icon = {
@@ -226,6 +227,7 @@ fun LiquidMiscMainScreen(
             }
         )
     }
+    */
     
     Box(modifier = Modifier.fillMaxSize()) {
         // Background decoration - full size like tuning screens
@@ -286,19 +288,24 @@ fun LiquidMiscMainScreen(
                     color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
                 )
                 
-                LiquidSettingsRow(
-                    icon = Icons.Default.Shield,
-                    iconColor = if (isEnforcing) Color(0xFF34C759) else Color(0xFFFF3B30),
-                    title = "SELinux",
-                    subtitle = if (isRooted) selinuxStatus else "Root required",
-                    badge = selinuxStatus,
-                    onClick = { showSELinuxDialog = true }
-                )
-                
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 60.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
-                )
+                // SELinux row - COMPLETELY REMOVED to prevent Play Protect detection
+                /*
+                if (id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
+                    LiquidSettingsRow(
+                        icon = Icons.Default.Shield,
+                        iconColor = if (isEnforcing) Color(0xFF34C759) else Color(0xFFFF3B30),
+                        title = "SELinux",
+                        subtitle = if (isRooted) selinuxStatus else "Root required",
+                        badge = selinuxStatus,
+                        onClick = { showSELinuxDialog = true }
+                    )
+                    
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 60.dp),
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
+                    )
+                }
+                */
                 
                 LiquidSettingsRow(
                     icon = Icons.Default.Memory,
