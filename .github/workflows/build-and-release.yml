@@ -184,7 +184,8 @@ jobs:
             -d disable_web_page_preview="true")
           
           # Extract message ID
-          MESSAGE_ID=$(echo "$RESPONSE" | grep -o '"message_id":[0-9]*' | cut -d: -f2)
+          # Extract message ID using jq for safety
+          MESSAGE_ID=$(echo "$RESPONSE" | jq -r '.result.message_id')
           echo "message_id=$MESSAGE_ID" >> $GITHUB_OUTPUT
           
           # Debug output
@@ -199,8 +200,10 @@ jobs:
           STATUS=$3
           
           # Check variables
-          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ] || [ -z "$MESSAGE_ID" ]; then
-            echo "Missing variables for progress update"
+          echo "Debug: Updating Progress - ID: $MESSAGE_ID, Progress: $PROGRESS"
+          
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ] || [ -z "$MESSAGE_ID" ] || [ "$MESSAGE_ID" = "null" ]; then
+            echo "Missing variables for progress update (or ID is null)"
             exit 0
           fi
           
@@ -241,12 +244,14 @@ jobs:
           
           <a href=\"$COMMIT_URL\">Commit</a> | <a href=\"$WORKFLOW_URL\">Workflow</a>"
           
-          curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/editMessageText" \
+          RESPONSE=$(curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/editMessageText" \
             -d chat_id="$CHAT_ID" \
             -d message_id="$MESSAGE_ID" \
             -d parse_mode="HTML" \
             --data-urlencode "text=$MESSAGE" \
-            -d disable_web_page_preview="true"
+            -d disable_web_page_preview="true")
+            
+          echo "Debug: Telegram Response: $RESPONSE"
           EOF
           chmod +x update_progress.sh
 
