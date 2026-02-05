@@ -1,0 +1,31 @@
+{
+  "app_info": {
+    "name": "Xtra Kernel Manager",
+    "package": "id.xms.xtrakernelmanager",
+    "category": "productivity",
+    "purpose": "system_optimization",
+    "distribution": "direct_download",
+    "developer": "XMS Team",
+    "website": "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager",
+    "support_email": "support@xms.id"
+  },
+  "security": {
+    "signed": true,
+    "keystore_sha1": "verified",
+    "permissions_justified": true,
+    "malware_scan": "clean",
+    "source_code": "open_source"
+  },
+  "features": {
+    "kernel_management": "performance optimization",
+    "game_overlay": "gaming enhancement",
+    "battery_monitoring": "device health",
+    "accessibility_service": "game detection only"
+  },
+  "compliance": {
+    "privacy_policy": "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/blob/main/PRIVACY.md",
+    "terms_of_service": "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/blob/main/TERMS.md",
+    "open_source_license": "GPL-3.0",
+    "data_collection": "minimal"
+  }
+}

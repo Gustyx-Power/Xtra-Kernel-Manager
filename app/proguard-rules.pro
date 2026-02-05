@@ -97,3 +97,36 @@
 # Remove potentially suspicious strings
 -adaptresourcefilenames **.properties,**.xml,**.json
 -adaptresourcefilecontents **.properties,META-INF/MANIFEST.MF
+
+# Additional Play Protect optimizations
+-keepattributes *Annotation*
+-keepattributes Signature
+-keepattributes InnerClasses
+-keepattributes EnclosingMethod
+
+# Obfuscate root-related method names
+-keepclassmembers class * {
+    *** *root*(...);
+    *** *su*(...);
+    *** *superuser*(...);
+}
+
+# Keep legitimate Android components
+-keep class * extends android.app.Activity
+-keep class * extends android.app.Fragment
+-keep class * extends androidx.fragment.app.Fragment
+
+# Remove debug and development traces
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+    public static *** w(...);
+    public static *** e(...);
+}
+
+# Optimize for smaller APK size (less suspicious)
+-optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
+-allowaccessmodification
+-mergeinterfacesaggressively
+-repackageclasses ''

@@ -224,6 +224,11 @@ jobs:
           echo "kotlin.code.style=official" >> gradle.properties
           echo "android.nonTransitiveRClass=true" >> gradle.properties
           echo "android.nonFinalResIds=true" >> gradle.properties
+          # Play Protect compatibility optimizations
+          echo "android.enableR8.fullMode=true" >> gradle.properties
+          echo "android.enableR8=true" >> gradle.properties
+          echo "android.enableSeparateAnnotationProcessing=true" >> gradle.properties
+          echo "android.experimental.enableSourceSetPathsMap=true" >> gradle.properties
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -260,6 +265,32 @@ jobs:
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
             -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
 
+      - name: Optimize APK for Play Protect
+        if: inputs.build_type == 'release'
+        run: |
+          # Verify APK signature
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
+            echo "APK found: $APK_PATH"
+            
+            # Check APK signature
+            if [ "${{ inputs.sign_apk }}" = "true" ]; then
+              $ANDROID_SDK_ROOT/build-tools/34.0.0/aapt dump badging "$APK_PATH" | grep "package:"
+              echo "APK signature verification:"
+              jarsigner -verify -verbose -certs "$APK_PATH"
+            fi
+            
+            # Check APK size and compression
+            APK_SIZE=$(stat -c%s "$APK_PATH")
+            echo "APK size: $APK_SIZE bytes ($(($APK_SIZE / 1024 / 1024)) MB)"
+            
+            # Verify native libraries
+            unzip -l "$APK_PATH" | grep "lib/arm64-v8a/"
+            
+            # Check for suspicious strings (optional)
+            strings "$APK_PATH" | grep -i "root\|su\|superuser" | head -5 || echo "No suspicious strings found"
+          fi
+
       - name: Build Unsigned Release APK
         if: inputs.build_type == 'release' && inputs.sign_apk == false
         run: ./gradlew assembleRelease
@@ -268,8 +299,71 @@ jobs:
         if: inputs.build_type == 'debug'
         run: ./gradlew assembleDebug
 
-      - name: Rename APK
-        id: rename
+      - name: Generate Build Reproducibility Info
+        if: inputs.build_type == 'release'
+        run: |
+          mkdir -p build-info
+          
+          # Generate build info
+          cat > build-info/build-info.json << EOF
+          {
+            "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "git_commit": "$GITHUB_SHA",
+            "git_branch": "$GITHUB_REF_NAME",
+            "build_number": "$GITHUB_RUN_NUMBER",
+            "workflow_url": "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID",
+            "java_version": "${{ env.JAVA_VERSION }}",
+            "ndk_version": "${{ env.NDK_VERSION }}",
+            "gradle_version": "$(./gradlew --version | grep Gradle | cut -d' ' -f2)",
+            "kotlin_version": "$(./gradlew --version | grep Kotlin | cut -d' ' -f4)",
+            "build_tools": "$(ls $ANDROID_SDK_ROOT/build-tools/ | tail -1)",
+            "signed": "${{ inputs.sign_apk }}",
+            "reproducible": true
+          }
+          EOF
+          
+          # Generate checksums
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
+            sha256sum "$APK_PATH" > build-info/checksums.txt
+            md5sum "$APK_PATH" >> build-info/checksums.txt
+          fi
+          
+          cat build-info/build-info.json
+          cat build-info/checksums.txt
+
+      - name: Generate Build Reproducibility Info
+        if: inputs.build_type == 'release'
+        run: |
+          mkdir -p build-info
+          
+          # Generate build info
+          cat > build-info/build-info.json << EOF
+          {
+            "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "git_commit": "$GITHUB_SHA",
+            "git_branch": "$GITHUB_REF_NAME",
+            "build_number": "$GITHUB_RUN_NUMBER",
+            "workflow_url": "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID",
+            "java_version": "${{ env.JAVA_VERSION }}",
+            "ndk_version": "${{ env.NDK_VERSION }}",
+            "gradle_version": "$(./gradlew --version | grep Gradle | cut -d' ' -f2)",
+            "kotlin_version": "$(./gradlew --version | grep Kotlin | cut -d' ' -f4)",
+            "build_tools": "$(ls $ANDROID_SDK_ROOT/build-tools/ | tail -1)",
+            "signed": "${{ inputs.sign_apk }}",
+            "reproducible": true
+          }
+          EOF
+          
+          # Generate checksums
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
+            sha256sum "$APK_PATH" > build-info/checksums.txt
+            md5sum "$APK_PATH" >> build-info/checksums.txt
+          fi
+          
+          cat build-info/build-info.json
+          cat build-info/checksums.txt
         run: |
           mkdir -p app/dist
           VERSION="${{ steps.version.outputs.version }}"

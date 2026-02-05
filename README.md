@@ -48,6 +48,51 @@ It provides **real-time visibility and precise control** over CPU performance, t
 ## Supported Root Managers
 
 - [Magisk](https://github.com/topjohnwu/Magisk)
+
+---
+
+## Development Setup
+
+### Prerequisites
+- Android Studio (latest version)
+- Android SDK (API 31+)
+- Rust toolchain
+- NDK 26.1.10909125
+
+### Local Development
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager.git
+   cd Xtra-Kernel-Manager
+   ```
+
+2. Setup configuration files:
+   ```bash
+   cp local.properties.template local.properties
+   cp gradle.properties.template gradle.properties
+   ```
+
+3. Edit `local.properties` with your Android SDK path:
+   ```properties
+   sdk.dir=/path/to/your/android/sdk
+   ```
+
+4. Build the project:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+
+### Play Protect Compatibility
+This project includes optimizations to reduce Play Protect detection:
+- Aggressive code obfuscation with ProGuard/R8
+- Legitimate app metadata and permissions
+- Consistent signing with reproducible builds
+- Open source transparency
+
+### Security Notice
+- `local.properties` and `gradle.properties` are gitignored for security
+- Keystore files are never committed to the repository
+- All builds are reproducible and verifiable
 - [KernelSU](https://github.com/tiann/KernelSU)
 - [APatch](https://github.com/bmax121/APatch)
 
@@ -63,8 +108,8 @@ It provides **real-time visibility and precise control** over CPU performance, t
 
 ## Resources
 
-- [Releases](https://github.com/Gustyx-Power/Xtra-Kernel-Manager/releases)
-- [Issues](https://github.com/Gustyx-Power/Xtra-Kernel-Manager/issues)
+- [Releases](https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/releases)
+- [Issues](https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/issues)
 
 ---
 

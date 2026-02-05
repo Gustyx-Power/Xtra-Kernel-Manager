@@ -1,0 +1,22 @@
+# Template for local.properties
+# Copy this file to local.properties and fill in your values
+
+# Android SDK path (required)
+sdk.dir=/path/to/your/android/sdk
+
+# Signing configuration (optional, for local release builds)
+# Generate keystore with: keytool -genkey -v -keystore xkm-release.keystore -alias xkm -keyalg RSA -keysize 2048 -validity 10000
+myKeystorePath=path/to/your/keystore.jks
+myKeystorePassword=your_keystore_password
+myKeyAlias=your_key_alias
+myKeyPassword=your_key_password
+
+# Telegram notification (optional)
+telegramBotToken=your_bot_token_here
+telegramChatId=your_chat_id_here
+myChangelog=Your changelog message here
+
+# App metadata
+app.category=productivity
+app.purpose=system_optimization
+distribution.channel=direct_download

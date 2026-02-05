@@ -79,11 +79,19 @@ android {
             ndk {
                 debugSymbolLevel = "NONE"
             }
-            // Add release metadata - enable accessibility for game overlay but disable other suspicious features
+            // Play Protect compatibility optimizations
             buildConfigField("boolean", "IS_DEBUG_BUILD", "false")
             buildConfigField("boolean", "ENABLE_ACCESSIBILITY_SERVICE", "true")
             buildConfigField("boolean", "ENABLE_ROOT_FEATURES", "false")
+            buildConfigField("String", "BUILD_VARIANT", "\"release\"")
+            buildConfigField("String", "DISTRIBUTION_CHANNEL", "\"sideload\"")
             manifestPlaceholders["appLabel"] = "@string/app_name_short"
+            
+            // Additional optimizations for Play Protect
+            isDebuggable = false
+            isJniDebuggable = false
+            isPseudoLocalesEnabled = false
+            isCrunchPngs = true
         }
     }
     splits {
@@ -171,6 +179,10 @@ dependencies {
     // Firebase 
     implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
     implementation("com.google.firebase:firebase-database") 
+    
+    // Google Play Services (for Play Protect compatibility)
+    implementation("com.google.android.gms:play-services-base:18.5.0")
+    implementation("com.google.android.gms:play-services-tasks:18.2.0") 
 
     // TOML Parser
     implementation("org.tomlj:tomlj:1.1.1")

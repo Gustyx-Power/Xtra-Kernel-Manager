@@ -1,0 +1,33 @@
+# Template for gradle.properties
+# Copy this file to gradle.properties for local development
+
+# Gradle JVM settings
+org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8
+org.gradle.daemon=true
+org.gradle.configureondemand=true
+org.gradle.parallel=true
+org.gradle.caching=true
+org.gradle.configuration-cache=true
+
+# Android optimizations
+android.useAndroidX=true
+android.enableJetifier=false
+android.nonTransitiveRClass=true
+android.nonFinalResIds=true
+
+# Kotlin
+kotlin.code.style=official
+
+# Play Protect compatibility optimizations
+android.enableR8.fullMode=true
+android.enableR8=true
+android.enableSeparateAnnotationProcessing=true
+android.experimental.enableSourceSetPathsMap=true
+
+# Build optimizations for smaller, cleaner APKs
+android.enableResourceOptimizations=true
+android.enableBuildCache=true
+
+# Security and obfuscation
+android.enableProguard=true
+android.enableMinification=true
