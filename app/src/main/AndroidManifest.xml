@@ -92,11 +92,14 @@
                  android:exported="true" 
                  android:stopWithTask="false" 
                  android:enabled="true"
+                 android:foregroundServiceType="specialUse"
                  android:description="@string/accessibility_service_description">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data android:name="android.accessibilityservice" android:resource="@xml/accessibility_config" />
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" 
+                      android:value="Accessibility service for game detection and performance monitoring" />
         </service>
 
         <!-- Alternative Game Detection Service using UsageStats API -->
@@ -108,13 +111,6 @@
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" 
                       android:value="Game detection using usage statistics for performance optimization" />
         </service>
-
-        <!-- Banking App Detection Receiver -->
-        <receiver android:name=".receiver.BankingAppReceiver" android:enabled="true" android:exported="false">
-            <intent-filter>
-                <action android:name="id.xms.xtrakernelmanager.BANKING_APP_DETECTED" />
-            </intent-filter>
-        </receiver>
 
         <!-- Accessibility Restart Receiver -->
         <receiver android:name=".receiver.AccessibilityRestartReceiver" android:enabled="true" android:exported="false">
