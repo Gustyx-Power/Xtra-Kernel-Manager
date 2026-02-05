@@ -62,6 +62,9 @@ android {
 
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev-$gitHash"
+            // Add debug metadata to help Play Protect identify as development build
+            buildConfigField("boolean", "IS_DEBUG_BUILD", "true")
+            manifestPlaceholders["appLabel"] = "@string/app_name_short"
         }
         release {
             isMinifyEnabled = true
@@ -74,6 +77,9 @@ android {
             ndk {
                 debugSymbolLevel = "NONE"
             }
+            // Add release metadata
+            buildConfigField("boolean", "IS_DEBUG_BUILD", "false")
+            manifestPlaceholders["appLabel"] = "@string/app_name_short"
         }
     }
     splits {
