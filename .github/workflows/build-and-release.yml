@@ -259,7 +259,6 @@ jobs:
           # Play Protect compatibility optimizations
           echo "android.enableR8.fullMode=true" >> gradle.properties
           echo "android.enableR8=true" >> gradle.properties
-          echo "android.enableSeparateAnnotationProcessing=true" >> gradle.properties
           echo "android.experimental.enableSourceSetPathsMap=true" >> gradle.properties
 
       - name: Grant execute permission for gradlew
