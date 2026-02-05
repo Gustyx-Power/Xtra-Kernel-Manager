@@ -155,7 +155,7 @@ jobs:
             echo "upload_telegram=true" >> $GITHUB_OUTPUT
             echo "sign_apk=true" >> $GITHUB_OUTPUT
           fi
-        run: |
+
           VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts | head -n 1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
@@ -377,38 +377,8 @@ jobs:
           cat build-info/build-info.json
           cat build-info/checksums.txt
 
-      - name: Generate Build Reproducibility Info
-        if: inputs.build_type == 'release'
-        run: |
-          mkdir -p build-info
-          
-          # Generate build info
-          cat > build-info/build-info.json << EOF
-          {
-            "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "git_commit": "$GITHUB_SHA",
-            "git_branch": "$GITHUB_REF_NAME",
-            "build_number": "$GITHUB_RUN_NUMBER",
-            "workflow_url": "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID",
-            "java_version": "${{ env.JAVA_VERSION }}",
-            "ndk_version": "${{ env.NDK_VERSION }}",
-            "gradle_version": "$(./gradlew --version | grep Gradle | cut -d' ' -f2)",
-            "kotlin_version": "$(./gradlew --version | grep Kotlin | cut -d' ' -f4)",
-            "build_tools": "$(ls $ANDROID_SDK_ROOT/build-tools/ | tail -1)",
-            "signed": "${{ inputs.sign_apk }}",
-            "reproducible": true
-          }
-          EOF
-          
-          # Generate checksums
-          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
-          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
-            sha256sum "$APK_PATH" > build-info/checksums.txt
-            md5sum "$APK_PATH" >> build-info/checksums.txt
-          fi
-          
-          cat build-info/build-info.json
-          cat build-info/checksums.txt
+      - name: Prepare Release Artifact
+        id: rename
         run: |
           mkdir -p app/dist
           VERSION="${{ steps.version.outputs.version }}"
