@@ -161,7 +161,9 @@ jobs:
 
       - name: Notify Build Start
         id: notify_start
-        if: ${{ inputs.upload_telegram != false }}
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.upload_telegram != false)
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -264,7 +266,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Checkout Keystore Repository
-        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
         uses: actions/checkout@v6
         with:
           repository: Xtra-Manager-Software/XMS-Keystore-Apps
@@ -272,13 +276,17 @@ jobs:
           path: keystore-repo
 
       - name: Copy Keystore
-        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
         run: |
           cp keystore-repo/Keystore-XKM/xkm-release-key.jks $GITHUB_WORKSPACE/release.keystore
           ls -lh $GITHUB_WORKSPACE/release.keystore
 
       - name: Print Keystore SHA1
-        if: inputs.build_type == 'release' && inputs.sign_apk == true
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
         run: |
           keytool -list -v \
             -keystore $GITHUB_WORKSPACE/release.keystore \
@@ -287,16 +295,21 @@ jobs:
             -keypass ${{ secrets.KEY_PASSWORD }}
 
       - name: Build Signed Release APK
-        if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')) && (github.event_name == 'push' || inputs.sign_apk == true)
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
         run: |
           ./gradlew assembleRelease \
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
             -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
             -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
+            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }}
 
       - name: Optimize APK for Play Protect
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
         run: |
           # Verify APK signature
           APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
@@ -330,7 +343,9 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Generate Build Reproducibility Info
-        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
         run: |
           mkdir -p build-info
           
@@ -421,7 +436,9 @@ jobs:
           fi
 
       - name: Notify Build Complete
-        if: github.event_name == 'push' || inputs.upload_telegram != false
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.upload_telegram != false)
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -492,7 +509,11 @@ jobs:
           fi
 
       - name: Cleanup on Failure
-        if: ${{ failure() && inputs.upload_telegram != false }}
+        if: |
+          failure() && (
+            (github.event_name == 'push') || 
+            (github.event_name == 'workflow_dispatch' && inputs.upload_telegram != false)
+          )
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
