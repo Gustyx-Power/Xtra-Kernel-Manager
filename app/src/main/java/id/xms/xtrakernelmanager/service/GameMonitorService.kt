@@ -25,6 +25,7 @@ class GameMonitorService : AccessibilityService() {
   private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
   private lateinit var preferencesManager: PreferencesManager
   private var enabledGamePackages: Set<String> = emptySet()
+  private var bankingModeEnabled: Boolean = false
 
   // Cache last package to avoid redundant checks/logs
   private var lastPackageName: String = ""
@@ -39,8 +40,11 @@ class GameMonitorService : AccessibilityService() {
     
     preferencesManager = PreferencesManager(applicationContext)
 
-    // Load initial games list
-    serviceScope.launch { loadGameList() }
+    // Load initial games list and banking mode
+    serviceScope.launch { 
+      loadGameList()
+      loadBankingMode()
+    }
   }
 
   private fun createNotificationChannel() {
@@ -81,6 +85,17 @@ class GameMonitorService : AccessibilityService() {
       .build()
   }
 
+  private fun createBankingModeNotification(): Notification {
+    return NotificationCompat.Builder(this, CHANNEL_ID)
+      .setContentTitle("XKM - Banking Mode")
+      .setContentText("Accessibility disabled for banking security")
+      .setSmallIcon(R.drawable.ic_launcher_foreground)
+      .setPriority(NotificationCompat.PRIORITY_LOW)
+      .setOngoing(true)
+      .setSilent(true)
+      .build()
+  }
+
   private var stopJob: Job? = null
 
   // Whitelist of system packages that shouldn't unwantedly kill the overlay
@@ -103,8 +118,114 @@ class GameMonitorService : AccessibilityService() {
           "id.xms.xtrakernelmanager.dev", // Self (debug)
       )
 
+  // Banking apps whitelist - disable overlay completely when these apps are active
+  private val bankingPackages = setOf(
+      // Indonesian Banks
+      "com.bni.mobile", // BNI Mobile Banking
+      "com.bri.brimo", // BRImo
+      "com.bca", // BCA mobile
+      "com.bca.mybca", // myBCA
+      "com.mandiri.mandirionline", // Mandiri Online
+      "com.bankmandiri.livin", // Livin' by Mandiri
+      "com.bankmandiri.livin.merchant", // Livin' Merchant
+      "id.co.bankbkemobile.digitalbank", // SeaBank
+      "com.cimbniaga.mobile.cimbgo", // CIMB Go
+      "com.danamon.dbmobile", // D-Bank Pro
+      "com.btpn.wow", // Jenius
+      "com.ocbc.mobile", // OCBC mobile
+      "com.maybank2u.m2umobile", // Maybank2u
+      "com.permatabank.mobile", // PermataBank Mobile
+      "com.panin.android.bankingnew", // Panin Mobile
+      "com.hsbc.hsbcindonesia", // HSBC Indonesia
+      "com.uob.mighty", // UOB Mighty
+      "com.standardchartered.mobile.id", // SC Mobile Indonesia
+      "com.citibank.mobile.id", // Citi Mobile
+      
+      // E-Wallets & Payment
+      "com.gojek.app", // Gojek
+      "com.grab.passenger", // Grab
+      "ovo.id", // OVO
+      "com.dana.id", // DANA
+      "com.telkom.mwallet", // LinkAja
+      "com.shopee.id", // ShopeePay
+      "com.tokopedia.tkpd", // Tokopedia
+      "com.bukalapak.android", // Bukalapak
+      "com.lazada.android", // Lazada
+      "com.blibli.mobile", // Blibli
+      
+      // International Banks
+      "com.chase.sig.android", // Chase
+      "com.bankofamerica.mobile", // Bank of America
+      "com.wellsfargo.mobile.android", // Wells Fargo
+      "com.citi.citimobile", // Citibank
+      "com.usbank.mobilebanking", // US Bank
+      "com.capitalone.bank", // Capital One
+      "com.ally.MobileBanking", // Ally Bank
+      "com.schwab.mobile", // Charles Schwab
+      "com.fidelity.android", // Fidelity
+      "com.etrade.mobilepro.activity", // E*TRADE
+      "com.paypal.android.p2pmobile", // PayPal
+      "com.venmo", // Venmo
+      "com.squareup.cash", // Cash App
+      "com.coinbase.android", // Coinbase
+      "com.robinhood.android", // Robinhood
+      
+      // European Banks
+      "com.revolut.revolut", // Revolut
+      "com.n26.gk", // N26
+      "com.starlingbank.android", // Starling Bank
+      "com.monzo.monzo", // Monzo
+      "uk.co.santander.santanderUK", // Santander UK
+      "com.barclays.android.barclaysmobilebanking", // Barclays
+      "com.rbs.mobile.android.natwest", // NatWest
+      "uk.co.hsbc.hsbcukmobilebanking", // HSBC UK
+      "com.lloydsbank.businessmobile", // Lloyds Bank
+      
+      // Asian Banks
+      "com.dbs.sg.dbsmbanking", // DBS Singapore
+      "com.ocbc.mobile", // OCBC Singapore
+      "com.uob.mighty.sg", // UOB Singapore
+      "hk.com.hsbc.hsbchkmobilebanking", // HSBC Hong Kong
+      "com.sc.mobilebanking.hk", // Standard Chartered HK
+      "com.hangseng.rbmobile", // Hang Seng Bank
+      "jp.co.smbc.direct", // SMBC Japan
+      "jp.co.netbk.smartplus", // Sumitomo Mitsui
+      "com.mizuho_bk.smart", // Mizuho Bank
+      
+      // Crypto & Investment
+      "com.binance.dev", // Binance
+      "com.crypto.multiwallet", // Crypto.com
+      "com.kucoin.android", // KuCoin
+      "com.bittrex.trade", // Bittrex
+      "com.kraken.trade", // Kraken
+      "com.gemini.android.app", // Gemini
+      "com.blockfolio.blockfolio", // FTX (Blockfolio)
+      "com.plaid.link", // Plaid
+      "com.mint", // Mint
+      "com.personalcapital.pcapandroid", // Personal Capital
+      "com.ynab.evergreen.app", // YNAB
+      
+      // Government & Official Apps
+      "com.kemenkeu.djp", // DJP Online (Indonesia Tax)
+      "id.go.bpjsketenagakerjaan.mobile", // BPJS Ketenagakerjaan
+      "id.go.bpjskesehatan.mobile", // BPJS Kesehatan
+      "com.pertamina.myperta", // MyPertamina
+      "com.pln.mobile", // PLN Mobile
+      "com.telkom.indihome", // IndiHome
+      "com.irs2goapp", // IRS2Go (US Tax)
+      "gov.irs", // IRS Official
+      "com.ssa.mobile.android.app", // Social Security (US)
+      "uk.gov.hmrc.ptcalc", // HMRC (UK Tax)
+  )
+
   override fun onAccessibilityEvent(event: AccessibilityEvent?) {
     if (event == null) return
+
+    // If banking mode is enabled, ignore all events
+    if (bankingModeEnabled) {
+      Log.d(TAG, "Banking mode enabled - ignoring accessibility events")
+      return
+    }
 
     if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
       val packageName = event.packageName?.toString() ?: return
@@ -113,6 +234,17 @@ class GameMonitorService : AccessibilityService() {
       lastPackageName = packageName
 
       Log.d(TAG, "Window changed: $packageName")
+
+      // PRIORITY 1: Banking apps - immediately disable overlay and stop monitoring
+      if (bankingPackages.contains(packageName)) {
+        Log.d(TAG, "Banking app detected: $packageName. Disabling overlay completely.")
+        stopJob?.cancel()
+        stopJob = null
+        stopGameOverlay()
+        // Optionally disable the accessibility service temporarily
+        disableServiceTemporarily()
+        return
+      }
 
       if (enabledGamePackages.contains(packageName)) {
         Log.d(TAG, "Game detected: $packageName. Ensuring Overlay is ON.")
@@ -147,6 +279,28 @@ class GameMonitorService : AccessibilityService() {
       }
     } catch (e: Exception) {
       Log.e(TAG, "Error collecting game list", e)
+    }
+  }
+
+  private suspend fun loadBankingMode() {
+    try {
+      preferencesManager.getBankingModeEnabled().collect { enabled ->
+        bankingModeEnabled = enabled
+        Log.d(TAG, "Banking mode: ${if (enabled) "ENABLED" else "DISABLED"}")
+        
+        // Update notification based on banking mode
+        if (enabled) {
+          val bankingNotification = createBankingModeNotification()
+          val notificationManager = getSystemService(NotificationManager::class.java)
+          notificationManager.notify(NOTIFICATION_ID, bankingNotification)
+        } else {
+          val normalNotification = createNotification()
+          val notificationManager = getSystemService(NotificationManager::class.java)
+          notificationManager.notify(NOTIFICATION_ID, normalNotification)
+        }
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "Error collecting banking mode", e)
     }
   }
 
@@ -193,6 +347,33 @@ class GameMonitorService : AccessibilityService() {
     } catch (e: Exception) {
       // Ignore if not running
       Log.e(TAG, "Failed to stop overlay service", e)
+    }
+  }
+
+  private fun disableServiceTemporarily() {
+    try {
+      // Send broadcast to temporarily disable the service
+      val intent = Intent("id.xms.xtrakernelmanager.BANKING_APP_DETECTED")
+      intent.setPackage(packageName)
+      sendBroadcast(intent)
+      
+      Log.d(TAG, "Banking app detected - service temporarily disabled")
+      
+      // Update notification to show banking mode
+      val bankingNotification = NotificationCompat.Builder(this, CHANNEL_ID)
+        .setContentTitle("XKM - Banking Mode")
+        .setContentText("Accessibility disabled for banking security")
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setOngoing(true)
+        .setSilent(true)
+        .build()
+      
+      val notificationManager = getSystemService(NotificationManager::class.java)
+      notificationManager.notify(NOTIFICATION_ID, bankingNotification)
+      
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to disable service temporarily", e)
     }
   }
 
