@@ -336,6 +336,7 @@ private fun LiquidSelectionDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                val dialogContentColor = LocalContentColor.current
                 items.forEach { item ->
                     val isSelected = item == currentValue
 
@@ -359,7 +360,8 @@ private fun LiquidSelectionDialog(
                             Text(
                                 text = item,
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else dialogContentColor
                             )
 
                             if (isSelected) {

@@ -1045,7 +1045,7 @@ internal fun FrequencySelectionDialog(
                         color = if (isSelected) 
                             MaterialTheme.colorScheme.onPrimaryContainer
                         else 
-                            MaterialTheme.colorScheme.onSurface,
+                            LocalContentColor.current,
                     )
                     Text(
                         text = stringResource(R.string.liquid_smart_lock_mhz),
@@ -1054,7 +1054,7 @@ internal fun FrequencySelectionDialog(
                         color = if (isSelected) 
                             MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                         else 
-                            MaterialTheme.colorScheme.onSurfaceVariant,
+                            LocalContentColor.current.copy(alpha = 0.7f),
                     )
                   }
                   
@@ -1175,7 +1175,7 @@ private fun GovernorSelectionLiquidDialog(
                     color = if (isSelected) 
                         MaterialTheme.colorScheme.onSecondaryContainer
                     else 
-                        MaterialTheme.colorScheme.onSurface,
+                        LocalContentColor.current,
                 )
 
                 if (isSelected) {

@@ -149,6 +149,7 @@ fun LiquidIOControl(viewModel: TuningViewModel) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    val dialogContentColor = LocalContentColor.current
                     ioSchedulers.forEach { scheduler ->
                         val isSelected = scheduler == currentIO
 
@@ -175,7 +176,8 @@ fun LiquidIOControl(viewModel: TuningViewModel) {
                                 Text(
                                     text = scheduler,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else dialogContentColor
                                 )
 
                                 if (isSelected) {

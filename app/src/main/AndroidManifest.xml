@@ -57,6 +57,10 @@
         <!-- Main Activity -->
         <activity android:name=".MainActivity" android:exported="false" android:label="" android:theme="@style/Theme.XtraKernelManager" android:windowSoftInputMode="adjustResize" />
 
+        <!-- Liquid Splash Activity -->
+        <activity android:name=".ui.splash.LiquidSplashActivity" android:exported="false" android:screenOrientation="portrait" android:theme="@style/Theme.XtraKernelManager.Splash" />
+
+
         <!-- Boot Receiver -->
         <receiver android:name=".receiver.BootReceiver" android:enabled="true" android:exported="true">
             <intent-filter>

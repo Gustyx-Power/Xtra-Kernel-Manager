@@ -124,6 +124,15 @@ class SplashActivity : ComponentActivity() {
               fetchUpdateConfig = { fetchUpdateConfig() },
               isUpdateAvailable = { c, r -> isUpdateAvailable(c, r) },
           )
+        } else if (layoutStyle == "liquid") {
+          // Liquid Layout uses LiquidSplashActivity
+          // We start the activity and finish this one
+          LaunchedEffect(Unit) {
+               val intent = Intent(context, LiquidSplashActivity::class.java)
+               context.startActivity(intent)
+               (context as? android.app.Activity)?.finish()
+               (context as? android.app.Activity)?.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+          }
         } else {
           // Legacy layout uses SplashScreenContent
           SplashScreenContent(onNavigateToMain = navigateToMain)

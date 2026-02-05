@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.runtime.CompositionLocalProvider
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
 /**
@@ -51,59 +52,67 @@ fun LiquidDialog(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 // Add semi-transparent background layer inside card for better text readability
+                val backgroundColor = if (isLightTheme) {
+                    Color(0xFFFAFAFA).copy(0.95f)
+                } else {
+                    Color(0xFF333333).copy(0.95f)
+                }
+
+                val contentColor = if (isLightTheme) {
+                    Color.Black
+                } else {
+                    Color.White
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            if (isLightTheme) {
-                                Color(0xFFFAFAFA).copy(0.6f)
-                            } else {
-                                Color(0xFF121212).copy(0.4f)
-                            }
-                        )
+                        .background(backgroundColor)
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                    // Title
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 24.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
-                    )
+                    CompositionLocalProvider(LocalContentColor provides contentColor) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Title
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 24.sp
+                                ),
+                                color = contentColor,
+                                modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
+                            )
 
-                    // Content
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp, 12.dp, 24.dp, 12.dp)
-                    ) {
-                        content()
-                    }
-
-                    // Action buttons
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp, 12.dp, 24.dp, 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Dismiss button (if provided)
-                        dismissButton?.let {
-                            Box(modifier = Modifier.weight(1f)) {
-                                it()
+                            // Content
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp, 12.dp, 24.dp, 12.dp)
+                            ) {
+                                content()
                             }
-                        }
 
-                        // Confirm button
-                        Box(modifier = Modifier.weight(1f)) {
-                            confirmButton()
-                        }
+                            // Action buttons
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp, 12.dp, 24.dp, 24.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Dismiss button (if provided)
+                                dismissButton?.let {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        it()
+                                    }
+                                }
+
+                                // Confirm button
+                                Box(modifier = Modifier.weight(1f)) {
+                                    confirmButton()
+                                }
+                            }
                         }
                     }
                 }
@@ -145,54 +154,62 @@ fun LiquidDialog(
                 contentPadding = PaddingValues(0.dp)
             ) {
                 // Add semi-transparent background layer inside card for better text readability
+                val backgroundColor = if (isLightTheme) {
+                    Color(0xFFFAFAFA).copy(0.95f)
+                } else {
+                    Color(0xFF333333).copy(0.95f)
+                }
+
+                val contentColor = if (isLightTheme) {
+                    Color.Black
+                } else {
+                    Color.White
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(
-                            if (isLightTheme) {
-                                Color(0xFFFAFAFA).copy(0.6f)
-                            } else {
-                                Color(0xFF121212).copy(0.4f)
-                            }
-                        )
+                        .background(backgroundColor)
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // Title
-                        Box(
-                            modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
-                        ) {
-                            title()
-                        }
-
-                        // Content
+                    CompositionLocalProvider(LocalContentColor provides contentColor) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp, 12.dp, 24.dp, 12.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            content()
-                        }
-
-                        // Action buttons
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp, 12.dp, 24.dp, 24.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // Dismiss button (if provided)
-                            dismissButton?.let {
-                                Box(modifier = Modifier.weight(1f)) {
-                                    it()
-                                }
+                            // Title
+                            Box(
+                                modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
+                            ) {
+                                title()
                             }
 
-                            // Confirm button
-                            Box(modifier = Modifier.weight(1f)) {
-                                confirmButton()
+                            // Content
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp, 12.dp, 24.dp, 12.dp)
+                            ) {
+                                content()
+                            }
+
+                            // Action buttons
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp, 12.dp, 24.dp, 24.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Dismiss button (if provided)
+                                dismissButton?.let {
+                                    Box(modifier = Modifier.weight(1f)) {
+                                        it()
+                                    }
+                                }
+
+                                // Confirm button
+                                Box(modifier = Modifier.weight(1f)) {
+                                    confirmButton()
+                                }
                             }
                         }
                     }
@@ -222,7 +239,7 @@ fun LiquidDialogButton(
     val textColor = if (isPrimary) {
         MaterialTheme.colorScheme.onPrimary
     } else {
-        MaterialTheme.colorScheme.onSurface
+        LocalContentColor.current
     }
 
     Box(

@@ -145,6 +145,7 @@ fun AddProfileDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             items(filteredApps) { app ->
+                                val dialogContentColor = LocalContentColor.current
                                 Card(
                                     modifier = Modifier.fillMaxWidth().clickable { selectedApp = app },
                                     colors = CardDefaults.cardColors(
@@ -192,17 +193,17 @@ fun AddProfileDialog(
                                             }
                                         }
                                         Column(modifier = Modifier.weight(1f)) {
-                                            Text(app.second, fontWeight = FontWeight.Medium)
+                                            Text(app.second, fontWeight = FontWeight.Medium, color = dialogContentColor)
                                             Text(
                                                 app.first,
                                                 style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                color = dialogContentColor.copy(alpha = 0.7f),
                                             )
                                         }
                                         Icon(
                                             Icons.Default.ChevronRight,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            tint = dialogContentColor,
                                         )
                                     }
                                 }
@@ -558,6 +559,8 @@ private fun RefreshRateChip(
         animationSpec = tween(200),
         label = "bg_color",
     )
+    
+    val parentContentColor = LocalContentColor.current
 
     val borderColor by animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.primary
@@ -594,7 +597,7 @@ private fun RefreshRateChip(
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                else MaterialTheme.colorScheme.onSurfaceVariant,
+                else parentContentColor,
                 textAlign = TextAlign.Center,
             )
         }
