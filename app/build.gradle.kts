@@ -8,6 +8,7 @@ import org.apache.http.util.EntityUtils
 import java.util.Date
 import java.text.SimpleDateFormat
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
+import java.io.ByteArrayOutputStream
 
 plugins {
     id("com.android.application")
@@ -32,7 +33,7 @@ android {
         minSdk = 29
         targetSdk = 36
         versionCode = 2
-        versionName = "3.0-Dev" // dev  = debug release = stable version
+        versionName = "3.0"
 
         // Build Parsing
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
@@ -55,8 +56,12 @@ android {
 
     buildTypes {
         debug {
+            val gitHash = providers.exec {
+                commandLine("git", "rev-parse", "--short", "HEAD")
+            }.standardOutput.asText.get().trim()
+
             applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
+            versionNameSuffix = "-dev-$gitHash"
         }
         release {
             isMinifyEnabled = true

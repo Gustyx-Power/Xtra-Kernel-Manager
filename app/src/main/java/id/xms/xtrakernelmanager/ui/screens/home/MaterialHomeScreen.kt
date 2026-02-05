@@ -104,7 +104,7 @@ fun MaterialHomeScreen(
                     // CPU & Temperature Tiles Row (matching Liquid layout)
                     StaggeredEntry(delayMillis = 200) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                            modifier = Modifier.fillMaxWidth().height(170.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                         ) {
                             // CPU Tile
