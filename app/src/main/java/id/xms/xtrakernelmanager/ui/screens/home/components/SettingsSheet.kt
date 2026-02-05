@@ -24,19 +24,27 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
+import id.xms.xtrakernelmanager.ui.components.CompactMorphingSwitcher
 import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit) {
   val scope = rememberCoroutineScope()
+  val haptic = LocalHapticFeedback.current
   val currentLayout by preferencesManager.getLayoutStyle().collectAsState(initial = "material")
+  val isLayoutSwitching by preferencesManager.isLayoutSwitching().collectAsState(initial = false)
 
   Column(
       modifier = Modifier.fillMaxWidth().padding(24.dp),
@@ -74,7 +82,7 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
 
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
-    // Layout Selection
+    // Layout Selection with Morphing Animation
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
       Text(
           text = stringResource(id.xms.xtrakernelmanager.R.string.settings_layout_style),
@@ -89,7 +97,14 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
             description = "Modern & Clean",
             isSelected = currentLayout == "material",
             modifier = Modifier.weight(1f),
-            onClick = { scope.launch { preferencesManager.setLayoutStyle("material") } },
+            onClick = { 
+              android.util.Log.d("SettingsSheet", "Switching to Material layout")
+              haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+              scope.launch { 
+                preferencesManager.setLayoutStyle("material") 
+              } 
+            },
+            enabled = !isLayoutSwitching
         )
 
         LayoutOptionCard(
@@ -97,9 +112,24 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
             description = "Glass inspired by iOS 26",
             isSelected = currentLayout == "liquid",
             modifier = Modifier.weight(1f),
-            onClick = { scope.launch { preferencesManager.setLayoutStyle("liquid") } },
+            onClick = { 
+              android.util.Log.d("SettingsSheet", "Switching to Liquid layout")
+              haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+              scope.launch { 
+                preferencesManager.setLayoutStyle("liquid") 
+              } 
+            },
+            enabled = !isLayoutSwitching
         )
       }
+      
+      // Compact morphing switcher - simple display
+      val targetLayoutName = if (currentLayout == "liquid") "Liquid Glass" else "Material"
+      CompactMorphingSwitcher(
+          isLoading = isLayoutSwitching,
+          targetLayout = targetLayoutName,
+          modifier = Modifier.fillMaxWidth()
+      )
     }
 
     Spacer(modifier = Modifier.height(16.dp))
@@ -112,6 +142,7 @@ fun LayoutOptionCard(
     description: String,
     isSelected: Boolean,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
   val containerColor =
@@ -122,9 +153,9 @@ fun LayoutOptionCard(
       else MaterialTheme.colorScheme.onSurface
 
   Surface(
-      onClick = onClick,
+      onClick = if (enabled) onClick else { {} },
       shape = RoundedCornerShape(16.dp),
-      color = containerColor,
+      color = containerColor.copy(alpha = if (enabled) 1f else 0.6f),
       modifier = modifier,
   ) {
     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -137,13 +168,13 @@ fun LayoutOptionCard(
             text = title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = contentColor,
+            color = contentColor.copy(alpha = if (enabled) 1f else 0.6f),
         )
         if (isSelected) {
           Icon(
               imageVector = Icons.Default.Check,
               contentDescription = null,
-              tint = contentColor,
+              tint = contentColor.copy(alpha = if (enabled) 1f else 0.6f),
               modifier = Modifier.size(20.dp),
           )
         }
@@ -151,7 +182,7 @@ fun LayoutOptionCard(
       Text(
           text = description,
           style = MaterialTheme.typography.bodySmall,
-          color = contentColor.copy(alpha = 0.7f),
+          color = contentColor.copy(alpha = if (enabled) 0.7f else 0.4f),
       )
     }
   }

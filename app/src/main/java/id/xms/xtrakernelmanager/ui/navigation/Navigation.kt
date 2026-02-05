@@ -54,8 +54,10 @@ import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.CompositionLocalProvider
 
 @Composable
@@ -71,6 +73,13 @@ fun Navigation(preferencesManager: PreferencesManager) {
   var hasCheckedHoliday by remember { mutableStateOf(false) }
   val currentYear = HolidayChecker.getCurrentYear()
   val currentHijriYear = HolidayChecker.getCurrentHijriYear()
+  
+  // Layout switching state
+  var showLayoutSwitchToast by remember { mutableStateOf(false) }
+  var layoutSwitchMessage by remember { mutableStateOf("") }
+  
+  // Timeout mechanism for layout switching
+  var layoutSwitchingStartTime by remember { mutableStateOf(0L) }
 
   // Collect holiday shown years from preferences
   val christmasShownYear by preferencesManager.getChristmasShownYear().collectAsState(initial = 0)
@@ -155,6 +164,39 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
   val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
+  val isLayoutSwitching by preferencesManager.isLayoutSwitching().collectAsState(initial = false)
+  
+  // Track layout switching completion
+  var previousLayoutSwitching by remember { mutableStateOf(false) }
+  
+  LaunchedEffect(isLayoutSwitching) {
+    if (isLayoutSwitching && !previousLayoutSwitching) {
+      // Layout switching just started - record start time
+      layoutSwitchingStartTime = System.currentTimeMillis()
+    } else if (previousLayoutSwitching && !isLayoutSwitching) {
+      // Layout switching just completed
+      val layoutName = if (layoutStyle == "liquid") "Liquid Glass" else "Material"
+      layoutSwitchMessage = "Successfully switched to $layoutName layout!"
+      showLayoutSwitchToast = true
+      layoutSwitchingStartTime = 0L
+    }
+    previousLayoutSwitching = isLayoutSwitching
+  }
+  
+  // Timeout mechanism - reset loading state if stuck for more than 5 seconds
+  LaunchedEffect(isLayoutSwitching, layoutSwitchingStartTime) {
+    if (isLayoutSwitching && layoutSwitchingStartTime > 0L) {
+      kotlinx.coroutines.delay(5000) // Wait 5 seconds
+      if (System.currentTimeMillis() - layoutSwitchingStartTime > 5000) {
+        // Force reset if still loading after 5 seconds
+        android.util.Log.w("Navigation", "Layout switching timeout - forcing reset")
+        preferencesManager.resetLayoutSwitching()
+        layoutSwitchMessage = "Layout switching completed"
+        showLayoutSwitchToast = true
+        layoutSwitchingStartTime = 0L
+      }
+    }
+  }
 
   Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
@@ -178,7 +220,9 @@ fun Navigation(preferencesManager: PreferencesManager) {
               }
           )
         }
-        composable("home") { HomeScreen(preferencesManager = preferencesManager) }
+        composable("home") { 
+          HomeScreen(preferencesManager = preferencesManager) 
+        }
         composable("tuning") {
           TuningScreen(
               preferencesManager = preferencesManager,
@@ -317,6 +361,42 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
         composable("info") { InfoScreen(preferencesManager) }
       }
+    }
+
+    // Morphing layout switcher
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.BottomCenter)
+            .padding(horizontal = 16.dp)
+            .padding(bottom = if (layoutStyle == "liquid") 120.dp else 180.dp)
+    ) {
+      // Simple target layout name
+      val targetLayoutName = if (layoutStyle == "liquid") "Liquid Glass" else "Material"
+      id.xms.xtrakernelmanager.ui.components.MorphingLayoutSwitcher(
+          isLoading = isLayoutSwitching,
+          targetLayout = targetLayoutName,
+          onComplete = {
+            layoutSwitchMessage = "Successfully switched to $targetLayoutName layout!"
+            showLayoutSwitchToast = true
+          }
+      )
+    }
+    
+    // Layout switch success toast
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.TopCenter)
+    ) {
+      id.xms.xtrakernelmanager.ui.components.LayoutSwitchToast(
+          message = layoutSwitchMessage,
+          isVisible = showLayoutSwitchToast,
+          onDismiss = { 
+            showLayoutSwitchToast = false
+            layoutSwitchMessage = ""
+          }
+      )
     }
 
     // Floating Bottom Dock

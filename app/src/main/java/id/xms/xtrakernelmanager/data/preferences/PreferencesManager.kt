@@ -124,6 +124,9 @@ class PreferencesManager(private val context: Context) {
 
   // Layout style (liquid = glassmorphic, material = pure M3)
   private val LAYOUT_STYLE = stringPreferencesKey("layout_style")
+  
+  // Layout switching loading state
+  private val LAYOUT_SWITCHING = booleanPreferencesKey("layout_switching")
 
   // GPU Lock State preferences
   private val GPU_FREQUENCY_LOCKED = booleanPreferencesKey("gpu_frequency_locked")
@@ -461,11 +464,60 @@ class PreferencesManager(private val context: Context) {
 
   // Layout Style Functions
   suspend fun setLayoutStyle(style: String) {
-    context.dataStore.edit { prefs -> prefs[LAYOUT_STYLE] = style }
+    android.util.Log.d("PreferencesManager", "Starting layout switch to: $style")
+    
+    try {
+      // Set switching state to true first
+      context.dataStore.edit { prefs -> 
+        prefs[LAYOUT_SWITCHING] = true
+      }
+      android.util.Log.d("PreferencesManager", "Layout switching state set to true")
+      
+      // Small delay to ensure UI updates
+      kotlinx.coroutines.delay(100)
+      
+      // Update the layout style
+      context.dataStore.edit { prefs -> 
+        prefs[LAYOUT_STYLE] = style 
+      }
+      android.util.Log.d("PreferencesManager", "Layout style updated to: $style")
+      
+      // Simulate loading time for layout switching
+      kotlinx.coroutines.delay(1500)
+      android.util.Log.d("PreferencesManager", "Layout switching delay completed")
+      
+    } catch (e: Exception) {
+      // Log error but continue to reset loading state
+      android.util.Log.e("PreferencesManager", "Error setting layout style: ${e.message}", e)
+    } finally {
+      // Always set switching state to false, even if there's an error
+      try {
+        context.dataStore.edit { prefs -> 
+          prefs[LAYOUT_SWITCHING] = false 
+        }
+        android.util.Log.d("PreferencesManager", "Layout switching state set to false")
+      } catch (e: Exception) {
+        android.util.Log.e("PreferencesManager", "Error resetting layout switching state: ${e.message}", e)
+      }
+    }
   }
 
   fun getLayoutStyle(): Flow<String> =
       context.dataStore.data.map { prefs -> prefs[LAYOUT_STYLE] ?: "liquid" }
+      
+  fun isLayoutSwitching(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[LAYOUT_SWITCHING] ?: false }
+      
+  // Emergency function to reset layout switching state
+  suspend fun resetLayoutSwitching() {
+    try {
+      context.dataStore.edit { prefs -> 
+        prefs[LAYOUT_SWITCHING] = false 
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("PreferencesManager", "Error resetting layout switching: ${e.message}")
+    }
+  }
 
   // Holiday Celebration Functions
   suspend fun setChristmasShownYear(year: Int) {

@@ -90,7 +90,7 @@ fun HomeScreen(
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
 
-        val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = null)
+        val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
 
         // Data State
         val cpuInfo by viewModel.cpuInfo.collectAsState()
@@ -154,7 +154,8 @@ fun HomeScreen(
                 }
         }
 
-        if (layoutStyle == null) {
+        if (layoutStyle.isEmpty()) {
+                // Show loading screen
                 Box(
                         modifier =
                                 Modifier.fillMaxSize()
