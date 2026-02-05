@@ -612,7 +612,7 @@
     <string name="game_control_grant_overlay">Grant Overlay Permission (Required)</string>
 
     <string name="game_monitor_service_label">XKM Game Monitor</string>
-    <string name="accessibility_service_description">Automatically detects game launches to show the XKM performance overlay.</string>
+    <string name="accessibility_service_description">Automatically detects game launches to show the XKM performance overlay. This service only monitors window changes and does not access sensitive data or keyboard input.</string>
 
     <!-- Display Settings -->
     <string name="display_settings">Display Settings</string>
@@ -1331,4 +1331,17 @@
     <string name="per_app_all_apps">All Applications</string>
     <string name="per_app_performance_profile">Performance Profile</string>
     <string name="per_app_refresh_rate">Refresh Rate</string>
+
+    <!-- Service Descriptions for Play Protect -->
+    <string name="game_overlay_service_description">Provides gaming performance overlay and controls during gameplay for enhanced gaming experience</string>
+    <string name="floating_window_service_description">Floating window service for quick app access during gaming sessions</string>
+    <string name="battery_service_description">Battery monitoring and statistics tracking service for device health optimization</string>
+    <string name="app_profile_service_description">Per-app profile monitoring service for automatic performance settings adjustment</string>
+
+    <!-- Banking Mode Strings -->
+    <string name="banking_mode_title">Banking Mode</string>
+    <string name="banking_mode_description">Disable accessibility service when banking apps are detected</string>
+    <string name="banking_mode_enabled_desc">Accessibility service disabled for banking security</string>
+    <string name="banking_mode_disabled_desc">Normal operation mode</string>
+    <string name="banking_mode_warning">⚠️ Game overlay and accessibility features are disabled to prevent banking app detection</string>
 </resources>

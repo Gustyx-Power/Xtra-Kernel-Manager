@@ -1173,4 +1173,17 @@
     <string name="per_app_all_apps">Semua Aplikasi</string>
     <string name="per_app_performance_profile">Profil Performa</string>
     <string name="per_app_refresh_rate">Refresh Rate</string>
+
+    <!-- Service Descriptions for Play Protect -->
+    <string name="game_overlay_service_description">Menyediakan overlay performa gaming dan kontrol selama bermain game untuk pengalaman gaming yang lebih baik</string>
+    <string name="floating_window_service_description">Layanan jendela mengambang untuk akses aplikasi cepat selama sesi gaming</string>
+    <string name="battery_service_description">Layanan pemantauan baterai dan pelacakan statistik untuk optimasi kesehatan perangkat</string>
+    <string name="app_profile_service_description">Layanan pemantauan profil per-aplikasi untuk penyesuaian pengaturan performa otomatis</string>
+
+    <!-- Banking Mode Strings -->
+    <string name="banking_mode_title">Mode Perbankan</string>
+    <string name="banking_mode_description">Nonaktifkan layanan aksesibilitas saat aplikasi perbankan terdeteksi</string>
+    <string name="banking_mode_enabled_desc">Layanan aksesibilitas dinonaktifkan untuk keamanan perbankan</string>
+    <string name="banking_mode_disabled_desc">Mode operasi normal</string>
+    <string name="banking_mode_warning">⚠️ Overlay game dan fitur aksesibilitas dinonaktifkan untuk mencegah deteksi aplikasi perbankan</string>
 </resources>

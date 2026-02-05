@@ -375,4 +375,22 @@
     <string name="initializing_kernel_modules">Initializing kernel modules…</string>
     <string name="advanced_kernel_control">Advanced Kernel Control</string>
 
+    <!-- Service Descriptions for Play Protect -->
+    <string name="game_overlay_service_description">Обеспечивает игровой оверлей производительности и элементы управления во время игры для улучшенного игрового опыта</string>
+    <string name="floating_window_service_description">Служба плавающего окна для быстрого доступа к приложениям во время игровых сессий</string>
+    <string name="battery_service_description">Служба мониторинга батареи и отслеживания статистики для оптимизации здоровья устройства</string>
+    <string name="app_profile_service_description">Служба мониторинга профилей для каждого приложения для автоматической настройки параметров производительности</string>
+
+    <!-- Settings Strings -->
+    <string name="settings_quick_settings">Быстрые настройки</string>
+    <string name="settings_customize_experience">Настройте свой опыт</string>
+    <string name="settings_layout_style">Стиль макета</string>
+
+    <!-- Banking Mode Strings -->
+    <string name="banking_mode_title">Банковский режим</string>
+    <string name="banking_mode_description">Отключить службу доступности при обнаружении банковских приложений</string>
+    <string name="banking_mode_enabled_desc">Служба доступности отключена для безопасности банковских операций</string>
+    <string name="banking_mode_disabled_desc">Обычный режим работы</string>
+    <string name="banking_mode_warning">⚠️ Игровой оверлей и функции доступности отключены для предотвращения обнаружения банковскими приложениями</string>
+
 </resources>
