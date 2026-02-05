@@ -6,7 +6,6 @@ import android.util.Log
 import id.xms.xtrakernelmanager.data.model.AppBatteryStats
 import id.xms.xtrakernelmanager.data.model.BatteryUsageType
 import id.xms.xtrakernelmanager.domain.root.RootManager
-import java.util.regex.Pattern
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -22,94 +21,80 @@ object AppBatteryRepository {
         val statsList = mutableListOf<AppBatteryStats>()
         val packageManager = context.packageManager
 
-        // Parse "Estimated power use (mAh):" section
-        // Example line: "    Uid 1000: 20.5 (10%)"
-        // Example line: "    Uid u0a123: 5.0 (2%)"
-
         val lines = output.lines()
         var isInPowerSection = false
-        val powerLineRegex =
-            Pattern.compile(
-                "\\s+Uid\\s+(\\S+):\\s+([\\d.]+)\\s+\\(.+\\)"
-            ) // Matches "Uid <uid>: <mah>" but simpler logic below might be safer
-
-        // Simpler parsing strategy: locate "Estimated power use" and read following lines until
-        // indentation changes or section ends
+        var totalDrain = 0.0
 
         for (line in lines) {
+          val trimmed = line.trim()
+          
           if (line.contains("Estimated power use (mAh):")) {
             isInPowerSection = true
             continue
           }
 
           if (isInPowerSection) {
-            if (line.isBlank()) continue
-            // Stop if section ends (usually next section starts with non-indented or specific
-            // headers)
-            // But dumpsys structure varies. Let's look for "Uid" lines specifically within this
-            // block.
+            if (trimmed.startsWith("Capacity:")) {
+               val computedMatch = Regex("Computed drain: ([\\d.]+)").find(trimmed)
+               if (computedMatch != null) {
+                   totalDrain = computedMatch.groupValues[1].toDoubleOrNull() ?: 0.0
+               }
+               continue
+            }
 
-            val trimmed = line.trim()
-            if (trimmed.startsWith("Capacity:") || trimmed.startsWith("Global")) continue
+            if (trimmed.startsWith("UID ", ignoreCase = true) || trimmed.startsWith("Uid ", ignoreCase = true)) {
+                try {
+                    val parts = trimmed.split(":")
+                    if (parts.size >= 2) {
+                        val uidStr = parts[0].substringAfter(" ").trim()
+                        val valPart = parts[1].trim().split(" ")[0]
+                        val mah = valPart.toDoubleOrNull() ?: 0.0
+                        
+                        var percent = 0.0
+                        if (trimmed.contains("%)")) {
+                            val percentMatch = Regex("\\(([\\d.]+)%\\)").find(trimmed)
+                            if (percentMatch != null) {
+                                percent = percentMatch.groupValues[1].toDoubleOrNull() ?: 0.0
+                            }
+                        }
+                        
+                        if (percent == 0.0 && totalDrain > 0) {
+                            percent = (mah / totalDrain) * 100.0
+                        }
 
-            // If line doesn't start with space, we might be out of section?
-            // dumpsys output is nested.
-            // Safeguard: only process lines containing "Uid "
+                        if (mah > 0) {
+                            val realUid = parseUid(uidStr)
+                            val (appName, pkgName, icon, type) = resolveUid(packageManager, realUid)
 
-            if (trimmed.startsWith("Uid ")) {
-              try {
-                // Format: "Uid u0a196: 5.17 (3.5%)" or "Uid 0: 10.5 (10%)"
-                // Split by colon
-                val parts = trimmed.split(":")
-                if (parts.size >= 2) {
-                  val uidPart = parts[0].trim().replace("Uid ", "")
-                  val valPart = parts[1].trim() // "5.17 (3.5%)"
-
-                  // Extract percent
-                  val percentStart = valPart.lastIndexOf("(")
-                  val percentEnd = valPart.lastIndexOf("%)")
-
-                  if (percentStart != -1 && percentEnd != -1 && percentEnd > percentStart) {
-                    var percentStr = valPart.substring(percentStart + 1, percentEnd)
-                    // Sometimes it might be "(0.1%)" -> "0.1"
-                    val percent = percentStr.toDoubleOrNull() ?: 0.0
-
-                    // Parse UID
-                    // u0a196 -> needs conversion to int if possible, or mapping
-                    // u0a196 is user 0 app 196 -> 10196
-                    val realUid = parseUid(uidPart)
-
-                    val (appName, pkgName, icon, type) = resolveUid(packageManager, realUid)
-
-                    if (percent > 0.0) { // Filter 0%
-                      statsList.add(
-                          AppBatteryStats(
-                              uid = realUid,
-                              packageName = pkgName,
-                              appName = appName,
-                              icon = icon,
-                              percent = percent,
-                              usageType = type,
-                          )
-                      )
+                            statsList.add(
+                                AppBatteryStats(
+                                    uid = realUid,
+                                    packageName = pkgName,
+                                    appName = appName,
+                                    icon = icon,
+                                    percent = percent,
+                                    usageType = type,
+                                )
+                            )
+                        }
                     }
-                  }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to parse line: $line", e)
                 }
-              } catch (e: Exception) {
-                Log.e(TAG, "Failed to parse line: $line", e)
-              }
+            } else if (trimmed.isNotEmpty() && !trimmed.startsWith("Capacity:") && !trimmed.startsWith("Global") && !trimmed.startsWith("screen:") && !trimmed.startsWith("(")) {
+                 if (line.startsWith("  Per-app") || line.startsWith("  All partial")) {
+                     isInPowerSection = false
+                 }
             }
           }
         }
 
-        // Sort by percent descending
         statsList.sortedByDescending { it.percent }
       }
 
   private fun parseUid(uidStr: String): Int {
     return try {
       if (uidStr.startsWith("u0a")) {
-        // u0a123 -> 10000 + 123 = 10123
         val appId = uidStr.substring(3).toInt()
         10000 + appId
       } else {
@@ -123,18 +108,17 @@ object AppBatteryRepository {
   private fun resolveUid(pm: PackageManager, uid: Int): PkgInfo {
     if (uid == -1) return PkgInfo("Unknown", null, null, BatteryUsageType.SYSTEM)
 
-    // System UIDs
     if (uid == 1000) return PkgInfo("Android System", "android", null, BatteryUsageType.SYSTEM)
+    if (uid == 0) return PkgInfo("Root / Kernel", "root", null, BatteryUsageType.SYSTEM)
     if (uid < 10000) {
-      // Try to get name for system uid
-      val name = pm.getNameForUid(uid) ?: "System ($uid)"
+      val name = try { pm.getNameForUid(uid) } catch(e: Exception) { null } ?: "System ($uid)"
       return PkgInfo(name, name, null, BatteryUsageType.SYSTEM)
     }
 
     return try {
       val packages = pm.getPackagesForUid(uid)
       if (!packages.isNullOrEmpty()) {
-        val pkgName = packages[0] // take first
+        val pkgName = packages[0]
         val appInfo = pm.getApplicationInfo(pkgName, 0)
         val appName = pm.getApplicationLabel(appInfo).toString()
         val icon = pm.getApplicationIcon(appInfo)
