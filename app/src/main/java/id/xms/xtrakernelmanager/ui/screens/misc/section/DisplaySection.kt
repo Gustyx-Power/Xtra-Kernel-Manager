@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,8 +28,16 @@ fun DisplaySection(viewModel: MiscViewModel) {
   val isRootAvailable by viewModel.isRootAvailable.collectAsState()
   val applyStatus by viewModel.saturationApplyStatus.collectAsState()
 
-  // Local slider state for smooth interaction
-  var sliderValue by remember(currentSaturation) { mutableFloatStateOf(currentSaturation) }
+  // Local slider state for smooth interaction - use rememberSaveable to persist across recompositions
+  var sliderValue by rememberSaveable { mutableFloatStateOf(currentSaturation) }
+  var isUserInteracting by remember { mutableStateOf(false) }
+
+  // Update slider value only when not interacting and value actually changed
+  LaunchedEffect(currentSaturation) {
+    if (!isUserInteracting && kotlin.math.abs(sliderValue - currentSaturation) > 0.01f) {
+      sliderValue = currentSaturation
+    }
+  }
 
   val presets = remember {
     listOf(
@@ -112,8 +121,14 @@ fun DisplaySection(viewModel: MiscViewModel) {
       // Saturation slider
       Slider(
           value = sliderValue,
-          onValueChange = { sliderValue = it },
-          onValueChangeFinished = { viewModel.setDisplaySaturation(sliderValue) },
+          onValueChange = { 
+            isUserInteracting = true
+            sliderValue = it 
+          },
+          onValueChangeFinished = { 
+            viewModel.setDisplaySaturation(sliderValue)
+            isUserInteracting = false
+          },
           valueRange = 0.5f..2.0f,
           steps = 29, // 0.05 increments
           enabled = isRootAvailable,
@@ -179,8 +194,10 @@ fun DisplaySection(viewModel: MiscViewModel) {
                       .clip(RoundedCornerShape(10.dp))
                       .background(backgroundColor)
                       .clickable(enabled = isRootAvailable) {
+                        isUserInteracting = true
                         sliderValue = preset.value
                         viewModel.setDisplaySaturation(preset.value)
+                        isUserInteracting = false
                       }
                       .padding(vertical = 10.dp, horizontal = 8.dp),
               contentAlignment = Alignment.Center,
