@@ -35,7 +35,6 @@ import java.util.Locale
 import kotlinx.coroutines.delay
 import org.json.JSONArray
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (String) -> Unit = {}) {
   val context = LocalContext.current
@@ -47,6 +46,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
   var showPerAppProfile by remember { mutableStateOf(false) }
   var showCurrentSession by rememberSaveable { mutableStateOf(false) }
   var showGameMonitor by rememberSaveable { mutableStateOf(false) }
+  var showHideAccessibilitySettings by remember { mutableStateOf(false) }
 
   when {
     showBatterySettings ->
@@ -82,6 +82,10 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
         )
     showPerAppProfile ->
         MaterialPerAppProfileScreen(viewModel = viewModel, onBack = { showPerAppProfile = false })
+    showHideAccessibilitySettings ->
+        id.xms.xtrakernelmanager.ui.screens.misc.components.HideAccessibilitySettingsScreen(
+            onNavigateBack = { showHideAccessibilitySettings = false }
+        )
     else ->
         MaterialMiscScreenContent(
             viewModel,
@@ -91,6 +95,7 @@ fun MaterialMiscScreen(viewModel: MiscViewModel = viewModel(), onNavigate: (Stri
             onGameSpaceClick = { showGameSpace = true },
             onPerAppProfileClick = { showPerAppProfile = true },
             onFunctionalRomClick = { onNavigate("functionalrom") },
+            onHideAccessibilityClick = { showHideAccessibilitySettings = true },
         )
   }
 }
@@ -104,6 +109,7 @@ fun MaterialMiscScreenContent(
     onGameSpaceClick: () -> Unit,
     onPerAppProfileClick: () -> Unit,
     onFunctionalRomClick: () -> Unit = {},
+    onHideAccessibilityClick: () -> Unit = {},
 ) {
   val context = LocalContext.current
   val batteryInfo by viewModel.batteryInfo.collectAsState()
@@ -198,6 +204,13 @@ fun MaterialMiscScreenContent(
       // 7. Functional ROM (VIP Feature - Moved to bottom)
       item(span = StaggeredGridItemSpan.FullLine) {
         StaggeredEntry(delayMillis = 400) { FunctionalRomCard(onClick = onFunctionalRomClick) }
+      }
+      
+      // 8. Hide Accessibility (Banking Hidden Mode - Xposed)
+      item(span = StaggeredGridItemSpan.FullLine) {
+        StaggeredEntry(delayMillis = 450) { 
+          HideAccessibilityCard(viewModel = viewModel, onClick = onHideAccessibilityClick) 
+        }
       }
     }
   }
@@ -825,6 +838,69 @@ fun PerAppProfileCard(onClick: () -> Unit) {
           text = "Custom",
           containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
           contentColor = MaterialTheme.colorScheme.primary,
+      )
+    }
+  }
+}
+
+@Composable
+fun HideAccessibilityCard(viewModel: MiscViewModel, onClick: () -> Unit = {}) {
+  val hideAccessibilityEnabled by viewModel.hideAccessibilityEnabled.collectAsState()
+  val lsposedActive by viewModel.lsposedModuleActive.collectAsState()
+  
+  Card(
+      onClick = onClick,
+      modifier = Modifier.fillMaxWidth().height(80.dp),
+      shape = RoundedCornerShape(20.dp),
+      colors = CardDefaults.cardColors(
+          containerColor = if (lsposedActive) 
+              MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+          else
+              MaterialTheme.colorScheme.surfaceContainerHigh
+      ),
+  ) {
+    Row(
+        modifier = Modifier.padding(16.dp).fillMaxSize(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+            Icons.Rounded.VisibilityOff,
+            contentDescription = null,
+            modifier = Modifier.size(32.dp)
+                .background(
+                    if (lsposedActive) 
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    else
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                    RoundedCornerShape(8.dp),
+                )
+                .padding(4.dp),
+            tint = if (lsposedActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Column {
+          Text(
+              "Hide Accessibility",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSurface,
+          )
+          Text(
+              "Configure per-app hiding",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+          )
+        }
+      }
+      StatusBadge(
+          text = if (hideAccessibilityEnabled) "Enabled" else "Disabled",
+          containerColor = if (hideAccessibilityEnabled) 
+              Color(0xFF34C759).copy(alpha = 0.1f)
+          else
+              MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+          contentColor = if (hideAccessibilityEnabled) Color(0xFF34C759) else MaterialTheme.colorScheme.onSurface,
       )
     }
   }

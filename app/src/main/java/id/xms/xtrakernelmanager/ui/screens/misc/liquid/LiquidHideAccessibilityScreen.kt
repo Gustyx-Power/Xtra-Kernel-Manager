@@ -2,10 +2,8 @@ package id.xms.xtrakernelmanager.ui.screens.misc.liquid
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -80,7 +78,6 @@ fun LiquidHideAccessibilityScreen(
     
     // Statistics
     val selectedCount = apps.count { it.isSelected }
-    val bankingCount = apps.count { it.isBankingApp }
     
     Box(modifier = Modifier.fillMaxSize()) {
         // Background decoration
@@ -89,20 +86,20 @@ fun LiquidHideAccessibilityScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             
-            // Header with back button and stats
-            LiquidHideAccessibilityHeader(
+            // Compact Header
+            LiquidCompactHeader(
                 onNavigateBack = onNavigateBack,
                 selectedCount = selectedCount,
                 totalCount = apps.size
             )
             
-            // Enable/Disable Card with better design
-            LiquidToggleCard(
+            // Toggle with LiquidToggle
+            LiquidToggleSection(
                 enabled = isEnabled,
                 onToggle = { enabled ->
                     isEnabled = enabled
@@ -113,33 +110,33 @@ fun LiquidHideAccessibilityScreen(
                 }
             )
             
-            // Instructions Card with better layout
-            LiquidInstructionsCard()
+            // Compact Instructions
+            LiquidCompactInstructions()
             
-            // Stats Card
-            if (!isLoading) {
-                LiquidStatsCard(
-                    selectedCount = selectedCount,
-                    bankingCount = bankingCount,
-                    totalCount = apps.size
-                )
-            }
-            
-            // Search Card
-            LiquidSearchCard(
+            // Search
+            LiquidCompactSearch(
                 searchQuery = searchQuery,
                 onSearchChange = { searchQuery = it }
             )
             
-            // Apps List with better loading state
+            // Apps List
             if (isLoading) {
-                LiquidLoadingCard()
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color.White.copy(alpha = 0.8f),
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(filteredApps) { app ->
-                        LiquidAppSelectionItem(
+                        LiquidCompactAppItem(
                             app = app,
                             onToggle = { packageName, selected ->
                                 apps = apps.map { 
@@ -163,7 +160,7 @@ fun LiquidHideAccessibilityScreen(
                     
                     // Bottom spacing
                     item {
-                        Spacer(modifier = Modifier.height(100.dp))
+                        Spacer(modifier = Modifier.height(80.dp))
                     }
                 }
             }
@@ -172,41 +169,38 @@ fun LiquidHideAccessibilityScreen(
 }
 
 @Composable
-private fun LiquidHideAccessibilityHeader(
+private fun LiquidCompactHeader(
     onNavigateBack: () -> Unit,
     selectedCount: Int,
     totalCount: Int
 ) {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        contentPadding = PaddingValues(0.dp)
+        contentPadding = PaddingValues(16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Back button with better design
+                // Back button
                 Surface(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f),
+                    color = Color.White.copy(alpha = 0.2f),
                     shape = CircleShape,
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(36.dp)
                         .clickable { onNavigateBack() }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            modifier = Modifier.size(22.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
+                            modifier = Modifier.size(18.dp),
+                            tint = Color.White
                         )
                     }
                 }
@@ -214,17 +208,17 @@ private fun LiquidHideAccessibilityHeader(
                 Column {
                     Text(
                         text = "Hide Accessibility",
-                        style = MaterialTheme.typography.titleLarge.copy(
+                        style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold
                         ),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     
                     if (totalCount > 0) {
                         Text(
                             text = "$selectedCount of $totalCount apps selected",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -233,21 +227,17 @@ private fun LiquidHideAccessibilityHeader(
             // Status indicator
             Surface(
                 color = if (selectedCount > 0) {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                    Color(0xFF4CAF50).copy(alpha = 0.3f)
                 } else {
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                    Color.White.copy(alpha = 0.2f)
                 },
                 shape = CircleShape
             ) {
                 Text(
                     text = if (selectedCount > 0) "Active" else "Inactive",
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    color = if (selectedCount > 0) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = Color.White
                 )
             }
         }
@@ -255,13 +245,13 @@ private fun LiquidHideAccessibilityHeader(
 }
 
 @Composable
-private fun LiquidToggleCard(
+private fun LiquidToggleSection(
     enabled: Boolean,
     onToggle: (Boolean) -> Unit
 ) {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(24.dp)
+        contentPadding = PaddingValues(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -270,101 +260,63 @@ private fun LiquidToggleCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Surface(
-                    color = if (enabled) {
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    },
-                    shape = CircleShape,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Default.VisibilityOff,
-                            contentDescription = null,
-                            tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
+                Icon(
+                    Icons.Default.VisibilityOff,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.size(20.dp)
+                )
                 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Hide Accessibility Service",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = if (enabled) {
-                            "XKM accessibility service will be hidden from selected apps"
-                        } else {
-                            "XKM accessibility service is visible to all apps"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Text(
+                    text = "Hide Accessibility Service",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
             }
             
-            Switch(
+            // Use LiquidToggle instead of Switch
+            id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle(
                 checked = enabled,
                 onCheckedChange = onToggle,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                modifier = Modifier.size(width = 44.dp, height = 24.dp)
             )
         }
     }
 }
 
 @Composable
-private fun LiquidInstructionsCard() {
+private fun LiquidCompactInstructions() {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        contentPadding = PaddingValues(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                shape = CircleShape,
-                modifier = Modifier.size(40.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Default.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+            Icon(
+                Icons.Default.Info,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(18.dp)
+            )
             
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Column {
                 Text(
                     text = "LSPosed Configuration",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "1. Install LSPosed Manager\n2. Enable XKM module for 'Android System' only\n3. Select apps below to hide accessibility from\n4. Reboot device to apply changes",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.3
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Enable XKM module for 'Android System' only in LSPosed Manager",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
         }
@@ -372,133 +324,24 @@ private fun LiquidInstructionsCard() {
 }
 
 @Composable
-private fun LiquidStatsCard(
-    selectedCount: Int,
-    bankingCount: Int,
-    totalCount: Int
-) {
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            // Selected apps stat
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = selectedCount.toString(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Selected",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            // Divider
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(40.dp)
-                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-            )
-            
-            // Banking apps stat
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = bankingCount.toString(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4CAF50)
-                )
-                Text(
-                    text = "Banking",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            
-            // Divider
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(40.dp)
-                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-            )
-            
-            // Total apps stat
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = totalCount.toString(),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Total",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LiquidLoadingCard() {
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(40.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.primary,
-                strokeWidth = 3.dp,
-                modifier = Modifier.size(32.dp)
-            )
-            Text(
-                text = "Loading apps...",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-private fun LiquidSearchCard(
+private fun LiquidCompactSearch(
     searchQuery: String,
     onSearchChange: (String) -> Unit
 ) {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        contentPadding = PaddingValues(12.dp)
     ) {
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
-            label = { Text("Search apps") },
-            placeholder = { Text("Type app name or package...") },
+            placeholder = { Text("Search apps...", color = Color.White.copy(alpha = 0.6f)) },
             leadingIcon = {
                 Icon(
                     Icons.Default.Search, 
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(18.dp)
                 )
             },
             trailingIcon = {
@@ -507,32 +350,31 @@ private fun LiquidSearchCard(
                         Icon(
                             Icons.Default.Clear, 
                             contentDescription = "Clear",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.White.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-                focusedLabelColor = MaterialTheme.colorScheme.primary,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                cursorColor = MaterialTheme.colorScheme.primary
+                focusedBorderColor = Color.White.copy(alpha = 0.4f),
+                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                cursorColor = Color.White
             )
         )
     }
 }
 
 @Composable
-private fun LiquidAppSelectionItem(
+private fun LiquidCompactAppItem(
     app: LiquidAppItem,
     onToggle: (String, Boolean) -> Unit
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
-    
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(0.dp)
@@ -541,20 +383,20 @@ private fun LiquidAppSelectionItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onToggle(app.packageName, !app.isSelected) }
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // App icon placeholder with banking indicator
+            // App icon
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(14.dp))
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
                     .background(
                         if (app.isBankingApp) {
-                            Color(0xFF4CAF50).copy(alpha = if (isLightTheme) 0.15f else 0.2f)
+                            Color(0xFF4CAF50).copy(alpha = 0.3f)
                         } else {
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                            Color.White.copy(alpha = 0.2f)
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -562,36 +404,36 @@ private fun LiquidAppSelectionItem(
                 Icon(
                     imageVector = if (app.isBankingApp) Icons.Default.AccountBalance else Icons.Default.Apps,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                    tint = if (app.isBankingApp) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                    modifier = Modifier.size(18.dp),
+                    tint = if (app.isBankingApp) Color(0xFF4CAF50) else Color.White.copy(alpha = 0.8f)
                 )
             }
             
             // App info
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
                         text = app.appName,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     
                     if (app.isBankingApp) {
                         Surface(
-                            color = Color(0xFF4CAF50).copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(6.dp)
+                            color = Color(0xFF4CAF50).copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
                                 text = "Banking",
                                 style = MaterialTheme.typography.labelSmall,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
                                 color = Color(0xFF4CAF50),
                                 fontWeight = FontWeight.Medium
                             )
@@ -601,19 +443,19 @@ private fun LiquidAppSelectionItem(
                 
                 Text(
                     text = app.packageName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.6f)
                 )
             }
             
-            // Checkbox with better styling
+            // Checkbox
             Checkbox(
                 checked = app.isSelected,
                 onCheckedChange = { onToggle(app.packageName, it) },
                 colors = CheckboxDefaults.colors(
-                    checkedColor = MaterialTheme.colorScheme.primary,
-                    uncheckedColor = MaterialTheme.colorScheme.outline,
-                    checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                    checkedColor = Color.White,
+                    uncheckedColor = Color.White.copy(alpha = 0.4f),
+                    checkmarkColor = Color.Black
                 )
             )
         }

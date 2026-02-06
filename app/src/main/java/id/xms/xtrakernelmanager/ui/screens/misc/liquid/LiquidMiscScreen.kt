@@ -39,6 +39,7 @@ fun LiquidMiscScreen(
     var showGameControl by remember { mutableStateOf(false) }
     var showGameMonitor by remember { mutableStateOf(false) }
     var showProcessManager by remember { mutableStateOf(false) }
+    var showHideAccessibilitySettings by remember { mutableStateOf(false) }
     
     val context = androidx.compose.ui.platform.LocalContext.current
     val gameMonitorViewModel = androidx.lifecycle.viewmodel.compose.viewModel {
@@ -60,6 +61,11 @@ fun LiquidMiscScreen(
             viewModel = viewModel,
             onBack = { showProcessManager = false }
         )
+        showHideAccessibilitySettings -> {
+            LiquidHideAccessibilityScreen(
+                onNavigateBack = { showHideAccessibilitySettings = false }
+            )
+        }
         else -> {
             androidx.compose.animation.AnimatedContent(
                 targetState = currentScreen,
@@ -83,7 +89,8 @@ fun LiquidMiscScreen(
                         },
                         onNavigateToDisplay = { currentScreen = "display" },
                         onNavigateToFunctionalRom = onNavigateToFunctionalRom,
-                        onNavigateToProcessManager = { showProcessManager = true }
+                        onNavigateToProcessManager = { showProcessManager = true },
+                        onNavigateToHideAccessibility = { showHideAccessibilitySettings = true }
                     )
                     "battery" -> LiquidBatteryInformationScreen(
                         viewModel = viewModel,
@@ -107,6 +114,7 @@ fun LiquidMiscMainScreen(
     onNavigateToDisplay: () -> Unit,
     onNavigateToFunctionalRom: () -> Unit,
     onNavigateToProcessManager: () -> Unit = {},
+    onNavigateToHideAccessibility: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val useCase = remember { id.xms.xtrakernelmanager.domain.usecase.FunctionalRomUseCase() }
@@ -335,6 +343,118 @@ fun LiquidMiscMainScreen(
                     }
                 )
             }
+            
+            // Banking Hidden Mode Section
+            val hideAccessibilityEnabled by viewModel.hideAccessibilityEnabled.collectAsState()
+            val lsposedActive by viewModel.lsposedModuleActive.collectAsState()
+            var showHideAccessibilityDialog by remember { mutableStateOf(false) }
+            
+            // Dialog for Hide Accessibility info
+            if (showHideAccessibilityDialog) {
+                AlertDialog(
+                    onDismissRequest = { showHideAccessibilityDialog = false },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.VisibilityOff,
+                            contentDescription = null,
+                            tint = if (lsposedActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        )
+                    },
+                    title = {
+                        Text(
+                            text = "Hide Accessibility",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            // Status Badge
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Surface(
+                                    color = if (lsposedActive) 
+                                        Color(0xFF34C759).copy(alpha = 0.2f) 
+                                    else 
+                                        Color(0xFFFF3B30).copy(alpha = 0.2f),
+                                    shape = CircleShape
+                                ) {
+                                    Text(
+                                        text = if (lsposedActive) "Module Active" else "Module Inactive",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        color = if (lsposedActive) Color(0xFF34C759) else Color(0xFFFF3B30)
+                                    )
+                                }
+                            }
+                            
+                            if (!lsposedActive) {
+                                Text(
+                                    text = "LSPosed/EdXposed is required for this feature. Install LSPosed, enable the XKM module, select target banking apps, and reboot.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            } else {
+                                Text(
+                                    text = "This feature hides XKM's Game Monitor accessibility service from banking apps to prevent detection.",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                
+                                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                                
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "Enable Hide Mode",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = if (hideAccessibilityEnabled) "Active" else "Disabled",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Switch(
+                                        checked = hideAccessibilityEnabled,
+                                        onCheckedChange = { viewModel.setHideAccessibility(it) }
+                                    )
+                                }
+                            }
+                            
+                            Text(
+                                text = "⚠️ Banking apps constantly update their detection methods. This solution may not work indefinitely.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { 
+                            viewModel.refreshLSPosedStatus()
+                            showHideAccessibilityDialog = false 
+                        }) {
+                            Text("Close")
+                        }
+                    }
+                )
+            }
+            
+            LiquidSettingsGroup {
+                LiquidSettingsRow(
+                    icon = Icons.Default.VisibilityOff,
+                    iconColor = if (lsposedActive) Color(0xFF34C759) else Color(0xFFFF9500),
+                    title = "Hide Accessibility",
+                    subtitle = "Configure per-app accessibility hiding",
+                    badge = if (hideAccessibilityEnabled) "Enabled" else "Disabled",
+                    onClick = onNavigateToHideAccessibility
+                )
+            }
 
             Spacer(modifier = Modifier.height(100.dp))
         }
@@ -499,3 +619,4 @@ fun LiquidSettingsRow(
         )
     }
 }
+
