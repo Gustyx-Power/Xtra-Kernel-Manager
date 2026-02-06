@@ -216,7 +216,11 @@ dependencies {
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     
-    // Debug
+    // YukiHookAPI
+    implementation("com.github.YukiHookAPI:HighPriority-Illusion:1.2.1")
+    compileOnly("de.robv.android.xposed:api:82")
+    
+    // Debug apps
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
