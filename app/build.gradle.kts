@@ -15,6 +15,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
+    id("com.google.devtools.ksp") version "2.3.5"
 }
 
 // Disable Google Services for debug build (allows different applicationId)
@@ -207,6 +208,11 @@ dependencies {
     
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
+    
+    // YukiHookAPI - Xposed Module for Banking Hide Mode
+    compileOnly("de.robv.android.xposed:api:82")
+    implementation("com.highcapable.yukihookapi:api:1.3.1")
+    ksp("com.highcapable.yukihookapi:ksp-xposed:1.3.1")
 
     // Testing
     testImplementation("junit:junit:4.13.2")
@@ -216,11 +222,7 @@ dependencies {
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     
-    // YukiHookAPI
-    implementation("com.github.YukiHookAPI:HighPriority-Illusion:1.2.1")
-    compileOnly("de.robv.android.xposed:api:82")
-    
-    // Debug apps
+    // Debug
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
