@@ -156,7 +156,7 @@ fun HideAccessibilitySettingsScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "In LSPosed Manager, only enable this module for 'Android System' (com.android.system). Do not select individual apps.",
+                            text = "In LSPosed Manager, enable this module for the apps you want to hide XKM's accessibility service from. The module will automatically filter out XKM services when these apps check for accessibility services.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
