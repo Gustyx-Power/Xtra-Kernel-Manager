@@ -446,6 +446,7 @@ class TuningViewModel(
   // User interaction control to prevent refresh conflicts
   private val _isUserAdjusting = MutableStateFlow(false)
   private val _isApplyingConfig = MutableStateFlow(false) // New flag to prevent refresh during config application
+  private var lastConfigApplyTime = 0L // Track when config was last applied
 
   // Static data cache flags
   private var staticDataLoaded = false
@@ -558,7 +559,11 @@ class TuningViewModel(
               governor = cluster.governor,
           )
     }
-    _clusterStates.value = states
+    
+    // Only update cluster states if not currently applying config
+    if (!_isApplyingConfig.value) {
+      _clusterStates.value = states
+    }
 
     // Load thermal zones first (fast native call)
     _thermalZones.value = NativeLib.readThermalZones()
@@ -591,6 +596,13 @@ class TuningViewModel(
       return
     }
     
+    // Skip refresh for 10 seconds after config application to prevent override
+    val timeSinceLastApply = System.currentTimeMillis() - lastConfigApplyTime
+    if (timeSinceLastApply < 10000) { // 10 seconds
+      Log.d("TuningViewModel", "Skipping refresh - only ${timeSinceLastApply}ms since last config apply")
+      return
+    }
+    
     val updatedClusters = cpuUseCase.detectClusters()
     _cpuClusters.value = updatedClusters
     Log.d("TuningViewModel", "Refreshed clusters: ${updatedClusters.size} clusters")
@@ -620,7 +632,11 @@ class TuningViewModel(
               governor = cluster.governor,
           )
     }
-    _clusterStates.value = states
+    
+    // Only update cluster states if not currently applying config
+    if (!_isApplyingConfig.value) {
+      _clusterStates.value = states
+    }
 
     _thermalZones.value = NativeLib.readThermalZones()
 
@@ -1362,6 +1378,19 @@ class TuningViewModel(
         val govResult = cpuUseCase.setClusterGovernor(clusterConfig.cluster, clusterConfig.governor)
         if (govResult.isFailure) {
           Log.w("TuningViewModel", "Failed to set cluster ${clusterConfig.cluster} governor: ${govResult.exceptionOrNull()?.message}")
+        } else {
+          Log.d("TuningViewModel", "Successfully set cluster ${clusterConfig.cluster} governor to ${clusterConfig.governor}")
+        }
+        
+        // Verify governor was actually set
+        delay(500)
+        val verifyResult = cpuUseCase.detectClusters()
+        val verifiedCluster = verifyResult.find { it.clusterNumber == clusterConfig.cluster }
+        if (verifiedCluster != null) {
+          Log.d("TuningViewModel", "Verification: Cluster ${clusterConfig.cluster} governor is now: ${verifiedCluster.governor}")
+          if (verifiedCluster.governor != clusterConfig.governor) {
+            Log.w("TuningViewModel", "WARNING: Governor verification failed! Expected: ${clusterConfig.governor}, Got: ${verifiedCluster.governor}")
+          }
         }
         
         // Apply disabled cores
@@ -1486,8 +1515,16 @@ class TuningViewModel(
       Log.e("TuningViewModel", "Error applying configuration", e)
       throw e
     } finally {
+      // Wait longer before allowing refresh to prevent immediate override
+      delay(3000)
+      
       // Always reset the flag, even if there was an error
       _isApplyingConfig.value = false
+      
+      // Update timestamp to prevent refresh for additional time
+      lastConfigApplyTime = System.currentTimeMillis()
+      
+      Log.d("TuningViewModel", "Config application flag reset, monitoring can resume in 10 seconds")
     }
   }
   
