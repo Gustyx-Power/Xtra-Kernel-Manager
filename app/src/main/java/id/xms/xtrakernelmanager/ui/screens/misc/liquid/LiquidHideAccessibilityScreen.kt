@@ -1,5 +1,6 @@
 package id.xms.xtrakernelmanager.ui.screens.misc.liquid
 
+import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import androidx.compose.foundation.background
@@ -104,8 +105,19 @@ fun LiquidHideAccessibilityScreen(
                 onToggle = { enabled ->
                     isEnabled = enabled
                     scope.launch {
+                        // Save to both DataStore and sync preferences
                         preferencesManager.setHideAccessibilityEnabled(enabled)
                         preferencesManager.setString("hide_accessibility_enabled", enabled.toString())
+                        
+                        // Also try to save to default shared preferences for better compatibility
+                        try {
+                            val defaultPrefs = context.getSharedPreferences("id.xms.xtrakernelmanager_preferences", Context.MODE_PRIVATE)
+                            defaultPrefs.edit().putString("hide_accessibility_enabled", enabled.toString()).apply()
+                        } catch (e: Exception) {
+                            // Ignore if fails
+                        }
+                        
+                        android.util.Log.d("XKM-HideAccessibility", "Hide accessibility enabled: $enabled")
                     }
                 }
             )
@@ -151,8 +163,21 @@ fun LiquidHideAccessibilityScreen(
                                 scope.launch {
                                     val selectedApps = apps.filter { it.isSelected }.map { it.packageName }
                                     val jsonArray = JSONArray(selectedApps)
-                                    preferencesManager.setHideAccessibilityApps(jsonArray.toString())
-                                    preferencesManager.setString("hide_accessibility_apps", jsonArray.toString())
+                                    val jsonString = jsonArray.toString()
+                                    
+                                    // Save to both DataStore and sync preferences
+                                    preferencesManager.setHideAccessibilityApps(jsonString)
+                                    preferencesManager.setString("hide_accessibility_apps", jsonString)
+                                    
+                                    // Also try to save to default shared preferences for better compatibility
+                                    try {
+                                        val defaultPrefs = context.getSharedPreferences("id.xms.xtrakernelmanager_preferences", Context.MODE_PRIVATE)
+                                        defaultPrefs.edit().putString("hide_accessibility_apps", jsonString).apply()
+                                    } catch (e: Exception) {
+                                        // Ignore if fails
+                                    }
+                                    
+                                    android.util.Log.d("XKM-HideAccessibility", "Saved apps: $jsonString")
                                 }
                             }
                         )
@@ -314,7 +339,7 @@ private fun LiquidCompactInstructions() {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Enable XKM module for 'Android System' only in LSPosed Manager",
+                    text = "Enable XKM module for selected apps below in LSPosed Manager. The module will automatically hide XKM's accessibility service from these apps.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.7f)
                 )
