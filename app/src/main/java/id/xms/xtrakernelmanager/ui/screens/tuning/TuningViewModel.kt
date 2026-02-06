@@ -1231,74 +1231,208 @@ class TuningViewModel(
     viewModelScope.launch { applyConfig(config) }
   }
 
-  fun buildCurrentConfig(): TuningConfig {
-    val cpuConfigs =
-        _cpuClusters.value.map { cluster ->
-          CPUClusterConfig(
-              cluster = cluster.clusterNumber,
-              minFreq = cluster.currentMinFreq,
-              maxFreq = cluster.currentMaxFreq,
-              governor = cluster.governor,
-              disabledCores = emptyList(),
-          )
+  suspend fun buildCurrentConfig(): TuningConfig {
+    // Build CPU cluster configs with proper state
+    val cpuConfigs = _cpuClusters.value.map { cluster ->
+      // Get disabled cores for this cluster
+      val disabledCores = mutableListOf<Int>()
+      cluster.cores.forEach { coreNum ->
+        val isEnabled = preferencesManager.isCpuCoreEnabled(coreNum).first()
+        if (!isEnabled) {
+          disabledCores.add(coreNum)
         }
+      }
+      
+      CPUClusterConfig(
+          cluster = cluster.clusterNumber,
+          // Use locked frequencies if available, otherwise current frequencies
+          minFreq = if (_isCpuFrequencyLocked.value) {
+            // Get from CPU lock state's cluster configs
+            val lockState = preferencesManager.getCpuLockState().first()
+            lockState.clusterConfigs[cluster.clusterNumber]?.minFreq ?: cluster.currentMinFreq
+          } else {
+            cluster.currentMinFreq
+          },
+          maxFreq = if (_isCpuFrequencyLocked.value) {
+            // Get from CPU lock state's cluster configs
+            val lockState = preferencesManager.getCpuLockState().first()
+            lockState.clusterConfigs[cluster.clusterNumber]?.maxFreq ?: cluster.currentMaxFreq
+          } else {
+            cluster.currentMaxFreq
+          },
+          governor = cluster.governor,
+          disabledCores = disabledCores,
+          setOnBoot = preferencesManager.getCpuSetOnBoot().first()
+      )
+    }
 
-    val gpu =
-        if (!_isMediatek.value && _gpuInfo.value.minFreq > 0) {
-          GPUConfig(
-              minFreq = _gpuInfo.value.minFreq,
-              maxFreq = _gpuInfo.value.maxFreq,
-              powerLevel = 0,
-              renderer = "auto",
-          )
-        } else {
-          null
-        }
+    // Build GPU config with proper state
+    val gpu = if (!_isMediatek.value && _gpuInfo.value.minFreq > 0) {
+      GPUConfig(
+          // Use locked frequencies if available, otherwise current frequencies
+          minFreq = if (_isGpuFrequencyLocked.value && _lockedGpuMinFreq.value > 0) {
+            _lockedGpuMinFreq.value
+          } else {
+            _gpuInfo.value.minFreq
+          },
+          maxFreq = if (_isGpuFrequencyLocked.value && _lockedGpuMaxFreq.value > 0) {
+            _lockedGpuMaxFreq.value
+          } else {
+            _gpuInfo.value.maxFreq
+          },
+          powerLevel = _gpuInfo.value.powerLevel,
+          renderer = _gpuInfo.value.rendererType
+      )
+    } else {
+      null
+    }
+
+    // Build thermal config with current settings
+    val thermal = ThermalConfig(
+        preset = _currentThermalPreset.value,
+        setOnBoot = _isThermalSetOnBoot.value
+    )
+
+    // Build RAM config with current settings
+    val ramConfig = preferencesManager.getRamConfig().first()
+    val ram = RAMConfig(
+        swappiness = _currentSwappiness.value,
+        zramSize = _zramStatus.value.totalMb,
+        swapSize = _swapFileStatus.value.sizeMb,
+        dirtyRatio = _currentDirtyRatio.value,
+        minFreeMem = _currentMinFreeMem.value,
+        compressionAlgorithm = _currentCompressionAlgorithm.value,
+        setOnBoot = preferencesManager.getRAMSetOnBoot().first()
+    )
+
+    // Build additional config with current settings
+    val additional = AdditionalConfig(
+        ioScheduler = _currentIOScheduler.value,
+        tcpCongestion = _currentTCPCongestion.value,
+        perfMode = _currentPerfMode.value,
+        setOnBoot = preferencesManager.getAdditionalSetOnBoot().first()
+    )
 
     return TuningConfig(
         cpuClusters = cpuConfigs,
         gpu = gpu,
-        thermal = ThermalConfig(),
-        ram = RAMConfig(),
-        additional =
-            AdditionalConfig(
-                ioScheduler = _currentIOScheduler.value,
-                tcpCongestion = _currentTCPCongestion.value,
-                perfMode = _currentPerfMode.value,
-            ),
+        thermal = thermal,
+        ram = ram,
+        additional = additional,
+        cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
     )
   }
 
   private suspend fun applyConfig(config: TuningConfig) {
+    Log.d("TuningViewModel", "Applying imported configuration...")
+    
+    // Apply CPU cluster configurations
     config.cpuClusters.forEach { clusterConfig ->
+      Log.d("TuningViewModel", "Applying CPU cluster ${clusterConfig.cluster}: ${clusterConfig.minFreq}-${clusterConfig.maxFreq}MHz, governor: ${clusterConfig.governor}")
+      
+      // Set frequency first
       cpuUseCase.setClusterFrequency(
           clusterConfig.cluster,
           clusterConfig.minFreq,
           clusterConfig.maxFreq,
       )
+      
+      // Set governor
       cpuUseCase.setClusterGovernor(clusterConfig.cluster, clusterConfig.governor)
-      clusterConfig.disabledCores.forEach { core -> cpuUseCase.setCoreOnline(core, false) }
-    }
-
-    config.gpu?.let { gpu ->
-      if (!_isMediatek.value) {
-        gpuUseCase.setGPUFrequency(gpu.minFreq, gpu.maxFreq)
-        gpuUseCase.setGPUPowerLevel(gpu.powerLevel)
-        gpuUseCase.setGPURenderer(gpu.renderer)
+      
+      // Apply disabled cores
+      clusterConfig.disabledCores.forEach { core -> 
+        Log.d("TuningViewModel", "Disabling CPU core $core")
+        cpuUseCase.setCoreOnline(core, false)
+        preferencesManager.setCpuCoreEnabled(core, false)
+      }
+      
+      // Save to preferences if setOnBoot is enabled
+      if (clusterConfig.setOnBoot) {
+        preferencesManager.setClusterMinFreq(clusterConfig.cluster, clusterConfig.minFreq)
+        preferencesManager.setClusterMaxFreq(clusterConfig.cluster, clusterConfig.maxFreq)
+        preferencesManager.setClusterGovernor(clusterConfig.cluster, clusterConfig.governor)
       }
     }
 
-    thermalUseCase.setThermalMode(config.thermal.preset, config.thermal.setOnBoot)
-    preferencesManager.setThermalConfig(config.thermal.preset, config.thermal.setOnBoot)
+    // Apply GPU configuration
+    config.gpu?.let { gpu ->
+      if (!_isMediatek.value) {
+        Log.d("TuningViewModel", "Applying GPU config: ${gpu.minFreq}-${gpu.maxFreq}MHz, power level: ${gpu.powerLevel}, renderer: ${gpu.renderer}")
+        
+        // Set GPU frequencies
+        gpuUseCase.setGPUFrequency(gpu.minFreq, gpu.maxFreq)
+        
+        // Set power level
+        gpuUseCase.setGPUPowerLevel(gpu.powerLevel)
+        
+        // Set renderer (this may require reboot)
+        if (gpu.renderer != "auto" && gpu.renderer.isNotBlank()) {
+          gpuUseCase.setGPURenderer(gpu.renderer)
+        }
+        
+        // Update ViewModel state
+        _gpuInfo.value = _gpuInfo.value.copy(
+          minFreq = gpu.minFreq,
+          maxFreq = gpu.maxFreq,
+          powerLevel = gpu.powerLevel,
+          rendererType = gpu.renderer
+        )
+      }
+    }
 
+    // Apply thermal configuration
+    if (config.thermal.preset.isNotBlank() && config.thermal.preset != "Not Set") {
+      Log.d("TuningViewModel", "Applying thermal config: ${config.thermal.preset}, setOnBoot: ${config.thermal.setOnBoot}")
+      
+      thermalUseCase.setThermalMode(config.thermal.preset, config.thermal.setOnBoot)
+      preferencesManager.setThermalConfig(config.thermal.preset, config.thermal.setOnBoot)
+      
+      // Update ViewModel state
+      _currentThermalPreset.value = config.thermal.preset
+      _isThermalSetOnBoot.value = config.thermal.setOnBoot
+    }
+
+    // Apply RAM configuration
+    Log.d("TuningViewModel", "Applying RAM config: swappiness=${config.ram.swappiness}, zram=${config.ram.zramSize}MB, swap=${config.ram.swapSize}MB")
     setRAMParameters(config.ram)
+    
+    // Save RAM set-on-boot setting
+    preferencesManager.setRAMSetOnBoot(config.ram.setOnBoot)
 
-    config.additional.ioScheduler.takeIf { it.isNotBlank() }?.let { setIOScheduler(it) }
-    config.additional.tcpCongestion.takeIf { it.isNotBlank() }?.let { setTCPCongestion(it) }
-    config.additional.perfMode.takeIf { it.isNotBlank() }?.let { setPerfMode(it) }
+    // Apply additional configurations
+    Log.d("TuningViewModel", "Applying additional config: IO=${config.additional.ioScheduler}, TCP=${config.additional.tcpCongestion}, perf=${config.additional.perfMode}")
+    
+    // Apply I/O scheduler
+    config.additional.ioScheduler.takeIf { it.isNotBlank() }?.let { 
+      setIOScheduler(it)
+      preferencesManager.setIOSetOnBoot(config.additional.setOnBoot)
+    }
+    
+    // Apply TCP congestion
+    config.additional.tcpCongestion.takeIf { it.isNotBlank() }?.let { 
+      setTCPCongestion(it)
+      preferencesManager.setTCPSetOnBoot(config.additional.setOnBoot)
+    }
+    
+    // Apply performance mode
+    config.additional.perfMode.takeIf { it.isNotBlank() }?.let { 
+      setPerfMode(it)
+    }
+    
+    // Save additional set-on-boot setting
+    preferencesManager.setAdditionalSetOnBoot(config.additional.setOnBoot)
 
-    delay(1000)
+    // Apply CPU set-on-boot setting
+    preferencesManager.setCpuSetOnBoot(config.cpuSetOnBoot)
+
+    // Wait for changes to take effect
+    delay(1500)
+    
+    // Refresh all values to reflect changes
     refreshCurrentValues()
+    
+    Log.d("TuningViewModel", "Configuration applied successfully")
   }
 
   suspend fun checkMagiskAvailability(): Boolean {
