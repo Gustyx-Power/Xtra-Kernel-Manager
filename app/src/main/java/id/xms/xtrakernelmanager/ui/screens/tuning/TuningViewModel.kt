@@ -277,15 +277,31 @@ class TuningViewModel(
   // CPU Governor Control - sets governor for a specific cluster
   fun setCpuClusterGovernor(clusterIndex: Int, governor: String) {
     viewModelScope.launch(Dispatchers.IO) {
-      cpuUseCase.setClusterGovernor(clusterIndex, governor)
+      // Set user adjusting flag to prevent monitoring override
+      _isUserAdjusting.value = true
       
-      // Save configuration if set-on-boot is enabled
-      val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
-      if (cpuSetOnBoot) {
-        preferencesManager.setClusterGovernor(clusterIndex, governor)
+      val result = cpuUseCase.setClusterGovernor(clusterIndex, governor)
+      if (result.isSuccess) {
+        // Update UI state immediately
+        withContext(Dispatchers.Main) {
+          updateClusterGovernor(clusterIndex, governor)
+        }
+        
+        // Save configuration if set-on-boot is enabled
+        val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
+        if (cpuSetOnBoot) {
+          preferencesManager.setClusterGovernor(clusterIndex, governor)
+        }
+        
+        Log.d("TuningViewModel", "Successfully set cluster $clusterIndex governor to $governor")
+        
+        // Wait a bit for hardware to apply, then allow monitoring
+        delay(2000)
+        _isUserAdjusting.value = false
+      } else {
+        Log.e("TuningViewModel", "Failed to set cluster $clusterIndex governor: ${result.exceptionOrNull()?.message}")
+        _isUserAdjusting.value = false
       }
-      
-      refreshDynamicValues()
     }
   }
 
@@ -855,8 +871,12 @@ class TuningViewModel(
 
   fun setCPUFrequency(cluster: Int, minFreq: Int, maxFreq: Int) {
     viewModelScope.launch {
+      // Set user adjusting flag to prevent monitoring override
+      _isUserAdjusting.value = true
+      
       val result = cpuUseCase.setClusterFrequency(cluster, minFreq, maxFreq)
       if (result.isSuccess) {
+        // Update UI state immediately
         updateClusterUIState(cluster, minFreq.toFloat(), maxFreq.toFloat())
         
         // Save configuration if set-on-boot is enabled
@@ -865,14 +885,27 @@ class TuningViewModel(
           preferencesManager.setClusterMinFreq(cluster, minFreq)
           preferencesManager.setClusterMaxFreq(cluster, maxFreq)
         }
+        
+        Log.d("TuningViewModel", "Successfully set cluster $cluster frequency to $minFreq-$maxFreq MHz")
+        
+        // Wait a bit for hardware to apply, then allow monitoring
+        delay(2000)
+        _isUserAdjusting.value = false
+      } else {
+        Log.e("TuningViewModel", "Failed to set cluster $cluster frequency: ${result.exceptionOrNull()?.message}")
+        _isUserAdjusting.value = false
       }
     }
   }
 
   fun setCPUGovernor(cluster: Int, governor: String) {
     viewModelScope.launch {
+      // Set user adjusting flag to prevent monitoring override
+      _isUserAdjusting.value = true
+      
       val result = cpuUseCase.setClusterGovernor(cluster, governor)
       if (result.isSuccess) {
+        // Update UI state immediately
         updateClusterGovernor(cluster, governor)
         
         // Save configuration if set-on-boot is enabled
@@ -880,6 +913,15 @@ class TuningViewModel(
         if (cpuSetOnBoot) {
           preferencesManager.setClusterGovernor(cluster, governor)
         }
+        
+        Log.d("TuningViewModel", "Successfully set cluster $cluster governor to $governor")
+        
+        // Wait a bit for hardware to apply, then allow monitoring
+        delay(2000)
+        _isUserAdjusting.value = false
+      } else {
+        Log.e("TuningViewModel", "Failed to set cluster $cluster governor: ${result.exceptionOrNull()?.message}")
+        _isUserAdjusting.value = false
       }
     }
   }
@@ -1613,7 +1655,7 @@ class TuningViewModel(
         viewModelScope.launch(Dispatchers.IO) {
           while (true) {
             refreshDynamicValues()
-            delay(300)
+            delay(1000) // Reduced from 300ms to 1000ms for less aggressive monitoring
           }
         }
   }
@@ -1814,10 +1856,13 @@ class TuningViewModel(
   }
 
   fun endUserAdjusting() {
-    _isUserAdjusting.value = false
-    // Refresh once after user finishes adjusting
+    // Don't immediately set to false, wait a bit longer
     viewModelScope.launch {
-      delay(500) // Wait a bit for hardware to apply
+      delay(2000) // Wait 2 seconds for hardware to apply and stabilize
+      _isUserAdjusting.value = false
+      
+      // Then refresh to get updated values
+      delay(500)
       refreshDynamicValues()
     }
   }
