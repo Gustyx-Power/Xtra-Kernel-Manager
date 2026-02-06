@@ -183,7 +183,7 @@ dependencies {
     implementation("com.google.firebase:firebase-database") 
     
     // Google Play Services (for Play Protect compatibility)
-    implementation("com.google.android.gms:play-services-base:18.5.0")
+    implementation("com.google.android.gms:play-services-base:18.10.0")
     implementation("com.google.android.gms:play-services-tasks:18.2.0") 
 
     // TOML Parser
