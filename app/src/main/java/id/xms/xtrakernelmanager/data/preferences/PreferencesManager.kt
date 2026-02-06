@@ -767,9 +767,36 @@ class PreferencesManager(private val context: Context) {
 
   // ==================== SYNC PREFERENCES ====================
   // Using SharedPreferences for simple synchronous access
+  // Also accessible by Xposed module via XSharedPreferences
 
+  @Suppress("DEPRECATION")
   private val syncPrefs by lazy {
-    context.getSharedPreferences("xkm_sync_prefs", Context.MODE_PRIVATE)
+    // Try to use MODE_WORLD_READABLE for Xposed compatibility
+    try {
+      context.getSharedPreferences("xkm_sync_prefs", Context.MODE_WORLD_READABLE)
+    } catch (e: SecurityException) {
+      // Fallback to MODE_PRIVATE if MODE_WORLD_READABLE is not allowed
+      android.util.Log.w("PreferencesManager", "MODE_WORLD_READABLE not allowed, using MODE_PRIVATE")
+      context.getSharedPreferences("xkm_sync_prefs", Context.MODE_PRIVATE)
+    }
+  }
+  
+  /**
+   * Make the sync prefs file world-readable for Xposed module access.
+   * Should be called after saving important settings that Xposed needs.
+   */
+  fun makePrefsWorldReadable() {
+    try {
+      val prefsDir = java.io.File(context.applicationInfo.dataDir, "shared_prefs")
+      val prefsFile = java.io.File(prefsDir, "xkm_sync_prefs.xml")
+      if (prefsFile.exists()) {
+        prefsFile.setReadable(true, false)
+        prefsDir.setExecutable(true, false)
+        android.util.Log.d("PreferencesManager", "Made prefs world-readable: ${prefsFile.absolutePath}")
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("PreferencesManager", "Failed to make prefs world-readable: ${e.message}")
+    }
   }
 
   /** Get boolean value synchronously */
@@ -780,6 +807,7 @@ class PreferencesManager(private val context: Context) {
   /** Set boolean value synchronously */
   fun setBoolean(key: String, value: Boolean) {
     syncPrefs.edit().putBoolean(key, value).apply()
+    makePrefsWorldReadable()
   }
 
   /** Get string value synchronously */
@@ -790,6 +818,7 @@ class PreferencesManager(private val context: Context) {
   /** Set string value synchronously */
   fun setString(key: String, value: String) {
     syncPrefs.edit().putString(key, value).apply()
+    makePrefsWorldReadable()
   }
 
   /** Get int value synchronously */
@@ -800,6 +829,7 @@ class PreferencesManager(private val context: Context) {
   /** Set int value synchronously */
   fun setInt(key: String, value: Int) {
     syncPrefs.edit().putInt(key, value).apply()
+    makePrefsWorldReadable()
   }
 
   // ==================== Functional ROM Preferences ====================
