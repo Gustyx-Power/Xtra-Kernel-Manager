@@ -51,19 +51,32 @@ class GameMonitorService : AccessibilityService() {
 
     val packageName = event.packageName?.toString() ?: return
     
-    // Avoid redundant processing
-    if (packageName == lastPackageName) return
-    lastPackageName = packageName
+    // Skip system packages and XKM itself to avoid loops
+    if (packageName.startsWith("com.android.") || 
+        packageName.startsWith("android") ||
+        packageName == "id.xms.xtrakernelmanager" ||
+        packageName == "id.xms.xtrakernelmanager.dev") {
+      return
+    }
+    
+    // Only process window state changes and focus events
+    if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ||
+        event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+      
+      // Debounce rapid events from same package
+      if (packageName == lastPackageName) {
+        return
+      }
+      lastPackageName = packageName
 
-    if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-      Log.d(TAG, "Window changed: $packageName")
+      Log.d(TAG, "Window changed to: $packageName")
 
       // Check if it's a game app
       if (enabledGamePackages.contains(packageName)) {
-        Log.d(TAG, "Game detected: $packageName")
+        Log.d(TAG, "Game detected: $packageName - Starting overlay")
         startGameOverlay()
       } else {
-        // Other apps - stop overlay
+        Log.d(TAG, "Non-game app: $packageName - Stopping overlay")
         stopGameOverlay()
       }
     }
@@ -117,17 +130,35 @@ class GameMonitorService : AccessibilityService() {
 
   private fun startGameOverlay() {
     try {
+      // Check if overlay is already running to avoid multiple instances
+      val isRunning = preferencesManager.getBoolean("game_overlay_running", false)
+      if (isRunning) {
+        Log.d(TAG, "Overlay already running, skipping start")
+        return
+      }
+      
+      preferencesManager.setBoolean("game_overlay_running", true)
       val intent = Intent(applicationContext, GameOverlayService::class.java)
       startService(intent)
+      Log.d(TAG, "Game overlay service started")
     } catch (e: Exception) {
       Log.e(TAG, "Failed to start overlay service", e)
+      preferencesManager.setBoolean("game_overlay_running", false)
     }
   }
 
   private fun stopGameOverlay() {
     try {
+      val isRunning = preferencesManager.getBoolean("game_overlay_running", false)
+      if (!isRunning) {
+        Log.d(TAG, "Overlay not running, skipping stop")
+        return
+      }
+      
+      preferencesManager.setBoolean("game_overlay_running", false)
       val intent = Intent(applicationContext, GameOverlayService::class.java)
       stopService(intent)
+      Log.d(TAG, "Game overlay service stopped")
     } catch (e: Exception) {
       Log.e(TAG, "Failed to stop overlay service", e)
     }

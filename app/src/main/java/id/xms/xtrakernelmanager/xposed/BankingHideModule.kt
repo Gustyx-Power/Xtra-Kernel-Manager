@@ -9,21 +9,6 @@ import com.highcapable.yukihookapi.hook.log.YLog
 import com.highcapable.yukihookapi.hook.xposed.proxy.IYukiHookXposedInit
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 
-/**
- * BankingHideModule - Xposed Module for hiding accessibility services per-app
- * 
- * This module hooks into AccessibilityManager methods to filter out XKM's Game Monitor
- * accessibility service from the list returned to configured apps.
- * 
- * REQUIREMENTS:
- * - LSPosed (Zygisk) or EdXposed installed and active
- * - Module enabled in LSPosed Manager
- * - Only "Android System" needs to be selected in LSPosed scope
- * 
- * CONFIGURATION:
- * - Apps are configured through XKM settings (per-app basis)
- * - Uses fallback list for common banking apps
- */
 @InjectYukiHookWithXposed
 class BankingHideModule : IYukiHookXposedInit {
     

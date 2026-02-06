@@ -149,10 +149,20 @@ class MiscViewModel(
 
   private val _disableThreeFingerSwipe = MutableStateFlow(false)
   val disableThreeFingerSwipe: StateFlow<Boolean> = _disableThreeFingerSwipe.asStateFlow()
+  
+  // Hide Accessibility (Banking Hidden Mode) - Xposed Module
+  val hideAccessibilityEnabled =
+      preferencesManager
+          .getHideAccessibilityEnabled()
+          .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+  
+  private val _lsposedModuleActive = MutableStateFlow(false)
+  val lsposedModuleActive: StateFlow<Boolean> = _lsposedModuleActive.asStateFlow()
 
   init {
     checkRoot()
     loadCurrentPerformanceMode()
+    checkLSPosedModuleStatus()
     // loadSELinuxStatus() - REMOVED to prevent Play Protect detection
   }
 
@@ -161,6 +171,69 @@ class MiscViewModel(
       _isRootAvailable.value = RootManager.isRootAvailable()
       Log.d("MiscViewModel", "Root available: ${_isRootAvailable.value}")
     }
+  }
+  
+  /**
+   * Check if the XKM LSPosed module is active
+   * Uses YukiHookAPI status check or file-based detection
+   */
+  private fun checkLSPosedModuleStatus() {
+    viewModelScope.launch {
+      try {
+        // Method 1: Check if YukiHookAPI is active
+        val isActive = try {
+          com.highcapable.yukihookapi.YukiHookAPI.Status.isXposedModuleActive
+        } catch (e: Exception) {
+          false
+        }
+        
+        // Method 2: Alternative check via Xposed.isXposedException (fallback)
+        val isActiveAlt = try {
+          val xposedBridge = Class.forName("de.robv.android.xposed.XposedBridge")
+          xposedBridge != null
+        } catch (e: ClassNotFoundException) {
+          false
+        } catch (e: Exception) {
+          false
+        }
+        
+        _lsposedModuleActive.value = isActive || isActiveAlt
+        Log.d("MiscViewModel", "LSPosed module active: ${_lsposedModuleActive.value}")
+      } catch (e: Exception) {
+        _lsposedModuleActive.value = false
+        Log.e("MiscViewModel", "Failed to check LSPosed status: ${e.message}")
+      }
+    }
+  }
+  
+  /**
+   * Enable or disable the Hide Accessibility feature
+   * Note: This only saves the preference. The actual hooking is done by LSPosed.
+   */
+  fun setHideAccessibility(enabled: Boolean) {
+    viewModelScope.launch {
+      try {
+        preferencesManager.setHideAccessibilityEnabled(enabled)
+        
+        // Also save to sync preferences for Xposed module access
+        preferencesManager.setString("hide_accessibility_enabled", enabled.toString())
+        
+        Log.d("MiscViewModel", "Hide Accessibility enabled: $enabled")
+        
+        if (enabled && !_lsposedModuleActive.value) {
+          Log.w("MiscViewModel", "Warning: Hide Accessibility enabled but LSPosed module is not active")
+        }
+      } catch (e: Exception) {
+        Log.e("MiscViewModel", "Error setting hide accessibility: ${e.message}")
+      }
+    }
+  }
+  
+  /**
+   * Refresh LSPosed module status
+   */
+  fun refreshLSPosedStatus() {
+    checkLSPosedModuleStatus()
   }
 
   // SELinux Functions - COMPLETELY REMOVED to prevent Play Protect detection

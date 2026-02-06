@@ -106,6 +106,9 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
       return
     }
 
+    // Mark overlay as running
+    preferencesManager.setBoolean("game_overlay_running", true)
+
     // Initialize ViewModel
     viewModel = GameMonitorViewModel(application, preferencesManager)
 
@@ -546,6 +549,10 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
   override fun onDestroy() {
     super.onDestroy()
     lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+    
+    // Mark overlay as not running
+    preferencesManager.setBoolean("game_overlay_running", false)
+    
     try {
       overlayView?.let { windowManager.removeView(it) }
     } catch (_: Exception) {}
