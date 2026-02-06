@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.ChangeCircle
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -272,21 +273,43 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
   val lockedMinFreq by viewModel.lockedGpuMinFreq.collectAsState()
   val lockedMaxFreq by viewModel.lockedGpuMaxFreq.collectAsState()
 
-  var minFreqSlider by
-      remember(gpuInfo.minFreq, isFrequencyLocked, lockedMinFreq) {
-        mutableFloatStateOf(
-            if (isFrequencyLocked && lockedMinFreq > 0) lockedMinFreq.toFloat()
-            else gpuInfo.minFreq.toFloat()
-        )
-      }
+  // Use rememberSaveable to persist slider state across recompositions and tab changes
+  var minFreqSlider by rememberSaveable { 
+    mutableFloatStateOf(
+      if (isFrequencyLocked && lockedMinFreq > 0) lockedMinFreq.toFloat()
+      else gpuInfo.minFreq.toFloat()
+    )
+  }
 
-  var maxFreqSlider by
-      remember(gpuInfo.maxFreq, isFrequencyLocked, lockedMaxFreq) {
-        mutableFloatStateOf(
-            if (isFrequencyLocked && lockedMaxFreq > 0) lockedMaxFreq.toFloat()
-            else gpuInfo.maxFreq.toFloat()
-        )
+  var maxFreqSlider by rememberSaveable { 
+    mutableFloatStateOf(
+      if (isFrequencyLocked && lockedMaxFreq > 0) lockedMaxFreq.toFloat()
+      else gpuInfo.maxFreq.toFloat()
+    )
+  }
+
+  var isUserInteracting by remember { mutableStateOf(false) }
+
+  // Update slider values when GPU info changes but user is not interacting
+  LaunchedEffect(gpuInfo.minFreq, isFrequencyLocked, lockedMinFreq) {
+    if (!isUserInteracting) {
+      val newMinFreq = if (isFrequencyLocked && lockedMinFreq > 0) lockedMinFreq.toFloat()
+                      else gpuInfo.minFreq.toFloat()
+      if (kotlin.math.abs(minFreqSlider - newMinFreq) > 1f) {
+        minFreqSlider = newMinFreq
       }
+    }
+  }
+
+  LaunchedEffect(gpuInfo.maxFreq, isFrequencyLocked, lockedMaxFreq) {
+    if (!isUserInteracting) {
+      val newMaxFreq = if (isFrequencyLocked && lockedMaxFreq > 0) lockedMaxFreq.toFloat()
+                      else gpuInfo.maxFreq.toFloat()
+      if (kotlin.math.abs(maxFreqSlider - newMaxFreq) > 1f) {
+        maxFreqSlider = newMaxFreq
+      }
+    }
+  }
 
   ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
@@ -358,7 +381,11 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
       FrequencySliderItem(
           label = stringResource(R.string.gpu_min_freq),
           value = minFreqSlider.toInt(),
-          onValueChange = { minFreqSlider = it },
+          onValueChange = { 
+            isUserInteracting = true
+            minFreqSlider = it 
+          },
+          onValueChangeFinished = { isUserInteracting = false },
           availableFreqs = gpuInfo.availableFreqs,
           color = MaterialTheme.colorScheme.tertiary,
       )
@@ -367,7 +394,11 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
       FrequencySliderItem(
           label = stringResource(R.string.gpu_max_freq),
           value = maxFreqSlider.toInt(),
-          onValueChange = { maxFreqSlider = it },
+          onValueChange = { 
+            isUserInteracting = true
+            maxFreqSlider = it 
+          },
+          onValueChangeFinished = { isUserInteracting = false },
           availableFreqs = gpuInfo.availableFreqs,
           color = MaterialTheme.colorScheme.secondary,
       )
@@ -440,6 +471,7 @@ private fun FrequencySliderItem(
     label: String,
     value: Int,
     onValueChange: (Float) -> Unit,
+    onValueChangeFinished: (() -> Unit)? = null,
     availableFreqs: List<Int>,
     color: Color,
 ) {
@@ -468,6 +500,7 @@ private fun FrequencySliderItem(
     Slider(
         value = value.toFloat(),
         onValueChange = onValueChange,
+        onValueChangeFinished = onValueChangeFinished,
         valueRange = availableFreqs.minOrNull()!!.toFloat()..availableFreqs.maxOrNull()!!.toFloat(),
         colors =
             SliderDefaults.colors(
