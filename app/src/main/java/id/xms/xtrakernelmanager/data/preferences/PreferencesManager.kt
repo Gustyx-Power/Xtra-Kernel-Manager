@@ -928,4 +928,24 @@ class PreferencesManager(private val context: Context) {
 
   fun getAdditionalSetOnBoot(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[ADDITIONAL_SET_ON_BOOT] ?: false }
+
+  // ==================== Banking Hidden Mode (Hide Accessibility) ====================
+  private val HIDE_ACCESSIBILITY_ENABLED = booleanPreferencesKey("hide_accessibility_enabled")
+  private val HIDE_ACCESSIBILITY_APPS = stringPreferencesKey("hide_accessibility_apps")
+  
+  /** Enable/disable hide accessibility feature */
+  suspend fun setHideAccessibilityEnabled(enabled: Boolean) {
+    context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_ENABLED] = enabled }
+  }
+  
+  fun getHideAccessibilityEnabled(): Flow<Boolean> =
+      context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_ENABLED] ?: false }
+  
+  /** Save custom list of apps to hide accessibility from (JSON array) */
+  suspend fun setHideAccessibilityApps(jsonString: String) {
+    context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_APPS] = jsonString }
+  }
+  
+  fun getHideAccessibilityApps(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_APPS] ?: "[]" }
 }
