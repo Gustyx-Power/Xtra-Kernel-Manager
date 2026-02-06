@@ -445,6 +445,7 @@ class TuningViewModel(
 
   // User interaction control to prevent refresh conflicts
   private val _isUserAdjusting = MutableStateFlow(false)
+  private val _isApplyingConfig = MutableStateFlow(false) // New flag to prevent refresh during config application
 
   // Static data cache flags
   private var staticDataLoaded = false
@@ -585,8 +586,8 @@ class TuningViewModel(
 
   // Lightweight refresh - only dynamic data (called every 5s)
   private suspend fun refreshDynamicValues() {
-    // Skip refresh if user is currently adjusting values
-    if (_isUserAdjusting.value) {
+    // Skip refresh if user is currently adjusting values or applying config
+    if (_isUserAdjusting.value || _isApplyingConfig.value) {
       return
     }
     
@@ -1206,6 +1207,10 @@ class TuningViewModel(
               if (!parseResult.isCompatible && parseResult.compatibilityWarning != null) {
                 // Still apply the config even with warnings, but return warning result
                 applyConfig(parseResult.config)
+                
+                // Wait a bit more after import to ensure settings are stable
+                delay(1000)
+                
                 Log.d("TuningViewModel", "Config imported with compatibility warnings")
                 return@withContext ImportResult.Warning(
                     config = parseResult.config,
@@ -1214,6 +1219,10 @@ class TuningViewModel(
               }
 
               applyConfig(parseResult.config)
+              
+              // Wait a bit more after import to ensure settings are stable
+              delay(1000)
+              
               Log.d("TuningViewModel", "Config imported and applied successfully")
               ImportResult.Success
             } else {
@@ -1329,6 +1338,9 @@ class TuningViewModel(
 
   private suspend fun applyConfig(config: TuningConfig) {
     Log.d("TuningViewModel", "Applying imported configuration...")
+    
+    // Set flag to prevent refresh during config application
+    _isApplyingConfig.value = true
     
     try {
       // Apply CPU cluster configurations with proper error handling
@@ -1473,6 +1485,9 @@ class TuningViewModel(
     } catch (e: Exception) {
       Log.e("TuningViewModel", "Error applying configuration", e)
       throw e
+    } finally {
+      // Always reset the flag, even if there was an error
+      _isApplyingConfig.value = false
     }
   }
   
@@ -1497,6 +1512,17 @@ class TuningViewModel(
         _cpuClusters.value = updatedClusters
       }
     }
+    
+    // Update cluster UI states to match imported config
+    val states = mutableMapOf<Int, ClusterUIState>()
+    config.cpuClusters.forEach { clusterConfig ->
+      states[clusterConfig.cluster] = ClusterUIState(
+        minFreq = clusterConfig.minFreq.toFloat(),
+        maxFreq = clusterConfig.maxFreq.toFloat(),
+        governor = clusterConfig.governor,
+      )
+    }
+    _clusterStates.value = states
     
     // Update GPU states
     config.gpu?.let { gpu ->

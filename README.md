@@ -48,6 +48,8 @@ It provides **real-time visibility and precise control** over CPU performance, t
 ## Supported Root Managers
 
 - [Magisk](https://github.com/topjohnwu/Magisk)
+- [KernelSU](https://github.com/tiann/KernelSU)
+- [APatch](https://github.com/bmax121/APatch)
 
 ---
 
@@ -93,8 +95,6 @@ This project includes optimizations to reduce Play Protect detection:
 - `local.properties` and `gradle.properties` are gitignored for security
 - Keystore files are never committed to the repository
 - All builds are reproducible and verifiable
-- [KernelSU](https://github.com/tiann/KernelSU)
-- [APatch](https://github.com/bmax121/APatch)
 
 ---
 
