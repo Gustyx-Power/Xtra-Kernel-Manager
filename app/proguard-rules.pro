@@ -49,6 +49,16 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
 
+# ===== YukiHookAPI & KavaRef =====
+-dontwarn java.lang.reflect.AnnotatedType
+-dontwarn com.highcapable.yukihookapi.**
+-dontwarn com.highcapable.kavaref.**
+-keep class com.highcapable.yukihookapi.** { *; }
+-keep class com.highcapable.kavaref.** { *; }
+-keep class de.robv.android.xposed.** { *; }
+-keep class id.xms.xtrakernelmanager.xposed.** { *; }
+-keepclassmembers class id.xms.xtrakernelmanager.xposed.** { *; }
+
 # ===== AGGRESSIVE: Remove unused resources metadata =====
 -dontwarn com.google.android.material.**
 -dontwarn com.google.firebase.**
