@@ -6,6 +6,10 @@ import id.xms.xtrakernelmanager.data.model.CoreInfo
 import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.native.NativeLib.ThermalZone
 import id.xms.xtrakernelmanager.domain.root.RootManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
 
 class CPUControlUseCase {
 
@@ -88,99 +92,128 @@ class CPUControlUseCase {
     return detectClustersShell()
   }
 
-  /** Original shell-based cluster detection (fallback) */
-  private suspend fun detectClustersShell(): List<ClusterInfo> {
-
+  /** Optimized shell-based cluster detection with parallel execution */
+  private suspend fun detectClustersShell(): List<ClusterInfo> = withContext(Dispatchers.IO) {
     val clusters = mutableListOf<ClusterInfo>()
-    val availableCores = mutableListOf<Int>()
-    for (i in 0..15) {
-      val exists =
-          RootManager.executeCommand("[ -d /sys/devices/system/cpu/cpu$i ] && echo exists")
-              .getOrNull()
-              ?.trim() == "exists"
-      if (exists) {
-        availableCores.add(i)
+    
+    // Step 1: Detect available cores in parallel (much faster)
+    val availableCores = (0..15).map { coreNum ->
+      async {
+        val exists = try {
+          java.io.File("/sys/devices/system/cpu/cpu$coreNum").exists()
+        } catch (e: Exception) {
+          false
+        }
+        if (exists) coreNum else null
       }
-    }
-    if (availableCores.isEmpty()) return emptyList()
+    }.awaitAll().filterNotNull()
+    
+    if (availableCores.isEmpty()) return@withContext emptyList()
+    Log.d(TAG, "Found ${availableCores.size} CPU cores: $availableCores")
 
-    val coreGroups = mutableMapOf<Int, MutableList<Int>>()
-    for (core in availableCores) {
-      val maxFreq =
+    // Step 2: Get max frequencies in parallel to group cores into clusters
+    val coreMaxFreqs = availableCores.map { core ->
+      async {
+        val maxFreq = try {
+          java.io.File("/sys/devices/system/cpu/cpu$core/cpufreq/cpuinfo_max_freq")
+            .readText().trim().toIntOrNull() ?: 0
+        } catch (e: Exception) {
+          // Fallback to shell command if direct file read fails
           RootManager.executeCommand(
-                  "cat /sys/devices/system/cpu/cpu$core/cpufreq/cpuinfo_max_freq 2>/dev/null"
-              )
-              .getOrNull()
-              ?.trim()
-              ?.toIntOrNull() ?: 0
+            "cat /sys/devices/system/cpu/cpu$core/cpufreq/cpuinfo_max_freq 2>/dev/null"
+          ).getOrNull()?.trim()?.toIntOrNull() ?: 0
+        }
+        core to maxFreq
+      }
+    }.awaitAll()
+
+    // Group cores by max frequency (same max freq = same cluster)
+    val coreGroups = mutableMapOf<Int, MutableList<Int>>()
+    coreMaxFreqs.forEach { (core, maxFreq) ->
       if (maxFreq > 0) {
         val group = coreGroups.getOrPut(maxFreq) { mutableListOf() }
         group.add(core)
       }
     }
 
+    // Step 3: Build cluster info in parallel
     val sortedGroups = coreGroups.entries.sortedBy { it.key }
-    sortedGroups.forEachIndexed { clusterIndex, (maxFreq, coresInGroup) ->
-      val firstCore = coresInGroup.first()
-      val basePath = "/sys/devices/system/cpu/cpu$firstCore"
-      val minFreq =
-          RootManager.executeCommand("cat $basePath/cpufreq/cpuinfo_min_freq 2>/dev/null")
-              .getOrNull()
-              ?.trim()
-              ?.toIntOrNull() ?: 0
-      val currentMin =
-          RootManager.executeCommand("cat $basePath/cpufreq/scaling_min_freq 2>/dev/null")
-              .getOrNull()
-              ?.trim()
-              ?.toIntOrNull() ?: minFreq
-      val currentMax =
-          RootManager.executeCommand("cat $basePath/cpufreq/scaling_max_freq 2>/dev/null")
-              .getOrNull()
-              ?.trim()
-              ?.toIntOrNull() ?: maxFreq
-      val governor =
-          RootManager.executeCommand("cat $basePath/cpufreq/scaling_governor 2>/dev/null")
-              .getOrNull()
-              ?.trim() ?: "schedutil"
-      val availableGovs =
-          RootManager.executeCommand(
-                  "cat $basePath/cpufreq/scaling_available_governors 2>/dev/null"
-              )
-              .getOrNull()
-              ?.trim()
-              ?.split(" ")
-              ?.filter { it.isNotBlank() }
-              ?: listOf("schedutil", "performance", "powersave", "ondemand", "conservative")
-      val availableFreqs =
-          RootManager.executeCommand(
-                  "cat $basePath/cpufreq/scaling_available_frequencies 2>/dev/null"
-              )
-              .getOrNull()
-              ?.trim()
-              ?.split(" ")
-              ?.mapNotNull { it.toIntOrNull()?.div(1000) }
-              ?: emptyList()
+    val clusterInfos = sortedGroups.mapIndexed { clusterIndex, (maxFreq, coresInGroup) ->
+      async {
+        val firstCore = coresInGroup.first()
+        
+        // Try direct file reads first (much faster), fallback to shell commands
+        val minFreq = try {
+          java.io.File("/sys/devices/system/cpu/cpu$firstCore/cpufreq/cpuinfo_min_freq")
+            .readText().trim().toIntOrNull() ?: 0
+        } catch (e: Exception) {
+          RootManager.executeCommand("cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/cpuinfo_min_freq 2>/dev/null")
+            .getOrNull()?.trim()?.toIntOrNull() ?: 0
+        }
+        
+        val currentMin = try {
+          java.io.File("/sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_min_freq")
+            .readText().trim().toIntOrNull() ?: minFreq
+        } catch (e: Exception) {
+          RootManager.executeCommand("cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_min_freq 2>/dev/null")
+            .getOrNull()?.trim()?.toIntOrNull() ?: minFreq
+        }
+        
+        val currentMax = try {
+          java.io.File("/sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_max_freq")
+            .readText().trim().toIntOrNull() ?: maxFreq
+        } catch (e: Exception) {
+          RootManager.executeCommand("cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_max_freq 2>/dev/null")
+            .getOrNull()?.trim()?.toIntOrNull() ?: maxFreq
+        }
+        
+        val governor = try {
+          java.io.File("/sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_governor")
+            .readText().trim()
+        } catch (e: Exception) {
+          RootManager.executeCommand("cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_governor 2>/dev/null")
+            .getOrNull()?.trim() ?: "schedutil"
+        }
+        
+        val availableGovs = try {
+          java.io.File("/sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_available_governors")
+            .readText().trim().split(" ").filter { it.isNotBlank() }
+        } catch (e: Exception) {
+          RootManager.executeCommand("cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_available_governors 2>/dev/null")
+            .getOrNull()?.trim()?.split(" ")?.filter { it.isNotBlank() }
+            ?: listOf("schedutil", "performance", "powersave", "ondemand", "conservative")
+        }
+        
+        val availableFreqs = try {
+          java.io.File("/sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_available_frequencies")
+            .readText().trim().split(" ").mapNotNull { it.toIntOrNull()?.div(1000) }
+        } catch (e: Exception) {
+          RootManager.executeCommand("cat /sys/devices/system/cpu/cpu$firstCore/cpufreq/scaling_available_frequencies 2>/dev/null")
+            .getOrNull()?.trim()?.split(" ")?.mapNotNull { it.toIntOrNull()?.div(1000) }
+            ?: emptyList()
+        }
 
-      // Apply device-specific frequency overrides for shell detection too
-      val enhancedFreqs = applyDeviceSpecificFrequencies(availableFreqs, null)
+        // Apply device-specific frequency overrides
+        val enhancedFreqs = applyDeviceSpecificFrequencies(availableFreqs, null)
 
-      val policyPath = "/sys/devices/system/cpu/cpufreq/policy${firstCore}"
-      clusters.add(
-          ClusterInfo(
-              clusterNumber = clusterIndex,
-              cores = coresInGroup,
-              minFreq = minFreq / 1000,
-              maxFreq = maxFreq / 1000,
-              currentMinFreq = currentMin / 1000,
-              currentMaxFreq = currentMax / 1000,
-              governor = governor,
-              availableGovernors = availableGovs,
-              availableFrequencies = enhancedFreqs,
-              policyPath = policyPath,
-          )
-      )
-    }
-    return clusters
+        val policyPath = "/sys/devices/system/cpu/cpufreq/policy${firstCore}"
+        ClusterInfo(
+          clusterNumber = clusterIndex,
+          cores = coresInGroup,
+          minFreq = minFreq / 1000,
+          maxFreq = maxFreq / 1000,
+          currentMinFreq = currentMin / 1000,
+          currentMaxFreq = currentMax / 1000,
+          governor = governor,
+          availableGovernors = availableGovs,
+          availableFrequencies = enhancedFreqs,
+          policyPath = policyPath,
+        )
+      }
+    }.awaitAll()
+    
+    Log.d(TAG, "Shell-based detection completed: ${clusterInfos.size} clusters")
+    clusterInfos
   }
 
   suspend fun setClusterFrequency(cluster: Int, minFreq: Int, maxFreq: Int): Result<Unit> {
