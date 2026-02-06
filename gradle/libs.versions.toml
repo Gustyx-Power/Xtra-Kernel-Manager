@@ -42,6 +42,9 @@ ksp = "2.3.5"
 lifecycle-service = "2.10.0"
 foundation = "1.10.2"
 
+# YukiHookAPI - For Xposed Module (Banking Hide Mode)
+yukihookapi = "1.3.1"
+
 [libraries]
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -91,6 +94,10 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 leakcanary-android = { group = "com.squareup.leakcanary", name = "leakcanary-android", version.ref = "leakcanary" }
 androidx-lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycle-service" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+
+# YukiHookAPI - Xposed Module
+yukihookapi-api = { group = "com.highcapable.yukihookapi", name = "api", version.ref = "yukihookapi" }
+yukihookapi-ksp-xposed = { group = "com.highcapable.yukihookapi", name = "ksp-xposed", version.ref = "yukihookapi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
