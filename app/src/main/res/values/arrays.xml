@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Xposed Module Target Scope - Banking Apps -->
+    <string-array name="xposed_scope">
+        <!-- SeaBank -->
+        <item>id.co.seabank</item>
+        <!-- BRI Mobile -->
+        <item>id.co.bri.brimo</item>
+        <!-- BCA Mobile -->
+        <item>com.bca</item>
+        <!-- Mandiri Online -->
+        <item>id.co.bankmandiri.livin</item>
+        <!-- BNI Mobile -->
+        <item>id.co.bni.mobilebni</item>
+        <!-- Jago -->
+        <item>id.co.bankjago.app</item>
+        <!-- DANA -->
+        <item>id.dana</item>
+        <!-- OVO -->
+        <item>ovo.id</item>
+        <!-- GoPay/Gojek -->
+        <item>com.gojek.app</item>
+        <!-- ShopeePay/Shopee -->
+        <item>com.shopee.id</item>
+        <!-- LinkAja -->
+        <item>com.telkom.mwallet</item>
+        <!-- Blu by BCA Digital -->
+        <item>id.co.bca.blu</item>
+        <!-- OCBC NISP -->
+        <item>com.ocbc.mobile</item>
+        <!-- Bank Neo Commerce -->
+        <item>id.neobank</item>
+        <!-- Jenius (BTPN) -->
+        <item>com.btpn.dc</item>
+        <!-- Bank Permata -->
+        <item>net.npointl.permatanet</item>
+        <!-- CIMB Niaga -->
+        <item>id.co.cimbniaga.mobile.android</item>
+        <!-- Maybank -->
+        <item>com.maybank2u.life</item>
+        <!-- Bank Mega -->
+        <item>id.co.bankmega.meganet</item>
+        <!-- Panin Mobile -->
+        <item>com.panin.mpin</item>
+        <!-- System Framework - Required for system-level hooks -->
+        <item>android</item>
+    </string-array>
+</resources>

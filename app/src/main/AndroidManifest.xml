@@ -45,6 +45,12 @@
         <meta-data android:name="app.category" android:value="productivity" />
         <meta-data android:name="app.purpose" android:value="system_optimization" />
         <meta-data android:name="distribution.channel" android:value="direct_download" />
+        
+        <!-- Xposed Module Metadata (LSPosed/EdXposed) -->
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="Hide accessibility service from banking apps to prevent detection" />
+        <meta-data android:name="xposedminversion" android:value="93" />
+        <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
 
         <!-- Splash Activity -->
         <activity android:name=".ui.splash.SplashActivity" android:exported="true" android:label="@string/app_name_short" android:theme="@style/Theme.XtraKernelManager.Splash" android:screenOrientation="portrait">
