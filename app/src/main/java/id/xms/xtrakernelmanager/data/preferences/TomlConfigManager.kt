@@ -232,11 +232,17 @@ class TomlConfigManager {
         } else null
 
     val thermalTable = toml.getTable("thermal")
-    val thermal =
-        ThermalConfig(
-            preset = thermalTable?.getString("preset") ?: "default",
-            setOnBoot = thermalTable?.getBoolean("set_on_boot") ?: false,
-        )
+    val thermal = ThermalConfig(
+        preset = thermalTable?.getString("preset")?.let { preset ->
+          // Handle legacy "default" and empty values
+          when {
+            preset == "default" || preset.isEmpty() -> "Not Set"
+            preset == "class0" -> "Not Set" // Legacy compatibility
+            else -> preset
+          }
+        } ?: "Not Set",
+        setOnBoot = thermalTable?.getBoolean("set_on_boot") ?: false,
+    )
 
     val ramTable = toml.getTable("ram")
     val ram =
