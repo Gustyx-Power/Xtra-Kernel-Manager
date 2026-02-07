@@ -125,10 +125,18 @@ private val teamMembers =
 @Composable
 fun LiquidInfoScreen() {
     val uriHandler = LocalUriHandler.current
+    
+    // Force dark/neon colors for Liquid UI consistency
+    val liquidBlobColors = listOf(
+        Color(0xFF4A9B8E), 
+        Color(0xFF8BA8D8), 
+        Color(0xFF6BC4E8)  
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            colors = liquidBlobColors
         )
 
         LazyVerticalStaggeredGrid(
@@ -268,7 +276,7 @@ private fun HeroSection() {
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp
             ),
-            color = MaterialTheme.colorScheme.onSurface
+            color = Color.White
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -280,7 +288,7 @@ private fun HeroSection() {
             text = stringResource(R.string.info_tagline),
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.7f),
+            color = Color.White.copy(0.7f),
             modifier = Modifier.padding(horizontal = 32.dp)
         )
     }
@@ -308,7 +316,7 @@ private fun SectionHeader(title: String) {
         title,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = Color.White,
         modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 12.dp),
     )
 }

@@ -237,10 +237,18 @@ fun LiquidMiscMainScreen(
     }
     */
     
+    // Force dark/neon colors for Liquid UI consistency
+    val liquidBlobColors = listOf(
+        Color(0xFF4A9B8E), 
+        Color(0xFF8BA8D8), 
+        Color(0xFF6BC4E8)  
+    )
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Background decoration - full size like tuning screens
         id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            colors = liquidBlobColors
         )
         
         Column(
@@ -469,59 +477,63 @@ fun LiquidMiscHeader(modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(0.dp),
         onClick = {}
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(id.xms.xtrakernelmanager.ui.theme.NeonPurple.copy(alpha = 0.85f))
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Miscellaneous",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                // Badge
-                Surface(
-                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
-                    shape = CircleShape
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Settings",
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                        text = "Miscellaneous",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = Color.White
                     )
+                    
+                    // Badge
+                    Surface(
+                        color = Color.White.copy(alpha = 0.15f),
+                        shape = CircleShape
+                    ) {
+                        Text(
+                            text = "Settings",
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = Color.White
+                        )
+                    }
                 }
-            }
 
-            // Icon
-            Surface(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                shape = CircleShape,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Tune,
-                        contentDescription = "Misc",
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+                // Icon
+                Surface(
+                    color = Color.White.copy(alpha = 0.15f),
+                    shape = CircleShape,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = "Misc",
+                            modifier = Modifier.size(18.dp),
+                            tint = Color.White
+                        )
+                    }
                 }
             }
         }
     }
 }
-
-
 
 @Composable
 fun LiquidSettingsGroup(
@@ -532,10 +544,15 @@ fun LiquidSettingsGroup(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(0.dp)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
+        Box(
+            modifier = Modifier
+                .background(Color(0xFF1E293B).copy(alpha = 0.85f))
         ) {
-            content()
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                content()
+            }
         }
     }
 }
@@ -555,22 +572,22 @@ fun LiquidSettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 14.dp), // Increased from 12dp to 14dp
-        horizontalArrangement = Arrangement.spacedBy(14.dp), // Increased from 12dp to 14dp
+            .padding(horizontal = 16.dp, vertical = 14.dp), 
+        horizontalArrangement = Arrangement.spacedBy(14.dp), 
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Icon with colored background
         Box(
             modifier = Modifier
-                .size(36.dp) // Increased from 32dp to 36dp
-                .clip(RoundedCornerShape(10.dp)) // Increased from 8dp to 10dp
-                .background(iconColor.copy(alpha = if (isLightTheme) 0.15f else 0.2f)),
+                .size(36.dp) 
+                .clip(RoundedCornerShape(10.dp)) 
+                .background(iconColor.copy(alpha = 0.2f)), // Use standard opacity for visibility on dark
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp), // Increased from 18dp to 20dp
+                modifier = Modifier.size(20.dp), 
                 tint = iconColor
             )
         }
@@ -578,19 +595,19 @@ fun LiquidSettingsRow(
         // Title & Subtitle
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp) // Increased from 2dp to 3dp
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             if (subtitle != null) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
         }
@@ -598,14 +615,14 @@ fun LiquidSettingsRow(
         // Badge (optional)
         if (badge != null) {
             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                color = Color.White.copy(alpha = 0.15f),
                 shape = CircleShape
             ) {
                 Text(
                     text = badge,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White
                 )
             }
         }
@@ -614,8 +631,8 @@ fun LiquidSettingsRow(
         Icon(
             imageVector = Icons.Default.ChevronRight,
             contentDescription = null,
-            modifier = Modifier.size(22.dp), // Increased from 20dp to 22dp
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            modifier = Modifier.size(22.dp), 
+            tint = Color.White.copy(alpha = 0.3f)
         )
     }
 }

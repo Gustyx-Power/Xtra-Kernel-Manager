@@ -60,7 +60,12 @@ fun LiquidTuningScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         // Background Layer
         WavyBlobOrnament(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            colors = listOf(
+                androidx.compose.ui.graphics.Color(0xFF4A9B8E), 
+                androidx.compose.ui.graphics.Color(0xFF8BA8D8), 
+                androidx.compose.ui.graphics.Color(0xFF6BC4E8)
+            )
         )
         
         // Foreground Layer
@@ -75,56 +80,62 @@ fun LiquidTuningScreen(
                 shape = CircleShape,
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .background(id.xms.xtrakernelmanager.ui.theme.NeonBlue.copy(alpha = 0.85f))
                 ) {
-                    // Title
-                    Text(
-                        text = stringResource(R.string.liquid_tuning_title),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    
-                    // Action buttons
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Import button
-                        Surface(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                            shape = CircleShape,
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            IconButton(onClick = onImportClick) {
-                                Icon(
-                                    imageVector = Icons.Rounded.FolderOpen,
-                                    contentDescription = stringResource(R.string.liquid_tuning_import_profile),
-                                    modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
+                        // Title
+                        Text(
+                            text = stringResource(R.string.liquid_tuning_title),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = androidx.compose.ui.graphics.Color.White
+                        )
                         
-                        // Export button
-                        Surface(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                            shape = CircleShape,
-                            modifier = Modifier.size(32.dp)
+                        // Action buttons
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = onExportClick) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Save,
-                                    contentDescription = stringResource(R.string.liquid_tuning_export_profile),
-                                    modifier = Modifier.size(18.dp),
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
+                            // Import button
+                            Surface(
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f),
+                                shape = CircleShape,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                IconButton(onClick = onImportClick) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.FolderOpen,
+                                        contentDescription = stringResource(R.string.liquid_tuning_import_profile),
+                                        modifier = Modifier.size(18.dp),
+                                        tint = androidx.compose.ui.graphics.Color.White
+                                    )
+                                }
+                            }
+                            
+                            // Export button
+                            Surface(
+                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f),
+                                shape = CircleShape,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                IconButton(onClick = onExportClick) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Save,
+                                        contentDescription = stringResource(R.string.liquid_tuning_export_profile),
+                                        modifier = Modifier.size(18.dp),
+                                        tint = androidx.compose.ui.graphics.Color.White
+                                    )
+                                }
                             }
                         }
                     }
