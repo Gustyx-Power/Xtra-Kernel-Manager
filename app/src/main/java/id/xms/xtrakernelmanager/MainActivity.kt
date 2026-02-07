@@ -21,6 +21,9 @@ import id.xms.xtrakernelmanager.utils.AccessibilityServiceHelper
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+
 class MainActivity : ComponentActivity() {
   private val preferencesManager by lazy { PreferencesManager(this) }
 
@@ -54,9 +57,11 @@ class MainActivity : ComponentActivity() {
     }
     checkGameMonitorServiceStatus()
     startService(Intent(this, id.xms.xtrakernelmanager.service.AppProfileService::class.java))
-
+    
     setContent {
-      XtraKernelManagerTheme {
+      val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
+      
+      XtraKernelManagerTheme(dynamicColor = layoutStyle != "liquid") {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
           Navigation(preferencesManager = preferencesManager)
         }
