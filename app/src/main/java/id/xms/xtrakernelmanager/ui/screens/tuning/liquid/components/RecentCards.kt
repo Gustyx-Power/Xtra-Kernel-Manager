@@ -81,30 +81,33 @@ fun RecentCPUCard(
             .width(340.dp),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        contentPadding = PaddingValues(24.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
-        // Large Icon with Background
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            emeraldColor.copy(alpha = 0.3f),
-                            emeraldColor.copy(alpha = 0.15f)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(emeraldColor.copy(alpha = 0.85f))
         ) {
-            Icon(
-                imageVector = Icons.Default.Memory,
-                contentDescription = "CPU Control",
-                tint = emeraldColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                // Large Icon with Background
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Memory,
+                        contentDescription = "CPU Control",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -118,15 +121,15 @@ fun RecentCPUCard(
                 text = stringResource(R.string.cpu_control),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = emeraldColor.copy(alpha = 0.15f)
+                color = Color.White.copy(alpha = 0.15f)
             ) {
                 Text(
                     text = performanceCluster?.governor?.uppercase() ?: "WALT",
-                    color = emeraldColor,
+                    color = Color.White,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -151,20 +154,20 @@ fun RecentCPUCard(
                         text = "$onlineCores",
                         style = MaterialTheme.typography.displayLarge,
                         fontWeight = FontWeight.Bold,
-                        color = emeraldColor
+                        color = Color.White
                     )
                     Text(
                         text = "/$totalCores",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
                 Text(
                     text = stringResource(R.string.liquid_recent_cores_online),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
             
@@ -178,19 +181,19 @@ fun RecentCPUCard(
                         text = currentFreqText,
                         style = MaterialTheme.typography.displayLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_ghz_unit),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
                 Text(
                     text = stringResource(R.string.liquid_recent_current_frequency),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
         }
@@ -206,13 +209,13 @@ fun RecentCPUCard(
                 Text(
                     text = stringResource(R.string.liquid_recent_frequency_range),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.7f)
                 )
                 Text(
                     text = stringResource(R.string.liquid_recent_max_freq_format, maxFreqText),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -221,7 +224,7 @@ fun RecentCPUCard(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    .background(Color.White.copy(alpha = 0.1f))
             ) {
                 Box(
                     modifier = Modifier
@@ -230,14 +233,7 @@ fun RecentCPUCard(
                             if (maxFreqGHz > 0) currentFreqGHz / maxFreqGHz else 0.5f
                         )
                         .clip(RoundedCornerShape(4.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(
-                                    emeraldColor.copy(alpha = 0.8f),
-                                    emeraldColor
-                                )
-                            )
-                        )
+                        .background(Color.White)
                 )
             }
         }
@@ -253,7 +249,7 @@ fun RecentCPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = emeraldColor.copy(alpha = 0.1f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -262,7 +258,7 @@ fun RecentCPUCard(
                     Icon(
                         imageVector = Icons.Default.Speed,
                         contentDescription = null,
-                        tint = emeraldColor,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -270,12 +266,12 @@ fun RecentCPUCard(
                         text = "${cpuLoad.toInt()}%",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = emeraldColor
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_cpu_load),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -284,7 +280,7 @@ fun RecentCPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = tempColor.copy(alpha = 0.1f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -293,7 +289,7 @@ fun RecentCPUCard(
                     Icon(
                         imageVector = Icons.Default.Thermostat,
                         contentDescription = null,
-                        tint = tempColor,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -301,12 +297,12 @@ fun RecentCPUCard(
                         text = "${temperature.toInt()}°C",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = tempColor
+                        color = Color.White
                     )
                     Text(
                         text = tempStatus,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -323,7 +319,7 @@ fun RecentCPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -332,19 +328,20 @@ fun RecentCPUCard(
                     Icon(
                         imageVector = Icons.Default.Layers,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${clusters.size}",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_clusters),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -353,7 +350,7 @@ fun RecentCPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -362,19 +359,20 @@ fun RecentCPUCard(
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "${performanceCluster?.availableGovernors?.size ?: 0}",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_governors),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -391,7 +389,7 @@ fun RecentCPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = emeraldColor.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -400,7 +398,7 @@ fun RecentCPUCard(
                     Icon(
                         imageVector = Icons.Default.DeveloperBoard,
                         contentDescription = null,
-                        tint = emeraldColor,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -408,13 +406,13 @@ fun RecentCPUCard(
                         text = socChipname.uppercase().take(10),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = emeraldColor,
+                        color = Color.White,
                         maxLines = 1
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_soc),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -423,7 +421,7 @@ fun RecentCPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = emeraldColor.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -432,7 +430,7 @@ fun RecentCPUCard(
                     Icon(
                         imageVector = Icons.Default.Memory,
                         contentDescription = null,
-                        tint = emeraldColor,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -440,17 +438,19 @@ fun RecentCPUCard(
                         text = processNode,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = emeraldColor
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_process),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
         }
+        }
     }
+}
 }
 
 
@@ -472,30 +472,33 @@ fun RecentGPUCard(
             .width(340.dp),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        contentPadding = PaddingValues(24.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
-        // Large Icon with Background
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            blueColor.copy(alpha = 0.3f),
-                            blueColor.copy(alpha = 0.15f)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(blueColor.copy(alpha = 0.85f))
         ) {
-            Icon(
-                imageVector = Icons.Default.Games,
-                contentDescription = "GPU Control",
-                tint = blueColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                // Large Icon with Background
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Games,
+                        contentDescription = "GPU Control",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -509,15 +512,15 @@ fun RecentGPUCard(
                 text = stringResource(R.string.gpu_control),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = rendererBadgeColor.copy(alpha = 0.15f)
+                color = Color.White.copy(alpha = 0.15f)
             ) {
                 Text(
                     text = rendererBadgeText,
-                    color = rendererBadgeColor,
+                    color = Color.White,
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -532,7 +535,7 @@ fun RecentGPUCard(
             text = gpuInfo.renderer.ifEmpty { "Adreno 710" },
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = blueColor
+            color = Color.White
         )
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -546,7 +549,7 @@ fun RecentGPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = blueColor.copy(alpha = 0.1f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -555,7 +558,7 @@ fun RecentGPUCard(
                     Icon(
                         imageVector = Icons.Default.ShowChart,
                         contentDescription = null,
-                        tint = blueColor,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -563,12 +566,12 @@ fun RecentGPUCard(
                         text = "${gpuInfo.gpuLoad}%",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = blueColor
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_gpu_load),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -577,7 +580,7 @@ fun RecentGPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -586,7 +589,7 @@ fun RecentGPUCard(
                     Icon(
                         imageVector = Icons.Default.Speed,
                         contentDescription = null,
-                        tint = blueColor,
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -594,12 +597,12 @@ fun RecentGPUCard(
                         text = "${gpuInfo.currentFreq}",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_mhz_unit),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -617,13 +620,13 @@ fun RecentGPUCard(
                 Text(
                     text = stringResource(R.string.liquid_recent_power_level),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.7f)
                 )
                 Text(
                     text = "${gpuInfo.powerLevel} / ${gpuInfo.numPwrLevels}",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = blueColor
+                    color = Color.White
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -632,7 +635,7 @@ fun RecentGPUCard(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    .background(Color.White.copy(alpha = 0.1f))
             ) {
                 Box(
                     modifier = Modifier
@@ -643,14 +646,7 @@ fun RecentGPUCard(
                             else 0.5f
                         )
                         .clip(RoundedCornerShape(4.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(
-                                    blueColor.copy(alpha = 0.8f),
-                                    blueColor
-                                )
-                            )
-                        )
+                        .background(Color.White)
                 )
             }
         }
@@ -668,7 +664,7 @@ fun RecentGPUCard(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    color = blueColor.copy(alpha = 0.1f)
+                    color = Color.White.copy(alpha = 0.1f)
                 ) {
                     Column(
                         modifier = Modifier.padding(10.dp),
@@ -677,7 +673,7 @@ fun RecentGPUCard(
                         Icon(
                             imageVector = Icons.Default.Memory,
                             contentDescription = null,
-                            tint = blueColor,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -685,13 +681,13 @@ fun RecentGPUCard(
                             text = gpuInfo.gpuMemory.take(8),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = blueColor,
+                            color = Color.White,
                             maxLines = 1
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_memory),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -700,7 +696,7 @@ fun RecentGPUCard(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    color = blueColor.copy(alpha = 0.1f)
+                    color = Color.White.copy(alpha = 0.1f)
                 ) {
                     Column(
                         modifier = Modifier.padding(10.dp),
@@ -709,7 +705,7 @@ fun RecentGPUCard(
                         Icon(
                             imageVector = Icons.Default.DeveloperBoard,
                             contentDescription = null,
-                            tint = blueColor,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -717,13 +713,13 @@ fun RecentGPUCard(
                             text = if (gpuInfo.computeUnits > 0) "${gpuInfo.computeUnits}" else "N/A",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = blueColor,
+                            color = Color.White,
                             maxLines = 1
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_cus),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -738,7 +734,7 @@ fun RecentGPUCard(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                    color = Color.White.copy(alpha = 0.1f)
                 ) {
                     Column(
                         modifier = Modifier.padding(10.dp),
@@ -747,7 +743,7 @@ fun RecentGPUCard(
                         Icon(
                             imageVector = Icons.Default.Layers,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -757,12 +753,13 @@ fun RecentGPUCard(
                             else "3.2",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            maxLines = 1
+                            maxLines = 1,
+                            color = Color.White
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_opengl),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -771,7 +768,7 @@ fun RecentGPUCard(
                 Surface(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
-                    color = blueColor.copy(alpha = 0.1f)
+                    color = Color.White.copy(alpha = 0.1f)
                 ) {
                     Column(
                         modifier = Modifier.padding(10.dp),
@@ -780,10 +777,7 @@ fun RecentGPUCard(
                         Icon(
                             imageVector = Icons.Default.Bolt,
                             contentDescription = null,
-                            tint = if (gpuInfo.vulkanVersion != "Not Supported" && gpuInfo.vulkanVersion != "Unknown")
-                                blueColor
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
@@ -797,16 +791,13 @@ fun RecentGPUCard(
                             },
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = if (gpuInfo.vulkanVersion != "Not Supported" && gpuInfo.vulkanVersion != "Unknown")
-                                blueColor
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = Color.White,
                             maxLines = 1
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_vulkan),
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -824,7 +815,7 @@ fun RecentGPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(10.dp),
@@ -833,7 +824,7 @@ fun RecentGPUCard(
                     Icon(
                         imageVector = Icons.Default.AspectRatio,
                         contentDescription = null,
-                        tint = blueColor,
+                        tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -841,12 +832,13 @@ fun RecentGPUCard(
                         text = getDisplayResolution(),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
+                        maxLines = 1,
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_resolution),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -855,7 +847,7 @@ fun RecentGPUCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(10.dp),
@@ -864,7 +856,7 @@ fun RecentGPUCard(
                     Icon(
                         imageVector = Icons.Default.Refresh,
                         contentDescription = null,
-                        tint = blueColor,
+                        tint = Color.White,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -872,17 +864,20 @@ fun RecentGPUCard(
                         text = "${getMaxRefreshRate()}Hz",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
+                        maxLines = 1,
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_refresh_rate),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
         }
     }
+}
+}
 }
 
 @Composable
@@ -899,30 +894,33 @@ fun RecentThermalCard(
             .width(340.dp),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        contentPadding = PaddingValues(24.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
-        // Large Icon with Background
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            roseColor.copy(alpha = 0.3f),
-                            roseColor.copy(alpha = 0.15f)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(roseColor.copy(alpha = 0.85f))
         ) {
-            Icon(
-                imageVector = Icons.Default.Thermostat,
-                contentDescription = "Thermal Control",
-                tint = roseColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                // Large Icon with Background
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Thermostat,
+                        contentDescription = "Thermal Control",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -931,7 +929,7 @@ fun RecentThermalCard(
             text = stringResource(R.string.thermal_control),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = Color.White
         )
         
         Spacer(modifier = Modifier.height(24.dp))
@@ -951,12 +949,12 @@ fun RecentThermalCard(
                         fontSize = 72.sp,
                         fontWeight = FontWeight.Bold
                     ),
-                    color = roseColor
+                    color = Color.White
                 )
                 Text(
                     text = stringResource(R.string.celsius),
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 12.dp)
                 )
             }
@@ -966,7 +964,7 @@ fun RecentThermalCard(
             // Status Badge
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = roseColor.copy(alpha = 0.15f)
+                color = Color.White.copy(alpha = 0.15f)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -977,13 +975,13 @@ fun RecentThermalCard(
                         modifier = Modifier
                             .size(8.dp)
                             .clip(CircleShape)
-                            .background(roseColor)
+                            .background(Color.White)
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_normal_temperature),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium,
-                        color = roseColor
+                        color = Color.White
                     )
                 }
             }
@@ -995,7 +993,7 @@ fun RecentThermalCard(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+            color = Color.White.copy(alpha = 0.1f)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp)
@@ -1009,20 +1007,20 @@ fun RecentThermalCard(
                         Text(
                             text = stringResource(R.string.liquid_recent_thermal_preset),
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = Color.White.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = thermalPreset.ifEmpty { "Throttling OFF" },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color.White
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.Settings,
                         contentDescription = null,
-                        tint = roseColor,
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -1039,7 +1037,7 @@ fun RecentThermalCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -1048,14 +1046,15 @@ fun RecentThermalCard(
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = null,
-                        tint = Color(0xFF10B981),
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(R.string.liquid_recent_stable),
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
                     )
                 }
             }
@@ -1063,7 +1062,7 @@ fun RecentThermalCard(
             Surface(
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Column(
                     modifier = Modifier.padding(12.dp),
@@ -1072,19 +1071,22 @@ fun RecentThermalCard(
                     Icon(
                         imageVector = Icons.Default.TrendingDown,
                         contentDescription = null,
-                        tint = Color(0xFF3B82F6),
+                        tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(R.string.liquid_recent_cooling),
                         style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
                     )
                 }
             }
         }
+        }
     }
+}
 }
 
 @Composable
@@ -1100,30 +1102,33 @@ fun RecentRAMCard(
             .width(340.dp),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        contentPadding = PaddingValues(24.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
-        // Large Icon with Background
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            blueColor.copy(alpha = 0.3f),
-                            blueColor.copy(alpha = 0.15f)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(blueColor.copy(alpha = 0.85f))
         ) {
-            Icon(
-                imageVector = Icons.Default.Memory,
-                contentDescription = "RAM Control",
-                tint = blueColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                // Large Icon with Background
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Memory,
+                        contentDescription = "RAM Control",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -1137,16 +1142,16 @@ fun RecentRAMCard(
                 text = stringResource(R.string.ram_control),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             if (ramConfig.zramSize > 0) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = blueColor.copy(alpha = 0.15f)
+                    color = Color.White.copy(alpha = 0.15f)
                 ) {
                     Text(
                         text = ramConfig.compressionAlgorithm.uppercase(),
-                        color = blueColor,
+                        color = Color.White,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -1161,7 +1166,7 @@ fun RecentRAMCard(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = blueColor.copy(alpha = 0.1f)
+            color = Color.White.copy(alpha = 0.1f)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -1170,7 +1175,7 @@ fun RecentRAMCard(
                 Text(
                     text = stringResource(R.string.liquid_recent_zram),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -1181,12 +1186,12 @@ fun RecentRAMCard(
                         text = if(ramConfig.zramSize > 0) "${ramConfig.zramSize}" else "0",
                         style = MaterialTheme.typography.displayLarge,
                         fontWeight = FontWeight.Bold,
-                        color = blueColor
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(R.string.liquid_recent_mb_unit),
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
@@ -1194,7 +1199,7 @@ fun RecentRAMCard(
                     Text(
                         text = stringResource(R.string.liquid_recent_disabled),
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -1208,7 +1213,7 @@ fun RecentRAMCard(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -1222,20 +1227,21 @@ fun RecentRAMCard(
                         Icon(
                             imageVector = Icons.Default.SwapHoriz,
                             contentDescription = null,
-                            tint = blueColor,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_swappiness),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
                     Text(
                         text = "${ramConfig.swappiness}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = blueColor
+                        color = Color.White
                     )
                 }
             }
@@ -1244,7 +1250,7 @@ fun RecentRAMCard(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -1258,25 +1264,28 @@ fun RecentRAMCard(
                         Icon(
                             imageVector = Icons.Default.Storage,
                             contentDescription = null,
-                            tint = blueColor,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_dirty_ratio),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
                     Text(
                         text = "${ramConfig.dirtyRatio}%",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = blueColor
+                        color = Color.White
                     )
                 }
             }
         }
+        }
     }
+}
 }
 
 @Composable
@@ -1291,30 +1300,33 @@ fun RecentAdditionalCard(
             .width(340.dp),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
-        contentPadding = PaddingValues(24.dp)
+        contentPadding = PaddingValues(0.dp)
     ) {
-        // Large Icon with Background
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            grayColor.copy(alpha = 0.3f),
-                            grayColor.copy(alpha = 0.15f)
-                        )
-                    )
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .background(grayColor.copy(alpha = 0.85f))
         ) {
-            Icon(
-                imageVector = Icons.Default.Tune,
-                contentDescription = "Advanced Settings",
-                tint = grayColor,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                // Large Icon with Background
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = "Advanced Settings",
+                        tint = Color.White,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -1323,7 +1335,7 @@ fun RecentAdditionalCard(
             text = stringResource(R.string.liquid_recent_advanced_settings),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
+            color = Color.White
         )
         
         Spacer(modifier = Modifier.height(8.dp))
@@ -1331,7 +1343,7 @@ fun RecentAdditionalCard(
         Text(
             text = stringResource(R.string.liquid_recent_fine_tune_performance),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = Color.White.copy(alpha = 0.7f)
         )
         
         Spacer(modifier = Modifier.height(20.dp))
@@ -1342,7 +1354,7 @@ fun RecentAdditionalCard(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -1356,19 +1368,20 @@ fun RecentAdditionalCard(
                         Icon(
                             imageVector = Icons.Default.Storage,
                             contentDescription = null,
-                            tint = grayColor,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_io_scheduler),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1378,7 +1391,7 @@ fun RecentAdditionalCard(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -1392,19 +1405,20 @@ fun RecentAdditionalCard(
                         Icon(
                             imageVector = Icons.Default.NetworkCheck,
                             contentDescription = null,
-                            tint = grayColor,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_tcp_congestion),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1414,7 +1428,7 @@ fun RecentAdditionalCard(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                color = Color.White.copy(alpha = 0.1f)
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
@@ -1428,19 +1442,20 @@ fun RecentAdditionalCard(
                         Icon(
                             imageVector = Icons.Default.Apps,
                             contentDescription = null,
-                            tint = grayColor,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_per_app_profiles),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = Color.White.copy(alpha = 0.7f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1453,7 +1468,7 @@ fun RecentAdditionalCard(
         Surface(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            color = grayColor.copy(alpha = 0.1f)
+            color = Color.White.copy(alpha = 0.1f)
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -1467,19 +1482,20 @@ fun RecentAdditionalCard(
                     Icon(
                         imageVector = Icons.Default.Speed,
                         contentDescription = null,
-                        tint = grayColor,
+                        tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )
                     Column {
                         Text(
                             text = stringResource(R.string.liquid_recent_performance_mode),
                             style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = Color.White
                         )
                         Text(
                             text = stringResource(R.string.liquid_recent_balance),
                             style = MaterialTheme.typography.labelMedium,
-                            color = grayColor,
+                            color = Color.White.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -1487,12 +1503,14 @@ fun RecentAdditionalCard(
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
-                    tint = grayColor,
+                    tint = Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.size(20.dp)
                 )
             }
         }
+        }
     }
+}
 }
 
 
