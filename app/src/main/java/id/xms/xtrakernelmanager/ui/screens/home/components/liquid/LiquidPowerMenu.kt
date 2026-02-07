@@ -21,67 +21,75 @@ fun LiquidPowerMenu(
     onAction: (PowerAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LiquidSharedCard(modifier = modifier) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    LiquidSharedCard(
+        modifier = modifier,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .background(Color(0xFF1E293B).copy(alpha = 0.85f))
         ) {
-            Text(
-                text = "Power Actions",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            // First Row: Power Off, Reboot
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                PowerActionButton(
-                    modifier = Modifier.weight(1f),
-                    action = PowerAction.PowerOff,
-                    color = Color(0xFFEF4444), // Red
-                    onClick = { onAction(PowerAction.PowerOff) }
+                Text(
+                    text = "Power Actions",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
                 )
-                PowerActionButton(
-                    modifier = Modifier.weight(1f),
-                    action = PowerAction.Reboot,
-                    color = Color(0xFF3B82F6), // Blue
-                    onClick = { onAction(PowerAction.Reboot) }
-                )
-            }
-            
-            // Second Row: Recovery, Bootloader
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                PowerActionButton(
-                    modifier = Modifier.weight(1f),
-                    action = PowerAction.Recovery,
-                    color = Color(0xFFF59E0B), // Orange
-                    onClick = { onAction(PowerAction.Recovery) }
-                )
-                PowerActionButton(
-                    modifier = Modifier.weight(1f),
-                    action = PowerAction.Bootloader,
-                    color = Color(0xFF10B981), // Green
-                    onClick = { onAction(PowerAction.Bootloader) }
-                )
-            }
-            
-            // Third Row: System UI
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                PowerActionButton(
-                    modifier = Modifier.fillMaxWidth(0.5f),
-                    action = PowerAction.SystemUI,
-                    color = NeonPurple,
-                    onClick = { onAction(PowerAction.SystemUI) }
-                )
+                
+                // First Row: Power Off, Reboot
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PowerActionButton(
+                        modifier = Modifier.weight(1f),
+                        action = PowerAction.PowerOff,
+                        color = Color(0xFFEF4444), // Red
+                        onClick = { onAction(PowerAction.PowerOff) }
+                    )
+                    PowerActionButton(
+                        modifier = Modifier.weight(1f),
+                        action = PowerAction.Reboot,
+                        color = Color(0xFF3B82F6), // Blue
+                        onClick = { onAction(PowerAction.Reboot) }
+                    )
+                }
+                
+                // Second Row: Recovery, Bootloader
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    PowerActionButton(
+                        modifier = Modifier.weight(1f),
+                        action = PowerAction.Recovery,
+                        color = Color(0xFFF59E0B), // Orange
+                        onClick = { onAction(PowerAction.Recovery) }
+                    )
+                    PowerActionButton(
+                        modifier = Modifier.weight(1f),
+                        action = PowerAction.Bootloader,
+                        color = Color(0xFF10B981), // Green
+                        onClick = { onAction(PowerAction.Bootloader) }
+                    )
+                }
+                
+                // Third Row: System UI
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    PowerActionButton(
+                        modifier = Modifier.fillMaxWidth(0.5f),
+                        action = PowerAction.SystemUI,
+                        color = NeonPurple,
+                        onClick = { onAction(PowerAction.SystemUI) }
+                    )
+                }
             }
         }
     }
@@ -97,7 +105,7 @@ private fun PowerActionButton(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(color.copy(alpha = 0.15f))
+            .background(color.copy(alpha = 0.25f)) // Increased opacity for better visibility on dark bg
             .clickable { onClick() }
             .padding(12.dp),
         contentAlignment = Alignment.Center
