@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,20 +55,20 @@ fun LiquidHeader(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 
                 // Version Badge (only show if enabled)
                 if (showVersionBadge) {
                     Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        color = Color.White.copy(alpha = 0.15f),
                         shape = CircleShape
                     ) {
                         Text(
                             text = "v${BuildConfig.VERSION_NAME}",
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = Color.White
                         )
                     }
                 }
@@ -75,7 +76,7 @@ fun LiquidHeader(
 
             // Settings Icon (Mini FAB style or just Icon)
             Surface(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                color = Color.White.copy(alpha = 0.15f),
                 shape = CircleShape,
                 modifier = Modifier.size(32.dp).clickable(onClick = onSettingsClick)
             ) {
@@ -84,7 +85,7 @@ fun LiquidHeader(
                         imageVector = Icons.Rounded.Settings,
                         contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.liquid_header_settings),
                         modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = Color.White
                     )
                 }
             }

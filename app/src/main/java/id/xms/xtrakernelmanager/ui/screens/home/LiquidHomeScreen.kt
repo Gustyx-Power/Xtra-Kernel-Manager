@@ -92,8 +92,21 @@ fun LiquidHomeScreen(
         delay(100) // Small delay before starting animations
         isVisible = true
     }
+    
+    // Force dark/neon colors for Liquid UI consistency
+    val liquidBlobColors = listOf(
+        Color(0xFF4A9B8E), 
+        Color(0xFF8BA8D8), 
+        Color(0xFF6BC4E8)  
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Background Layer
+        WavyBlobOrnament(
+            modifier = Modifier.fillMaxSize(),
+            colors = liquidBlobColors
+        )
+
         // Content Scrollable Column
         Column(
             modifier = Modifier
