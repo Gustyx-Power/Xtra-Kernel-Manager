@@ -74,8 +74,16 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
         }
     }
 
-    LiquidSharedCard(modifier = modifier.heightIn(min = 320.dp)) {
-        Box(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+    LiquidSharedCard(
+        modifier = modifier.heightIn(min = 320.dp),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .background(NeonBlue.copy(alpha = 0.85f))
+        ) {
             
             // Brand Logo
             if (logoRes != null) {
@@ -88,13 +96,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                         .offset(x = 60.dp, y = 20.dp)
                         .rotate(-15f)
                         .alpha(0.08f), // Subtle watermark
-                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
+                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.White)
                 )
             } else {
                  Icon(
                     imageVector = Icons.Rounded.Android,
                     contentDescription = null,
-                    tint = NeonGreen.copy(alpha = 0.15f), 
+                    tint = Color.White.copy(alpha = 0.15f), 
                     modifier = Modifier
                         .size(280.dp) 
                         .align(Alignment.CenterEnd)
@@ -112,8 +121,8 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
             ) {
                  // Header: Chips
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GlassChip(text = android.os.Build.MANUFACTURER.uppercase(), color = NeonGreen)
-                    GlassChip(text = android.os.Build.BOARD.uppercase(), color = NeonBlue)
+                    GlassChip(text = android.os.Build.MANUFACTURER.uppercase(), color = Color.White)
+                    GlassChip(text = android.os.Build.BOARD.uppercase(), color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -125,14 +134,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                          .trim()
                          .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_unknown_device) },
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 42.sp),
-                    color = adaptiveTextColor(),
+                    color = Color.White,
                     lineHeight = 44.sp
                 )
                 
                 Text(
                     text = android.os.Build.DEVICE,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-                    color = adaptiveTextColor(0.5f),
+                    color = Color.White.copy(alpha = 0.7f),
                     fontFamily = FontFamily.Monospace
                 )
 
@@ -144,14 +153,14 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                             icon = Icons.Rounded.Android,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_android),
                             value = systemInfo.androidVersion,
-                            color = NeonGreen,
+                            color = Color.White,
                             modifier = Modifier.weight(1.5f).height(80.dp)
                         )
                          InfoTile(
                             icon = Icons.Rounded.DeveloperBoard,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_kernel),
                             value = systemInfo.kernelVersion,
-                            color = NeonPurple,
+                            color = Color.White,
                             modifier = Modifier.weight(1.5f).height(80.dp)
                         )
                     }
@@ -161,25 +170,18 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                             icon = Icons.Rounded.AccessTime,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_uptime),
                             value = uptime,
-                            color = NeonBlue,
+                            color = Color.White,
                             modifier = Modifier.weight(1f).height(80.dp)
                         )
                         InfoTile(
                             icon = androidx.compose.material.icons.Icons.Rounded.NightsStay, 
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_sleep),
                             value = deepSleep,
-                            color = Color(0xFFF48FB1), 
+                            color = Color.White, 
                             modifier = Modifier.weight(1f).height(80.dp)
                         )
                     }
-                    // Row 3
-                    InfoTile(
-                        icon = Icons.Rounded.Android,
-                        label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_smartphone_brand),
-                        value = android.os.Build.MANUFACTURER.uppercase(),
-                        color = Color.White,
-                        modifier = Modifier.fillMaxWidth().height(80.dp)
-                    )
+                    // Row 3 (Manufacturer) - Removed as it is redundant and space consuming
                 }
             }
 
@@ -193,8 +195,8 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                     size = androidx.compose.ui.unit.DpSize(140.dp, 280.dp),
                     rotation = -15f,
                     showWallpaper = true,
-                    glowColor = NeonBlue,
-                    accentColor = NeonPurple
+                    glowColor = Color.White,
+                    accentColor = Color.White
                 )
             }
         }
@@ -229,7 +231,7 @@ private fun InfoTile(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(adaptiveSurfaceColor(0.05f))
+            .background(Color.White.copy(alpha = 0.15f))
             .padding(12.dp),
         verticalArrangement = Arrangement.Center
     ) {
@@ -238,14 +240,14 @@ private fun InfoTile(
         Text(
             text = value,
             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            color = adaptiveTextColor(),
+            color = Color.White,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = adaptiveTextColor(0.5f)
+            color = Color.White.copy(alpha = 0.7f)
         )
     }
 }

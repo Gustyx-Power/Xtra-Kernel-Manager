@@ -53,11 +53,13 @@ fun adaptiveSurfaceColor(alpha: Float = 0.1f): Color {
 fun LiquidSharedCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    contentPadding: PaddingValues? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     GlassmorphicCard(
         modifier = modifier.animateContentSize(),
         onClick = onClick,
+        contentPadding = contentPadding,
         content = content
     )
 }
