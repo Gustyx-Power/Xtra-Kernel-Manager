@@ -32,8 +32,11 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.FunctionalRomViewModel
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.ShimokuRomScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.HideAccessibilitySettingsScreen
+import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.material.MaterialGameAppSelectorScreen
@@ -198,6 +201,12 @@ fun Navigation(preferencesManager: PreferencesManager) {
     }
   }
 
+  // Shared FunctionalRomViewModel - created once and reused across all related screens
+  // to prevent state flickering when navigating between functionalrom, shimokurom, and hideaccessibilitysettings
+  val context = LocalContext.current
+  val functionalRomFactory = remember { FunctionalRomViewModel.Companion.Factory(preferencesManager, context.applicationContext) }
+  val sharedFunctionalRomViewModel: FunctionalRomViewModel = viewModel(factory = functionalRomFactory)
+
   Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -336,18 +345,20 @@ fun Navigation(preferencesManager: PreferencesManager) {
         }
 
         composable("functionalrom") {
-          val context = LocalContext.current
-          val functionalRomViewModel = remember {
-            FunctionalRomViewModel(
-                preferencesManager = preferencesManager,
-                context = context.applicationContext,
-            )
-          }
           FunctionalRomScreen(
+              onNavigateBack = { navController.popBackStack() },
+              onNavigateToShimokuRom = { navController.navigate("shimokurom") },
+              onNavigateToHideAccessibility = { navController.navigate("hideaccessibilitysettings") },
+              viewModel = sharedFunctionalRomViewModel,
+          )
+        }
+
+        composable("shimokurom") {
+          ShimokuRomScreen(
               onNavigateBack = { navController.popBackStack() },
               onNavigateToPlayIntegrity = { navController.navigate("playintegritysettings") },
               onNavigateToXiaomiTouch = { navController.navigate("xiaomitouchsettings") },
-              viewModel = functionalRomViewModel,
+              viewModel = sharedFunctionalRomViewModel,
           )
         }
 
@@ -357,6 +368,33 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
         composable("xiaomitouchsettings") {
           XiaomiTouchSettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable("hideaccessibilitysettings") {
+          val uiState by sharedFunctionalRomViewModel.uiState.collectAsState()
+          
+          HideAccessibilitySettingsScreen(
+              config = uiState.hideAccessibilityConfig,
+              onNavigateBack = { navController.popBackStack() },
+              onConfigChange = { newConfig: HideAccessibilityConfig ->
+                // Update individual config properties
+                if (newConfig.isEnabled != uiState.hideAccessibilityConfig.isEnabled) {
+                  sharedFunctionalRomViewModel.setHideAccessibilityEnabled(newConfig.isEnabled)
+                }
+                if (newConfig.currentTab != uiState.hideAccessibilityConfig.currentTab) {
+                  sharedFunctionalRomViewModel.setHideAccessibilityTab(newConfig.currentTab)
+                }
+                if (newConfig.appsToHide != uiState.hideAccessibilityConfig.appsToHide) {
+                  sharedFunctionalRomViewModel.setHideAccessibilityAppsToHide(newConfig.appsToHide)
+                }
+                if (newConfig.detectorApps != uiState.hideAccessibilityConfig.detectorApps) {
+                  sharedFunctionalRomViewModel.setHideAccessibilityDetectorApps(newConfig.detectorApps)
+                }
+              },
+              onRefreshLSPosedStatus = {
+                sharedFunctionalRomViewModel.refreshLSPosedStatus()
+              }
+          )
         }
 
         composable("info") { InfoScreen(preferencesManager) }

@@ -832,8 +832,6 @@ class PreferencesManager(private val context: Context) {
     makePrefsWorldReadable()
   }
 
-  // ==================== Functional ROM Preferences ====================
-
   suspend fun setFunctionalRomUnlockNits(enabled: Boolean) {
     context.dataStore.edit { prefs -> prefs[FUNCTIONAL_ROM_UNLOCK_NITS] = enabled }
   }
@@ -959,23 +957,40 @@ class PreferencesManager(private val context: Context) {
   fun getAdditionalSetOnBoot(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[ADDITIONAL_SET_ON_BOOT] ?: false }
 
-  // ==================== Banking Hidden Mode (Hide Accessibility) ====================
   private val HIDE_ACCESSIBILITY_ENABLED = booleanPreferencesKey("hide_accessibility_enabled")
-  private val HIDE_ACCESSIBILITY_APPS = stringPreferencesKey("hide_accessibility_apps")
+  private val HIDE_ACCESSIBILITY_TAB = stringPreferencesKey("hide_accessibility_tab")
+  private val HIDE_ACCESSIBILITY_APPS_TO_HIDE = stringPreferencesKey("hide_accessibility_apps_to_hide")
+  private val HIDE_ACCESSIBILITY_DETECTOR_APPS = stringPreferencesKey("hide_accessibility_detector_apps")
   
-  /** Enable/disable hide accessibility feature */
   suspend fun setHideAccessibilityEnabled(enabled: Boolean) {
     context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_ENABLED] = enabled }
+    setBoolean("xkm_hide_accessibility_enabled", enabled)
   }
   
   fun getHideAccessibilityEnabled(): Flow<Boolean> =
       context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_ENABLED] ?: false }
   
-  /** Save custom list of apps to hide accessibility from (JSON array) */
-  suspend fun setHideAccessibilityApps(jsonString: String) {
-    context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_APPS] = jsonString }
+  /** Save current tab selection */
+  suspend fun setHideAccessibilityTab(tab: String) {
+    context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_TAB] = tab }
   }
   
-  fun getHideAccessibilityApps(): Flow<String> =
-      context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_APPS] ?: "[]" }
+  fun getHideAccessibilityTab(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_TAB] ?: "apps_to_hide" }
+  
+  suspend fun setHideAccessibilityAppsToHide(jsonString: String) {
+    context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_APPS_TO_HIDE] = jsonString }
+    setString("hide_accessibility_apps_to_hide", jsonString)
+  }
+  
+  fun getHideAccessibilityAppsToHide(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_APPS_TO_HIDE] ?: "[]" }
+  
+  suspend fun setHideAccessibilityDetectorApps(jsonString: String) {
+    context.dataStore.edit { prefs -> prefs[HIDE_ACCESSIBILITY_DETECTOR_APPS] = jsonString }
+    setString("hide_accessibility_detector_apps", jsonString)
+  }
+  
+  fun getHideAccessibilityDetectorApps(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_DETECTOR_APPS] ?: "[]" }
 }
