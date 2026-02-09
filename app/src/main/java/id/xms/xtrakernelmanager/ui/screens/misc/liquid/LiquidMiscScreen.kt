@@ -110,77 +110,6 @@ fun LiquidMiscMainScreen(
 ) {
     val scope = rememberCoroutineScope()
    
-    if (showSELinuxDialog && id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
-        AlertDialog(
-            onDismissRequest = { showSELinuxDialog = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Shield,
-                    contentDescription = null,
-                    tint = if (isEnforcing) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                )
-            },
-            title = {
-                Text(
-                    text = "SELinux Mode",
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        text = "Current status: $selinuxStatus",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    
-                    if (!isRooted) {
-                        Text(
-                            text = "Root access required to change SELinux mode.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = if (isEnforcing) "Enforcing" else "Permissive",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = if (isEnforcing) "Security policies active" else "Policies not enforced",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            
-                            if (selinuxLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(24.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Switch(
-                                    checked = isEnforcing,
-                                    onCheckedChange = { viewModel.setSELinuxMode(it) }
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showSELinuxDialog = false }) {
-                    Text("Close")
-                }
-            }
-        )
-    }
-   
     val liquidBlobColors = listOf(
         Color(0xFF4A9B8E), 
         Color(0xFF8BA8D8), 
@@ -246,23 +175,6 @@ fun LiquidMiscMainScreen(
                     modifier = Modifier.padding(start = 60.dp),
                     color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
                 )
-                
-                if (id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
-                    LiquidSettingsRow(
-                        icon = Icons.Default.Shield,
-                        iconColor = if (isEnforcing) Color(0xFF34C759) else Color(0xFFFF3B30),
-                        title = "SELinux",
-                        subtitle = if (isRooted) selinuxStatus else "Root required",
-                        badge = selinuxStatus,
-                        onClick = { showSELinuxDialog = true }
-                    )
-                    
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 60.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
-                    )
-                }
-                */
                 
                 LiquidSettingsRow(
                     icon = Icons.Default.Memory,
