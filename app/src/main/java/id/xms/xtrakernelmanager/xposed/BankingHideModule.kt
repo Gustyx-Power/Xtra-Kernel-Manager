@@ -21,6 +21,7 @@ class BankingHideModule : IYukiHookXposedInit {
         private const val XKM_DEV_PACKAGE = "id.xms.xtrakernelmanager.dev"
         private const val PREFS_NAME = "xkm_sync_prefs"
         
+        
         fun isXkmService(serviceInfo: AccessibilityServiceInfo): Boolean {
             val serviceId = serviceInfo.id ?: ""
             val resolveInfo = serviceInfo.resolveInfo
@@ -66,16 +67,123 @@ class BankingHideModule : IYukiHookXposedInit {
         if (currentPackage == "android") {
             YLog.info(tag = TAG, msg = "Hooking System Server - AccessibilityManagerService")
             hookAccessibilityManagerService()
+        } else if (currentPackage == "com.android.providers.settings") {
+            YLog.info(tag = TAG, msg = "Hooking Settings Provider")
             hookSettingsProvider()
-            hookPackageManagerService()
-        }
-        
-        if (currentPackage == "com.android.providers.settings") {
-            YLog.info(tag = TAG, msg = "Hooking SettingsProvider process")
-            hookSettingsProviderProcess()
         }
     }
     
+    private fun PackageParam.hookSettingsProvider() {
+        val settingsProviderClass = "com.android.providers.settings.SettingsProvider".toClassOrNull()
+        
+        if (settingsProviderClass != null) {
+            YLog.info(tag = TAG, msg = "Found SettingsProvider class, applying hooks...")
+                settingsProviderClass.method {
+                name = "call"
+                paramCount = 3
+            }.hook {
+                after {
+                    try {
+                        // More flexible parameter handling
+                        if (args.size >= 2) {
+                            val method = args[0] as? String
+                            val key = args[1] as? String
+                            
+                            if (method != null && key != null) {
+                                if (method == "GET_secure" && key == "enabled_accessibility_services") {
+                                    val callingPackage = getCallingPackageFromUid()
+                                    YLog.debug(tag = TAG, msg = "SettingsProvider: $callingPackage is reading enabled_accessibility_services")
+                                    
+                                    if (callingPackage != null && shouldHideFromPackage(callingPackage)) {
+                                        val resultBundle = result as? android.os.Bundle
+                                        val value = resultBundle?.getString("value")
+                                        
+                                        YLog.debug(tag = TAG, msg = "Original accessibility services value: $value")
+                                        
+                                        if (value != null && value.isNotEmpty()) {
+                                            val filteredValue = filterAccessibiltyServicesString(value, callingPackage)
+                                            
+                                            if (filteredValue != value) {
+                                                val newBundle = android.os.Bundle()
+                                                if (resultBundle != null) {
+                                                    newBundle.putAll(resultBundle)
+                                                }
+                                                newBundle.putString("value", filteredValue)
+                                                result = newBundle
+                                                
+                                                YLog.info(tag = TAG, msg = "Successfully filtered enabled_accessibility_services for $callingPackage via SettingsProvider")
+                                            } else {
+                                                YLog.debug(tag = TAG, msg = "No filtering needed for $callingPackage - no matching services found")
+                                            }
+                                        } else {
+                                            YLog.debug(tag = TAG, msg = "No accessibility services value found for $callingPackage")
+                                        }
+                                    } else {
+                                        YLog.debug(tag = TAG, msg = "Not filtering for $callingPackage (not in detector list or feature disabled)")
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        YLog.error(tag = TAG, msg = "Error in SettingsProvider hook: ${e.message}")
+                    }
+                }
+            }.onHookingFailure {
+                YLog.error(tag = TAG, msg = "Failed to hook SettingsProvider.call: ${it.message}")
+            }
+        } else {
+            YLog.error(tag = TAG, msg = "SettingsProvider class not found!")
+        }
+    }
+
+    private fun filterAccessibiltyServicesString(originalValue: String, callingPackage: String): String {
+        return try {
+            refreshPrefsIfNeeded()
+            
+            // Get apps to hide
+            val appsToHideJson = xPrefs?.getString("hide_accessibility_apps_to_hide", "[]") ?: "[]"
+            val appsToHide = try {
+                val jsonArray = org.json.JSONArray(appsToHideJson)
+                (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+            } catch (e: Exception) {
+                emptySet()
+            }
+            
+            if (appsToHide.isEmpty()) return originalValue
+            
+            YLog.debug(tag = TAG, msg = "Filtering settings string for $callingPackage. Original: $originalValue")
+            YLog.debug(tag = TAG, msg = "Apps to hide: $appsToHide")
+            val components = originalValue.split(":")
+            val filteredComponents = components.filter { component ->
+                if (component.isEmpty()) return@filter true
+                
+                // Check if this component should be hidden
+                val shouldHide = appsToHide.any { packageToHide ->
+                    component.contains(packageToHide) ||
+                    ((packageToHide == XKM_PACKAGE || packageToHide == XKM_DEV_PACKAGE || 
+                      packageToHide.contains("xtrakernelmanager", ignoreCase = true)) && isXkmServiceString(component))
+                }
+                
+                if (shouldHide) {
+                    YLog.info(tag = TAG, msg = "Hiding component from settings: $component")
+                }
+                
+                !shouldHide
+            }
+            
+            val filteredValue = filteredComponents.joinToString(":")
+            
+            if (filteredComponents.size != components.size) {
+                YLog.info(tag = TAG, msg = "Filtered Settings String for $callingPackage: ${components.size} -> ${filteredComponents.size} components")
+                YLog.debug(tag = TAG, msg = "Result: $filteredValue")
+            }
+            
+            filteredValue
+        } catch (e: Exception) {
+            YLog.error(tag = TAG, msg = "Error filtering accessibility services string: ${e.message}")
+            originalValue
+        }
+    }
     private fun PackageParam.hookAccessibilityManagerService() {
         val amsClass = "com.android.server.accessibility.AccessibilityManagerService".toClassOrNull()
         
@@ -86,37 +194,21 @@ class BankingHideModule : IYukiHookXposedInit {
                 name = "getEnabledAccessibilityServiceList"
             }.hook {
                 after {
-                    val callingUid = Binder.getCallingUid()
-                    val callingPackage = getCallingPackageFromUid()
-                    val originalList = result as? List<*>
-                    val serviceCount = originalList?.size ?: 0
-                    
-                    YLog.debug(tag = TAG, msg = "[AMS-ENABLED] UID=$callingUid pkg=$callingPackage services=$serviceCount")
-                    
-                    if (!shouldHideFromPackage(callingPackage)) {
-                        YLog.debug(tag = TAG, msg = "[AMS-ENABLED] Not hiding for: $callingPackage")
-                        return@after
+                    try {
+                        val callingUid = Binder.getCallingUid()
+                        val callingPackage = getCallingPackageFromUid()
+                        
+                        if (callingPackage != null && shouldHideFromPackage(callingPackage)) {
+                            val originalList = result as? List<AccessibilityServiceInfo>
+                            if (originalList != null) {
+                                val filteredList = filterAccessibilityServices(originalList, callingPackage)
+                                result = filteredList
+                                YLog.debug(tag = TAG, msg = "Filtered accessibility services for $callingPackage: ${originalList.size} -> ${filteredList.size}")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        YLog.error(tag = TAG, msg = "Error in getEnabledAccessibilityServiceList hook: ${e.message}")
                     }
-                    
-                    if (originalList == null) return@after
-                    
-                    @Suppress("UNCHECKED_CAST")
-                    val typedList = originalList as List<AccessibilityServiceInfo>
-                    
-                    typedList.forEachIndexed { index, service ->
-                        val pkg = service.resolveInfo?.serviceInfo?.packageName ?: "unknown"
-                        val name = service.resolveInfo?.serviceInfo?.name ?: "unknown"
-                        val isXkm = isXkmService(service)
-                        YLog.debug(tag = TAG, msg = "[AMS-ENABLED] Service[$index]: pkg=$pkg name=$name isXKM=$isXkm")
-                    }
-                    
-                    val filteredList = typedList.filter { serviceInfo -> !isXkmService(serviceInfo) }
-                    
-                    if (filteredList.size != originalList.size) {
-                        YLog.info(tag = TAG, msg = "[AMS-ENABLED] [$callingPackage] Filtered ${originalList.size - filteredList.size} XKM services")
-                    }
-                    
-                    result = filteredList
                 }
             }.onHookingFailure {
                 YLog.error(tag = TAG, msg = "Failed to hook getEnabledAccessibilityServiceList: ${it.message}")
@@ -126,20 +218,19 @@ class BankingHideModule : IYukiHookXposedInit {
                 name = "getInstalledAccessibilityServiceList"
             }.hook {
                 after {
-                    val callingPackage = getCallingPackageFromUid()
-                    if (!shouldHideFromPackage(callingPackage)) return@after
-                    
-                    val originalList = result as? List<*> ?: return@after
-                    
-                    @Suppress("UNCHECKED_CAST")
-                    val filteredList = (originalList as List<AccessibilityServiceInfo>)
-                        .filter { serviceInfo -> !isXkmService(serviceInfo) }
-                    
-                    if (filteredList.size != originalList.size) {
-                        YLog.info(tag = TAG, msg = "[AMS] [$callingPackage] Filtered ${originalList.size - filteredList.size} XKM services from installed list")
+                    try {
+                        val callingPackage = getCallingPackageFromUid()
+                        if (callingPackage != null && shouldHideFromPackage(callingPackage)) {
+                            val originalList = result as? List<AccessibilityServiceInfo>
+                            if (originalList != null) {
+                                val filteredList = filterAccessibilityServices(originalList, callingPackage)
+                                result = filteredList
+                                YLog.debug(tag = TAG, msg = "Filtered installed accessibility services for $callingPackage: ${originalList.size} -> ${filteredList.size}")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        YLog.error(tag = TAG, msg = "Error in getInstalledAccessibilityServiceList hook: ${e.message}")
                     }
-                    
-                    result = filteredList
                 }
             }.onHookingFailure {
                 YLog.error(tag = TAG, msg = "Failed to hook getInstalledAccessibilityServiceList: ${it.message}")
@@ -148,276 +239,6 @@ class BankingHideModule : IYukiHookXposedInit {
             YLog.info(tag = TAG, msg = "AccessibilityManagerService hooks applied!")
         } else {
             YLog.error(tag = TAG, msg = "AccessibilityManagerService class not found!")
-        }
-        
-        hookClientSideAccessibilityManager()
-    }
-    
-    private fun PackageParam.hookClientSideAccessibilityManager() {
-        "android.view.accessibility.AccessibilityManager".toClass().method {
-            name = "getEnabledAccessibilityServiceList"
-            paramCount = 1
-        }.hook {
-            after {
-                val callingPackage = getCallingPackageFromUid()
-                if (!shouldHideFromPackage(callingPackage)) return@after
-                
-                val originalList = result as? List<*> ?: return@after
-                
-                @Suppress("UNCHECKED_CAST")
-                val filteredList = (originalList as List<AccessibilityServiceInfo>)
-                    .filter { serviceInfo -> !isXkmService(serviceInfo) }
-                
-                if (filteredList.size != originalList.size) {
-                    YLog.info(tag = TAG, msg = "[AM] [$callingPackage] Filtered ${originalList.size - filteredList.size} XKM services")
-                }
-                
-                result = filteredList
-            }
-        }
-        
-        "android.view.accessibility.AccessibilityManager".toClass().method {
-            name = "getInstalledAccessibilityServiceList"
-        }.hook {
-            after {
-                val callingPackage = getCallingPackageFromUid()
-                if (!shouldHideFromPackage(callingPackage)) return@after
-                
-                val originalList = result as? List<*> ?: return@after
-                
-                @Suppress("UNCHECKED_CAST")
-                val filteredList = (originalList as List<AccessibilityServiceInfo>)
-                    .filter { serviceInfo -> !isXkmService(serviceInfo) }
-                
-                if (filteredList.size != originalList.size) {
-                    YLog.info(tag = TAG, msg = "[AM] [$callingPackage] Filtered ${originalList.size - filteredList.size} XKM services")
-                }
-                
-                result = filteredList
-            }
-        }
-    }
-    
-    private fun PackageParam.hookSettingsProvider() {
-        YLog.info(tag = TAG, msg = "Setting up SettingsProvider hooks...")
-        
-        val settingsProviderClass = "com.android.providers.settings.SettingsProvider".toClassOrNull()
-        if (settingsProviderClass != null) {
-            YLog.info(tag = TAG, msg = "Found SettingsProvider class, hooking call method...")
-            
-            settingsProviderClass.method {
-                name = "call"
-            }.hookAll {
-                after {
-                    try {
-                        val callingUid = Binder.getCallingUid()
-                        val callingPackage = getCallingPackageFromUid()
-                        
-                        val bundle = result as? android.os.Bundle ?: return@after
-                        val value = bundle.getString("value") ?: return@after
-                        
-                        if (!value.contains("/") || !value.contains(".")) return@after
-                        if (!value.contains(XKM_PACKAGE) && !value.contains(XKM_DEV_PACKAGE)) return@after
-                        
-                        YLog.debug(tag = TAG, msg = "[SettingsProvider.call] UID=$callingUid pkg=$callingPackage value contains XKM")
-                        
-                        if (!shouldHideFromPackage(callingPackage)) {
-                            YLog.debug(tag = TAG, msg = "[SettingsProvider.call] Not hiding for: $callingPackage")
-                            return@after
-                        }
-                        
-                        val filteredValue = value
-                            .split(":")
-                            .filter { service -> !isXkmServiceString(service) }
-                            .joinToString(":")
-                        
-                        if (filteredValue != value) {
-                            bundle.putString("value", filteredValue)
-                            YLog.info(tag = TAG, msg = "[SettingsProvider.call] [$callingPackage] FILTERED XKM from Settings!")
-                        }
-                    } catch (e: Exception) { }
-                }
-            }.onHookingFailure {
-                YLog.error(tag = TAG, msg = "SettingsProvider.call hook failed: ${it.message}")
-            }
-            
-            YLog.info(tag = TAG, msg = "SettingsProvider hooks applied!")
-        } else {
-            YLog.error(tag = TAG, msg = "SettingsProvider class not found!")
-        }
-        
-        try {
-            "android.provider.Settings\$Secure".toClass().method {
-                name = "getString"
-                paramCount = 2
-            }.hook {
-                after {
-                    val key = args(1).cast<String>() ?: return@after
-                    
-                    if (key == "enabled_accessibility_services") {
-                        val callingUid = Binder.getCallingUid()
-                        val callingPackage = getCallingPackageFromUid()
-                        val originalValue = result?.toString() ?: return@after
-                        
-                        if (originalValue.contains(XKM_PACKAGE) || originalValue.contains(XKM_DEV_PACKAGE)) {
-                            YLog.debug(tag = TAG, msg = "[Settings.Secure] UID=$callingUid pkg=$callingPackage querying enabled_accessibility_services")
-                            
-                            if (!shouldHideFromPackage(callingPackage)) return@after
-                            
-                            val filteredValue = originalValue
-                                .split(":")
-                                .filter { service -> !isXkmServiceString(service) }
-                                .joinToString(":")
-                            
-                            if (filteredValue != originalValue) {
-                                YLog.info(tag = TAG, msg = "[Settings.Secure] [$callingPackage] FILTERED XKM!")
-                                result = filteredValue
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            YLog.debug(tag = TAG, msg = "Settings.Secure hook failed: ${e.message}")
-        }
-    }
-    
-    private fun PackageParam.hookSettingsProviderProcess() {
-        YLog.info(tag = TAG, msg = "Setting up SettingsProvider process hooks...")
-        
-        val settingsProviderClass = "com.android.providers.settings.SettingsProvider".toClassOrNull()
-        
-        if (settingsProviderClass != null) {
-            settingsProviderClass.method {
-                name = "query"
-            }.hookAll {
-                after {
-                    try {
-                        val cursor = result as? android.database.Cursor ?: return@after
-                        val callingUid = Binder.getCallingUid()
-                        val callingPackage = getCallingPackageFromUid()
-                        
-                        if (!shouldHideFromPackage(callingPackage)) return@after
-                        
-                        YLog.debug(tag = TAG, msg = "[SettingsProvider.query] UID=$callingUid pkg=$callingPackage")
-                    } catch (e: Exception) { }
-                }
-            }.onHookingFailure {
-                YLog.debug(tag = TAG, msg = "SettingsProvider.query hook failed: ${it.message}")
-            }
-            
-            settingsProviderClass.method {
-                name = "call"
-            }.hookAll {
-                after {
-                    try {
-                        val callingUid = Binder.getCallingUid()
-                        val callingPackage = getCallingPackageFromUid()
-                        
-                        val bundle = result as? android.os.Bundle ?: return@after
-                        val value = bundle.getString("value") ?: return@after
-                        
-                        if (!value.contains("/") || !value.contains(".")) return@after
-                        if (!value.contains(XKM_PACKAGE) && !value.contains(XKM_DEV_PACKAGE)) return@after
-                        
-                        YLog.debug(tag = TAG, msg = "[SettingsProvider.call] UID=$callingUid pkg=$callingPackage contains XKM service")
-                        
-                        if (!shouldHideFromPackage(callingPackage)) {
-                            YLog.debug(tag = TAG, msg = "[SettingsProvider.call] Not hiding for: $callingPackage")
-                            return@after
-                        }
-                        
-                        val filteredValue = value
-                            .split(":")
-                            .filter { service -> !isXkmServiceString(service) }
-                            .joinToString(":")
-                        
-                        if (filteredValue != value) {
-                            bundle.putString("value", filteredValue)
-                            YLog.info(tag = TAG, msg = "[SettingsProvider.call] [$callingPackage] FILTERED XKM from Settings!")
-                        }
-                    } catch (e: Exception) { }
-                }
-            }.onHookingFailure {
-                YLog.error(tag = TAG, msg = "SettingsProvider.call hook failed: ${it.message}")
-            }
-            
-            YLog.info(tag = TAG, msg = "SettingsProvider process hooks applied!")
-        } else {
-            YLog.error(tag = TAG, msg = "SettingsProvider class not found in SettingsProvider process!")
-        }
-    }
-    
-    private fun PackageParam.hookPackageManagerService() {
-        val pmsClass = "com.android.server.pm.PackageManagerService".toClassOrNull()
-        
-        if (pmsClass != null) {
-            pmsClass.method {
-                name = "getInstalledPackages"
-            }.hook {
-                after {
-                    val callingPackage = getCallingPackageFromUid()
-                    if (!shouldHideFromPackage(callingPackage)) return@after
-                    
-                    val result = result ?: return@after
-                    
-                    val listField = result::class.java.getDeclaredField("mList")
-                    listField.isAccessible = true
-                    
-                    @Suppress("UNCHECKED_CAST")
-                    val originalList = listField.get(result) as? MutableList<android.content.pm.PackageInfo> ?: return@after
-                    
-                    val filteredList = originalList.filter { packageInfo ->
-                        val pkg = packageInfo.packageName ?: ""
-                        pkg != XKM_PACKAGE && pkg != XKM_DEV_PACKAGE
-                    }
-                    
-                    if (filteredList.size != originalList.size) {
-                        listField.set(result, filteredList.toMutableList())
-                        YLog.info(tag = TAG, msg = "[PMS] [$callingPackage] Filtered XKM from installed packages")
-                    }
-                }
-            }.onHookingFailure {
-                YLog.debug(tag = TAG, msg = "PMS getInstalledPackages hook failed: ${it.message}")
-            }
-            
-            pmsClass.method {
-                name = "getPackageInfo"
-            }.hook {
-                before {
-                    val pkgName = args(0).cast<String>() ?: return@before
-                    val callingPackage = getCallingPackageFromUid()
-                    
-                    if (!shouldHideFromPackage(callingPackage)) return@before
-                    
-                    if (pkgName == XKM_PACKAGE || pkgName == XKM_DEV_PACKAGE) {
-                        YLog.info(tag = TAG, msg = "[PMS] [$callingPackage] Blocking getPackageInfo for $pkgName")
-                        result = null
-                    }
-                }
-            }.onHookingFailure {
-                YLog.debug(tag = TAG, msg = "PMS getPackageInfo hook failed: ${it.message}")
-            }
-            
-            pmsClass.method {
-                name = "getApplicationInfo"
-            }.hook {
-                before {
-                    val pkgName = args(0).cast<String>() ?: return@before
-                    val callingPackage = getCallingPackageFromUid()
-                    
-                    if (!shouldHideFromPackage(callingPackage)) return@before
-                    
-                    if (pkgName == XKM_PACKAGE || pkgName == XKM_DEV_PACKAGE) {
-                        YLog.info(tag = TAG, msg = "[PMS] [$callingPackage] Blocking getApplicationInfo for $pkgName")
-                        result = null
-                    }
-                }
-            }.onHookingFailure {
-                YLog.debug(tag = TAG, msg = "PMS getApplicationInfo hook failed: ${it.message}")
-            }
-        } else {
-            YLog.debug(tag = TAG, msg = "PackageManagerService class not found")
         }
     }
     
@@ -464,175 +285,123 @@ class BankingHideModule : IYukiHookXposedInit {
         }
     }
     
-    private fun shouldHideFromPackage(packageName: String?): Boolean {
-        if (packageName == null) {
-            YLog.debug(tag = TAG, msg = "[ShouldHide] packageName is null")
-            return false
-        }
-        
-        if (packageName == XKM_PACKAGE || packageName == XKM_DEV_PACKAGE) return false
-        if (packageName == "android") return false
-        
-        val enabled = isFeatureEnabled()
-        if (!enabled) {
-            YLog.debug(tag = TAG, msg = "[ShouldHide] Feature disabled for: $packageName")
-            return false
-        }
-        
-        val selectedApps = getSelectedApps()
-        val shouldHide = selectedApps.contains(packageName)
-        YLog.debug(tag = TAG, msg = "[ShouldHide] pkg=$packageName selected=$shouldHide apps=$selectedApps")
-        return shouldHide
-    }
-    
-    private fun isFeatureEnabled(): Boolean {
-        val now = System.currentTimeMillis()
-        if (featureEnabledCache != null && (now - lastCacheTime) < CACHE_DURATION) {
-            return featureEnabledCache!!
-        }
-        
-        val enabled = loadFeatureEnabled()
-        featureEnabledCache = enabled
-        lastCacheTime = now
-        return enabled
-    }
-    
-    private fun loadFeatureEnabled(): Boolean {
+    private fun shouldHideFromPackage(callingPackage: String): Boolean {
         return try {
-            val prefs = getXPrefs()
-            if (prefs != null) {
-                prefs.reload()
-                val enabledStr = prefs.getString("hide_accessibility_enabled", "false") ?: "false"
-                val enabled = enabledStr.equals("true", ignoreCase = true)
-                YLog.debug(tag = TAG, msg = "Feature enabled from prefs: $enabled (raw: $enabledStr)")
-                return enabled
+            refreshPrefsIfNeeded()
+                val isEnabled = try {
+                xPrefs?.getBoolean("xkm_hide_accessibility_enabled", false) ?: false
+            } catch (e: ClassCastException) {
+                val enabledStr = xPrefs?.getString("xkm_hide_accessibility_enabled", "false") ?: "false"
+                enabledStr.equals("true", ignoreCase = true)
             }
-            readEnabledFromFile()
+            
+            if (!isEnabled) {
+                YLog.debug(tag = TAG, msg = "Hide Accessibility is DISABLED, not filtering for $callingPackage")
+                return false
+            }
+            
+            val detectorAppsJson = xPrefs?.getString("hide_accessibility_detector_apps", "[]") ?: "[]"
+            val detectorApps = try {
+                val jsonArray = org.json.JSONArray(detectorAppsJson)
+                (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+            } catch (e: Exception) {
+                YLog.error(tag = TAG, msg = "Failed to parse detector apps JSON: ${e.message}")
+                emptySet()
+            }
+            
+            val shouldHide = detectorApps.contains(callingPackage)
+            if (shouldHide) {
+                YLog.info(tag = TAG, msg = "Will hide accessibility from $callingPackage (in detector list of ${detectorApps.size} apps)")
+            } else {
+                YLog.debug(tag = TAG, msg = "Package $callingPackage not in detector list. Detector apps: $detectorApps")
+            }
+            shouldHide
         } catch (e: Exception) {
-            YLog.error(tag = TAG, msg = "Error loading feature enabled: ${e.message}")
+            YLog.error(tag = TAG, msg = "Error checking if should hide from package $callingPackage: ${e.message}")
             false
         }
     }
     
-    private fun getSelectedApps(): Set<String> {
-        val now = System.currentTimeMillis()
-        if (selectedAppsCache != null && (now - lastCacheTime) < CACHE_DURATION) {
-            return selectedAppsCache!!
-        }
-        
-        val apps = loadSelectedApps()
-        selectedAppsCache = apps
-        lastCacheTime = now
-        
-        if (apps.isNotEmpty()) {
-            YLog.debug(tag = TAG, msg = "Loaded ${apps.size} selected apps: $apps")
-        }
-        
-        return apps
-    }
-    
-    private fun loadSelectedApps(): Set<String> {
+    private fun filterAccessibilityServices(
+        originalList: List<AccessibilityServiceInfo>,
+        callingPackage: String
+    ): List<AccessibilityServiceInfo> {
         return try {
-            val prefs = getXPrefs()
-            if (prefs != null) {
-                prefs.reload()
-                val jsonString = prefs.getString("hide_accessibility_apps", "[]") ?: "[]"
-                return parseAppsJson(jsonString)
-            }
-            readAppsFromFile()
-        } catch (e: Exception) {
-            YLog.error(tag = TAG, msg = "Error loading selected apps: ${e.message}")
-            emptySet()
-        }
-    }
-    
-    private fun getXPrefs(): XSharedPreferences? {
-        if (xPrefs == null) {
-            try {
-                xPrefs = XSharedPreferences(XKM_PACKAGE, PREFS_NAME)
-                xPrefs?.makeWorldReadable()
-                
-                if (xPrefs?.file?.canRead() != true) {
-                    xPrefs = XSharedPreferences(XKM_DEV_PACKAGE, PREFS_NAME)
-                    xPrefs?.makeWorldReadable()
-                }
-                
-                val canRead = xPrefs?.file?.canRead() == true
-                YLog.info(tag = TAG, msg = "XSharedPreferences canRead: $canRead, path: ${xPrefs?.file?.absolutePath}")
-            } catch (e: Exception) {
-                YLog.error(tag = TAG, msg = "Failed to init XSharedPreferences: ${e.message}")
-                xPrefs = null
-            }
-        }
-        return xPrefs
-    }
-    
-    private fun readEnabledFromFile(): Boolean {
-        val paths = listOf(
-            "/data/data/$XKM_PACKAGE/shared_prefs/$PREFS_NAME.xml",
-            "/data/data/$XKM_DEV_PACKAGE/shared_prefs/$PREFS_NAME.xml"
-        )
-        
-        for (path in paths) {
-            try {
-                val file = java.io.File(path)
-                if (file.exists() && file.canRead()) {
-                    val content = file.readText()
-                    
-                    val stringRegex = """<string name="hide_accessibility_enabled">([^<]*)</string>""".toRegex()
-                    val stringMatch = stringRegex.find(content)
-                    if (stringMatch != null) {
-                        val enabled = stringMatch.groupValues[1].equals("true", ignoreCase = true)
-                        YLog.debug(tag = TAG, msg = "Read enabled from file (string): $enabled")
-                        return enabled
-                    }
-                    
-                    val boolRegex = """<boolean name="hide_accessibility_enabled" value="([^"]*)"[^/]*/>""".toRegex()
-                    val boolMatch = boolRegex.find(content)
-                    if (boolMatch != null) {
-                        val enabled = boolMatch.groupValues[1].equals("true", ignoreCase = true)
-                        YLog.debug(tag = TAG, msg = "Read enabled from file (bool): $enabled")
-                        return enabled
-                    }
-                }
-            } catch (e: Exception) { }
-        }
-        return false
-    }
-    
-    private fun readAppsFromFile(): Set<String> {
-        val paths = listOf(
-            "/data/data/$XKM_PACKAGE/shared_prefs/$PREFS_NAME.xml",
-            "/data/data/$XKM_DEV_PACKAGE/shared_prefs/$PREFS_NAME.xml"
-        )
-        
-        for (path in paths) {
-            try {
-                val file = java.io.File(path)
-                if (file.exists() && file.canRead()) {
-                    val content = file.readText()
-                    val regex = """<string name="hide_accessibility_apps">([^<]*)</string>""".toRegex()
-                    val match = regex.find(content)
-                    if (match != null) {
-                        return parseAppsJson(match.groupValues[1])
-                    }
-                }
-            } catch (e: Exception) { }
-        }
-        return emptySet()
-    }
-    
-    private fun parseAppsJson(jsonString: String): Set<String> {
-        return try {
-            if (jsonString.isEmpty() || jsonString == "[]") {
-                emptySet()
-            } else {
-                val jsonArray = org.json.JSONArray(jsonString)
+            refreshPrefsIfNeeded()
+            val appsToHideJson = xPrefs?.getString("hide_accessibility_apps_to_hide", "[]") ?: "[]"
+            val appsToHide = try {
+                val jsonArray = org.json.JSONArray(appsToHideJson)
                 (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+            } catch (e: Exception) {
+                YLog.error(tag = TAG, msg = "Failed to parse apps to hide JSON: ${e.message}")
+                emptySet()
             }
+            
+            if (appsToHide.isEmpty()) {
+                YLog.debug(tag = TAG, msg = "No apps configured to hide, returning original list for $callingPackage")
+                return originalList
+            }
+            
+            YLog.info(tag = TAG, msg = "Filtering accessibility services for $callingPackage, apps to hide: $appsToHide")
+            
+            // Filter out services from apps that should be hidden
+            val filteredList = originalList.filter { serviceInfo ->
+                val servicePackage = serviceInfo.resolveInfo?.serviceInfo?.packageName ?: ""
+                val serviceName = serviceInfo.resolveInfo?.serviceInfo?.name ?: ""
+                val serviceId = serviceInfo.id ?: ""
+                val shouldHide = appsToHide.any { packageToHide ->
+                    servicePackage == packageToHide ||
+                    serviceName.contains(packageToHide, ignoreCase = true) ||
+                    serviceId.contains(packageToHide, ignoreCase = true) ||
+                    ((packageToHide == XKM_PACKAGE || packageToHide == XKM_DEV_PACKAGE || 
+                      packageToHide.contains("xtrakernelmanager", ignoreCase = true)) && isXkmService(serviceInfo))
+                }
+                
+                if (shouldHide) {
+                    YLog.info(tag = TAG, msg = "Hiding service: $servicePackage/$serviceName (ID: $serviceId) from $callingPackage")
+                }
+                
+                !shouldHide
+            }
+            
+            YLog.info(tag = TAG, msg = "Filtered accessibility services for $callingPackage: ${originalList.size} -> ${filteredList.size} services")
+            filteredList
         } catch (e: Exception) {
-            YLog.error(tag = TAG, msg = "Failed to parse apps JSON: ${e.message}")
-            emptySet()
+            YLog.error(tag = TAG, msg = "Error filtering accessibility services: ${e.message}")
+            originalList
+        }
+    }
+    
+    private fun refreshPrefsIfNeeded() {
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastCacheTime > CACHE_DURATION || xPrefs == null) {
+            try {
+                var prefs = XSharedPreferences(XKM_DEV_PACKAGE, PREFS_NAME)
+                prefs.makeWorldReadable()
+                    if (!prefs.file.exists() || !prefs.file.canRead()) {
+                    YLog.debug(tag = TAG, msg = "Dev package prefs not found, trying release package")
+                    prefs = XSharedPreferences(XKM_PACKAGE, PREFS_NAME)
+                    prefs.makeWorldReadable()
+                }
+                
+                xPrefs = prefs
+                lastCacheTime = currentTime
+                YLog.debug(tag = TAG, msg = "Refreshed XSharedPreferences from: ${prefs.file.absolutePath}, readable: ${prefs.file.canRead()}")
+                    val isEnabled = try {
+                    prefs.getBoolean("xkm_hide_accessibility_enabled", false)
+                } catch (e: Exception) {
+                    val enabledStr = prefs.getString("xkm_hide_accessibility_enabled", "false")
+                    enabledStr.equals("true", ignoreCase = true)
+                }
+                
+                val detectorAppsJson = prefs.getString("hide_accessibility_detector_apps", "[]")
+                val appsToHideJson = prefs.getString("hide_accessibility_apps_to_hide", "[]")
+                
+                YLog.debug(tag = TAG, msg = "Current settings - Enabled: $isEnabled, Detector apps: $detectorAppsJson, Apps to hide: $appsToHideJson")
+                
+            } catch (e: Exception) {
+                YLog.error(tag = TAG, msg = "Failed to refresh preferences: ${e.message}")
+            }
         }
     }
 }
