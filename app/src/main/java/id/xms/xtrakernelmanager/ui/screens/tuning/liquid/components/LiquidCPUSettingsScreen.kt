@@ -63,9 +63,13 @@ fun LiquidCPUSettingsScreen(
 
   // Box container with WavyBlobOrnament background
   Box(modifier = Modifier.fillMaxSize()) {
-    // Background Layer
     WavyBlobOrnament(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        colors = listOf(
+            Color(0xFF0D3B66),  
+            Color(0xFF1A1B4B),  
+            Color(0xFF0A2F51)   
+        )
     )
     
     // Foreground Layer
@@ -229,13 +233,13 @@ private fun SmartFrequencyLockSection(
                 text = stringResource(R.string.liquid_smart_frequency_lock),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             Text(
                 text = if (isLocked) stringResource(R.string.liquid_smart_lock_active) else stringResource(R.string.liquid_smart_lock_inactive),
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isLocked) MaterialTheme.colorScheme.primary
-                       else MaterialTheme.colorScheme.onSurfaceVariant
+                color = if (isLocked) Color(0xFF4ADE80)
+                       else Color.White.copy(alpha = 0.7f)
             )
           }
         }
@@ -259,7 +263,7 @@ private fun SmartFrequencyLockSection(
             Text(
                 text = stringResource(R.string.liquid_smart_lock_policy_type),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.7f)
             )
             Surface(
                 shape = RoundedCornerShape(8.dp),
@@ -285,7 +289,7 @@ private fun SmartFrequencyLockSection(
               Text(
                   text = stringResource(R.string.liquid_smart_lock_thermal_policy),
                   style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant
+                  color = Color.White.copy(alpha = 0.7f)
               )
               Surface(
                   shape = RoundedCornerShape(8.dp),
@@ -311,13 +315,13 @@ private fun SmartFrequencyLockSection(
             Text(
                 text = stringResource(R.string.liquid_smart_lock_locked_clusters),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.7f)
             )
             Text(
                 text = stringResource(R.string.liquid_smart_lock_clusters_format, lockStatus.clusterCount),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
           }
         }
@@ -804,11 +808,12 @@ private fun ModernClusterCard(
                 text = clusterTitle,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
+                color = Color.White
             )
             Text(
                 text = "${cluster.minFreq} MHz - ${cluster.maxFreq} MHz",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = Color.White.copy(alpha = 0.7f),
             )
           }
         }
@@ -817,6 +822,7 @@ private fun ModernClusterCard(
           Icon(
               imageVector = Icons.Rounded.KeyboardArrowDown,
               contentDescription = "Expand",
+              tint = Color.White,
               modifier = Modifier.rotate(if (isExpanded) 180f else 0f),
           )
         }
@@ -938,7 +944,7 @@ private fun FrequencyClickableCard(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = Color.White.copy(alpha = 0.7f),
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1089,7 +1095,7 @@ private fun GovernorSelector(currentGovernor: String, onClick: () -> Unit) {
         text = stringResource(R.string.cpu_governor),
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Medium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = Color.White.copy(alpha = 0.7f),
     )
 
     Surface(
@@ -1116,12 +1122,13 @@ private fun GovernorSelector(currentGovernor: String, onClick: () -> Unit) {
               text = currentGovernor,
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
+              color = Color.White
           )
         }
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = Color.White.copy(alpha = 0.7f),
         )
       }
     }
