@@ -54,7 +54,6 @@ fun HideAccessibilitySettingsScreen(
         }
     }
     
-    // Filter apps based on search query
     val filteredApps = remember(apps, searchQuery) {
         if (searchQuery.isEmpty()) {
             apps
@@ -119,7 +118,6 @@ fun HideAccessibilitySettingsScreen(
                             isEnabled = enabled
                             scope.launch {
                                 preferencesManager.setHideAccessibilityEnabled(enabled)
-                                // Also update sync preferences for Xposed module
                                 preferencesManager.setString("hide_accessibility_enabled", enabled.toString())
                             }
                         }
@@ -128,9 +126,7 @@ fun HideAccessibilitySettingsScreen(
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Instructions
-            Card(
+                Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -165,9 +161,7 @@ fun HideAccessibilitySettingsScreen(
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Search bar
-            OutlinedTextField(
+                OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 label = { Text("Search apps") },
@@ -203,7 +197,6 @@ fun HideAccessibilitySettingsScreen(
                         AppSelectionItem(
                             app = app,
                             onToggle = { packageName, selected ->
-                                // Update local state immediately
                                 apps = apps.map { 
                                     if (it.packageName == packageName) {
                                         it.copy(isSelected = selected)
@@ -216,9 +209,7 @@ fun HideAccessibilitySettingsScreen(
                                 scope.launch {
                                     val selectedApps = apps.filter { it.isSelected }.map { it.packageName }
                                     val jsonArray = JSONArray(selectedApps)
-                                    preferencesManager.setHideAccessibilityApps(jsonArray.toString())
-                                    
-                                    // Also update sync preferences for Xposed module
+                                    preferencesManager.setHideAccessibilityAppsToHide(jsonArray.toString())
                                     preferencesManager.setString("hide_accessibility_apps", jsonArray.toString())
                                 }
                             }
@@ -284,8 +275,6 @@ private suspend fun loadInstalledApps(
         try {
             val packageManager = context.packageManager
             val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-            
-            // Get currently selected apps from sync preferences (for immediate access)
             val selectedAppsJson = preferencesManager.getString("hide_accessibility_apps", "[]")
             
             val selectedApps = try {
@@ -295,10 +284,8 @@ private suspend fun loadInstalledApps(
                 emptySet<String>()
             }
             
-            // Filter and map to AppItem
             val appItems = installedApps
                 .filter { appInfo ->
-                    // Only show user apps and some system apps that might need hiding
                     (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) == 0 ||
                     appInfo.packageName.contains("bank", ignoreCase = true) ||
                     appInfo.packageName.contains("payment", ignoreCase = true) ||

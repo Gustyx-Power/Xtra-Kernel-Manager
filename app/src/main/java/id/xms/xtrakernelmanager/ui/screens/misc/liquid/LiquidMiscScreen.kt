@@ -39,7 +39,6 @@ fun LiquidMiscScreen(
     var showGameControl by remember { mutableStateOf(false) }
     var showGameMonitor by remember { mutableStateOf(false) }
     var showProcessManager by remember { mutableStateOf(false) }
-    var showHideAccessibilitySettings by remember { mutableStateOf(false) }
     
     val context = androidx.compose.ui.platform.LocalContext.current
     val gameMonitorViewModel = androidx.lifecycle.viewmodel.compose.viewModel {
@@ -61,11 +60,6 @@ fun LiquidMiscScreen(
             viewModel = viewModel,
             onBack = { showProcessManager = false }
         )
-        showHideAccessibilitySettings -> {
-            LiquidHideAccessibilityScreen(
-                onNavigateBack = { showHideAccessibilitySettings = false }
-            )
-        }
         else -> {
             androidx.compose.animation.AnimatedContent(
                 targetState = currentScreen,
@@ -89,8 +83,7 @@ fun LiquidMiscScreen(
                         },
                         onNavigateToDisplay = { currentScreen = "display" },
                         onNavigateToFunctionalRom = onNavigateToFunctionalRom,
-                        onNavigateToProcessManager = { showProcessManager = true },
-                        onNavigateToHideAccessibility = { showHideAccessibilitySettings = true }
+                        onNavigateToProcessManager = { showProcessManager = true }
                     )
                     "battery" -> LiquidBatteryInformationScreen(
                         viewModel = viewModel,
@@ -114,57 +107,9 @@ fun LiquidMiscMainScreen(
     onNavigateToDisplay: () -> Unit,
     onNavigateToFunctionalRom: () -> Unit,
     onNavigateToProcessManager: () -> Unit = {},
-    onNavigateToHideAccessibility: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
-    val useCase = remember { id.xms.xtrakernelmanager.domain.usecase.FunctionalRomUseCase() }
-    
-    var isVipCommunity by remember { mutableStateOf<Boolean?>(null) }
-    var showSecurityWarning by remember { mutableStateOf(false) }
-    // var showSELinuxDialog by remember { mutableStateOf(false) } - REMOVED
-    
-    // val selinuxStatus by viewModel.selinuxStatus.collectAsState() - REMOVED
-    val isRooted by viewModel.isRootAvailable.collectAsState()
-    // val selinuxLoading by viewModel.selinuxLoading.collectAsState() - REMOVED
-    // val isEnforcing = selinuxStatus.equals("Enforcing", ignoreCase = true) - REMOVED
-
-    LaunchedEffect(Unit) {
-        isVipCommunity = useCase.checkVipCommunity()
-    }
-
-    // Security Warning Dialog
-    if (showSecurityWarning) {
-        AlertDialog(
-            onDismissRequest = { showSecurityWarning = false },
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Security,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            },
-            title = {
-                Text(
-                    text = stringResource(R.string.security_warning_title),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text(
-                    text = stringResource(R.string.security_warning_message),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { showSecurityWarning = false }) {
-                    Text(stringResource(R.string.security_warning_button))
-                }
-            }
-        )
-    }
-    
-    // SELinux Toggle Dialog - COMPLETELY REMOVED to prevent Play Protect detection
-    /*
+   
     if (showSELinuxDialog && id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
         AlertDialog(
             onDismissRequest = { showSELinuxDialog = false },
@@ -235,9 +180,7 @@ fun LiquidMiscMainScreen(
             }
         )
     }
-    */
-    
-    // Force dark/neon colors for Liquid UI consistency
+   
     val liquidBlobColors = listOf(
         Color(0xFF4A9B8E), 
         Color(0xFF8BA8D8), 
@@ -304,8 +247,6 @@ fun LiquidMiscMainScreen(
                     color = MaterialTheme.colorScheme.onSurface.copy(0.08f)
                 )
                 
-                // SELinux row - COMPLETELY REMOVED to prevent Play Protect detection
-                /*
                 if (id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
                     LiquidSettingsRow(
                         icon = Icons.Default.Shield,
@@ -341,126 +282,8 @@ fun LiquidMiscMainScreen(
                     iconColor = Color(0xFF007AFF),
                     title = stringResource(R.string.functional_rom_card_title),
                     subtitle = stringResource(R.string.functional_rom_card_desc),
-                    badge = if (isVipCommunity == true) "VIP" else if (isVipCommunity == false) "Locked" else null,
-                    onClick = {
-                        if (isVipCommunity == true) {
-                            onNavigateToFunctionalRom()
-                        } else if (isVipCommunity == false) {
-                            showSecurityWarning = true
-                        }
-                    }
-                )
-            }
-            
-            // Banking Hidden Mode Section
-            val hideAccessibilityEnabled by viewModel.hideAccessibilityEnabled.collectAsState()
-            val lsposedActive by viewModel.lsposedModuleActive.collectAsState()
-            var showHideAccessibilityDialog by remember { mutableStateOf(false) }
-            
-            // Dialog for Hide Accessibility info
-            if (showHideAccessibilityDialog) {
-                AlertDialog(
-                    onDismissRequest = { showHideAccessibilityDialog = false },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.VisibilityOff,
-                            contentDescription = null,
-                            tint = if (lsposedActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = "Hide Accessibility",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            // Status Badge
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Surface(
-                                    color = if (lsposedActive) 
-                                        Color(0xFF34C759).copy(alpha = 0.2f) 
-                                    else 
-                                        Color(0xFFFF3B30).copy(alpha = 0.2f),
-                                    shape = CircleShape
-                                ) {
-                                    Text(
-                                        text = if (lsposedActive) "Module Active" else "Module Inactive",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                        color = if (lsposedActive) Color(0xFF34C759) else Color(0xFFFF3B30)
-                                    )
-                                }
-                            }
-                            
-                            if (!lsposedActive) {
-                                Text(
-                                    text = "LSPosed/EdXposed is required for this feature. Install LSPosed, enable the XKM module, select target banking apps, and reboot.",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            } else {
-                                Text(
-                                    text = "This feature hides XKM's Game Monitor accessibility service from banking apps to prevent detection.",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                
-                                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                                
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = "Enable Hide Mode",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = if (hideAccessibilityEnabled) "Active" else "Disabled",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Switch(
-                                        checked = hideAccessibilityEnabled,
-                                        onCheckedChange = { viewModel.setHideAccessibility(it) }
-                                    )
-                                }
-                            }
-                            
-                            Text(
-                                text = "⚠️ Banking apps constantly update their detection methods. This solution may not work indefinitely.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { 
-                            viewModel.refreshLSPosedStatus()
-                            showHideAccessibilityDialog = false 
-                        }) {
-                            Text("Close")
-                        }
-                    }
-                )
-            }
-            
-            LiquidSettingsGroup {
-                LiquidSettingsRow(
-                    icon = Icons.Default.VisibilityOff,
-                    iconColor = if (lsposedActive) Color(0xFF34C759) else Color(0xFFFF9500),
-                    title = "Hide Accessibility",
-                    subtitle = "Configure per-app accessibility hiding",
-                    badge = if (hideAccessibilityEnabled) "Enabled" else "Disabled",
-                    onClick = onNavigateToHideAccessibility
+                    badge = "Universal",
+                    onClick = onNavigateToFunctionalRom
                 )
             }
 

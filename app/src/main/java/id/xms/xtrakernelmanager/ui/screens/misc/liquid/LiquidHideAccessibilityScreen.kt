@@ -81,7 +81,6 @@ fun LiquidHideAccessibilityScreen(
     val selectedCount = apps.count { it.isSelected }
     
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background decoration
         WavyBlobOrnament(modifier = Modifier.fillMaxSize())
         
         Column(
@@ -166,7 +165,7 @@ fun LiquidHideAccessibilityScreen(
                                     val jsonString = jsonArray.toString()
                                     
                                     // Save to both DataStore and sync preferences
-                                    preferencesManager.setHideAccessibilityApps(jsonString)
+                                    preferencesManager.setHideAccessibilityAppsToHide(jsonString)
                                     preferencesManager.setString("hide_accessibility_apps", jsonString)
                                     
                                     // Also try to save to default shared preferences for better compatibility

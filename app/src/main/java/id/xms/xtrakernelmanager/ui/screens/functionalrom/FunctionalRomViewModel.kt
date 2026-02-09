@@ -3,9 +3,14 @@ package id.xms.xtrakernelmanager.ui.screens.functionalrom
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.usecase.FunctionalRomUseCase
+import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
+import id.xms.xtrakernelmanager.data.model.HideAccessibilityTab
+import id.xms.xtrakernelmanager.utils.RomDetector
+import id.xms.xtrakernelmanager.utils.RomInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,6 +22,10 @@ import kotlinx.coroutines.launch
 data class FunctionalRomUiState(
     val isLoading: Boolean = true,
     val isVipCommunity: Boolean = false,
+    
+    // ROM Information
+    val romInfo: RomInfo? = null,
+    val isShimokuRom: Boolean = false,
 
     // Feature availability (dynamically detected kernel nodes)
     val bypassChargingAvailable: Boolean = false,
@@ -64,6 +73,9 @@ data class FunctionalRomUiState(
     val showFixDt2wUninstallDialog: Boolean = false,
     val fixDt2wStep: Int = 0, // 0 = complete, 1 = need overlayfs, 2 = need fix_dt2w
     val smartChargingEnabled: Boolean = false,
+    
+    // Hide Accessibility Service (Universal - moved from Misc)
+    val hideAccessibilityConfig: HideAccessibilityConfig = HideAccessibilityConfig(),
 )
 
 class FunctionalRomViewModel(
@@ -73,6 +85,19 @@ class FunctionalRomViewModel(
 
   companion object {
     private const val TAG = "FunctionalRomViewModel"
+    
+    class Factory(
+        private val preferencesManager: PreferencesManager,
+        private val context: Context
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(FunctionalRomViewModel::class.java)) {
+                return FunctionalRomViewModel(preferencesManager, context) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
   }
 
   private val useCase = FunctionalRomUseCase()
@@ -90,11 +115,19 @@ class FunctionalRomViewModel(
       _uiState.update { it.copy(isLoading = true) }
 
       try {
-        // 1. Check VIP community access
+        // 1. Detect ROM type and get ROM information
+        val romInfo = RomDetector.getRomInfo()
+        val isShimoku = romInfo.isShimokuRom
+        Log.d(TAG, "ROM Detection: ${romInfo.displayName}, isShimoku: $isShimoku")
+
+        // 2. Check VIP community access (for Shimoku ROM features)
         val isVip = useCase.checkVipCommunity()
         Log.d(TAG, "VIP Community: $isVip")
 
-        // 2. Detect available kernel nodes
+        // 3. Load Hide Accessibility configuration (universal feature)
+        val hideAccessibilityConfig = loadHideAccessibilityConfig()
+
+        // 4. Detect available kernel nodes
         val bypassChargingNode = useCase.findBypassChargingNode()
         val chargingLimitNode = useCase.findChargingLimitNode()
         val dt2wNode = useCase.findDt2wNode()
@@ -154,6 +187,9 @@ class FunctionalRomViewModel(
           state.copy(
               isLoading = false,
               isVipCommunity = isVip,
+              romInfo = romInfo,
+              isShimokuRom = isShimoku,
+              hideAccessibilityConfig = hideAccessibilityConfig,
               // Availability
               bypassChargingAvailable = bypassChargingNode != null,
               bypassChargingNodePath = bypassChargingNode,
@@ -536,6 +572,195 @@ class FunctionalRomViewModel(
   fun setSmartCharging(enabled: Boolean) {
     _uiState.update { it.copy(smartChargingEnabled = enabled) }
     viewModelScope.launch { preferencesManager.setFunctionalRomSmartCharging(enabled) }
+  }
+
+  // ==================== Hide Accessibility Service (Universal Feature) ====================
+
+  /**
+   * Load Hide Accessibility configuration from preferences
+   */
+  private suspend fun loadHideAccessibilityConfig(): HideAccessibilityConfig {
+    return try {
+      val isEnabled = preferencesManager.getHideAccessibilityEnabled().first()
+      val tabKey = preferencesManager.getHideAccessibilityTab().first()
+      val currentTab = HideAccessibilityTab.fromKey(tabKey) ?: HideAccessibilityTab.APPS_TO_HIDE
+      
+      val appsToHideJson = preferencesManager.getHideAccessibilityAppsToHide().first()
+      val appsToHide = try {
+        val jsonArray = org.json.JSONArray(appsToHideJson)
+        (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+      } catch (e: Exception) {
+        emptySet()
+      }
+      
+      val detectorAppsJson = preferencesManager.getHideAccessibilityDetectorApps().first()
+      val detectorApps = try {
+        val jsonArray = org.json.JSONArray(detectorAppsJson)
+        (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+      } catch (e: Exception) {
+        emptySet()
+      }
+      
+      // NOTE: Do NOT sync to SharedPrefs here! 
+      // Sync should only happen when user makes a change (in setHideAccessibility* functions)
+      // Otherwise, default values (false, empty) would overwrite saved values on app start
+      Log.d(TAG, "Loaded Hide Accessibility config from DataStore: enabled=$isEnabled, appsToHide=${appsToHide.size}, detectorApps=${detectorApps.size}")
+      
+      // Check LSPosed module status
+      val isLSPosedActive = checkLSPosedModuleStatus()
+      
+      HideAccessibilityConfig(
+        isEnabled = isEnabled,
+        currentTab = currentTab,
+        appsToHide = appsToHide,
+        detectorApps = detectorApps,
+        isLSPosedModuleActive = isLSPosedActive
+      )
+    } catch (e: Exception) {
+      Log.e(TAG, "Error loading Hide Accessibility config: ${e.message}")
+      HideAccessibilityConfig()
+    }
+  }
+
+  /**
+   * Check if LSPosed module is active
+   */
+  private suspend fun checkLSPosedModuleStatus(): Boolean {
+    return try {
+      // Method 1: Check if YukiHookAPI is active
+      val isActive = try {
+        com.highcapable.yukihookapi.YukiHookAPI.Status.isXposedModuleActive
+      } catch (e: Exception) {
+        false
+      }
+      
+      // Method 2: Alternative check via Xposed.isXposedException (fallback)
+      val isActiveAlt = try {
+        val xposedBridge = Class.forName("de.robv.android.xposed.XposedBridge")
+        xposedBridge != null
+      } catch (e: ClassNotFoundException) {
+        false
+      } catch (e: Exception) {
+        false
+      }
+      
+      isActive || isActiveAlt
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to check LSPosed status: ${e.message}")
+      false
+    }
+  }
+
+  /**
+   * Set Hide Accessibility Service enabled/disabled
+   */
+  fun setHideAccessibilityEnabled(enabled: Boolean) {
+    viewModelScope.launch {
+      try {
+        // Update DataStore preferences (also syncs to syncPrefs for Xposed module)
+        preferencesManager.setHideAccessibilityEnabled(enabled)
+        
+        // Update UI state immediately
+        _uiState.update { state -> 
+          state.copy(hideAccessibilityConfig = state.hideAccessibilityConfig.copy(isEnabled = enabled))
+        }
+        
+        Log.d(TAG, "Hide Accessibility enabled: $enabled")
+        
+        if (enabled && !_uiState.value.hideAccessibilityConfig.isLSPosedModuleActive) {
+          Log.w(TAG, "Warning: Hide Accessibility enabled but LSPosed module is not active")
+        }
+      } catch (e: Exception) {
+        Log.e(TAG, "Error setting hide accessibility: ${e.message}")
+      }
+    }
+  }
+
+  /**
+   * Set Hide Accessibility tab
+   */
+  fun setHideAccessibilityTab(tab: HideAccessibilityTab) {
+    viewModelScope.launch {
+      try {
+        // Update DataStore preferences
+        preferencesManager.setHideAccessibilityTab(tab.key)
+        
+        // Update UI state immediately
+        _uiState.update { state -> 
+          state.copy(hideAccessibilityConfig = state.hideAccessibilityConfig.copy(currentTab = tab))
+        }
+        
+        Log.d(TAG, "Hide Accessibility tab set to: ${tab.displayName}")
+      } catch (e: Exception) {
+        Log.e(TAG, "Error setting hide accessibility tab: ${e.message}")
+      }
+    }
+  }
+
+  /**
+   * Update apps to hide from accessibility detection
+   */
+  fun setHideAccessibilityAppsToHide(appsToHide: Set<String>) {
+    viewModelScope.launch {
+      try {
+        // Convert to JSON array
+        val jsonArray = org.json.JSONArray()
+        appsToHide.forEach { jsonArray.put(it) }
+        val appsToHideJson = jsonArray.toString()
+        
+        // Update DataStore preferences (also syncs to syncPrefs for Xposed module)
+        preferencesManager.setHideAccessibilityAppsToHide(appsToHideJson)
+        
+        // Update UI state immediately
+        _uiState.update { state -> 
+          state.copy(hideAccessibilityConfig = state.hideAccessibilityConfig.copy(appsToHide = appsToHide))
+        }
+        
+        Log.d(TAG, "Hide Accessibility apps to hide updated: ${appsToHide.size} apps")
+      } catch (e: Exception) {
+        Log.e(TAG, "Error setting hide accessibility apps to hide: ${e.message}")
+      }
+    }
+  }
+
+  /**
+   * Update detector apps (apps that detect accessibility)
+   */
+  fun setHideAccessibilityDetectorApps(detectorApps: Set<String>) {
+    viewModelScope.launch {
+      try {
+        // Convert to JSON array
+        val jsonArray = org.json.JSONArray()
+        detectorApps.forEach { jsonArray.put(it) }
+        val detectorAppsJson = jsonArray.toString()
+        
+        // Update DataStore preferences (also syncs to syncPrefs for Xposed module)
+        preferencesManager.setHideAccessibilityDetectorApps(detectorAppsJson)
+        
+        // Update UI state immediately
+        _uiState.update { state -> 
+          state.copy(hideAccessibilityConfig = state.hideAccessibilityConfig.copy(detectorApps = detectorApps))
+        }
+        
+        Log.d(TAG, "Hide Accessibility detector apps updated: ${detectorApps.size} apps")
+      } catch (e: Exception) {
+        Log.e(TAG, "Error setting hide accessibility detector apps: ${e.message}")
+      }
+    }
+  }
+
+  /**
+   * Refresh LSPosed module status
+   */
+  fun refreshLSPosedStatus() {
+    viewModelScope.launch {
+      val isActive = checkLSPosedModuleStatus()
+      val currentConfig = _uiState.value.hideAccessibilityConfig
+      _uiState.update { 
+        it.copy(hideAccessibilityConfig = currentConfig.copy(isLSPosedModuleActive = isActive))
+      }
+      Log.d(TAG, "LSPosed module status refreshed: $isActive")
+    }
   }
 
   override fun onCleared() {
