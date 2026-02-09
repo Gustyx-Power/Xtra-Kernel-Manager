@@ -47,7 +47,7 @@ import id.xms.xtrakernelmanager.ui.theme.ExpressiveShapes
 private val teamMembers =
     listOf(
         TeamMember(
-            R.drawable.team_dev_gustyx,
+            R.drawable.logo_a,
             "Gustyx-Power",
             "Founder & Dev",
             githubUrl = "https://github.com/Gustyx-Power",
@@ -62,7 +62,7 @@ private val teamMembers =
             githubUrl = "https://github.com/Pavelc4",
             telegramUrl = "https://t.me/Pavellc",
             githubUsername = "Pavelc4",
-            shapeIndex = 31, // Pixel Circle
+            shapeIndex = 30, // Pixel Circle
         ),
         TeamMember(
             R.drawable.logo_a,
@@ -74,26 +74,36 @@ private val teamMembers =
             shapeIndex = 19, // Cookie6
         ),
         TeamMember(
-            R.drawable.team_contributor_shimoku,
-            "Shimoku",
+            R.drawable.team_contributor_rio,
+            "Rio",
             "Contributor",
-            shapeIndex = 29, // Clover
+            telegramUrl = "https://t.me/hy6nies",
+            shapeIndex = 16, // Cookie4
         ),
         TeamMember(
             R.drawable.logo_a,
-            "Ryusaaa",
+            "Shimoku",
             "Contributor",
-            githubUrl = "https://github.com/Ryusaaa",
-            githubUsername = "Ryusaaa",
+            githubUrl = "https://github.com/shimokuu",
+            telegramUrl = "https://t.me/xdshimokuu",
             shapeIndex = 3, // Burst
         ),
         TeamMember(
-            R.drawable.team_tester_wil,
+            R.drawable.logo_a,
             "Wil",
             "Tester",
             githubUrl = "https://github.com/Steambot12",
             telegramUrl = "https://t.me/Steambot12",
             githubUsername = "Steambot12",
+            shapeIndex = 20, // Cookie12
+        ),
+        TeamMember(
+            R.drawable.logo_a,
+            "ᴶᵁᴻᴵ༄",
+            "Tester",
+            githubUrl = "https://github.com/juns37",
+            telegramUrl = "https://t.me/@juns37",
+            githubUsername = "juns37",
             shapeIndex = 20, // Cookie12
         ),
         TeamMember(

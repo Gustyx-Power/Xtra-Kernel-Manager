@@ -235,7 +235,7 @@ private fun LegacyInfoScreen() {
           ) {
             TeamMemberCard(
                 modifier = Modifier.weight(1f),
-                imageResId = R.drawable.team_dev_dimsvel,
+                imageResId = R.drawable.logo_a,
                 name = "Pavelc4",
                 role = stringResource(R.string.info_role_founder),
                 country = "🇮🇩",
@@ -243,7 +243,7 @@ private fun LegacyInfoScreen() {
             )
             TeamMemberCard(
                 modifier = Modifier.weight(1f),
-                imageResId = R.drawable.team_dev_gustyx,
+                imageResId = R.drawable.logo_a,
                 name = "Gustyx-Power",
                 role = stringResource(R.string.info_role_founder),
                 country = "🇮🇩",
@@ -458,7 +458,7 @@ private fun LegacyInfoScreen() {
                   Triple(R.drawable.team_tester_achmad, R.string.team_tester_achmad, "🇮🇩"),
                   Triple(R.drawable.team_tester_hasan, R.string.team_tester_hasan, "🇮🇩"),
                   Triple(R.drawable.team_tester_reffan, R.string.team_tester_reffan, "🇮🇩"),
-                  Triple(R.drawable.team_tester_wil, R.string.team_tester_wil, "🇮🇩"),
+                  Triple(R.drawable.logo_a, R.string.team_tester_wil, "🇮🇩"),
                   Triple(R.drawable.team_sm_tester, R.string.team_tester_shadow_monarch, "🇵🇰"),
                   Triple(R.drawable.team_tester_azhar, R.string.team_tester_azhar, "🇮🇩"),
                   Triple(R.drawable.team_tester_juni, R.string.team_tester_juni, "🇮🇩🇯🇵"),
