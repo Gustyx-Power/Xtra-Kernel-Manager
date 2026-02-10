@@ -1,53 +1,66 @@
 # Xtra Kernel Manager - Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in here.
 
 ---
 
-## [Unreleased] - January 27, 2026
+## [3.0-Release] - February 10, 2026
 
-### ✨ New Features
-- **Separated Core Management** - CPU Core control now has dedicated card
-  - Independent Core Management card (no longer nested in cluster)
-  - Real-time core status display (online/offline)
-  - Per-core frequency monitoring
-  - Grouped by cluster for better organization
-  - Core 0 protection (cannot be disabled)
-  - Available in both Material and Liquid design variants
+### 💎 Liquid UI vs Material
+- **Dual Design System** - Choose your preferred visual style
+  - **Liquid UI** - The new signature layout with Wavy Blob ornaments, neon aesthetics, and glassmorphism
+  - **Material UI** - Clean, standard Material 3 design for purists
+- **Dynamic Components**
+  - **Responsive Recent Cards** - Auto-sizing cards with colored backgrounds
+  - **Animated Battery** - Fluid battery level visualization
+  - **Modern Bottom Bar** - Smooth transition animations and glass effect
 
-- **Enhanced GPU Info Display** - Recent GPU card now shows comprehensive details
-  - **Current Renderer Badge** - Shows active renderer (VULKAN/OPENGL)
-    - Purple badge for Vulkan renderer
-    - Primary color badge for OpenGL renderer
-  - **Compute Units** - Display GPU compute units (e.g., 4 CUs for Adreno 710)
-  - **Vulkan API Version** - Proper detection using Android PackageManager
-  - **GPU Memory** - Shows dedicated GPU memory or estimated from system RAM
-  - **OpenGL ES Version** - Display OpenGL ES version support
-  - **2x2 Grid Layout** - Optimized layout without empty spaces
-    - Row 1: GPU Memory + Compute Units (purple background)
-    - Row 2: OpenGL ES + Vulkan (gray and purple backgrounds)
+### 🎮 Game Space
+- **Game Monitor Service** - Dedicated background service for game detection
+- **Expressive Overlay** - Feature-rich in-game overlay
+  - **Performance Stats** - Real-time FPS, CPU/GPU Load, Battery, and Temperature
+  - **Quick Controls** - Brightness slider, DND, Ringer Mode, Call rejection
+  - **Tools** - Screenshot, Memory Boost, Touch Guard (Disable Gestures)
+- **Performance Modes** - Quick switch between Powersave, Balanced, and Performance profiles
 
-### 🛠️ Improvements
-- Enhanced CPU control UX with separated sections
-- Better visual indicators for core status
-- Improved core information display
-- Cleaner cluster cards (frequency & governor only)
-- More comprehensive GPU information in Recent Cards
-- Optimized GPU info detection methods
-- Better renderer type detection and display
-- Improved Vulkan detection using DevCheck-style approach
+### 🌡️ Thermal Manager
+- **Thermal Policy Control** - Advanced thermal management system
+  - **Policy Selection** - Choose from preset thermal policies
+  - **Threshold Visualization** - View Emergency, Warning, Restore, and Critical temperature limits
+  - **Glassmorphic UI** - Modern card-based selection with dynamic coloring
 
-### 🔧 Technical Changes
-- New `getAllCoreInfo()` function in CPUControlUseCase
-- New `getCoreInfoByCluster()` function for cluster-specific cores
-- Added `cpuCores` StateFlow in TuningViewModel
-- Auto-refresh core info every 5 seconds
-- New UI components: CoreControlCard (Material) and LiquidCoreControl (Liquid)
-- Added `vulkanVersion`, `gpuMemory`, `computeUnits`, and `rendererType` fields to GPUInfo model
-- New `getVulkanVersion()` function using Android PackageManager API
-- New `getGPUMemory()` function with multiple detection methods
-- New `getComputeUnits()` function with sysfs and model-based estimation
-- Updated RecentGPUCard with renderer badge and 2x2 grid layout
+### 🛡️ Security & Privacy
+- **Banking Protection (Hide Accessibility)**
+  - **Dedicated Module** - Hide accessibility services from banking apps (e.g., SeaBank)
+  - **App Selection** - New settings screen to filter which apps to hide from
+  - **Hybrid Approach** - Combines Xposed hooks on `SettingsProvider` and `PackageManager`
+  - **Optimized Caching** - Reduced redundant queries for better performance
+  - **Scope Limitation** - Restricted to `android` and `com.android.providers.settings` for stability
+
+### 📱 Functional ROM Manager
+- **ROM-Specific Features**
+  - **Smart Detection** - Automatically shows/hides features based on ROM (e.g., Shimoku)
+  - **Universal Features** - Standard tools available for all ROMs
+- **New Tools**
+  - **Display Size Changer** - Adjust DPI on the fly with a dedicated card
+  - **Developer Options** - Quick access shortcut (root required)
+
+### ⚡ Core & Performance
+- **Advanced CPU Management**
+  - **Independent Core Control** - Manage individual cores separately from clusters
+  - **Real-time Status** - Live online/offline monitoring for each core
+  - **Optimized Governor** - Improved application logic and refresh timing
+- **Enhanced GPU Info**
+  - **Vulkan API Detection** - Accurate version reporting via PackageManager
+  - **Renderer Badges** - Real-time indicators for Vulkan/OpenGL renderers
+  - **Compute Units** - Estimation based on model and sysfs
+  - **Memory Usage** - Improved detection for dedicated/shared GPU memory
+
+### 🔧 Technical Improvements
+- **Build Stability** - Fixed R8/ProGuard minification errors for release builds (`YukiHookAPI`, `KavaRef`)
+- **Preference Storage** - Migrated to String-based storage for reliable XSharedPreferences support
+- **Debug Tools** - Added `DebugLog` utility for conditional logging
+- **Cleanup** - Removed outdated cards (SELinux) and updated team profiles
 
 ---
 

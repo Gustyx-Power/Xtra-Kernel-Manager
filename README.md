@@ -107,9 +107,12 @@ This project includes optimizations to reduce Play Protect detection:
 ---
 
 ## Resources
-
 - [Releases](https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/releases)
 - [Issues](https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/issues)
+
+## Credits
+- [YukiHookAPI](https://github.com/HighCapable/YukiHookAPI)
+- [KavaRef](https://github.com/Kava-Ref)
 
 ---
 
