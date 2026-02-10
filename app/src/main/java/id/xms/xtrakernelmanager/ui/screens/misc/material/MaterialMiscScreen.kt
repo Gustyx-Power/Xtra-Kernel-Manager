@@ -169,34 +169,14 @@ fun MaterialMiscScreenContent(
         StaggeredEntry(delayMillis = 250) { PerAppProfileCard(onClick = onPerAppProfileClick) }
       }
 
-      // 5. SELinux Card - COMPLETELY REMOVED to prevent Play Protect detection
-      /*
-      if (id.xms.xtrakernelmanager.BuildConfig.ENABLE_ROOT_FEATURES) {
-        item(
-            span =
-                if (isSELinuxExpanded) StaggeredGridItemSpan.FullLine
-                else StaggeredGridItemSpan.SingleLane
-        ) {
-          StaggeredEntry(delayMillis = 300) {
-            SELinuxCard(
-                viewModel = viewModel,
-                isRooted = isRooted,
-                expanded = isSELinuxExpanded,
-                onExpandedChange = { isSELinuxExpanded = it },
-            )
-          }
-        }
-      }
-      */
-
-      // 6. Process Manager Card (Right) - Full width since SELinux removed
+      // 5. Process Manager Card (Left)
       item(span = StaggeredGridItemSpan.SingleLane) {
-        StaggeredEntry(delayMillis = 350) { ProcessManagerCard(onClick = onProcessManagerClick) }
+        StaggeredEntry(delayMillis = 300) { ProcessManagerCard(onClick = onProcessManagerClick) }
       }
 
-      // 7. Functional ROM (VIP Feature - Moved to bottom)
-      item(span = StaggeredGridItemSpan.FullLine) {
-        StaggeredEntry(delayMillis = 400) { FunctionalRomCard(onClick = onFunctionalRomClick) }
+      // 6. Functional ROM Card (Right - moved from bottom)
+      item(span = StaggeredGridItemSpan.SingleLane) {
+        StaggeredEntry(delayMillis = 350) { FunctionalRomCard(onClick = onFunctionalRomClick) }
       }
     }
   }
@@ -726,51 +706,65 @@ fun ProcessManagerCard(onClick: () -> Unit) {
 fun FunctionalRomCard(onClick: () -> Unit) {
   Card(
       onClick = onClick,
-      modifier = Modifier.fillMaxWidth().height(80.dp),
-      shape = RoundedCornerShape(20.dp),
+      modifier = Modifier.fillMaxWidth().height(140.dp),
+      shape = RoundedCornerShape(24.dp),
       colors =
           CardDefaults.cardColors(
-              containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+              containerColor = MaterialTheme.colorScheme.primaryContainer
           ),
   ) {
-    Row(
-        modifier = Modifier.padding(16.dp).fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-      Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            Icons.Rounded.Extension,
-            contentDescription = null,
-            modifier =
-                Modifier.size(32.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                        RoundedCornerShape(8.dp),
-                    )
-                    .padding(4.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-          Text(
-              "Functional ROM",
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onPrimaryContainer,
+    Box(modifier = Modifier.fillMaxSize()) {
+      // Background Watermark
+      Icon(
+          Icons.Rounded.Extension,
+          null,
+          tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.05f),
+          modifier = Modifier.size(100.dp).align(Alignment.BottomEnd).offset(x = 20.dp, y = 20.dp),
+      )
+
+      Column(
+          modifier = Modifier.padding(20.dp),
+          verticalArrangement = Arrangement.SpaceBetween,
+      ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Icon(
+              Icons.Rounded.Extension,
+              null,
+              tint = MaterialTheme.colorScheme.onPrimaryContainer,
+              modifier =
+                  Modifier.size(28.dp)
+                      .background(
+                          MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+                          RoundedCornerShape(8.dp),
+                      )
+                      .padding(4.dp),
           )
-          Text(
-              "ROM features & accessibility settings",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+
+          StatusBadge(
+              text = "Universal",
+              containerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.1f),
+              contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
           )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = "Functional ROM",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+        )
+        Text(
+            text = "ROM Features & Settings",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+        )
       }
-      StatusBadge(
-          text = "Universal",
-          containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-          contentColor = MaterialTheme.colorScheme.primary,
-      )
     }
   }
 }
