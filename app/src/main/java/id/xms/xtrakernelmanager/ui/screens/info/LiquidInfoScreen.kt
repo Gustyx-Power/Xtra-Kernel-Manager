@@ -81,7 +81,7 @@ private val teamMembers =
             shapeIndex = 16, // Cookie4
         ),
         TeamMember(
-            R.drawable.logo_a,
+            R.drawable.team_contributor_shimoku,
             "Shimoku",
             "Contributor",
             githubUrl = "https://github.com/shimokuu",
