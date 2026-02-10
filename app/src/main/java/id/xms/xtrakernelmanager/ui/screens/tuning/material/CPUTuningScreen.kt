@@ -104,6 +104,12 @@ fun ClusterTuningContent(
 
 @Composable
 fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
+  val clusterStates by viewModel.clusterStates.collectAsState()
+  val clusterState = clusterStates[cluster.clusterNumber]
+  
+  // Use state from clusterStates for immediate UI updates, fallback to cluster data
+  val currentGovernor = clusterState?.governor ?: cluster.governor
+  
   Card(
       shape = RoundedCornerShape(24.dp),
       colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
@@ -179,7 +185,7 @@ fun ClusterCard(cluster: ClusterInfo, viewModel: TuningViewModel) {
       }
 
       GovernorCard(
-          currentGovernor = cluster.governor,
+          currentGovernor = currentGovernor,
           availableGovernors = cluster.availableGovernors,
           onGovernorSelected = { newGov ->
             viewModel.setCpuClusterGovernor(cluster.clusterNumber, newGov)

@@ -38,6 +38,7 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialTh
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalIndexSelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.tuning.ImportResult
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

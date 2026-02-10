@@ -237,12 +237,33 @@ class CPUControlUseCase {
     val clusters = detectClusters()
     val targetCluster =
         clusters.getOrNull(cluster) ?: return Result.failure(Exception("Cluster not found"))
-    targetCluster.cores.forEach { coreNum ->
-      val basePath = "/sys/devices/system/cpu/cpu$coreNum"
-      RootManager.executeCommand("echo $governor > $basePath/cpufreq/scaling_governor 2>/dev/null")
+    
+    val batchCommand = targetCluster.cores.joinToString(" && ") { coreNum ->
+      "echo $governor > /sys/devices/system/cpu/cpu$coreNum/cpufreq/scaling_governor 2>/dev/null"
     }
+    
+    val result = RootManager.executeCommand(batchCommand)
     invalidateClusterCache()
-    return Result.success(Unit)
+    
+    return if (result.isSuccess) Result.success(Unit) 
+           else Result.failure(Exception("Failed to set governor"))
+  }
+
+  suspend fun verifyGovernorApplication(cluster: Int, expectedGovernor: String): Boolean {
+    repeat(5) { attempt ->
+      kotlinx.coroutines.delay(100)
+      
+      val clusters = detectClusters()
+      val targetCluster = clusters.getOrNull(cluster)
+      
+      if (targetCluster?.governor == expectedGovernor) {
+        Log.d(TAG, "Governor verified after ${(attempt + 1) * 100}ms")
+        return true
+      }
+    }
+    
+    Log.w(TAG, "Governor verification failed after 500ms")
+    return false
   }
 
   suspend fun setCoreOnline(core: Int, online: Boolean): Result<Unit> {

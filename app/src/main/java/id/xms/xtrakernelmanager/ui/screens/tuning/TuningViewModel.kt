@@ -282,12 +282,13 @@ class TuningViewModel(
       
       val result = cpuUseCase.setClusterGovernor(clusterIndex, governor)
       if (result.isSuccess) {
-        // Update UI state immediately
+        // Update UI state immediately on main thread
         withContext(Dispatchers.Main) {
           updateClusterGovernor(clusterIndex, governor)
         }
         
-        // Save configuration if set-on-boot is enabled
+        lastGovernorChangeTime = System.currentTimeMillis()
+        
         val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
         if (cpuSetOnBoot) {
           preferencesManager.setClusterGovernor(clusterIndex, governor)
@@ -295,8 +296,7 @@ class TuningViewModel(
         
         Log.d("TuningViewModel", "Successfully set cluster $clusterIndex governor to $governor")
         
-        // Wait a bit for hardware to apply, then allow monitoring
-        delay(2000)
+        // Release flag immediately - no need to wait
         _isUserAdjusting.value = false
       } else {
         Log.e("TuningViewModel", "Failed to set cluster $clusterIndex governor: ${result.exceptionOrNull()?.message}")
@@ -461,8 +461,9 @@ class TuningViewModel(
 
   // User interaction control to prevent refresh conflicts
   private val _isUserAdjusting = MutableStateFlow(false)
-  private val _isApplyingConfig = MutableStateFlow(false) // New flag to prevent refresh during config application
-  private var lastConfigApplyTime = 0L // Track when config was last applied
+  private val _isApplyingConfig = MutableStateFlow(false)
+  private var lastConfigApplyTime = 0L
+  private var lastGovernorChangeTime = 0L
 
   // Static data cache flags
   private var staticDataLoaded = false
@@ -536,7 +537,7 @@ class TuningViewModel(
 
   private suspend fun startAutoRefresh() {
     while (true) {
-      delay(5000) // 5 seconds refresh interval
+      delay(2000)
       if (_isRootAvailable.value && !_isLoading.value && _isRefreshEnabled.value) {
         refreshDynamicValues() // Only refresh dynamic data
       }
@@ -612,10 +613,10 @@ class TuningViewModel(
       return
     }
     
-    // Skip refresh for 10 seconds after config application to prevent override
     val timeSinceLastApply = System.currentTimeMillis() - lastConfigApplyTime
-    if (timeSinceLastApply < 10000) { // 10 seconds
-      Log.d("TuningViewModel", "Skipping refresh - only ${timeSinceLastApply}ms since last config apply")
+    val timeSinceLastGovernorChange = System.currentTimeMillis() - lastGovernorChangeTime
+    if (timeSinceLastApply < 1000 || timeSinceLastGovernorChange < 500) {
+      Log.d("TuningViewModel", "Skipping refresh - recent changes detected")
       return
     }
     
@@ -888,8 +889,6 @@ class TuningViewModel(
         
         Log.d("TuningViewModel", "Successfully set cluster $cluster frequency to $minFreq-$maxFreq MHz")
         
-        // Wait a bit for hardware to apply, then allow monitoring
-        delay(2000)
         _isUserAdjusting.value = false
       } else {
         Log.e("TuningViewModel", "Failed to set cluster $cluster frequency: ${result.exceptionOrNull()?.message}")
@@ -908,7 +907,8 @@ class TuningViewModel(
         // Update UI state immediately
         updateClusterGovernor(cluster, governor)
         
-        // Save configuration if set-on-boot is enabled
+        lastGovernorChangeTime = System.currentTimeMillis()
+        
         val cpuSetOnBoot = preferencesManager.getCpuSetOnBoot().first()
         if (cpuSetOnBoot) {
           preferencesManager.setClusterGovernor(cluster, governor)
@@ -916,8 +916,7 @@ class TuningViewModel(
         
         Log.d("TuningViewModel", "Successfully set cluster $cluster governor to $governor")
         
-        // Wait a bit for hardware to apply, then allow monitoring
-        delay(2000)
+        // Release flag immediately - no need to wait
         _isUserAdjusting.value = false
       } else {
         Log.e("TuningViewModel", "Failed to set cluster $cluster governor: ${result.exceptionOrNull()?.message}")
@@ -1856,13 +1855,8 @@ class TuningViewModel(
   }
 
   fun endUserAdjusting() {
-    // Don't immediately set to false, wait a bit longer
+    _isUserAdjusting.value = false
     viewModelScope.launch {
-      delay(2000) // Wait 2 seconds for hardware to apply and stabilize
-      _isUserAdjusting.value = false
-      
-      // Then refresh to get updated values
-      delay(500)
       refreshDynamicValues()
     }
   }
