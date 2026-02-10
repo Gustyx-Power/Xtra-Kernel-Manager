@@ -299,15 +299,10 @@ fun PowerInsightCard(viewModel: MiscViewModel, batteryInfo: BatteryInfo, onClick
             )
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
               Text(
-                  text = "${batteryInfo.level}%",
+                  text = displayTime,
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = FontWeight.Bold,
                   color = MaterialTheme.colorScheme.onSurface,
-              )
-              Text(
-                  text = "Battery",
-                  style = MaterialTheme.typography.labelSmall,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }
           }
