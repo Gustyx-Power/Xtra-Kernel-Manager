@@ -78,7 +78,7 @@ fun RecentCPUCard(
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxHeight()
-            .width(340.dp),
+            .fillMaxWidth(),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
         contentPadding = PaddingValues(0.dp)
@@ -469,7 +469,7 @@ fun RecentGPUCard(
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxHeight()
-            .width(340.dp),
+            .fillMaxWidth(),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
         contentPadding = PaddingValues(0.dp)
@@ -891,7 +891,7 @@ fun RecentThermalCard(
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxHeight()
-            .width(340.dp),
+            .fillMaxWidth(),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
         contentPadding = PaddingValues(0.dp)
@@ -1099,7 +1099,7 @@ fun RecentRAMCard(
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxHeight()
-            .width(340.dp),
+            .fillMaxWidth(),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
         contentPadding = PaddingValues(0.dp)
@@ -1297,7 +1297,7 @@ fun RecentAdditionalCard(
     GlassmorphicCard(
         modifier = Modifier
             .fillMaxHeight()
-            .width(340.dp),
+            .fillMaxWidth(),
         onClick = onClick,
         shape = RoundedCornerShape(28.dp),
         contentPadding = PaddingValues(0.dp)

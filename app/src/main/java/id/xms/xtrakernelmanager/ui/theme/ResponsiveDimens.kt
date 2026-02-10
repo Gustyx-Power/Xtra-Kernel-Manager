@@ -1,6 +1,8 @@
 package id.xms.xtrakernelmanager.ui.theme
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -10,11 +12,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Responsive Dimensions System for XKM Uses screen width in dp AND density to properly scale UI
+ * Responsive Dimensions System for XKM
+ * Uses screen width in dp AND density to properly scale UI
  *
  * Detection based on actual screen width:
- * - COMPACT: <= 392dp (covers 720p/HD phones with high density)
- * - MEDIUM: 393dp - 600dp (standard 1080p/FHD phones)
+ * - COMPACT: <= 392dp (covers small phones)
+ * - MEDIUM: 393dp - 600dp (standard phones)
  * - EXPANDED: 601dp - 840dp (small tablets, foldables)
  * - LARGE: > 840dp (large tablets)
  */
@@ -72,13 +75,7 @@ fun rememberResponsiveDimens(): ResponsiveDimens {
   val densityDpi = configuration.densityDpi
 
   return remember(screenWidthDp, screenHeightDp, densityDpi) {
-    // Calculate physical screen size for better device classification
-    val widthInches = screenWidthDp / 160f
-    val heightInches = screenHeightDp / 160f
-    val diagonalInches = kotlin.math.sqrt(widthInches * widthInches + heightInches * heightInches)
-    
     // Calculate scale factor based on screen width and density
-    // For high-resolution phones (1080p+), we consider both width and DPI
     val baseScaleFactor = (screenWidthDp / 400f).coerceIn(0.7f, 1.5f)
     
     // Adjust scale factor for high-DPI devices
@@ -91,18 +88,11 @@ fun rememberResponsiveDimens(): ResponsiveDimens {
     
     val scaleFactor = (baseScaleFactor * dpiAdjustment).coerceIn(0.7f, 1.3f)
 
-    // Determine screen class with better detection
+    // Determine screen class based on dp width
     val screenClass = when {
-      // Small phones (regardless of resolution)
       screenWidthDp <= 392 -> ScreenSizeClass.COMPACT
-      
-      // Standard phones (including 1080p, 1260p, 1440p phones)
       screenWidthDp <= 600 -> ScreenSizeClass.MEDIUM
-      
-      // Small tablets or foldables
       screenWidthDp <= 840 -> ScreenSizeClass.EXPANDED
-      
-      // Large tablets
       else -> ScreenSizeClass.LARGE
     }
 
@@ -268,4 +258,42 @@ fun ResponsiveDimens.getMaxContentWidth(): Dp = when (screenSizeClass) {
 // Quick access composable for common use
 object Dimens {
   @Composable fun get(): ResponsiveDimens = rememberResponsiveDimens()
+}
+
+// Extension properties for easy access to common dimensions
+val LocalDimens = compositionLocalOf { 
+  ResponsiveDimens(
+    screenSizeClass = ScreenSizeClass.MEDIUM,
+    screenWidthDp = 400,
+    scaleFactor = 1.0f,
+    screenHorizontalPadding = 16.dp,
+    cardPadding = 14.dp,
+    cardPaddingSmall = 10.dp,
+    itemPadding = 10.dp,
+    spacingLarge = 14.dp,
+    spacingMedium = 10.dp,
+    spacingSmall = 6.dp,
+    spacingTiny = 3.dp,
+    cornerRadiusLarge = 20.dp,
+    cornerRadiusMedium = 14.dp,
+    cornerRadiusSmall = 10.dp,
+    iconSizeLarge = 22.dp,
+    iconSizeMedium = 18.dp,
+    iconSizeSmall = 14.dp,
+    buttonHeight = 44.dp,
+    chipHeight = 28.dp,
+    avatarSizeLarge = 64.dp,
+    avatarSizeMedium = 44.dp,
+    avatarSizeSmall = 28.dp,
+    fontScale = 0.95f,
+  )
+}
+
+// Provide dimensions to composition
+@Composable
+fun ProvideDimens(content: @Composable () -> Unit) {
+  val dimens = rememberResponsiveDimens()
+  CompositionLocalProvider(LocalDimens provides dimens) {
+    content()
+  }
 }
