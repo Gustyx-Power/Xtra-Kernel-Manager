@@ -29,7 +29,7 @@ fun LiquidGPUCard(gpuInfo: GPUInfo, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(NeonPurple.copy(alpha = 0.85f))
+                .background(Color(0xFFFF6F00).copy(alpha = 0.85f))
         ) {
             Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(

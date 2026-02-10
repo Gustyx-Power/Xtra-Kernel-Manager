@@ -162,7 +162,7 @@ fun LiquidHomeScreen(
                         gpuTemp = gpuInfo.temperature.toInt(),
                         pmicTemp = batteryInfo.pmicTemp.toInt(),
                         thermalTemp = batteryInfo.temperature.toInt(),
-                        color = NeonPurple
+                        color = Color(0xFFFF1744)
                     )
                 }
             }

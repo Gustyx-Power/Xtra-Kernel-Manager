@@ -31,7 +31,7 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(NeonYellow.copy(alpha = 0.85f))
+                .background(Color(0xFFF57C00).copy(alpha = 0.85f))
         ) {
             Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 // Header
@@ -83,10 +83,17 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
+                    val batteryColor = when {
+                        batteryInfo.level >= 80 -> Color(0xFF4CAF50) // Green
+                        batteryInfo.level >= 60 -> Color(0xFFFFEB3B) // Yellow
+                        batteryInfo.level >= 30 -> Color(0xFFFF9800) // Orange
+                        else -> Color(0xFFD32F2F) // Dark Red
+                    }
+                    
                     LiquidBatterySilhouette(
                         level = batteryInfo.level / 100f,
                         isCharging = batteryInfo.status.contains("Charging", ignoreCase = true),
-                        color = Color.White
+                        color = batteryColor
                     )
 
                     Column {
