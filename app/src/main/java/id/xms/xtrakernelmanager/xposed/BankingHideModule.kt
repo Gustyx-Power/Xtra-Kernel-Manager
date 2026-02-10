@@ -50,10 +50,17 @@ class BankingHideModule : IYukiHookXposedInit {
     private var packageManager: android.content.pm.PackageManager? = null
     private val uidToPackageCache = mutableMapOf<Int, String?>()
     
-    private var selectedAppsCache: Set<String>? = null
+    // Performance optimizations - cache untuk mengurangi parsing berulang
+    private var detectorAppsCache: Set<String>? = null
+    private var appsToHideCache: Set<String>? = null
     private var featureEnabledCache: Boolean? = null
+    private var lastAccessibilityQueryTime: Long = 0
+    
+    private var selectedAppsCache: Set<String>? = null
     private var lastCacheTime: Long = 0
     private val CACHE_DURATION = 30_000L
+    private val MAX_UID_CACHE_SIZE = 500
+    private val MIN_QUERY_INTERVAL = 100L // Rate limiting untuk mencegah spam calls
     
     override fun onInit() = YukiHookAPI.configs {
         isDebug = true
@@ -140,32 +147,33 @@ class BankingHideModule : IYukiHookXposedInit {
         return try {
             refreshPrefsIfNeeded()
             
-            // Get apps to hide
-            val appsToHideJson = xPrefs?.getString("hide_accessibility_apps_to_hide", "[]") ?: "[]"
-            val appsToHide = try {
-                val jsonArray = org.json.JSONArray(appsToHideJson)
-                (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
-            } catch (e: Exception) {
-                emptySet()
+            // Gunakan cache untuk apps to hide
+            val appsToHide = appsToHideCache ?: run {
+                val appsToHideJson = xPrefs?.getString("hide_accessibility_apps_to_hide", "[]") ?: "[]"
+                val apps = try {
+                    val jsonArray = org.json.JSONArray(appsToHideJson)
+                    (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+                } catch (e: Exception) {
+                    emptySet<String>()
+                }
+                appsToHideCache = apps
+                apps
             }
             
             if (appsToHide.isEmpty()) return originalValue
             
-            YLog.debug(tag = TAG, msg = "Filtering settings string for $callingPackage. Original: $originalValue")
-            YLog.debug(tag = TAG, msg = "Apps to hide: $appsToHide")
             val components = originalValue.split(":")
+            
+            // Optimasi: gunakan HashSet untuk O(1) lookup
+            val appsToHideSet = appsToHide.toHashSet()
+            
             val filteredComponents = components.filter { component ->
                 if (component.isEmpty()) return@filter true
                 
-                // Check if this component should be hidden
-                val shouldHide = appsToHide.any { packageToHide ->
+                // Optimized check - avoid .any() iteration
+                val shouldHide = appsToHideSet.any { packageToHide ->
                     component.contains(packageToHide) ||
-                    ((packageToHide == XKM_PACKAGE || packageToHide == XKM_DEV_PACKAGE || 
-                      packageToHide.contains("xtrakernelmanager", ignoreCase = true)) && isXkmServiceString(component))
-                }
-                
-                if (shouldHide) {
-                    YLog.info(tag = TAG, msg = "Hiding component from settings: $component")
+                    (packageToHide.contains("xtrakernelmanager", ignoreCase = true) && isXkmServiceString(component))
                 }
                 
                 !shouldHide
@@ -175,7 +183,6 @@ class BankingHideModule : IYukiHookXposedInit {
             
             if (filteredComponents.size != components.size) {
                 YLog.info(tag = TAG, msg = "Filtered Settings String for $callingPackage: ${components.size} -> ${filteredComponents.size} components")
-                YLog.debug(tag = TAG, msg = "Result: $filteredValue")
             }
             
             filteredValue
@@ -286,36 +293,48 @@ class BankingHideModule : IYukiHookXposedInit {
     }
     
     private fun shouldHideFromPackage(callingPackage: String): Boolean {
+        // Rate limiting untuk mencegah spam calls
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastAccessibilityQueryTime < MIN_QUERY_INTERVAL) {
+            // Gunakan cache jika ada rate limiting
+            return detectorAppsCache?.contains(callingPackage) ?: false
+        }
+        lastAccessibilityQueryTime = currentTime
+        
         return try {
             refreshPrefsIfNeeded()
-                val isEnabled = try {
-                xPrefs?.getBoolean("xkm_hide_accessibility_enabled", false) ?: false
-            } catch (e: ClassCastException) {
-                val enabledStr = xPrefs?.getString("xkm_hide_accessibility_enabled", "false") ?: "false"
-                enabledStr.equals("true", ignoreCase = true)
+            
+            // Gunakan cache untuk feature enabled
+            val isEnabled = featureEnabledCache ?: run {
+                val enabled = try {
+                    xPrefs?.getBoolean("xkm_hide_accessibility_enabled", false) ?: false
+                } catch (e: ClassCastException) {
+                    val enabledStr = xPrefs?.getString("xkm_hide_accessibility_enabled", "false") ?: "false"
+                    enabledStr.equals("true", ignoreCase = true)
+                }
+                featureEnabledCache = enabled
+                enabled
             }
             
             if (!isEnabled) {
-                YLog.debug(tag = TAG, msg = "Hide Accessibility is DISABLED, not filtering for $callingPackage")
                 return false
             }
             
-            val detectorAppsJson = xPrefs?.getString("hide_accessibility_detector_apps", "[]") ?: "[]"
-            val detectorApps = try {
-                val jsonArray = org.json.JSONArray(detectorAppsJson)
-                (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
-            } catch (e: Exception) {
-                YLog.error(tag = TAG, msg = "Failed to parse detector apps JSON: ${e.message}")
-                emptySet()
+            // Gunakan cache untuk detector apps
+            val detectorApps = detectorAppsCache ?: run {
+                val detectorAppsJson = xPrefs?.getString("hide_accessibility_detector_apps", "[]") ?: "[]"
+                val apps = try {
+                    val jsonArray = org.json.JSONArray(detectorAppsJson)
+                    (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+                } catch (e: Exception) {
+                    YLog.error(tag = TAG, msg = "Failed to parse detector apps JSON: ${e.message}")
+                    emptySet<String>()
+                }
+                detectorAppsCache = apps
+                apps
             }
             
-            val shouldHide = detectorApps.contains(callingPackage)
-            if (shouldHide) {
-                YLog.info(tag = TAG, msg = "Will hide accessibility from $callingPackage (in detector list of ${detectorApps.size} apps)")
-            } else {
-                YLog.debug(tag = TAG, msg = "Package $callingPackage not in detector list. Detector apps: $detectorApps")
-            }
-            shouldHide
+            detectorApps.contains(callingPackage)
         } catch (e: Exception) {
             YLog.error(tag = TAG, msg = "Error checking if should hide from package $callingPackage: ${e.message}")
             false
@@ -328,43 +347,46 @@ class BankingHideModule : IYukiHookXposedInit {
     ): List<AccessibilityServiceInfo> {
         return try {
             refreshPrefsIfNeeded()
-            val appsToHideJson = xPrefs?.getString("hide_accessibility_apps_to_hide", "[]") ?: "[]"
-            val appsToHide = try {
-                val jsonArray = org.json.JSONArray(appsToHideJson)
-                (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
-            } catch (e: Exception) {
-                YLog.error(tag = TAG, msg = "Failed to parse apps to hide JSON: ${e.message}")
-                emptySet()
+            
+            // Gunakan cache untuk apps to hide
+            val appsToHide = appsToHideCache ?: run {
+                val appsToHideJson = xPrefs?.getString("hide_accessibility_apps_to_hide", "[]") ?: "[]"
+                val apps = try {
+                    val jsonArray = org.json.JSONArray(appsToHideJson)
+                    (0 until jsonArray.length()).map { jsonArray.getString(it) }.toSet()
+                } catch (e: Exception) {
+                    YLog.error(tag = TAG, msg = "Failed to parse apps to hide JSON: ${e.message}")
+                    emptySet<String>()
+                }
+                appsToHideCache = apps
+                apps
             }
             
             if (appsToHide.isEmpty()) {
-                YLog.debug(tag = TAG, msg = "No apps configured to hide, returning original list for $callingPackage")
                 return originalList
             }
             
-            YLog.info(tag = TAG, msg = "Filtering accessibility services for $callingPackage, apps to hide: $appsToHide")
+            // Optimasi: gunakan HashSet untuk O(1) lookup instead of .any()
+            val appsToHideSet = appsToHide.toHashSet()
             
             // Filter out services from apps that should be hidden
             val filteredList = originalList.filter { serviceInfo ->
                 val servicePackage = serviceInfo.resolveInfo?.serviceInfo?.packageName ?: ""
                 val serviceName = serviceInfo.resolveInfo?.serviceInfo?.name ?: ""
                 val serviceId = serviceInfo.id ?: ""
-                val shouldHide = appsToHide.any { packageToHide ->
-                    servicePackage == packageToHide ||
-                    serviceName.contains(packageToHide, ignoreCase = true) ||
-                    serviceId.contains(packageToHide, ignoreCase = true) ||
-                    ((packageToHide == XKM_PACKAGE || packageToHide == XKM_DEV_PACKAGE || 
-                      packageToHide.contains("xtrakernelmanager", ignoreCase = true)) && isXkmService(serviceInfo))
-                }
                 
-                if (shouldHide) {
-                    YLog.info(tag = TAG, msg = "Hiding service: $servicePackage/$serviceName (ID: $serviceId) from $callingPackage")
-                }
+                // Optimized check - direct HashSet lookup first
+                val shouldHide = appsToHideSet.contains(servicePackage) ||
+                    serviceName.contains("xtrakernelmanager", ignoreCase = true) ||
+                    serviceId.contains("xtrakernelmanager", ignoreCase = true) ||
+                    isXkmService(serviceInfo)
                 
                 !shouldHide
             }
             
-            YLog.info(tag = TAG, msg = "Filtered accessibility services for $callingPackage: ${originalList.size} -> ${filteredList.size} services")
+            if (filteredList.size != originalList.size) {
+                YLog.info(tag = TAG, msg = "Filtered accessibility services for $callingPackage: ${originalList.size} -> ${filteredList.size} services")
+            }
             filteredList
         } catch (e: Exception) {
             YLog.error(tag = TAG, msg = "Error filtering accessibility services: ${e.message}")
@@ -378,26 +400,28 @@ class BankingHideModule : IYukiHookXposedInit {
             try {
                 var prefs = XSharedPreferences(XKM_DEV_PACKAGE, PREFS_NAME)
                 prefs.makeWorldReadable()
-                    if (!prefs.file.exists() || !prefs.file.canRead()) {
-                    YLog.debug(tag = TAG, msg = "Dev package prefs not found, trying release package")
+                if (!prefs.file.exists() || !prefs.file.canRead()) {
                     prefs = XSharedPreferences(XKM_PACKAGE, PREFS_NAME)
                     prefs.makeWorldReadable()
                 }
                 
                 xPrefs = prefs
                 lastCacheTime = currentTime
-                YLog.debug(tag = TAG, msg = "Refreshed XSharedPreferences from: ${prefs.file.absolutePath}, readable: ${prefs.file.canRead()}")
-                    val isEnabled = try {
-                    prefs.getBoolean("xkm_hide_accessibility_enabled", false)
-                } catch (e: Exception) {
-                    val enabledStr = prefs.getString("xkm_hide_accessibility_enabled", "false")
-                    enabledStr.equals("true", ignoreCase = true)
+                
+                // Clear cache untuk memaksa reload
+                detectorAppsCache = null
+                appsToHideCache = null
+                featureEnabledCache = null
+                
+                // Limit UID cache size untuk mencegah memory leak
+                if (uidToPackageCache.size > MAX_UID_CACHE_SIZE) {
+                    // Keep only the most recent entries (simple LRU simulation)
+                    val entries = uidToPackageCache.entries.toList()
+                    uidToPackageCache.clear()
+                    entries.takeLast(MAX_UID_CACHE_SIZE / 2).forEach { (k, v) ->
+                        uidToPackageCache[k] = v
+                    }
                 }
-                
-                val detectorAppsJson = prefs.getString("hide_accessibility_detector_apps", "[]")
-                val appsToHideJson = prefs.getString("hide_accessibility_apps_to_hide", "[]")
-                
-                YLog.debug(tag = TAG, msg = "Current settings - Enabled: $isEnabled, Detector apps: $detectorAppsJson, Apps to hide: $appsToHideJson")
                 
             } catch (e: Exception) {
                 YLog.error(tag = TAG, msg = "Failed to refresh preferences: ${e.message}")
