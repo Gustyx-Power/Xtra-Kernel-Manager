@@ -43,9 +43,11 @@ fun LiquidCoreControl(
       animationSpec = tween(300)
   )
 
-  GlassmorphicCard(
+  Surface(
       modifier = modifier.fillMaxWidth().animateContentSize(),
-      onClick = { expanded = !expanded }
+      onClick = { expanded = !expanded },
+      shape = RoundedCornerShape(24.dp),
+      color = Color(0xFF3B82F6).copy(alpha = 0.15f) // Blue glass for core control
   ) {
     Column(modifier = Modifier.padding(20.dp)) {
       // Header
@@ -61,14 +63,14 @@ fun LiquidCoreControl(
           // Icon Container
           Surface(
               shape = RoundedCornerShape(16.dp),
-              color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+              color = Color(0xFF3B82F6).copy(alpha = 0.3f), // Stronger blue glass for icon
               modifier = Modifier.size(56.dp),
           ) {
             Box(contentAlignment = Alignment.Center) {
               Icon(
                   imageVector = Icons.Rounded.Memory,
                   contentDescription = null,
-                  tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                  tint = Color(0xFF3B82F6),
                   modifier = Modifier.size(28.dp),
               )
             }
@@ -79,7 +81,7 @@ fun LiquidCoreControl(
                 text = stringResource(R.string.liquid_cpu_core_management),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -88,9 +90,9 @@ fun LiquidCoreControl(
               Surface(
                   shape = CircleShape,
                   color = if (onlineCores == totalCores) 
-                      MaterialTheme.colorScheme.primaryContainer 
+                      Color(0xFF10B981).copy(alpha = 0.3f) // Green glass for all online
                   else 
-                      MaterialTheme.colorScheme.tertiaryContainer,
+                      Color(0xFF8B5CF6).copy(alpha = 0.3f), // Purple glass for partial
               ) {
                 Text(
                     text = "$onlineCores/$totalCores",
@@ -98,15 +100,15 @@ fun LiquidCoreControl(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     color = if (onlineCores == totalCores) 
-                        MaterialTheme.colorScheme.onPrimaryContainer 
+                        Color(0xFF10B981)
                     else 
-                        MaterialTheme.colorScheme.onTertiaryContainer,
+                        Color(0xFF8B5CF6),
                 )
               }
               Text(
                   text = stringResource(R.string.liquid_cpu_cores_online),
                   style = MaterialTheme.typography.bodyMedium,
-                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  color = Color.White.copy(alpha = 0.7f),
               )
             }
           }
@@ -115,14 +117,14 @@ fun LiquidCoreControl(
         // Expand Icon
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+            color = Color.White.copy(alpha = 0.1f), // Subtle white glass
             modifier = Modifier.size(40.dp),
         ) {
           Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = Icons.Rounded.ExpandMore,
                 contentDescription = if (expanded) "Collapse" else "Expand",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.size(24.dp).rotate(rotationAngle),
             )
           }
@@ -133,7 +135,7 @@ fun LiquidCoreControl(
       AnimatedVisibility(visible = expanded) {
         Column(modifier = Modifier.padding(top = 20.dp)) {
           HorizontalDivider(
-              color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+              color = Color.White.copy(alpha = 0.2f),
               modifier = Modifier.padding(bottom = 16.dp)
           )
 
@@ -165,7 +167,7 @@ private fun LiquidClusterCoreSection(
 ) {
   Surface(
       shape = RoundedCornerShape(20.dp),
-      color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+      color = Color(0xFF10B981).copy(alpha = 0.1f), // Green glass effect for cluster sections
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       // Cluster Header
@@ -177,18 +179,18 @@ private fun LiquidClusterCoreSection(
         Text(
             text = stringResource(R.string.liquid_cpu_cluster_format, clusterNumber),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary,
+            color = Color(0xFF10B981),
         )
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+            color = Color(0xFF10B981).copy(alpha = 0.3f), // Green glass badge
         ) {
           Text(
               text = stringResource(R.string.liquid_cpu_cores_format, cores.size),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Medium,
               modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-              color = MaterialTheme.colorScheme.onPrimaryContainer,
+              color = Color(0xFF10B981),
           )
         }
       }
@@ -199,7 +201,7 @@ private fun LiquidClusterCoreSection(
 
         if (index != cores.lastIndex) {
           HorizontalDivider(
-              color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+              color = Color.White.copy(alpha = 0.1f),
               modifier = Modifier.padding(vertical = 12.dp)
           )
         }
@@ -233,9 +235,9 @@ private fun LiquidCoreItem(
                   .clip(RoundedCornerShape(12.dp))
                   .background(
                       if (isOnline)
-                          MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                          Color(0xFF10B981).copy(alpha = 0.2f) // Green glass for online
                       else
-                          MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                          Color(0xFFEF4444).copy(alpha = 0.2f) // Red glass for offline
                   ),
           contentAlignment = Alignment.Center,
       ) {
@@ -243,14 +245,14 @@ private fun LiquidCoreItem(
           Icon(
               Icons.Rounded.Memory,
               contentDescription = null,
-              tint = MaterialTheme.colorScheme.onPrimaryContainer,
+              tint = Color(0xFF10B981),
               modifier = Modifier.size(22.dp)
           )
         } else {
           Icon(
               Icons.Rounded.PowerOff,
               contentDescription = null,
-              tint = MaterialTheme.colorScheme.onErrorContainer,
+              tint = Color(0xFFEF4444),
               modifier = Modifier.size(22.dp)
           )
         }
@@ -265,23 +267,23 @@ private fun LiquidCoreItem(
               text = stringResource(R.string.liquid_cpu_core_format, core.coreNumber),
               style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
               color = if (isOnline)
-                  MaterialTheme.colorScheme.onSurface
+                  Color.White
               else
-                  MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                  Color.White.copy(alpha = 0.5f)
           )
 
           // Core 0 Badge
           if (isCore0) {
             Surface(
                 shape = RoundedCornerShape(6.dp),
-                color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                color = Color(0xFF8B5CF6).copy(alpha = 0.2f), // Purple glass for primary badge
             ) {
               Text(
                   text = stringResource(R.string.liquid_cpu_primary),
                   style = MaterialTheme.typography.labelSmall,
                   fontWeight = FontWeight.Bold,
                   modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                  color = MaterialTheme.colorScheme.onTertiaryContainer,
+                  color = Color(0xFF8B5CF6),
               )
             }
           }
@@ -295,13 +297,13 @@ private fun LiquidCoreItem(
           ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF10B981),
                 modifier = Modifier.size(6.dp)
             ) {}
             Text(
                 text = "${core.currentFreq} MHz",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary,
+                color = Color(0xFF10B981),
                 fontWeight = FontWeight.Medium,
             )
           }
@@ -309,7 +311,7 @@ private fun LiquidCoreItem(
           Text(
               text = stringResource(R.string.liquid_cpu_offline),
               style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.error,
+              color = Color(0xFFEF4444),
               fontWeight = FontWeight.Medium,
           )
         }
@@ -335,7 +337,7 @@ private fun LiquidCoreItem(
     Text(
         text = stringResource(R.string.liquid_cpu_primary_core_cannot_disabled),
         style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        color = Color.White.copy(alpha = 0.6f),
         modifier = Modifier.padding(start = 58.dp, top = 6.dp)
     )
   }
