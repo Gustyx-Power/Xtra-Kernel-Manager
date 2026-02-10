@@ -108,7 +108,7 @@ private val teamMembers =
         ),
         TeamMember(
             R.drawable.team_tester_achmad,
-            "Achmad",
+            "Achmadh",
             "Tester",
             shapeIndex = 5, // Square
         ),
@@ -125,8 +125,26 @@ private val teamMembers =
             shapeIndex = 13, // Gem
         ),
         TeamMember(
+            R.drawable.team_tester_sleep,
+            "Adi Suki",
+            "Tester",
+            shapeIndex = 13, // Gem
+        ),
+        TeamMember(
+            R.drawable.team_tester_azhar,
+            "Azhar",
+            "Tester",
+            shapeIndex = 13, // Gem
+        ),
+        TeamMember(
+            R.drawable.logo_a,
+            "NTT Rules",
+            "Tester",
+            shapeIndex = 13, // Gem
+        ),
+        TeamMember(
             R.drawable.team_sm_tester,
-            "Shadow Monarch",
+            "Muttahir",
             "Tester",
             shapeIndex = 10, // Ghost
         ),
