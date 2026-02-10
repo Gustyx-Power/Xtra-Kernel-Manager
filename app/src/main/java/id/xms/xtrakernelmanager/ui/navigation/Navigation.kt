@@ -209,14 +209,14 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
   Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.background,  // ✅ Background normal
     ) { paddingValues ->
       NavHost(
           navController = navController,
           startDestination = startDest,
           modifier = Modifier
               .padding(paddingValues)
-              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 120.dp),
+              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 64.dp),  // ✅ Sesuaikan dengan actual height
       ) {
         composable("setup") {
           SetupScreen(
@@ -407,7 +407,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
             .fillMaxWidth()
             .align(Alignment.BottomCenter)
             .padding(horizontal = 16.dp)
-            .padding(bottom = if (layoutStyle == "liquid") 120.dp else 180.dp)
+            .padding(bottom = if (layoutStyle == "liquid") 120.dp else 80.dp)
     ) {
       // Simple target layout name
       val targetLayoutName = if (layoutStyle == "liquid") "Liquid Glass" else "Material"
