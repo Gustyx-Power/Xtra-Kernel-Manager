@@ -7,6 +7,8 @@
     <img src="https://img.shields.io/badge/Jetpack%20Compose-7F52FF?style=for-the-badge&colorA=363A4F&logo=jetpack-compose&logoColor=D9E0EE">
     <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&colorA=363A4F&logo=rust&logoColor=D9E0EE">
     <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&colorA=363A4F&logo=android&logoColor=D9E0EE">
+    <a href="https://deepwiki.com/Gustyx-Power/Xtra-Kernel-Manager"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+
 </p>
 
 <p align="center">
