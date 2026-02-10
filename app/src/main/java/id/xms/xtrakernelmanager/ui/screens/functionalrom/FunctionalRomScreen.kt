@@ -145,7 +145,7 @@ fun FunctionalRomScreen(
     item {
       ClickableFeatureCard(
           title = "Hide Accessibility Service",
-          description = "Sistem tab untuk menyembunyikan aplikasi dari deteksi aksesibilitas (Universal - bekerja di semua ROM)",
+          description = "System for hiding applications from accessibility detection",
           icon = Icons.Default.VisibilityOff,
           onClick = onNavigateToHideAccessibility,
           enabled = true, // Always enabled - universal feature
@@ -163,7 +163,7 @@ fun FunctionalRomScreen(
     item {
       ClickableFeatureCard(
           title = "Shimoku ROM Features",
-          description = "Fitur khusus untuk Shimoku ROM termasuk Play Integrity, Touch Settings, dan Native Features",
+          description = "Features specific to Shimoku ROM",
           icon = Icons.Default.Verified,
           onClick = onNavigateToShimokuRom,
           enabled = true, // Always accessible to show lock message for non-Shimoku ROMs
