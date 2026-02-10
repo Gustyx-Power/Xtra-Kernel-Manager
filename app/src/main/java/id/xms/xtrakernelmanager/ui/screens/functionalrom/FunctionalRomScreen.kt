@@ -18,6 +18,9 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LottieSwitchControlled
 import id.xms.xtrakernelmanager.ui.components.PillCard
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import id.xms.xtrakernelmanager.data.model.HideAccessibilityTab
 import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
 
@@ -131,6 +134,9 @@ fun FunctionalRomScreen(
       CategoryHeader(title = "Universal Features") 
     }
     item {
+      DeveloperOptionsCard(viewModel = viewModel)
+    }
+    item {
       ClickableFeatureCard(
           title = "Hide Accessibility Service",
           description = "Sistem tab untuk menyembunyikan aplikasi dari deteksi aksesibilitas (Universal - bekerja di semua ROM)",
@@ -229,4 +235,120 @@ private fun ClickableFeatureCard(
 
 private fun getTotalSelectedApps(config: HideAccessibilityConfig): Int {
   return config.appsToHide.size + config.detectorApps.size
+}
+
+@Composable
+private fun DeveloperOptionsCard(viewModel: FunctionalRomViewModel) {
+  val context = androidx.compose.ui.platform.LocalContext.current
+  val scope = rememberCoroutineScope()
+  var isDeveloperEnabled by remember { mutableStateOf(
+    android.provider.Settings.Global.getInt(
+      context.contentResolver,
+      android.provider.Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
+      0
+    ) == 1
+  ) }
+  
+  Card(
+      modifier = Modifier.fillMaxWidth(),
+      onClick = {
+        if (isDeveloperEnabled) {
+          try {
+            val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+            context.startActivity(intent)
+          } catch (e: Exception) {
+            android.widget.Toast.makeText(
+              context,
+              "Unable to open Developer Options",
+              android.widget.Toast.LENGTH_SHORT
+            ).show()
+          }
+        } else {
+          scope.launch {
+            try {
+              withContext(Dispatchers.IO) {
+                id.xms.xtrakernelmanager.utils.RootShell.execute(
+                  "settings put global development_settings_enabled 1"
+                )
+              }
+                isDeveloperEnabled = android.provider.Settings.Global.getInt(
+                context.contentResolver,
+                android.provider.Settings.Global.DEVELOPMENT_SETTINGS_ENABLED,
+                0
+              ) == 1
+              
+              if (isDeveloperEnabled) {
+                android.widget.Toast.makeText(
+                  context,
+                  "Developer Options Enabled!",
+                  android.widget.Toast.LENGTH_SHORT
+                ).show()
+                  try {
+                  val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                  context.startActivity(intent)
+                } catch (e: Exception) {
+                  android.widget.Toast.makeText(
+                    context,
+                    "Developer Options enabled. Please find it in Settings.",
+                    android.widget.Toast.LENGTH_SHORT
+                  ).show()
+                }
+              } else {
+                android.widget.Toast.makeText(
+                  context,
+                  "Failed to enable Developer Options. Root access required.",
+                  android.widget.Toast.LENGTH_SHORT
+                ).show()
+              }
+            } catch (e: Exception) {
+              android.widget.Toast.makeText(
+                context,
+                "Error: ${e.message}",
+                android.widget.Toast.LENGTH_SHORT
+              ).show()
+            }
+          }
+        }
+      }
+  ) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+      Icon(
+          imageVector = Icons.Default.DeveloperMode,
+          contentDescription = null,
+          tint = if (isDeveloperEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+      )
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+            text = "Developer Options",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
+        Text(
+            text = if (isDeveloperEnabled) {
+              "Developer options are enabled. Click to open settings."
+            } else {
+              "Click to enable developer options (requires root)"
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = if (isDeveloperEnabled) "Enabled" else "Disabled",
+            style = MaterialTheme.typography.bodySmall,
+            color = if (isDeveloperEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+        )
+      }
+      Icon(
+          imageVector = if (isDeveloperEnabled) Icons.Default.ChevronRight else Icons.Default.Lock,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onSurfaceVariant
+      )
+    }
+  }
 }
