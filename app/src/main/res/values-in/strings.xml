@@ -733,6 +733,7 @@
     <string name="liquid_device_kernel">Kernel</string>
     <string name="liquid_device_uptime">Waktu Aktif</string>
     <string name="liquid_device_sleep">Tidur</string>
+    <string name="liquid_device_fingerprint">Sidik Jari</string>
     <string name="liquid_device_smartphone_brand">Merek Smartphone</string>
     <string name="liquid_device_unknown_device">Perangkat Tidak Dikenal</string>
     <string name="liquid_battery_title">Baterai</string>

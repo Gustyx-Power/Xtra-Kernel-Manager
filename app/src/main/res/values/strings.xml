@@ -923,6 +923,7 @@
     <string name="liquid_device_kernel">Kernel</string>
     <string name="liquid_device_uptime">Uptime</string>
     <string name="liquid_device_sleep">Sleep</string>
+    <string name="liquid_device_fingerprint">Fingerprint</string>
     <string name="liquid_device_smartphone_brand">Smartphone Brand</string>
     <string name="liquid_device_unknown_device">Unknown Device</string>
     <string name="liquid_battery_title">Battery</string>

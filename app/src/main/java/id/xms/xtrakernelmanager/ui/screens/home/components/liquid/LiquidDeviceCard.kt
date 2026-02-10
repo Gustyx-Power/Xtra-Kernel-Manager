@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.DeveloperBoard
+import androidx.compose.material.icons.rounded.Fingerprint
 import androidx.compose.material.icons.rounded.NightsStay
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -85,30 +86,26 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                 .background(NeonBlue.copy(alpha = 0.85f))
         ) {
             
-            // Brand Logo
+            // Brand Logo - Top Right Corner
             if (logoRes != null) {
                 androidx.compose.foundation.Image(
                     painter = androidx.compose.ui.res.painterResource(id = logoRes),
                     contentDescription = null,
                     modifier = Modifier
-                        .fillMaxHeight(0.7f) // Big watermark
-                        .align(Alignment.CenterEnd)
-                        .offset(x = 60.dp, y = 20.dp)
-                        .rotate(-15f)
-                        .alpha(0.08f), // Subtle watermark
-                    contentScale = androidx.compose.ui.layout.ContentScale.Fit,
-                    colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.White)
+                        .size(80.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
                 )
             } else {
                  Icon(
                     imageVector = Icons.Rounded.Android,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.15f), 
+                    tint = Color.White.copy(alpha = 0.8f), 
                     modifier = Modifier
-                        .size(280.dp) 
-                        .align(Alignment.CenterEnd)
-                        .offset(x = 80.dp, y = 40.dp)
-                        .rotate(-25f)
+                        .size(64.dp) 
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
                 )
             }
             
@@ -133,35 +130,37 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                          .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
                          .trim()
                          .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_unknown_device) },
-                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 42.sp),
+                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
                     color = Color.White,
-                    lineHeight = 44.sp
+                    lineHeight = 30.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
                 
                 Text(
                     text = android.os.Build.DEVICE,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp),
                     color = Color.White.copy(alpha = 0.7f),
                     fontFamily = FontFamily.Monospace
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Row 1
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         InfoTile(
                             icon = Icons.Rounded.Android,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_android),
                             value = systemInfo.androidVersion,
                             color = Color.White,
-                            modifier = Modifier.weight(1.5f).height(80.dp)
+                            modifier = Modifier.weight(1.5f).height(68.dp)
                         )
                          InfoTile(
                             icon = Icons.Rounded.DeveloperBoard,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_kernel),
                             value = systemInfo.kernelVersion,
                             color = Color.White,
-                            modifier = Modifier.weight(1.5f).height(80.dp)
+                            modifier = Modifier.weight(1.5f).height(68.dp)
                         )
                     }
                      // Row 2
@@ -171,16 +170,25 @@ fun LiquidDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_uptime),
                             value = uptime,
                             color = Color.White,
-                            modifier = Modifier.weight(1f).height(80.dp)
+                            modifier = Modifier.weight(1f).height(68.dp)
                         )
                         InfoTile(
                             icon = androidx.compose.material.icons.Icons.Rounded.NightsStay, 
                             label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_sleep),
                             value = deepSleep,
                             color = Color.White, 
-                            modifier = Modifier.weight(1f).height(80.dp)
+                            modifier = Modifier.weight(1f).height(68.dp)
                         )
                     }
+                    
+                    // Row 3 - Fingerprint (Full Width)
+                    InfoTile(
+                        icon = androidx.compose.material.icons.Icons.Rounded.Fingerprint,
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.liquid_device_fingerprint),
+                        value = android.os.Build.FINGERPRINT,
+                        color = Color.White,
+                        modifier = Modifier.fillMaxWidth().height(68.dp)
+                    )
                     // Row 3 (Manufacturer) - Removed as it is redundant and space consuming
                 }
             }
@@ -232,22 +240,24 @@ private fun InfoTile(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White.copy(alpha = 0.15f))
-            .padding(12.dp),
+            .padding(10.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(icon, null, tint = color, modifier = Modifier.size(16.dp))
-        Spacer(modifier = Modifier.height(4.dp))
+        Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.height(3.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
             color = Color.White,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.White.copy(alpha = 0.7f)
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            color = Color.White.copy(alpha = 0.7f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
