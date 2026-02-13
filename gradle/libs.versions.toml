@@ -1,7 +1,7 @@
 [versions]
 # Build
 agp = "9.0.0"
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 compose = "1.7.5"
 
 # Compose
