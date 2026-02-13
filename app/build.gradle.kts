@@ -184,7 +184,7 @@ dependencies {
     
     // Google Play Services (for Play Protect compatibility)
     implementation("com.google.android.gms:play-services-base:18.10.0")
-    implementation("com.google.android.gms:play-services-tasks:18.2.0") 
+    implementation("com.google.android.gms:play-services-tasks:18.4.1") 
 
     // TOML Parser
     implementation("org.tomlj:tomlj:1.1.1")
