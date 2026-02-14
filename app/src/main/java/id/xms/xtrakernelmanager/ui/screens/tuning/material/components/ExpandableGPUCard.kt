@@ -2,6 +2,10 @@ package id.xms.xtrakernelmanager.ui.screens.tuning.material.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -9,6 +13,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.*
@@ -170,15 +176,27 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
       AnimatedVisibility(visible = expanded) {
         // Get ViewModel states
         val isFrequencyLocked by viewModel.isGpuFrequencyLocked.collectAsState()
+        val lockedMinFreq by viewModel.lockedGpuMinFreq.collectAsState()
+        val lockedMaxFreq by viewModel.lockedGpuMaxFreq.collectAsState()
 
         // Build freq options from availableFreqs
         val freqOptions = gpuInfo.availableFreqs.map { "${it} MHz" }
 
-        // Track selected values
+        // Track selected values - use locked values if available
         var selectedMinFreq by
-            remember(gpuInfo.minFreq) { mutableStateOf("${gpuInfo.minFreq} MHz") }
+            remember(gpuInfo.minFreq, isFrequencyLocked, lockedMinFreq) { 
+              mutableStateOf(
+                if (isFrequencyLocked && lockedMinFreq > 0) "${lockedMinFreq} MHz"
+                else "${gpuInfo.minFreq} MHz"
+              ) 
+            }
         var selectedMaxFreq by
-            remember(gpuInfo.maxFreq) { mutableStateOf("${gpuInfo.maxFreq} MHz") }
+            remember(gpuInfo.maxFreq, isFrequencyLocked, lockedMaxFreq) { 
+              mutableStateOf(
+                if (isFrequencyLocked && lockedMaxFreq > 0) "${lockedMaxFreq} MHz"
+                else "${gpuInfo.maxFreq} MHz"
+              ) 
+            }
         val maxPowerLevel = gpuInfo.numPwrLevels.coerceIn(1, 10) // Cap at 10
         var powerSliderValue by
             remember(gpuInfo.powerLevel, maxPowerLevel) {
@@ -206,34 +224,122 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
               onValueChange = { /* GPU governor not changeable */ },
           )
 
-          // Min/Max Tiles with real freq options - auto-lock on change
-          Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            GpuTile(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.material_gpu_min_frequency),
-                value = selectedMinFreq,
-                options = freqOptions.ifEmpty { listOf("${gpuInfo.minFreq} MHz") },
-                onValueChange = { newValue ->
-                  selectedMinFreq = newValue
-                  // Auto-lock when changed
-                  val minFreq = newValue.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
-                  val maxFreq = selectedMaxFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
-                  viewModel.lockGPUFrequency(minFreq, maxFreq)
-                },
-            )
-            GpuTile(
-                modifier = Modifier.weight(1f),
-                label = stringResource(R.string.material_gpu_max_frequency),
-                value = selectedMaxFreq,
-                options = freqOptions.ifEmpty { listOf("${gpuInfo.maxFreq} MHz") },
-                onValueChange = { newValue ->
-                  selectedMaxFreq = newValue
-                  // Auto-lock when changed
-                  val minFreq = selectedMinFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
-                  val maxFreq = newValue.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
-                  viewModel.lockGPUFrequency(minFreq, maxFreq)
-                },
-            )
+          // GPU Frequency Lock Section with Lock Status Badge
+          Surface(
+              modifier = Modifier.fillMaxWidth(),
+              color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+              shape = RoundedCornerShape(16.dp),
+          ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+              // Header with Lock Status
+              Row(
+                  modifier = Modifier.fillMaxWidth(),
+                  horizontalArrangement = Arrangement.SpaceBetween,
+                  verticalAlignment = Alignment.CenterVertically,
+              ) {
+                Text(
+                    stringResource(R.string.material_gpu_frequency_lock),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                
+                // Lock Status Badge
+                AnimatedVisibility(
+                    visible = isFrequencyLocked,
+                    enter = scaleIn() + fadeIn(),
+                    exit = scaleOut() + fadeOut(),
+                ) {
+                  Surface(
+                      shape = RoundedCornerShape(8.dp),
+                      color = MaterialTheme.colorScheme.primaryContainer,
+                  ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                      Icon(
+                          imageVector = Icons.Filled.Lock,
+                          contentDescription = null,
+                          modifier = Modifier.size(12.dp),
+                          tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                      )
+                      Text(
+                          text = stringResource(R.string.gpu_locked),
+                          style = MaterialTheme.typography.labelSmall,
+                          fontWeight = FontWeight.Bold,
+                          color = MaterialTheme.colorScheme.onPrimaryContainer,
+                      )
+                    }
+                  }
+                }
+              }
+
+              Spacer(Modifier.height(12.dp))
+
+              // Min/Max Tiles with real freq options
+              Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                GpuTile(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.material_gpu_min_frequency),
+                    value = selectedMinFreq,
+                    options = freqOptions.ifEmpty { listOf("${gpuInfo.minFreq} MHz") },
+                    onValueChange = { newValue ->
+                      selectedMinFreq = newValue
+                      val minFreq = newValue.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
+                      val maxFreq = selectedMaxFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
+                      viewModel.lockGPUFrequency(minFreq, maxFreq)
+                    },
+                )
+                GpuTile(
+                    modifier = Modifier.weight(1f),
+                    label = stringResource(R.string.material_gpu_max_frequency),
+                    value = selectedMaxFreq,
+                    options = freqOptions.ifEmpty { listOf("${gpuInfo.maxFreq} MHz") },
+                    onValueChange = { newValue ->
+                      selectedMaxFreq = newValue
+                      val minFreq = selectedMinFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
+                      val maxFreq = newValue.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
+                      viewModel.lockGPUFrequency(minFreq, maxFreq)
+                    },
+                )
+              }
+
+              // Lock/Unlock Button
+              Spacer(Modifier.height(12.dp))
+              Button(
+                  onClick = {
+                    if (isFrequencyLocked) {
+                      viewModel.unlockGPUFrequency()
+                    } else {
+                      val minFreq = selectedMinFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.minFreq
+                      val maxFreq = selectedMaxFreq.replace(" MHz", "").toIntOrNull() ?: gpuInfo.maxFreq
+                      viewModel.lockGPUFrequency(minFreq, maxFreq)
+                    }
+                  },
+                  modifier = Modifier.fillMaxWidth(),
+                  colors = ButtonDefaults.buttonColors(
+                      containerColor = if (isFrequencyLocked) 
+                          MaterialTheme.colorScheme.error
+                      else 
+                          MaterialTheme.colorScheme.primary
+                  ),
+              ) {
+                Icon(
+                    imageVector = if (isFrequencyLocked) Icons.Filled.LockOpen else Icons.Filled.Lock,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (isFrequencyLocked) 
+                        stringResource(R.string.material_gpu_unlock_frequency)
+                    else 
+                        stringResource(R.string.material_gpu_lock_frequency)
+                )
+              }
+            }
           }
 
           // Power Slider with WavySlider style - 0 to 10

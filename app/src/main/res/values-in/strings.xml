@@ -1045,6 +1045,9 @@
     <string name="material_gpu_mali">MALI</string>
     <string name="material_gpu_powervr">POWERVR</string>
     <string name="material_gpu_unknown">GPU Tidak Dikenal</string>
+    <string name="material_gpu_frequency_lock">Kunci Frekuensi GPU</string>
+    <string name="material_gpu_lock_frequency">Kunci Frekuensi</string>
+    <string name="material_gpu_unlock_frequency">Buka Kunci Frekuensi</string>
     
     <!-- Material Tuning Strings -->
     <string name="material_tuning_title">Tuning</string>

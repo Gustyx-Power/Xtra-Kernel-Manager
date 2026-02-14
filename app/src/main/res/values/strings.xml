@@ -1232,6 +1232,9 @@
     <string name="material_gpu_mali">MALI</string>
     <string name="material_gpu_powervr">POWERVR</string>
     <string name="material_gpu_unknown">Unknown GPU</string>
+    <string name="material_gpu_frequency_lock">GPU Frequency Lock</string>
+    <string name="material_gpu_lock_frequency">Lock Frequency</string>
+    <string name="material_gpu_unlock_frequency">Unlock Frequency</string>
     
     <!-- Material Tuning Strings -->
     <string name="material_tuning_title">Tuning</string>
