@@ -34,7 +34,7 @@ android {
         minSdk = 31
         targetSdk = 36
         versionCode = 3
-        versionName = "3.0-Release"
+        versionName = "3.1-Staging"
 
         // Build Parsing
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
