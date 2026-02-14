@@ -20,13 +20,10 @@ kotlin.code.style=official
 
 # Play Protect compatibility optimizations
 android.enableR8.fullMode=true
-android.enableR8=true
-android.enableSeparateAnnotationProcessing=true
 android.experimental.enableSourceSetPathsMap=true
 
 # Build optimizations for smaller, cleaner APKs
 android.enableResourceOptimizations=true
-android.enableBuildCache=true
 
 # Security and obfuscation
 android.enableProguard=true
