@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -82,6 +84,13 @@ class FunctionalRomViewModel(
     private val preferencesManager: PreferencesManager,
     private val context: Context,
 ) : ViewModel() {
+
+    val layoutStyle: StateFlow<String> = preferencesManager.getLayoutStyle()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = "liquid"
+        )
 
   companion object {
     private const val TAG = "FunctionalRomViewModel"
