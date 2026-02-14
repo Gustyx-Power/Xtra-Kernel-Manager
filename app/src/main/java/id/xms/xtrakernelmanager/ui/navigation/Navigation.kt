@@ -36,6 +36,7 @@ import id.xms.xtrakernelmanager.ui.screens.functionalrom.ShimokuRomScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.PlayIntegritySettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.XiaomiTouchSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.HideAccessibilitySettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.functionalrom.DisplaySizeScreen
 import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
@@ -349,6 +350,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
               onNavigateBack = { navController.popBackStack() },
               onNavigateToShimokuRom = { navController.navigate("shimokurom") },
               onNavigateToHideAccessibility = { navController.navigate("hideaccessibilitysettings") },
+              onNavigateToDisplaySize = { navController.navigate("display_size") },
               viewModel = sharedFunctionalRomViewModel,
           )
         }
@@ -368,6 +370,10 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
         composable("xiaomitouchsettings") {
           XiaomiTouchSettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable("display_size") {
+          DisplaySizeScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable("hideaccessibilitysettings") {
