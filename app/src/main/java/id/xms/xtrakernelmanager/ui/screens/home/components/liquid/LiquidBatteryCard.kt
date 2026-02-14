@@ -31,7 +31,7 @@ fun LiquidBatteryCard(batteryInfo: BatteryInfo, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF57C00).copy(alpha = 0.85f))
+                .background(Color(0xFF0b5394).copy(alpha = 0.85f))
         ) {
             Column(modifier = Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 // Header
