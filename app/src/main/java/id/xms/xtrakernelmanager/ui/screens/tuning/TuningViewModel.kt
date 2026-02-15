@@ -44,7 +44,7 @@ class TuningViewModel(
     private val thermalUseCase: ThermalControlUseCase = ThermalControlUseCase(),
     private val overlayUseCase: id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase =
         id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase(),
-    private val tomlManager: TomlConfigManager = TomlConfigManager(),
+    private val tomlManager: TomlConfigManager = TomlConfigManager(preferencesManager.getContext()),
     private val kernelRepository: id.xms.xtrakernelmanager.data.repository.KernelRepository =
         id.xms.xtrakernelmanager.data.repository.KernelRepository(),
 ) : ViewModel() {

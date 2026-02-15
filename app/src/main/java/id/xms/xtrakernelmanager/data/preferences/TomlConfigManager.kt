@@ -9,12 +9,12 @@ import kotlinx.coroutines.withContext
 import org.tomlj.Toml
 import org.tomlj.TomlParseResult
 
-class TomlConfigManager {
+class TomlConfigManager(private val context: android.content.Context) {
 
   private val configDir =
       File(
           Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
-          "XtraKernelManager",
+          if (id.xms.xtrakernelmanager.BuildConfig.DEBUG) "XtraKernelManager-Dev" else "XtraKernelManager",
       )
 
   private val defaultConfigFile = File(configDir, "tuning_config.toml")
