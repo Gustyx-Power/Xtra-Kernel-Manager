@@ -25,6 +25,7 @@ import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
 import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidBottomTabs
 import id.xms.xtrakernelmanager.ui.components.liquid.LiquidBottomTab
+import id.xms.xtrakernelmanager.ui.components.classic.ClassicBottomBar
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -179,7 +180,11 @@ fun Navigation(preferencesManager: PreferencesManager) {
       layoutSwitchingStartTime = System.currentTimeMillis()
     } else if (previousLayoutSwitching && !isLayoutSwitching) {
       // Layout switching just completed
-      val layoutName = if (layoutStyle == "liquid") "Liquid Glass" else "Material"
+      val layoutName = when (layoutStyle) {
+        "liquid" -> "Liquid Glass"
+        "classic" -> "Classic"
+        else -> "Material"
+      }
       layoutSwitchMessage = "Successfully switched to $layoutName layout!"
       showLayoutSwitchToast = true
       layoutSwitchingStartTime = 0L
@@ -491,6 +496,13 @@ fun Navigation(preferencesManager: PreferencesManager) {
             }
           }
         }
+      } else if (layoutStyle == "classic") {
+        ClassicBottomBar(
+            currentRoute = currentRoute,
+            onNavigate = navigateToRoute,
+            items = bottomNavItems,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
       } else {
         ModernBottomBar(
             currentRoute = currentRoute,
