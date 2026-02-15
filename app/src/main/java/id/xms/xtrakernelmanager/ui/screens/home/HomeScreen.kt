@@ -182,6 +182,26 @@ fun HomeScreen(
                                         onSettingsClick = onNavigateToSettings,
                                 )
                         }
+                        "classic" -> {
+                                ClassicHomeScreen(
+                                        cpuInfo = cpuInfo,
+                                        gpuInfo = gpuInfo,
+                                        batteryInfo = batteryInfo,
+                                        systemInfo = systemInfo,
+                                        currentProfile = tuningViewModel.selectedProfile.collectAsState().value,
+                                        onProfileChange = { tuningViewModel.applyGlobalProfile(it) },
+                                        onSettingsClick = { showSettingsBottomSheet = true },
+                                        onPowerAction = { action ->
+                                                if (action == PowerAction.LockScreen) {
+                                                        scope.launch {
+                                                                RootShell.execute(action.command)
+                                                        }
+                                                } else {
+                                                        activePowerAction = action
+                                                }
+                                        }
+                                )
+                        }
                         else -> {
                                 // Liquid Home Screen (Formerly Legacy/Glass UI)
                                 val backdrop = rememberLayerBackdrop()
