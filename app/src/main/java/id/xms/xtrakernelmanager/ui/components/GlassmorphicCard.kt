@@ -61,12 +61,12 @@ fun GlassmorphicCard(
                               saturation = 0.7f, // High vibrancy
                               brightness = 0.15f // Thicker glass look (darker interior)
                       )
-                      blur(20.dp.toPx()) // Balanced blur
+                      blur(12.dp.toPx()) // Reduced blur for better performance
                       lens(
-                              refractionHeight = 32.dp.toPx(), // Deep refraction (Thickness)
-                              refractionAmount = 48.dp.toPx(), // Strong distortion
-                              chromaticAberration = true,
-                              depthEffect = true
+                              refractionHeight = 20.dp.toPx(), // Reduced refraction
+                              refractionAmount = 28.dp.toPx(), // Reduced distortion
+                              chromaticAberration = false, // Disabled for performance
+                              depthEffect = false // Disabled for performance
                       )
                     },
                     onDrawSurface = {

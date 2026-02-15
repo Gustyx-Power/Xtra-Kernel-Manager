@@ -33,6 +33,11 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.ThermalIndex
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.ThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidAdditionalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicTuningScreen
+
+// ... (existing imports)
+
+import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalIndexSelectionScreen
@@ -158,7 +163,15 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
   }
 
   Box(modifier = Modifier.fillMaxSize()) {
-    if (layoutStyle != "liquid") {
+    if (layoutStyle == "classic") {
+       ClassicTuningScreen(
+           viewModel = viewModel,
+           preferencesManager = preferencesManager,
+           onNavigate = onNavigate,
+           onExportConfig = { showExportDialog = true },
+           onImportConfig = { showImportDialog = true }
+       )
+    } else if (layoutStyle != "liquid") {
       MaterialTuningScreen(
           viewModel = viewModel,
           preferencesManager = preferencesManager,

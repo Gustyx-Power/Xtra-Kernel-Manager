@@ -101,17 +101,20 @@ fun LiquidHomeScreen(
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Layer
+        // Background Layer - Use graphicsLayer for hardware acceleration
         WavyBlobOrnament(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { }, // Force hardware layer
             colors = liquidBlobColors
         )
 
-        // Content Scrollable Column
+        // Content Scrollable Column - Add graphicsLayer for better scroll performance
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = dimens.screenHorizontalPadding)
+                .graphicsLayer { } // Hardware acceleration for scroll
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)
         ) {
@@ -302,33 +305,33 @@ fun AnimatedComponent(
     val alpha by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
         animationSpec = tween(
-            durationMillis = 600,
+            durationMillis = 400, // Reduced from 600ms for snappier feel
             easing = FastOutSlowInEasing
         ),
         label = "alpha"
     )
     
     val scale by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0.8f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+        targetValue = if (startAnimation) 1f else 0.95f, // Reduced from 0.8f for subtler effect
+        animationSpec = tween(
+            durationMillis = 400, // Reduced from spring for better performance
+            easing = FastOutSlowInEasing
         ),
         label = "scale"
     )
     
     val translationY by animateFloatAsState(
-        targetValue = if (startAnimation) 0f else 50f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
+        targetValue = if (startAnimation) 0f else 30f, // Reduced from 50f
+        animationSpec = tween(
+            durationMillis = 400, // Reduced from spring for better performance
+            easing = FastOutSlowInEasing
         ),
         label = "translationY"
     )
     
     Box(
         modifier = Modifier
-            .graphicsLayer {
+            .graphicsLayer { // Hardware acceleration
                 this.alpha = alpha
                 this.scaleX = scale
                 this.scaleY = scale

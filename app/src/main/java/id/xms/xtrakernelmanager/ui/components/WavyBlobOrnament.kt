@@ -47,13 +47,13 @@ fun WavyBlobOrnament(
     }
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
 
-    // --- Animation State ---
+    // --- Animation State - Optimized for 120Hz ---
     val transition = rememberInfiniteTransition(label = "ios_petal_ornament")
         val phase1 by transition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * Math.PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(25000, easing = FastOutSlowInEasing),
+            animation = tween(35000, easing = LinearEasing), // Slower, smoother animation
             repeatMode = RepeatMode.Restart
         ),
         label = "phase1"
@@ -62,7 +62,7 @@ fun WavyBlobOrnament(
         initialValue = 0f,
         targetValue = 2f * Math.PI.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(18000, easing = FastOutSlowInEasing),
+            animation = tween(28000, easing = LinearEasing), // Slower, smoother animation
             repeatMode = RepeatMode.Restart
         ),
         label = "phase2"

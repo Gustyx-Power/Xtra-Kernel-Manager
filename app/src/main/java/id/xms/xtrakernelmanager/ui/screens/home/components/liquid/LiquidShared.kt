@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
@@ -57,7 +58,8 @@ fun LiquidSharedCard(
     content: @Composable ColumnScope.() -> Unit
 ) {
     GlassmorphicCard(
-        modifier = modifier.animateContentSize(),
+        modifier = modifier
+            .graphicsLayer { }, // Hardware acceleration for better scroll performance
         onClick = onClick,
         contentPadding = contentPadding,
         content = content
