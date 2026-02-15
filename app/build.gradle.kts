@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
-        minSdk = 31
+        minSdk = 26
         targetSdk = 36
         versionCode = 3
         versionName = "3.1-Staging"
