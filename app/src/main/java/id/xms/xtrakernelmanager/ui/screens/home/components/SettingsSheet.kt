@@ -108,8 +108,8 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
         )
 
         LayoutOptionCard(
-            title = "Liquid Glass",
-            description = "Glass inspired by iOS 26",
+            title = "Liquid",
+            description = "Glass Theme",
             isSelected = currentLayout == "liquid",
             modifier = Modifier.weight(1f),
             onClick = { 
@@ -121,10 +121,29 @@ fun SettingsSheet(preferencesManager: PreferencesManager, onDismiss: () -> Unit)
             },
             enabled = !isLayoutSwitching
         )
+
+        LayoutOptionCard(
+            title = "Classic",
+            description = "Solid & Simple (Android 8-11)",
+            isSelected = currentLayout == "classic",
+            modifier = Modifier.weight(1f),
+            onClick = { 
+              android.util.Log.d("SettingsSheet", "Switching to Classic layout")
+              haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+              scope.launch { 
+                preferencesManager.setLayoutStyle("classic") 
+              } 
+            },
+            enabled = !isLayoutSwitching
+        )
       }
       
       // Compact morphing switcher - simple display
-      val targetLayoutName = if (currentLayout == "liquid") "Liquid Glass" else "Material"
+      val targetLayoutName = when (currentLayout) {
+          "liquid" -> "Liquid Glass"
+          "material" -> "Material"
+          else -> "Classic"
+      }
       CompactMorphingSwitcher(
           isLoading = isLayoutSwitching,
           targetLayout = targetLayoutName,
