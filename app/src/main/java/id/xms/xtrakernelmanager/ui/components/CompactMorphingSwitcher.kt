@@ -31,27 +31,8 @@ fun CompactMorphingSwitcher(
     targetLayout: String,
     modifier: Modifier = Modifier
 ) {
-    var showSuccess by remember { mutableStateOf(false) }
-    
-    // Track loading completion
-    LaunchedEffect(isLoading) {
-        if (!isLoading && showSuccess) {
-            // Reset success state when new loading starts
-            showSuccess = false
-        } else if (!isLoading && !showSuccess) {
-            // Show success briefly when loading completes
-            showSuccess = true
-            delay(1000)
-            showSuccess = false
-        }
-    }
-    
     // Height animation
-    val targetHeight = when {
-        isLoading -> 80.dp
-        showSuccess -> 60.dp
-        else -> 0.dp
-    }
+    val targetHeight = if (isLoading) 80.dp else 0.dp
     
     val animatedHeight by animateDpAsState(
         targetValue = targetHeight,
@@ -62,16 +43,6 @@ fun CompactMorphingSwitcher(
         label = "height_animation"
     )
     
-    // Scale animation
-    val scale by animateFloatAsState(
-        targetValue = if (showSuccess) 1.05f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "scale_animation"
-    )
-    
     if (animatedHeight > 0.dp) {
         Box(
             modifier = modifier
@@ -80,73 +51,36 @@ fun CompactMorphingSwitcher(
                 .clip(RoundedCornerShape(16.dp))
                 .background(
                     Brush.horizontalGradient(
-                        colors = if (showSuccess) {
-                            listOf(
-                                Color(0xFF10B981).copy(alpha = 0.9f),
-                                Color(0xFF059669).copy(alpha = 0.8f)
-                            )
-                        } else {
-                            listOf(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
-                            )
-                        }
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f),
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f)
+                        )
                     )
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             contentAlignment = Alignment.Center
         ) {
-            AnimatedContent(
-                targetState = showSuccess,
-                transitionSpec = {
-                    (slideInVertically { -it } + fadeIn()) with 
-                    (slideOutVertically { it } + fadeOut())
-                },
-                label = "content_transition"
-            ) { success ->
-                if (success) {
-                    // Success state
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            text = "Switched to $targetLayout!",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White
-                        )
-                    }
-                } else {
-                    // Loading state
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        CompactLoadingIndicator()
-                        
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
-                        ) {
-                            Text(
-                                text = "Switching to $targetLayout",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = "Please wait...",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
+            // Loading state
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CompactLoadingIndicator()
+                
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = "Switching to $targetLayout",
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Text(
+                        text = "Please wait...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
                 }
             }
         }
