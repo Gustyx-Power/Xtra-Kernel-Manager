@@ -102,7 +102,7 @@ private val teamMembers =
             "ᴶᵁᴻᴵ༄",
             "Tester",
             githubUrl = "https://github.com/juns37",
-            telegramUrl = "https://t.me/@juns37",
+            telegramUrl = "https://t.me/juns37",
             githubUsername = "juns37",
             shapeIndex = 20, // Cookie12
         ),
