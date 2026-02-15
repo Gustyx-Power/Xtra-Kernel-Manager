@@ -188,6 +188,7 @@ fun MaterialHomeScreen(
         ) {
             SettingsSheet(
                 preferencesManager = preferencesManager,
+                currentLayout = "material",
                 onDismiss = { showSettingsBottomSheet = false },
             )
         }

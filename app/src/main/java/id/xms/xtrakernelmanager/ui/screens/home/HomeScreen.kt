@@ -141,14 +141,21 @@ fun HomeScreen(
         }
 
         if (showSettingsBottomSheet) {
+                val sheetContainerColor = if (layoutStyle == "material") {
+                    MaterialTheme.colorScheme.surface
+                } else {
+                    Color.Transparent
+                }
+
                 ModalBottomSheet(
                         onDismissRequest = { showSettingsBottomSheet = false },
                         sheetState = settingsSheetState,
-                        containerColor = MaterialTheme.colorScheme.surface,
+                        containerColor = sheetContainerColor,
                         contentColor = MaterialTheme.colorScheme.onSurface,
                 ) {
                         SettingsSheet(
                                 preferencesManager = preferencesManager,
+                                currentLayout = layoutStyle,
                                 onDismiss = { showSettingsBottomSheet = false },
                         )
                 }
