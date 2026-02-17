@@ -7,6 +7,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -514,72 +516,153 @@ private fun FrequencySliderItem(
 
 @Composable
 private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
-  var powerLevel by
-      remember(gpuInfo.powerLevel) { mutableFloatStateOf(gpuInfo.powerLevel.toFloat()) }
-
   ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
       elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
+      // Header with icon and title
       Row(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        Icon(
-            imageVector = Icons.Outlined.BatteryChargingFull,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(24.dp),
-        )
-        Text(
-            text = stringResource(R.string.gpu_power_level_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-        )
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+          Icon(
+              imageVector = Icons.Outlined.BatteryChargingFull,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.tertiary,
+              modifier = Modifier.size(22.dp),
+          )
+        }
+        Column {
+          Text(
+              text = stringResource(R.string.gpu_power_level_title),
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+          )
+          Text(
+              text = "Select performance level",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+        }
       }
 
       HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
 
-      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+      // Current level display with better styling
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(12.dp))
+              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+              .padding(16.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Column {
+          Text(
+              text = "Current Level",
+              style = MaterialTheme.typography.labelMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+          )
           Text(
               text = stringResource(R.string.gpu_power_level),
-              style = MaterialTheme.typography.labelLarge,
-              fontWeight = FontWeight.SemiBold,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
           )
-          Surface(
-              shape = RoundedCornerShape(8.dp),
-              color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f),
-          ) {
-            Text(
-                text = "${powerLevel.toInt()}",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-            )
+        }
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = MaterialTheme.colorScheme.tertiary,
+        ) {
+          Text(
+              text = "${gpuInfo.powerLevel}",
+              style = MaterialTheme.typography.headlineSmall,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onTertiary,
+              modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+          )
+        }
+      }
+
+      // Power level selection grid with improved design
+      val maxLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
+      val levels = (0..maxLevel).toList()
+      
+      Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = "Available Levels (0-$maxLevel)",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        
+        // Use FlowRow for better wrapping behavior
+        androidx.compose.foundation.layout.FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          levels.forEach { level ->
+            val isSelected = level == gpuInfo.powerLevel
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.tertiary
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    )
+                    .clickable { viewModel.setGPUPowerLevel(level) }
+                    .border(
+                        width = if (isSelected) 2.dp else 0.dp,
+                        color = if (isSelected) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+                        else Color.Transparent,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+              Text(
+                  text = level.toString(),
+                  style = MaterialTheme.typography.titleMedium,
+                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                  color = if (isSelected) MaterialTheme.colorScheme.onTertiary
+                          else MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
           }
         }
+      }
 
-        Slider(
-            value = powerLevel,
-            onValueChange = { powerLevel = it },
-            onValueChangeFinished = { viewModel.setGPUPowerLevel(powerLevel.toInt()) },
-            valueRange = 0f..(gpuInfo.numPwrLevels - 1).coerceAtLeast(1).toFloat(),
-            steps = (gpuInfo.numPwrLevels - 2).coerceAtLeast(0),
-            colors =
-                SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.tertiary,
-                    activeTrackColor = MaterialTheme.colorScheme.tertiary,
-                ),
+      // Info text
+      Row(
+          modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(8.dp))
+              .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
+              .padding(12.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(
+            text = "Level 0 = Highest performance, Level $maxLevel = Lowest performance",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
     }

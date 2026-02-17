@@ -174,15 +174,10 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
 
       // Expanded Controls
       AnimatedVisibility(visible = expanded) {
-        // Get ViewModel states
         val isFrequencyLocked by viewModel.isGpuFrequencyLocked.collectAsState()
         val lockedMinFreq by viewModel.lockedGpuMinFreq.collectAsState()
         val lockedMaxFreq by viewModel.lockedGpuMaxFreq.collectAsState()
-
-        // Build freq options from availableFreqs
         val freqOptions = gpuInfo.availableFreqs.map { "${it} MHz" }
-
-        // Track selected values - use locked values if available
         var selectedMinFreq by
             remember(gpuInfo.minFreq, isFrequencyLocked, lockedMinFreq) { 
               mutableStateOf(
@@ -197,25 +192,13 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
                 else "${gpuInfo.maxFreq} MHz"
               ) 
             }
-        val maxPowerLevel = gpuInfo.numPwrLevels.coerceIn(1, 10) // Cap at 10
-        var powerSliderValue by
-            remember(gpuInfo.powerLevel, maxPowerLevel) {
-              mutableFloatStateOf(
-                  // Map current GPU power level to slider (0.0 - 1.0)
-                  if (maxPowerLevel > 0)
-                      gpuInfo.powerLevel.coerceAtMost(maxPowerLevel).toFloat() /
-                          maxPowerLevel.toFloat()
-                  else 0f
-              )
-            }
+        val maxPowerLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
 
         Column(
             modifier = Modifier.padding(top = 24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
           HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-
-          // Governor (display only, not changeable for GPU)
           GpuControlRow(
               label = stringResource(R.string.material_gpu_governor),
               value = "msm-adreno-tz",
@@ -223,8 +206,6 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
               options = listOf("msm-adreno-tz"),
               onValueChange = { /* GPU governor not changeable */ },
           )
-
-          // GPU Frequency Lock Section with Lock Status Badge
           Surface(
               modifier = Modifier.fillMaxWidth(),
               color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
@@ -349,28 +330,14 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
               shape = RoundedCornerShape(16.dp),
           ) {
             Column(modifier = Modifier.padding(16.dp)) {
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-              ) {
-                Text(
-                    stringResource(R.string.material_gpu_power_level),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    stringResource(R.string.material_gpu_level_format, (powerSliderValue * maxPowerLevel).toInt()),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-              }
-              Spacer(Modifier.height(16.dp))
-              WavySlider(
-                  value = powerSliderValue,
-                  onValueChange = { newValue ->
-                    powerSliderValue = newValue
-                    val level = (newValue * maxPowerLevel).toInt()
-                    viewModel.setGPUPowerLevel(level)
+              // Power Level - Use dropdown for precision
+              val powerLevelOptions = (0..maxPowerLevel).map { it.toString() }
+              GpuControlRow(
+                  label = stringResource(R.string.material_gpu_power_level),
+                  value = gpuInfo.powerLevel.toString(),
+                  options = powerLevelOptions,
+                  onValueChange = { newLevel ->
+                    viewModel.setGPUPowerLevel(newLevel.toInt())
                   },
               )
             }
@@ -546,6 +513,7 @@ fun WavySlider(
     value: Float,
     onValueChange: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    onValueChangeFinished: (() -> Unit)? = null,
     waveAmplitude: Float = 10f,
     waveFrequency: Float = 20f,
     strokeWidth: Float = 12f,
@@ -563,14 +531,20 @@ fun WavySlider(
                 detectTapGestures { offset ->
                   val newValue = (offset.x / size.width).coerceIn(0f, 1f)
                   onValueChange(newValue)
+                  onValueChangeFinished?.invoke()
                 }
               }
               .pointerInput(Unit) {
-                detectDragGestures { change, _ ->
-                  change.consume()
-                  val newValue = (change.position.x / size.width).coerceIn(0f, 1f)
-                  onValueChange(newValue)
-                }
+                detectDragGestures(
+                    onDragEnd = {
+                      onValueChangeFinished?.invoke()
+                    },
+                    onDrag = { change, _ ->
+                      change.consume()
+                      val newValue = (change.position.x / size.width).coerceIn(0f, 1f)
+                      onValueChange(newValue)
+                    }
+                )
               }
   ) {
     androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {

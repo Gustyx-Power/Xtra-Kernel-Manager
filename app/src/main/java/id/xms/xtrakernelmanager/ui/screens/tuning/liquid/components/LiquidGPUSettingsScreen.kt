@@ -4,6 +4,8 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -561,97 +563,209 @@ private fun LiquidGPUSliderCard(
 
 @Composable
 private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
-  var powerLevel by remember(gpuInfo.powerLevel) { mutableFloatStateOf(gpuInfo.powerLevel.toFloat()) }
-  var lastAppliedLevel by remember { mutableStateOf(gpuInfo.powerLevel) }
-  val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
-
-  // Apply changes when user stops dragging
-  LaunchedEffect(powerLevel) {
-    if (powerLevel.toInt() != lastAppliedLevel) {
-      kotlinx.coroutines.delay(500) // Debounce
-      if (powerLevel.toInt() != lastAppliedLevel) {
-        viewModel.setGPUPowerLevel(powerLevel.toInt())
-        lastAppliedLevel = powerLevel.toInt()
-      }
-    }
-  }
-
   id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
-      contentPadding = PaddingValues(20.dp)
+      contentPadding = PaddingValues(24.dp)
   ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-      // Header
+      // Header with gradient icon
       Row(
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
           verticalAlignment = Alignment.CenterVertically
       ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFFF59E0B).copy(alpha = 0.2f)),
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFF59E0B),
+                            Color(0xFFEF4444)
+                        )
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
           Icon(
-              imageVector = Icons.Rounded.BatteryFull,
+              imageVector = Icons.Rounded.BatteryChargingFull,
               contentDescription = null,
-              tint = Color(0xFFF59E0B),
-              modifier = Modifier.size(20.dp)
+              tint = Color.White,
+              modifier = Modifier.size(26.dp)
           )
         }
-        Text(
-            text = stringResource(R.string.gpu_power_level_title),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
-        )
+
+        Column {
+          Text(
+              text = stringResource(R.string.gpu_power_level_title),
+              style = MaterialTheme.typography.titleLarge,
+              fontWeight = FontWeight.Bold,
+              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+          )
+          Text(
+              text = "Select performance level",
+              style = MaterialTheme.typography.bodyMedium,
+              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.7f)
+          )
+        }
       }
 
-      // Power Level Slider
-      Column(
+      HorizontalDivider(
+          color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.1f)
+      )
+
+      // Current level display with glassmorphic style
+      Box(
           modifier = Modifier
               .fillMaxWidth()
               .clip(RoundedCornerShape(16.dp))
-              .background(id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f))
-              .padding(16.dp),
-          verticalArrangement = Arrangement.spacedBy(12.dp)
+              .background(
+                  Brush.linearGradient(
+                      colors = listOf(
+                          Color(0xFFF59E0B).copy(alpha = 0.15f),
+                          Color(0xFFEF4444).copy(alpha = 0.1f)
+                      )
+                  )
+              )
+              .border(
+                  width = 1.dp,
+                  color = Color(0xFFF59E0B).copy(alpha = 0.3f),
+                  shape = RoundedCornerShape(16.dp)
+              )
+              .padding(20.dp)
       ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-          Text(
-              text = stringResource(R.string.liquid_gpu_power_level),
-              style = MaterialTheme.typography.titleSmall,
-              fontWeight = FontWeight.SemiBold,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
-          )
-          Surface(
-              color = Color(0xFFF59E0B).copy(alpha = 0.15f),
-              shape = RoundedCornerShape(8.dp)
+          Column {
+            Text(
+                text = "Current Level",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+            )
+            Text(
+                text = stringResource(R.string.liquid_gpu_power_level),
+                style = MaterialTheme.typography.bodySmall,
+                color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.6f)
+            )
+          }
+          Box(
+              modifier = Modifier
+                  .clip(RoundedCornerShape(12.dp))
+                  .background(
+                      Brush.linearGradient(
+                          colors = listOf(
+                              Color(0xFFF59E0B),
+                              Color(0xFFEF4444)
+                          )
+                      )
+                  )
+                  .padding(horizontal = 24.dp, vertical = 10.dp)
           ) {
             Text(
-                text = stringResource(R.string.liquid_gpu_level_format, powerLevel.toInt()),
-                style = MaterialTheme.typography.labelLarge,
+                text = "${gpuInfo.powerLevel}",
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFF59E0B),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                color = Color.White
             )
           }
         }
+      }
 
-        id.xms.xtrakernelmanager.ui.components.liquid.LiquidSlider(
-            value = { powerLevel },
-            onValueChange = { powerLevel = it },
-            valueRange = 0f..(gpuInfo.numPwrLevels - 1).coerceAtLeast(1).toFloat(),
-            visibilityThreshold = 1f,
-            backdrop = backdrop,
-            modifier = Modifier.padding(vertical = 8.dp)
+      // Power level selection grid
+      val maxLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
+      
+      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Available Levels (0-$maxLevel)",
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
         )
+
+        val levels = (0..maxLevel).toList()
+
+        // Use FlowRow for better wrapping behavior
+        androidx.compose.foundation.layout.FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+          levels.forEach { level ->
+            val isSelected = level == gpuInfo.powerLevel
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        if (isSelected) {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFFF59E0B),
+                                    Color(0xFFEF4444)
+                                )
+                            )
+                        } else {
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.1f),
+                                    id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f)
+                                )
+                            )
+                        }
+                    )
+                    .clickable { viewModel.setGPUPowerLevel(level) }
+                    .border(
+                        width = if (isSelected) 2.dp else 1.dp,
+                        color = if (isSelected) Color(0xFFF59E0B).copy(alpha = 0.5f)
+                                else id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(14.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+              Text(
+                  text = level.toString(),
+                  style = MaterialTheme.typography.titleLarge,
+                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                  color = if (isSelected) Color.White
+                          else id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(),
+              )
+            }
+          }
+        }
+        
+        // Info banner (moved inside Column to access maxLevel)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF3B82F6).copy(alpha = 0.1f))
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFF3B82F6).copy(alpha = 0.2f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Icon(
+              imageVector = Icons.Outlined.Info,
+              contentDescription = null,
+              tint = Color(0xFF3B82F6),
+              modifier = Modifier.size(18.dp),
+          )
+          Text(
+              text = "Level 0 = Highest performance • Level $maxLevel = Lowest performance",
+              style = MaterialTheme.typography.bodySmall,
+              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.8f),
+          )
+        }
       }
     }
   }
