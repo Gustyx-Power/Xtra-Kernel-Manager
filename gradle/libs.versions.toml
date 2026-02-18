@@ -38,7 +38,7 @@ espresso-core = "3.7.0"
 leakcanary = "2.14"
 
 # KSP
-ksp = "2.3.5"
+ksp = "2.3.6"
 lifecycle-service = "2.10.0"
 foundation = "1.10.3"
 
