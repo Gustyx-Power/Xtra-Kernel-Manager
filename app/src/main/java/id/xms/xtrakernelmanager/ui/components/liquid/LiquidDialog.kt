@@ -19,10 +19,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.runtime.CompositionLocalProvider
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
-/**
- * Liquid Glass Dialog component with backdrop blur effect
- * Similar to Backdrop Catalog's Dialog implementation
- */
+
 @Composable
 fun LiquidDialog(
     onDismissRequest: () -> Unit,
@@ -31,7 +28,8 @@ fun LiquidDialog(
     confirmButton: @Composable () -> Unit,
     dismissButton: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    properties: DialogProperties = DialogProperties()
+    properties: DialogProperties = DialogProperties(),
+    backgroundColor: Color? = null
 ) {
     val isLightTheme = !isSystemInDarkTheme()
 
@@ -47,16 +45,16 @@ fun LiquidDialog(
                 modifier = modifier
                     .fillMaxWidth(0.85f)
                     .wrapContentHeight()
-                    .clickable(enabled = false) {}, // Prevent click through
+                    .clickable(enabled = false) {},
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(0.dp)
-            ) {
-                // Add semi-transparent background layer inside card for better text readability
-                val backgroundColor = if (isLightTheme) {
+            ) {                val defaultBackgroundColor = if (isLightTheme) {
                     Color(0xFFFAFAFA).copy(0.95f)
                 } else {
                     Color(0xFF333333).copy(0.95f)
                 }
+
+                val finalBackgroundColor = backgroundColor ?: defaultBackgroundColor
 
                 val contentColor = if (isLightTheme) {
                     Color.Black
@@ -67,7 +65,7 @@ fun LiquidDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(backgroundColor)
+                        .background(finalBackgroundColor)
                 ) {
                     CompositionLocalProvider(LocalContentColor provides contentColor) {
                         Column(
@@ -121,10 +119,7 @@ fun LiquidDialog(
     }
 }
 
-/**
- * Liquid Glass Dialog component with backdrop blur effect (Composable title version)
- * Similar to Backdrop Catalog's Dialog implementation
- */
+
 @Composable
 fun LiquidDialog(
     onDismissRequest: () -> Unit,
@@ -149,7 +144,7 @@ fun LiquidDialog(
                 modifier = modifier
                     .fillMaxWidth(0.85f)
                     .wrapContentHeight()
-                    .clickable(enabled = false) {}, // Prevent click through
+                    .clickable(enabled = false) {},
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
@@ -219,10 +214,6 @@ fun LiquidDialog(
     }
 }
 
-/**
- * Liquid Glass Dialog Button
- * Styled button for use in LiquidDialog
- */
 @Composable
 fun LiquidDialogButton(
     text: String,

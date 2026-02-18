@@ -41,13 +41,11 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
     val gpuInfo by viewModel.gpuInfo.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Dialog States
     var showRebootDialog by remember { mutableStateOf(false) }
     var showVerificationDialog by remember { mutableStateOf(false) }
     var showRomInfoDialog by remember { mutableStateOf(false) }
     var showRendererDialog by remember { mutableStateOf(false) }
     
-    // Logic States
     var pendingRenderer by remember { mutableStateOf("") }
     var verificationSuccess by remember { mutableStateOf(false) }
     var verificationMessage by remember { mutableStateOf("") }
@@ -57,7 +55,6 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
     LaunchedEffect(gpuInfo.rendererType) { selectedRenderer = gpuInfo.rendererType }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background
         id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament(modifier = Modifier.fillMaxSize())
 
         Scaffold(
@@ -101,7 +98,6 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                 }
             }
         ) { paddingValues ->
-            // Main Content
             if (isMediatek) {
                  Column(
                     modifier = Modifier
@@ -125,22 +121,18 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Header Info Card
                     LiquidGPUInfoCard(
                         icon = Icons.Rounded.Gamepad,
                         title = "GPU Management",
                         description = "Configure GPU frequency, power level, and rendering settings"
                     )
 
-                    // GPU Frequency Card
                     if (gpuInfo.availableFreqs.isNotEmpty()) {
                         LiquidGPUFrequencyCard(viewModel = viewModel, gpuInfo = gpuInfo)
                     }
 
-                    // GPU Power Level Card
                     LiquidGPUPowerLevelCard(viewModel = viewModel, gpuInfo = gpuInfo)
 
-                    // GPU Renderer Card
                     LiquidGPURendererCard(
                         selectedRenderer = selectedRenderer,
                         onRendererClick = { showRendererDialog = true },
@@ -151,8 +143,6 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
             }
         }
         
-        // --- DIALOGS ---
-
         if (showRomInfoDialog) {
             RomInfoDialog(onDismiss = { showRomInfoDialog = false })
         }
@@ -222,19 +212,19 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
     }
 }
 
-// --- MODERN LIQUID COMPONENTS ---
-
 @Composable
 private fun LiquidGPUInfoCard(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     description: String
 ) {
-    id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFFEC4899).copy(alpha = 0.15f) // Pink glass for info card
     ) {
         Row(
+            modifier = Modifier.padding(20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -242,14 +232,7 @@ private fun LiquidGPUInfoCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                Color(0xFFEC4899).copy(alpha = 0.3f),
-                                Color(0xFF8B5CF6).copy(alpha = 0.3f)
-                            )
-                        )
-                    ),
+                    .background(Color(0xFFEC4899).copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -264,13 +247,13 @@ private fun LiquidGPUInfoCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(0.7f)
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
         }
@@ -343,14 +326,15 @@ private fun LiquidGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo)
 
   val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
 
-  id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+  Surface(
       modifier = Modifier.fillMaxWidth(),
-      contentPadding = PaddingValues(20.dp)
+      shape = RoundedCornerShape(24.dp),
+      color = Color(0xFF10B981).copy(alpha = 0.15f) // Green glass for frequency
   ) {
     Column(
+        modifier = Modifier.padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      // Header with lock badge
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
@@ -362,43 +346,49 @@ private fun LiquidGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo)
         ) {
           Box(
               modifier = Modifier
-                  .size(40.dp)
-                  .clip(RoundedCornerShape(10.dp))
-                  .background(Color(0xFFEC4899).copy(alpha = 0.2f)),
+                  .size(48.dp)
+                  .clip(RoundedCornerShape(12.dp))
+                  .background(Color(0xFF10B981).copy(alpha = 0.3f)),
               contentAlignment = Alignment.Center
           ) {
             Icon(
                 imageVector = Icons.Outlined.Speed,
                 contentDescription = null,
-                tint = Color(0xFFEC4899),
-                modifier = Modifier.size(20.dp)
+                tint = Color(0xFF10B981),
+                modifier = Modifier.size(24.dp)
             )
           }
-          Text(
-              text = stringResource(R.string.gpu_frequency),
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
-          )
+          Column {
+            Text(
+                text = stringResource(R.string.gpu_frequency),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Text(
+                text = "Control GPU clock speed",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.7f)
+            )
+          }
         }
 
         AnimatedVisibility(visible = isFrequencyLocked) {
            Surface(
                shape = RoundedCornerShape(8.dp),
-               color = Color(0xFFEF4444).copy(alpha = 0.15f)
+               color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
            ) {
               Text(
                   "Locked",
                   modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                   style = MaterialTheme.typography.labelMedium,
                   fontWeight = FontWeight.Bold,
-                  color = Color(0xFFEF4444)
+                  color = MaterialTheme.colorScheme.error
               )
            }
         }
       }
 
-      // Min Frequency Slider
       LiquidGPUSliderCard(
           label = stringResource(R.string.gpu_min_freq),
           value = minFreqSlider,
@@ -409,7 +399,6 @@ private fun LiquidGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo)
           color = Color(0xFF10B981)
       )
 
-      // Max Frequency Slider
       LiquidGPUSliderCard(
           label = stringResource(R.string.gpu_max_freq),
           value = maxFreqSlider,
@@ -422,7 +411,6 @@ private fun LiquidGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo)
 
       HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.2f))
 
-      // Action Buttons
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -508,11 +496,10 @@ private fun LiquidGPUSliderCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f))
+            .background(Color.White.copy(alpha = 0.1f))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -532,7 +519,7 @@ private fun LiquidGPUSliderCard(
                     text = label,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                    color = Color.White
                 )
             }
             Surface(
@@ -549,7 +536,6 @@ private fun LiquidGPUSliderCard(
             }
         }
 
-        // Liquid Slider
         id.xms.xtrakernelmanager.ui.components.liquid.LiquidSlider(
             value = { value },
             onValueChange = onValueChange,
@@ -563,14 +549,15 @@ private fun LiquidGPUSliderCard(
 
 @Composable
 private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
-  id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+  Surface(
       modifier = Modifier.fillMaxWidth(),
-      contentPadding = PaddingValues(24.dp)
+      shape = RoundedCornerShape(24.dp),
+      color = Color(0xFF3B82F6).copy(alpha = 0.15f) // Blue glass for power level
   ) {
     Column(
+        modifier = Modifier.padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-      // Header with gradient icon
       Row(
           horizontalArrangement = Arrangement.spacedBy(16.dp),
           verticalAlignment = Alignment.CenterVertically
@@ -579,21 +566,14 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFFF59E0B),
-                            Color(0xFFEF4444)
-                        )
-                    )
-                ),
+                .background(Color(0xFF3B82F6).copy(alpha = 0.3f)),
             contentAlignment = Alignment.Center
         ) {
           Icon(
               imageVector = Icons.Rounded.BatteryChargingFull,
               contentDescription = null,
-              tint = Color.White,
-              modifier = Modifier.size(26.dp)
+              tint = Color(0xFF3B82F6),
+              modifier = Modifier.size(24.dp)
           )
         }
 
@@ -602,36 +582,28 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
               text = stringResource(R.string.gpu_power_level_title),
               style = MaterialTheme.typography.titleLarge,
               fontWeight = FontWeight.Bold,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+              color = Color.White
           )
           Text(
               text = "Select performance level",
-              style = MaterialTheme.typography.bodyMedium,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.7f)
+              style = MaterialTheme.typography.bodySmall,
+              color = Color.White.copy(alpha = 0.7f)
           )
         }
       }
 
       HorizontalDivider(
-          color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.1f)
+          color = Color.White.copy(alpha = 0.3f)
       )
 
-      // Current level display with glassmorphic style
       Box(
           modifier = Modifier
               .fillMaxWidth()
               .clip(RoundedCornerShape(16.dp))
-              .background(
-                  Brush.linearGradient(
-                      colors = listOf(
-                          Color(0xFFF59E0B).copy(alpha = 0.15f),
-                          Color(0xFFEF4444).copy(alpha = 0.1f)
-                      )
-                  )
-              )
+              .background(Color.White.copy(alpha = 0.1f))
               .border(
                   width = 1.dp,
-                  color = Color(0xFFF59E0B).copy(alpha = 0.3f),
+                  color = Color(0xFF3B82F6).copy(alpha = 0.3f),
                   shape = RoundedCornerShape(16.dp)
               )
               .padding(20.dp)
@@ -646,25 +618,18 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
                 text = "Current Level",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                color = Color.White
             )
             Text(
                 text = stringResource(R.string.liquid_gpu_power_level),
                 style = MaterialTheme.typography.bodySmall,
-                color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.6f)
+                color = Color.White.copy(alpha = 0.6f)
             )
           }
           Box(
               modifier = Modifier
                   .clip(RoundedCornerShape(12.dp))
-                  .background(
-                      Brush.linearGradient(
-                          colors = listOf(
-                              Color(0xFFF59E0B),
-                              Color(0xFFEF4444)
-                          )
-                      )
-                  )
+                  .background(Color(0xFF3B82F6))
                   .padding(horizontal = 24.dp, vertical = 10.dp)
           ) {
             Text(
@@ -677,7 +642,6 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
         }
       }
 
-      // Power level selection grid
       val maxLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
       
       Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -685,12 +649,11 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
             text = "Available Levels (0-$maxLevel)",
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
-            color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+            color = Color.White
         )
 
         val levels = (0..maxLevel).toList()
 
-        // Use FlowRow for better wrapping behavior
         androidx.compose.foundation.layout.FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -703,27 +666,14 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
                     .size(56.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(
-                        if (isSelected) {
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFF59E0B),
-                                    Color(0xFFEF4444)
-                                )
-                            )
-                        } else {
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.1f),
-                                    id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f)
-                                )
-                            )
-                        }
+                        if (isSelected) Color(0xFF3B82F6)
+                        else Color.White.copy(alpha = 0.1f)
                     )
                     .clickable { viewModel.setGPUPowerLevel(level) }
                     .border(
                         width = if (isSelected) 2.dp else 1.dp,
-                        color = if (isSelected) Color(0xFFF59E0B).copy(alpha = 0.5f)
-                                else id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.1f),
+                        color = if (isSelected) Color(0xFF3B82F6).copy(alpha = 0.5f)
+                                else Color.White.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(14.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -732,14 +682,12 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
                   text = level.toString(),
                   style = MaterialTheme.typography.titleLarge,
                   fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                  color = if (isSelected) Color.White
-                          else id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(),
+                  color = Color.White,
               )
             }
           }
         }
         
-        // Info banner (moved inside Column to access maxLevel)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -763,7 +711,7 @@ private fun LiquidGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
           Text(
               text = "Level 0 = Highest performance • Level $maxLevel = Lowest performance",
               style = MaterialTheme.typography.bodySmall,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor().copy(alpha = 0.8f),
+              color = Color.White.copy(alpha = 0.8f),
           )
         }
       }
@@ -776,30 +724,31 @@ private fun LiquidGPURendererCard(
     selectedRenderer: String,
     onRendererClick: () -> Unit
 ) {
-  id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+  Surface(
       modifier = Modifier.fillMaxWidth(),
-      contentPadding = PaddingValues(20.dp)
+      shape = RoundedCornerShape(24.dp),
+      color = Color(0xFF8B5CF6).copy(alpha = 0.15f) // Purple glass for renderer
   ) {
     Column(
+        modifier = Modifier.padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-      // Header
       Row(
           horizontalArrangement = Arrangement.spacedBy(12.dp),
           verticalAlignment = Alignment.CenterVertically
       ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF8B5CF6).copy(alpha = 0.2f)),
+                .size(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF8B5CF6).copy(alpha = 0.3f)),
             contentAlignment = Alignment.Center
         ) {
           Icon(
               imageVector = Icons.Outlined.Palette,
               contentDescription = null,
               tint = Color(0xFF8B5CF6),
-              modifier = Modifier.size(20.dp)
+              modifier = Modifier.size(24.dp)
           )
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -807,20 +756,18 @@ private fun LiquidGPURendererCard(
               text = stringResource(R.string.gpu_renderer),
               style = MaterialTheme.typography.titleLarge,
               fontWeight = FontWeight.Bold,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+              color = Color.White
           )
           Text(
               text = selectedRenderer,
-              style = MaterialTheme.typography.bodyMedium,
-              color = Color(0xFF8B5CF6),
-              fontWeight = FontWeight.SemiBold
+              style = MaterialTheme.typography.bodySmall,
+              color = Color.White.copy(alpha = 0.7f)
           )
         }
       }
 
-      HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.2f))
+      HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
 
-      // Info Banner
       Surface(
           shape = RoundedCornerShape(12.dp),
           color = Color(0xFF3B82F6).copy(alpha = 0.1f)
@@ -839,17 +786,16 @@ private fun LiquidGPURendererCard(
           Text(
               text = stringResource(R.string.gpu_renderer_rom_info),
               style = MaterialTheme.typography.bodySmall,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(0.8f)
+              color = Color.White.copy(alpha = 0.8f)
           )
         }
       }
 
-      // Renderer Selection Button
       Surface(
           onClick = onRendererClick,
           modifier = Modifier.fillMaxWidth(),
           shape = RoundedCornerShape(16.dp),
-          color = Color(0xFF8B5CF6).copy(alpha = 0.15f)
+          color = Color(0xFF8B5CF6).copy(alpha = 0.3f)
       ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -871,7 +817,7 @@ private fun LiquidGPURendererCard(
                 text = stringResource(R.string.gpu_renderer_tap_to_change),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF8B5CF6)
+                color = Color.White
             )
           }
           Icon(
@@ -885,9 +831,6 @@ private fun LiquidGPURendererCard(
     }
   }
 }
-
-// --- DIALOGS (Preserved from original) ---
-
 
 @Composable
 private fun RomInfoDialog(onDismiss: () -> Unit) {
@@ -905,7 +848,6 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
               color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(0.8f)
           )
 
-          // Supported ROMs Card
           id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
               modifier = Modifier.fillMaxWidth(),
               contentPadding = PaddingValues(16.dp),
@@ -939,7 +881,6 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
             }
           }
 
-          // Limited Support ROMs Card
           id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
               modifier = Modifier.fillMaxWidth(),
               contentPadding = PaddingValues(16.dp),
@@ -975,7 +916,6 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
 
           HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.2f))
 
-          // Why It Doesn't Work Section
           Text(
               text = stringResource(R.string.gpu_why_not_work),
               style = MaterialTheme.typography.titleSmall,
@@ -1013,7 +953,6 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
                 }
           }
 
-          // Tip Card
           Surface(
               shape = RoundedCornerShape(12.dp),
               color = Color(0xFF3B82F6).copy(alpha = 0.1f),
@@ -1070,7 +1009,6 @@ private fun VerificationDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          // Icon/Loading indicator
           Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
             if (isProcessing) {
               CircularProgressIndicator(
@@ -1266,7 +1204,6 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
               textAlign = androidx.compose.ui.text.style.TextAlign.Center,
           )
 
-          // Change Preview Card
           id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
               modifier = Modifier.fillMaxWidth(),
               contentPadding = PaddingValues(16.dp),
@@ -1276,7 +1213,6 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-              // Current Renderer
               Column(
                   horizontalAlignment = Alignment.CenterHorizontally,
                   verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -1300,7 +1236,6 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
                 }
               }
 
-              // Arrow Down
               Icon(
                   imageVector = Icons.Filled.ArrowDownward,
                   contentDescription = null,
@@ -1308,7 +1243,6 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
                   tint = Color(0xFF3B82F6)
               )
 
-              // New Renderer
               Column(
                   horizontalAlignment = Alignment.CenterHorizontally,
                   verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -1336,7 +1270,6 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
 
           HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.2f))
 
-          // Important Warning
           Surface(
               shape = RoundedCornerShape(12.dp),
               color = Color(0xFFF59E0B).copy(alpha = 0.1f)
@@ -1370,7 +1303,6 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
             }
           }
 
-          // Check Compatibility Button
           Surface(
               onClick = onCheckCompatibility,
               modifier = Modifier.fillMaxWidth(),
@@ -1422,6 +1354,7 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
   LiquidDialog(
       onDismissRequest = onDismiss,
       title = stringResource(R.string.gpu_renderer_select_title),
+      backgroundColor = Color(0xFF1E3A8A).copy(alpha = 0.85f), // Navy blue background
       content = {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -1430,7 +1363,7 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
           Text(
               text = stringResource(R.string.gpu_renderer_select_desc),
               style = MaterialTheme.typography.bodySmall,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(0.7f),
+              color = Color.White.copy(alpha = 0.7f),
               textAlign = androidx.compose.ui.text.style.TextAlign.Center,
               modifier = Modifier.fillMaxWidth()
           )
@@ -1458,10 +1391,10 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
                 onClick = { onSelect(renderer) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                color = if (isSelected) Color(0xFF8B5CF6).copy(alpha = 0.15f)
-                       else id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f),
-                border = if (isSelected) BorderStroke(2.dp, Color(0xFF8B5CF6))
-                        else BorderStroke(1.dp, id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.2f))
+                color = if (isSelected) Color(0xFF3B82F6).copy(alpha = 0.5f)
+                       else Color.White.copy(alpha = 0.1f),
+                border = if (isSelected) BorderStroke(2.dp, Color(0xFF3B82F6))
+                        else BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
             ) {
               Row(
                   modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -1476,14 +1409,13 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
                       text = renderer,
                       style = MaterialTheme.typography.bodyLarge,
                       fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color = if (isSelected) Color(0xFF8B5CF6)
-                             else id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                      color = Color.White
                   )
                   Text(
                       text = description,
                       style = MaterialTheme.typography.bodySmall,
                       fontWeight = FontWeight.Medium,
-                      color = Color(0xFFF59E0B) // Kuning untuk deskripsi
+                      color = Color(0xFFF59E0B) // Yellow for description
                   )
                 }
 
@@ -1492,7 +1424,7 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
                       modifier =
                           Modifier.size(28.dp)
                               .clip(CircleShape)
-                              .background(Color(0xFF8B5CF6)),
+                              .background(Color(0xFF3B82F6)),
                       contentAlignment = Alignment.Center,
                   ) {
                     Icon(
@@ -1508,13 +1440,13 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
           }
         }
       },
-      confirmButton = {},
-      dismissButton = {
+      confirmButton = {
         LiquidDialogButton(
             text = stringResource(R.string.cancel),
             onClick = onDismiss,
             isPrimary = false
         )
-      }
+      },
+      dismissButton = null
   )
 }

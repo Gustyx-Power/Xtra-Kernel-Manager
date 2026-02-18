@@ -316,7 +316,9 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
   ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
       elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-      colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+      colors = CardDefaults.elevatedCardColors(
+          containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+      ),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -332,16 +334,25 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          Icon(
-              imageVector = Icons.Outlined.Speed,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.tertiary,
-              modifier = Modifier.size(24.dp),
-          )
+          Box(
+              modifier = Modifier
+                  .size(40.dp)
+                  .clip(RoundedCornerShape(10.dp))
+                  .background(MaterialTheme.colorScheme.primary),
+              contentAlignment = Alignment.Center
+          ) {
+            Icon(
+                imageVector = Icons.Outlined.Speed,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(22.dp),
+            )
+          }
           Text(
               text = stringResource(R.string.gpu_frequency),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onPrimaryContainer,
           )
         }
 
@@ -519,6 +530,9 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
   ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
       elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+      colors = CardDefaults.elevatedCardColors(
+          containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+      ),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -533,13 +547,13 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                .background(MaterialTheme.colorScheme.secondary),
             contentAlignment = Alignment.Center
         ) {
           Icon(
               imageVector = Icons.Outlined.BatteryChargingFull,
               contentDescription = null,
-              tint = MaterialTheme.colorScheme.tertiary,
+              tint = MaterialTheme.colorScheme.onSecondary,
               modifier = Modifier.size(22.dp),
           )
         }
@@ -548,23 +562,24 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
               text = stringResource(R.string.gpu_power_level_title),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onSecondaryContainer,
           )
           Text(
               text = "Select performance level",
               style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
           )
         }
       }
 
-      HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+      HorizontalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.2f))
 
       // Current level display with better styling
       Row(
           modifier = Modifier
               .fillMaxWidth()
               .clip(RoundedCornerShape(12.dp))
-              .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+              .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
               .padding(16.dp),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically,
@@ -573,23 +588,23 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
           Text(
               text = "Current Level",
               style = MaterialTheme.typography.labelMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              color = MaterialTheme.colorScheme.onSecondaryContainer,
           )
           Text(
               text = stringResource(R.string.gpu_power_level),
               style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+              color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
           )
         }
         Surface(
             shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.tertiary,
+            color = MaterialTheme.colorScheme.secondary,
         ) {
           Text(
               text = "${gpuInfo.powerLevel}",
               style = MaterialTheme.typography.headlineSmall,
               fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onTertiary,
+              color = MaterialTheme.colorScheme.onSecondary,
               modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
           )
         }
@@ -603,7 +618,7 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
         Text(
             text = "Available Levels (0-$maxLevel)",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
         
         // Use FlowRow for better wrapping behavior
@@ -619,13 +634,13 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
                     .size(52.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(
-                        if (isSelected) MaterialTheme.colorScheme.tertiary
+                        if (isSelected) MaterialTheme.colorScheme.secondary
                         else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
                     .clickable { viewModel.setGPUPowerLevel(level) }
                     .border(
                         width = if (isSelected) 2.dp else 0.dp,
-                        color = if (isSelected) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+                        color = if (isSelected) MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
                         else Color.Transparent,
                         shape = RoundedCornerShape(12.dp)
                     ),
@@ -635,7 +650,7 @@ private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
                   text = level.toString(),
                   style = MaterialTheme.typography.titleMedium,
                   fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                  color = if (isSelected) MaterialTheme.colorScheme.onTertiary
+                  color = if (isSelected) MaterialTheme.colorScheme.onSecondary
                           else MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }
@@ -674,6 +689,9 @@ private fun GPURendererCard(selectedRenderer: String, onRendererClick: () -> Uni
   ElevatedCard(
       modifier = Modifier.fillMaxWidth(),
       elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+      colors = CardDefaults.elevatedCardColors(
+          containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
+      ),
   ) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(20.dp),
@@ -683,17 +701,26 @@ private fun GPURendererCard(selectedRenderer: String, onRendererClick: () -> Uni
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        Icon(
-            imageVector = Icons.Outlined.Settings,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.size(24.dp),
-        )
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.tertiary),
+            contentAlignment = Alignment.Center
+        ) {
+          Icon(
+              imageVector = Icons.Outlined.Settings,
+              contentDescription = null,
+              tint = MaterialTheme.colorScheme.onTertiary,
+              modifier = Modifier.size(22.dp),
+          )
+        }
         Column(modifier = Modifier.weight(1f)) {
           Text(
               text = stringResource(R.string.gpu_renderer),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.onTertiaryContainer,
           )
           Text(
               text = selectedRenderer,
