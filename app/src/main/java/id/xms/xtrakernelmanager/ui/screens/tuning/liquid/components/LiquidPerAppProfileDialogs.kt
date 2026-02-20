@@ -40,6 +40,7 @@ fun AddProfileDialog(
     context: Context,
     governors: List<String>,
     thermalPresets: List<String>,
+    availableRefreshRates: List<Int>,
     existingPackages: List<String>,
     onDismiss: () -> Unit,
     onConfirm: (AppProfile) -> Unit,
@@ -48,13 +49,12 @@ fun AddProfileDialog(
     var isLoading by remember { mutableStateOf(true) }
     var selectedApp by remember { mutableStateOf<Pair<String, String>?>(null) }
     var selectedGovernor by remember { mutableStateOf(governors.firstOrNull() ?: "schedutil") }
-    var selectedThermal by remember { mutableStateOf(thermalPresets.first()) }
+    var selectedThermal by remember { mutableStateOf(thermalPresets.firstOrNull() ?: "Dynamic") }
     var selectedRefreshRate by remember { mutableStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
 
     // Get device max refresh rate
     val maxRefreshRate = remember { getDeviceMaxRefreshRate(context) }
-    val availableRefreshRates = remember(maxRefreshRate) { getAvailableRefreshRates(maxRefreshRate) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
@@ -382,6 +382,7 @@ fun EditProfileDialog(
     profile: AppProfile,
     governors: List<String>,
     thermalPresets: List<String>,
+    availableRefreshRates: List<Int>,
     onDismiss: () -> Unit,
     onConfirm: (AppProfile) -> Unit,
 ) {
@@ -392,7 +393,6 @@ fun EditProfileDialog(
 
     // Get device max refresh rate
     val maxRefreshRate = remember { getDeviceMaxRefreshRate(context) }
-    val availableRefreshRates = remember(maxRefreshRate) { getAvailableRefreshRates(maxRefreshRate) }
 
     LiquidDialog(
         onDismissRequest = onDismiss,
@@ -623,6 +623,7 @@ private fun getDeviceMaxRefreshRate(context: Context): Int {
 
 private fun getAvailableRefreshRates(maxRate: Int): List<Int> {
     return when {
+        maxRate >= 144 -> listOf(60, 90, 120, 144)
         maxRate >= 120 -> listOf(60, 90, 120)
         maxRate >= 90 -> listOf(60, 90)
         else -> emptyList() // 60Hz or less = no refresh rate options

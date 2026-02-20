@@ -58,15 +58,11 @@ import org.json.JSONObject
 @Composable
 fun LiquidPerAppProfileCard(
     preferencesManager: PreferencesManager,
-    availableGovernors: List<String>
+    availableGovernors: List<String>,
+    onNavigateToFullScreen: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
-    var expanded by remember { mutableStateOf(false) }
-    var showAddDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }
-    var editingProfile by remember { mutableStateOf<AppProfile?>(null) }
     
     val isEnabled by preferencesManager.isPerAppProfileEnabled().collectAsState(initial = false)
     val profilesJson by preferencesManager.getAppProfiles().collectAsState(initial = "[]")
@@ -82,24 +78,17 @@ fun LiquidPerAppProfileCard(
         hasUsagePermission = hasUsageStatsPermission(context)
     }
     
-    // Thermal presets
-    val thermalPresets = listOf("Not Set", "Class 0", "Extreme", "Dynamic", "Incalls", "Thermal 20")
-    
-    // Default governors if none provided
-    val governors = if (availableGovernors.isEmpty()) {
-        listOf("schedutil", "performance", "powersave", "ondemand", "conservative", "interactive")
-    } else {
-        availableGovernors
-    }
-    
     // Count profiles
     val profileCount = profiles.size
 
     GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onNavigateToFullScreen() }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp)
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Header Row
             Row(
@@ -149,249 +138,79 @@ fun LiquidPerAppProfileCard(
                     }
                 }
 
-                // Expand/Collapse Button
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f))
-                        .clickable { expanded = !expanded },
-                    contentAlignment = Alignment.Center
+                // Arrow icon
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = "Open",
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            
+            // Permission warning
+            if (!hasUsagePermission) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
                 ) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                        contentDescription = if (expanded) "Collapse" else "Expand",
-                        modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            stringResource(R.string.per_app_profile_usage_required),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
                 }
             }
-
-            // Collapsible Content - All per-app profile features
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
+            
+            // Enable/Disable Toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    modifier = Modifier.padding(top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                    )
+                Text(
+                    text = if (isEnabled) "Profiles Active" else "Profiles Inactive",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
 
-                    // Permission warning
-                    if (!hasUsagePermission) {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer
-                            ),
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    Icon(
-                                        Icons.Default.Warning,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                                    )
-                                    Text(
-                                        stringResource(R.string.per_app_profile_usage_required),
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onErrorContainer,
-                                    )
-                                }
-                                Text(
-                                    stringResource(R.string.per_app_profile_usage_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                )
-                                Button(
-                                    onClick = {
-                                        val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
-                                        permissionLauncher.launch(intent)
-                                    },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.error
-                                    ),
-                                ) {
-                                    Text(stringResource(R.string.per_app_profile_grant_permission))
-                                }
-                            }
-                        }
-                    }
-
-                    // Enable/Disable Section with LiquidToggle
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = if (isEnabled) "Profiles Active" else "Profiles Inactive",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = if (isEnabled) "Applying automatically" else "Enable to apply profiles",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            LiquidToggle(
-                                checked = isEnabled,
-                                onCheckedChange = { enabled ->
-                                    scope.launch {
-                                        preferencesManager.setPerAppProfileEnabled(enabled)
-                                        
-                                        // Always start service if there are profiles and permission is granted
-                                        // The service will check the enabled state internally
-                                        if (hasUsagePermission && profiles.isNotEmpty()) {
-                                            val serviceIntent = Intent(context, AppProfileService::class.java)
-                                            try {
-                                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                                                    context.startForegroundService(serviceIntent)
-                                                } else {
-                                                    context.startService(serviceIntent)
-                                                }
-                                            } catch (e: Exception) {
-                                                android.util.Log.e("PerAppProfile", "Failed to start service: ${e.message}")
-                                            }
-                                        }
+                id.xms.xtrakernelmanager.ui.components.liquid.LiquidToggle(
+                    checked = isEnabled,
+                    onCheckedChange = { enabled ->
+                        scope.launch {
+                            preferencesManager.setPerAppProfileEnabled(enabled)
+                            
+                            if (hasUsagePermission && profiles.isNotEmpty()) {
+                                val serviceIntent = Intent(context, id.xms.xtrakernelmanager.service.AppProfileService::class.java)
+                                try {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                                        context.startForegroundService(serviceIntent)
+                                    } else {
+                                        context.startService(serviceIntent)
                                     }
-                                },
-                                enabled = hasUsagePermission
-                            )
-                        }
-                    }
-
-                    // Profiles list
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    stringResource(R.string.per_app_profile_count, profiles.size),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                                IconButton(onClick = { showAddDialog = true }) {
-                                    Icon(
-                                        Icons.Default.Add,
-                                        contentDescription = stringResource(R.string.per_app_profile_add),
-                                        tint = MaterialTheme.colorScheme.tertiary,
-                                    )
-                                }
-                            }
-
-                            if (profiles.isEmpty()) {
-                                Text(
-                                    stringResource(R.string.per_app_profile_empty),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            } else {
-                                profiles.forEach { profile ->
-                                    ProfileItem(
-                                        profile = profile,
-                                        onEdit = {
-                                            editingProfile = profile
-                                            showEditDialog = true
-                                        },
-                                        onDelete = {
-                                            scope.launch {
-                                                val newProfiles = profiles.filter { it.packageName != profile.packageName }
-                                                saveProfiles(preferencesManager, newProfiles)
-                                                android.widget.Toast.makeText(
-                                                    context,
-                                                    context.getString(R.string.per_app_profile_deleted),
-                                                    android.widget.Toast.LENGTH_SHORT,
-                                                ).show()
-                                            }
-                                        },
-                                        onToggle = { enabled ->
-                                            scope.launch {
-                                                val newProfiles = profiles.map {
-                                                    if (it.packageName == profile.packageName) {
-                                                        it.copy(enabled = enabled)
-                                                    } else it
-                                                }
-                                                saveProfiles(preferencesManager, newProfiles)
-                                            }
-                                        },
-                                    )
+                                } catch (e: Exception) {
+                                    android.util.Log.e("PerAppProfile", "Failed to start service: ${e.message}")
                                 }
                             }
                         }
-                    }
-                }
+                    },
+                    enabled = hasUsagePermission
+                )
             }
         }
-    }
-
-    // Add Profile Dialog
-    if (showAddDialog) {
-        AddProfileDialog(
-            context = context,
-            governors = governors,
-            thermalPresets = thermalPresets,
-            existingPackages = profiles.map { it.packageName },
-            onDismiss = { showAddDialog = false },
-            onConfirm = { profile ->
-                scope.launch {
-                    val newProfiles = profiles + profile
-                    saveProfiles(preferencesManager, newProfiles)
-                    showAddDialog = false
-                }
-            },
-        )
-    }
-
-    // Edit Profile Dialog
-    if (showEditDialog && editingProfile != null) {
-        EditProfileDialog(
-            profile = editingProfile!!,
-            governors = governors,
-            thermalPresets = thermalPresets,
-            onDismiss = {
-                showEditDialog = false
-                editingProfile = null
-            },
-            onConfirm = { updatedProfile ->
-                scope.launch {
-                    val newProfiles = profiles.map {
-                        if (it.packageName == updatedProfile.packageName) updatedProfile else it
-                    }
-                    saveProfiles(preferencesManager, newProfiles)
-                    showEditDialog = false
-                    editingProfile = null
-                }
-            },
-        )
     }
 }
 
@@ -476,6 +295,7 @@ private fun getDeviceMaxRefreshRate(context: Context): Int {
 
 private fun getAvailableRefreshRates(maxRate: Int): List<Int> {
     return when {
+        maxRate >= 144 -> listOf(60, 90, 120, 144)
         maxRate >= 120 -> listOf(60, 90, 120)
         maxRate >= 90 -> listOf(60, 90)
         else -> emptyList() // 60Hz or less = no refresh rate options
