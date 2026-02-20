@@ -32,29 +32,25 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.res.stringResource
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.model.AppProfile
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import org.json.JSONArray
+import org.json.JSONObject
 
-data class AppProfile(
-    val packageName: String,
-    val appName: String,
-    val profileType: ProfileType = ProfileType.DEFAULT,
-    val refreshRate: RefreshRate = RefreshRate.DEFAULT,
-)
-
-
-enum class ProfileType(@StringRes val displayNameRes: Int, @StringRes val descriptionRes: Int) {
-  DEFAULT(R.string.profile_default, R.string.profile_desc_default),
-  PERFORMANCE(R.string.profile_performance, R.string.profile_desc_performance),
-  BALANCED(R.string.profile_balanced, R.string.profile_desc_balanced),
-  POWER_SAVE(R.string.profile_power_save, R.string.profile_desc_power_save),
-  GAMING(R.string.profile_gaming, R.string.profile_desc_gaming),
+enum class ProfileType(@StringRes val displayNameRes: Int, @StringRes val descriptionRes: Int, val governor: String, val thermalPreset: String) {
+  PERFORMANCE(R.string.profile_performance, R.string.profile_desc_performance, "performance", "Extreme"),
+  BALANCED(R.string.profile_balanced, R.string.profile_desc_balanced, "schedutil", "Dynamic"),
+  POWER_SAVE(R.string.profile_power_save, R.string.profile_desc_power_save, "powersave", "Class 0"),
 }
 
-enum class RefreshRate(@StringRes val displayNameRes: Int, val value: String) {
-  DEFAULT(R.string.refresh_rate_default, "def"),
-  HZ_60(R.string.refresh_rate_60, "60"),
-  HZ_90(R.string.refresh_rate_90, "90"),
-  HZ_120(R.string.refresh_rate_120, "120"),
-  HZ_144(R.string.refresh_rate_144, "144"),
+enum class RefreshRate(@StringRes val displayNameRes: Int, val value: Int) {
+  DEFAULT(R.string.refresh_rate_default, 0),
+  HZ_60(R.string.refresh_rate_60, 60),
+  HZ_90(R.string.refresh_rate_90, 90),
+  HZ_120(R.string.refresh_rate_120, 120),
+  HZ_144(R.string.refresh_rate_144, 144),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +60,27 @@ fun MaterialPerAppProfileScreen(
     onBack: () -> Unit,
 ) {
   val context = LocalContext.current
-  var appProfiles by remember { mutableStateOf(getInstalledApps(context)) }
+  val scope = rememberCoroutineScope()
+  val preferencesManager = remember { PreferencesManager(context) }
+  
+  // Detect device max refresh rate
+  val maxRefreshRate = remember { getDeviceMaxRefreshRate(context) }
+  val availableRefreshRates = remember(maxRefreshRate) { 
+    getAvailableRefreshRates(maxRefreshRate) 
+  }
+  
+  // Load profiles from PreferencesManager
+  val profilesJson by preferencesManager.getAppProfiles().collectAsState(initial = "[]")
+  val savedProfiles = remember(profilesJson) { parseProfiles(profilesJson) }
+  
+  // Get installed apps and merge with saved profiles
+  val installedApps = remember { getInstalledApps(context) }
+  val appProfiles = remember(installedApps, savedProfiles) {
+    installedApps.map { app ->
+      savedProfiles.find { it.packageName == app.packageName } ?: app
+    }
+  }
+  
   var searchQuery by remember { mutableStateOf("") }
   var selectedFilter by remember { mutableStateOf<ProfileType?>(null) }
   
@@ -86,7 +102,7 @@ fun MaterialPerAppProfileScreen(
             }
 
         if (selectedFilter != null) {
-          baseList.filter { it.profileType == selectedFilter }
+          baseList.filter { getProfileTypeFromApp(it) == selectedFilter }
         } else {
           baseList
         }
@@ -187,9 +203,7 @@ fun MaterialPerAppProfileScreen(
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-            ProfileType.entries
-                .filter { it != ProfileType.DEFAULT }
-                .forEach { type ->
+            ProfileType.entries.forEach { type ->
                   DropdownMenuItem(
                       text = { Text(stringResource(type.displayNameRes), color = getProfileColor(type)) },
                       onClick = {
@@ -217,7 +231,7 @@ fun MaterialPerAppProfileScreen(
       ) {
         // Active Configs Section (Only show if no filter and search)
         val activeConfigs = appProfiles.filter { 
-             it.profileType != ProfileType.DEFAULT || it.refreshRate != RefreshRate.DEFAULT 
+             it.governor != "schedutil" || it.thermalPreset != "Not Set" || it.refreshRate != 0
         }
         
         if (searchQuery.isEmpty() && selectedFilter == null && activeConfigs.isNotEmpty()) {
@@ -236,7 +250,10 @@ fun MaterialPerAppProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
               items(activeConfigs) { app ->
-                ActiveConfigCard(app = app, onClick = { expandedAppPackage = app.packageName })
+                ActiveConfigCard(
+                    app = app, 
+                    onClick = { expandedAppPackage = app.packageName }
+                )
               }
             }
           }
@@ -254,13 +271,14 @@ fun MaterialPerAppProfileScreen(
         items(filteredApps, key = { it.packageName }) { app ->
           ExpressiveAppItem(
               app = app,
+              availableRefreshRates = availableRefreshRates,
               isExpanded = expandedAppPackage == app.packageName,
               onToggleExpand = {
                   expandedAppPackage = if (expandedAppPackage == app.packageName) null else app.packageName
               },
               onUpdate = { updatedApp ->
-                   appProfiles = appProfiles.map {
-                      if (it.packageName == updatedApp.packageName) updatedApp else it
+                   scope.launch {
+                       saveProfile(preferencesManager, updatedApp, appProfiles)
                    }
               }
           )
@@ -275,7 +293,8 @@ fun MaterialPerAppProfileScreen(
 @Composable
 fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
   val context = LocalContext.current
-  val color = getProfileColor(app.profileType)
+  val profileType = getProfileTypeFromApp(app)
+  val color = getProfileColor(profileType)
 
   Card(
       onClick = onClick,
@@ -300,7 +319,7 @@ fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
 
         Surface(color = color, shape = CircleShape, modifier = Modifier.size(24.dp)) {
           Icon(
-              getProfileIcon(app.profileType),
+              getProfileIcon(profileType),
               null,
               tint = MaterialTheme.colorScheme.surface,
               modifier = Modifier.padding(4.dp),
@@ -318,7 +337,7 @@ fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            if(app.profileType != ProfileType.DEFAULT) stringResource(app.profileType.displayNameRes) else stringResource(app.refreshRate.displayNameRes),
+            if(app.refreshRate != 0) "${app.refreshRate}Hz" else stringResource(profileType.displayNameRes),
             style = MaterialTheme.typography.labelMedium,
             color = color,
             fontWeight = FontWeight.Bold,
@@ -331,13 +350,15 @@ fun ActiveConfigCard(app: AppProfile, onClick: () -> Unit) {
 @Composable
 fun ExpressiveAppItem(
     app: AppProfile,
+    availableRefreshRates: List<Int>,
     isExpanded: Boolean,
     onToggleExpand: () -> Unit,
     onUpdate: (AppProfile) -> Unit
 ) {
   val context = LocalContext.current
-  val isCustomized = app.profileType != ProfileType.DEFAULT || app.refreshRate != RefreshRate.DEFAULT
-  val profileColor = getProfileColor(app.profileType)
+  val isCustomized = app.governor != "schedutil" || app.thermalPreset != "Not Set" || app.refreshRate != 0
+  val profileType = getProfileTypeFromApp(app)
+  val profileColor = getProfileColor(profileType)
 
   Card(
       modifier = Modifier.fillMaxWidth().animateContentSize().clickable { onToggleExpand() },
@@ -421,31 +442,29 @@ fun ExpressiveAppItem(
           if(isCustomized && !isExpanded) {
               Spacer(modifier = Modifier.height(4.dp))
               Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                  if (app.profileType != ProfileType.DEFAULT) {
-                       Surface(
-                           color = profileColor.copy(alpha = 0.1f), 
-                           shape = RoundedCornerShape(8.dp)
-                       ) {
-                           Text(
-                                stringResource(app.profileType.displayNameRes),
-                               style = MaterialTheme.typography.labelSmall,
-                               color = profileColor,
-                               modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                           )
-                       }
+                  Surface(
+                      color = profileColor.copy(alpha = 0.1f), 
+                      shape = RoundedCornerShape(8.dp)
+                  ) {
+                      Text(
+                          stringResource(profileType.displayNameRes),
+                          style = MaterialTheme.typography.labelSmall,
+                          color = profileColor,
+                          modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                      )
                   }
-                  if (app.refreshRate != RefreshRate.DEFAULT) {
-                       Surface(
-                           color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), 
-                           shape = RoundedCornerShape(8.dp)
-                       ) {
-                           Text(
-                                stringResource(app.refreshRate.displayNameRes),
-                               style = MaterialTheme.typography.labelSmall,
-                               color = MaterialTheme.colorScheme.secondary,
-                               modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                           )
-                       }
+                  if (app.refreshRate != 0) {
+                      Surface(
+                          color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f), 
+                          shape = RoundedCornerShape(8.dp)
+                      ) {
+                          Text(
+                              "${app.refreshRate}Hz",
+                              style = MaterialTheme.typography.labelSmall,
+                              color = MaterialTheme.colorScheme.secondary,
+                              modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                          )
+                      }
                   }
               }
           }
@@ -472,47 +491,65 @@ fun ExpressiveAppItem(
               // Performance Profile Dropdown
               ConfigDropdownRow(
                   label = stringResource(id.xms.xtrakernelmanager.R.string.per_app_performance_profile),
-                  currentValue = stringResource(app.profileType.displayNameRes),
+                  currentValue = stringResource(getProfileTypeFromApp(app).displayNameRes),
                   icon = Icons.Rounded.Settings,
-                  isModified = app.profileType != ProfileType.DEFAULT
+                  isModified = true
               ) { dismiss ->
                   ProfileType.entries.forEach { type ->
                       DropdownMenuItem(
                           text = { Text(stringResource(type.displayNameRes)) },
                           onClick = { 
-                              onUpdate(app.copy(profileType = type))
+                              onUpdate(app.copy(
+                                  governor = type.governor,
+                                  thermalPreset = type.thermalPreset
+                              ))
                               dismiss()
                           },
                           leadingIcon = { 
                               val icon = getProfileIcon(type)
                               val color = getProfileColor(type)
-                              Icon(icon, null, tint = if(type == ProfileType.DEFAULT) MaterialTheme.colorScheme.onSurfaceVariant else color)
+                              Icon(icon, null, tint = color)
                           },
                           trailingIcon = {
-                              if(app.profileType == type) Icon(Icons.Rounded.Check, null)
+                              if(getProfileTypeFromApp(app) == type) Icon(Icons.Rounded.Check, null)
                           }
                       )
                   }
               }
 
-             // Refresh Rate Dropdown
-              ConfigDropdownRow(
-                  label = stringResource(id.xms.xtrakernelmanager.R.string.per_app_refresh_rate),
-                  currentValue = stringResource(app.refreshRate.displayNameRes),
-                  icon = Icons.Rounded.Refresh,
-                  isModified = app.refreshRate != RefreshRate.DEFAULT
-              ) { dismiss ->
-                  RefreshRate.entries.forEach { rate ->
+             // Refresh Rate Dropdown - Only show if device supports >60Hz
+              if (availableRefreshRates.isNotEmpty()) {
+                  ConfigDropdownRow(
+                      label = stringResource(id.xms.xtrakernelmanager.R.string.per_app_refresh_rate),
+                      currentValue = if(app.refreshRate == 0) stringResource(RefreshRate.DEFAULT.displayNameRes) else "${app.refreshRate}Hz",
+                      icon = Icons.Rounded.Refresh,
+                      isModified = app.refreshRate != 0
+                  ) { dismiss ->
+                      // Default option
                       DropdownMenuItem(
-                          text = { Text(stringResource(rate.displayNameRes)) },
+                          text = { Text(stringResource(RefreshRate.DEFAULT.displayNameRes)) },
                           onClick = { 
-                              onUpdate(app.copy(refreshRate = rate))
+                              onUpdate(app.copy(refreshRate = 0))
                               dismiss()
                           },
                           leadingIcon = {
-                               if(app.refreshRate == rate) Icon(Icons.Rounded.Check, null)
+                              if(app.refreshRate == 0) Icon(Icons.Rounded.Check, null)
                           }
                       )
+                      
+                      // Available refresh rates
+                      availableRefreshRates.forEach { rate ->
+                          DropdownMenuItem(
+                              text = { Text("${rate}Hz") },
+                              onClick = { 
+                                  onUpdate(app.copy(refreshRate = rate))
+                                  dismiss()
+                              },
+                              leadingIcon = {
+                                  if(app.refreshRate == rate) Icon(Icons.Rounded.Check, null)
+                              }
+                          )
+                      }
                   }
               }
           }
@@ -599,21 +636,17 @@ fun ConfigDropdownRow(
 @Composable
 private fun getProfileColor(profile: ProfileType): Color {
   return when (profile) {
-    ProfileType.DEFAULT -> MaterialTheme.colorScheme.outline
     ProfileType.PERFORMANCE -> MaterialTheme.colorScheme.primary
     ProfileType.BALANCED -> MaterialTheme.colorScheme.secondary
     ProfileType.POWER_SAVE -> MaterialTheme.colorScheme.tertiary
-    ProfileType.GAMING -> MaterialTheme.colorScheme.inversePrimary
   }
 }
 
 private fun getProfileIcon(profile: ProfileType): ImageVector {
   return when (profile) {
-    ProfileType.DEFAULT -> Icons.Rounded.Settings
     ProfileType.PERFORMANCE -> Icons.Rounded.RocketLaunch
     ProfileType.BALANCED -> Icons.Rounded.Balance
     ProfileType.POWER_SAVE -> Icons.Rounded.BatteryChargingFull
-    ProfileType.GAMING -> Icons.Rounded.SportsEsports
   }
 }
 
@@ -630,20 +663,14 @@ private fun getInstalledApps(context: android.content.Context): List<AppProfile>
           AppProfile(
               packageName = info.packageName,
               appName = pm.getApplicationLabel(info).toString(),
+              governor = "schedutil",
+              thermalPreset = "Not Set",
+              refreshRate = 0,
+              enabled = true
           )
         }
   } catch (e: Exception) {
-    // Fallback to mock data
-    listOf(
-        AppProfile("com.instagram.android", "Instagram"),
-        AppProfile("com.whatsapp", "WhatsApp"),
-        AppProfile("com.spotify.music", "Spotify"),
-        AppProfile("com.discord", "Discord"),
-        AppProfile("com.netflix.mediaclient", "Netflix"),
-        AppProfile("com.miHoYo.GenshinImpact", "Genshin Impact", ProfileType.GAMING, RefreshRate.HZ_120),
-        AppProfile("com.tencent.ig", "PUBG Mobile", ProfileType.GAMING, RefreshRate.HZ_90),
-        AppProfile("com.mobile.legends", "Mobile Legends", ProfileType.GAMING, RefreshRate.HZ_120),
-    )
+    emptyList()
   }
 }
 
@@ -656,4 +683,113 @@ private fun getAppIcon(
   } catch (e: Exception) {
     null
   }
+}
+
+// Helper function to determine ProfileType from AppProfile
+private fun getProfileTypeFromApp(app: AppProfile): ProfileType {
+    return when {
+        app.governor == "performance" && app.thermalPreset == "Extreme" -> ProfileType.PERFORMANCE
+        app.governor == "powersave" && app.thermalPreset == "Class 0" -> ProfileType.POWER_SAVE
+        app.governor == "schedutil" && app.thermalPreset == "Dynamic" -> ProfileType.BALANCED
+        // Default to BALANCED if no match
+        else -> ProfileType.BALANCED
+    }
+}
+
+// Helper functions for refresh rate detection
+private fun getDeviceMaxRefreshRate(context: android.content.Context): Int {
+    return try {
+        val windowManager = context.getSystemService(android.content.Context.WINDOW_SERVICE) as android.view.WindowManager
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            val display = context.display ?: windowManager.defaultDisplay
+            display.supportedModes.maxOfOrNull { it.refreshRate.toInt() } ?: 60
+        } else {
+            @Suppress("DEPRECATION")
+            val display = windowManager.defaultDisplay
+            display.refreshRate.toInt()
+        }
+    } catch (e: Exception) {
+        60
+    }
+}
+
+private fun getAvailableRefreshRates(maxRate: Int): List<Int> {
+    return when {
+        maxRate >= 144 -> listOf(60, 90, 120, 144)
+        maxRate >= 120 -> listOf(60, 90, 120)
+        maxRate >= 90 -> listOf(60, 90)
+        else -> emptyList() // 60Hz or less = no refresh rate options
+    }
+}
+
+// Parse profiles from JSON
+private fun parseProfiles(json: String): List<AppProfile> {
+    return try {
+        val jsonArray = JSONArray(json)
+        val profiles = mutableListOf<AppProfile>()
+        for (i in 0 until jsonArray.length()) {
+            val obj = jsonArray.getJSONObject(i)
+            profiles.add(
+                AppProfile(
+                    packageName = obj.getString("packageName"),
+                    appName = obj.getString("appName"),
+                    governor = obj.optString("governor", "schedutil"),
+                    thermalPreset = obj.optString("thermalPreset", "Not Set"),
+                    refreshRate = obj.optInt("refreshRate", 0),
+                    enabled = obj.optBoolean("enabled", true),
+                )
+            )
+        }
+        profiles
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
+
+// Save a single profile
+private suspend fun saveProfile(
+    preferencesManager: PreferencesManager,
+    updatedApp: AppProfile,
+    allApps: List<AppProfile>
+) {
+    // Get current saved profiles
+    val currentJson = preferencesManager.getAppProfiles().first()
+    val currentProfiles = parseProfiles(currentJson).toMutableList()
+    
+    // Get system default governor to determine if this is truly customized
+    // We'll use the first cluster's governor as the system default
+    // Note: In a real scenario, you might want to pass this as a parameter
+    val systemDefaultGovernor = updatedApp.governor // This will be set correctly from the UI
+    
+    // Check if this app is customized (not default)
+    // An app is considered default if it uses system governor and "Not Set" thermal, and no refresh rate
+    val isCustomized = updatedApp.thermalPreset != "Not Set" || updatedApp.refreshRate != 0
+    
+    if (isCustomized) {
+        // Add or update the profile
+        val existingIndex = currentProfiles.indexOfFirst { it.packageName == updatedApp.packageName }
+        if (existingIndex >= 0) {
+            currentProfiles[existingIndex] = updatedApp
+        } else {
+            currentProfiles.add(updatedApp)
+        }
+    } else {
+        // Remove the profile if it's set to default
+        currentProfiles.removeAll { it.packageName == updatedApp.packageName }
+    }
+    
+    // Save to preferences
+    val jsonArray = JSONArray()
+    currentProfiles.forEach { profile ->
+        val obj = JSONObject().apply {
+            put("packageName", profile.packageName)
+            put("appName", profile.appName)
+            put("governor", profile.governor)
+            put("thermalPreset", profile.thermalPreset)
+            put("refreshRate", profile.refreshRate)
+            put("enabled", profile.enabled)
+        }
+        jsonArray.put(obj)
+    }
+    preferencesManager.saveAppProfiles(jsonArray.toString())
 }
