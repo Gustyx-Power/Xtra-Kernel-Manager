@@ -60,12 +60,12 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     shape = CircleShape,
-                    contentPadding = PaddingValues(0.dp)
+                    color = Color(0xFF8B5CF6).copy(alpha = 0.15f)
                 ) {
                     Row(
                         modifier = Modifier
@@ -78,20 +78,20 @@ fun LiquidGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                             Icon(
                                 Icons.AutoMirrored.Rounded.ArrowBack,
                                 contentDescription = "Back",
-                                tint = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                                tint = Color.White
                             )
                         }
                         Text(
                             text = stringResource(R.string.gpu_control),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                            color = Color.White
                         )
                         IconButton(onClick = { showRomInfoDialog = true }) {
                             Icon(
                                 Icons.Outlined.Info,
                                 contentDescription = "Info",
-                                tint = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
+                                tint = Color.White
                             )
                         }
                     }
