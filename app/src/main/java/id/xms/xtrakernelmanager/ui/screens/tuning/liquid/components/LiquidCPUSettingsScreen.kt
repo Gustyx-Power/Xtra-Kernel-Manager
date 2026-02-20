@@ -112,7 +112,7 @@ fun LiquidCPUSettingsScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp),
+            contentPadding = PaddingValues(bottom = 100.dp),
         ) {
           if (clusters.isEmpty()) {
             item { EmptyState() }
@@ -126,7 +126,12 @@ fun LiquidCPUSettingsScreen(
               )
             }
             
-            // Core Management Card (NEW - Separated from clusters)
+            // CPU Set on Boot Toggle
+            item {
+              LiquidCPUSetOnBootCard(viewModel = viewModel)
+            }
+            
+            // Core Management Card
             item {
               LiquidCoreControl(
                   cores = cpuCores,
@@ -143,11 +148,6 @@ fun LiquidCPUSettingsScreen(
                   uiState = clusterStates[cluster.clusterNumber],
                   viewModel = viewModel,
               )
-            }
-            
-            // CPU Set on Boot Toggle
-            item {
-              LiquidCPUSetOnBootCard(viewModel = viewModel)
             }
           }
         }
@@ -247,7 +247,7 @@ private fun SmartFrequencyLockSection(
       // Status Info
       if (isLocked) {
       HorizontalDivider(
-          color = Color.White.copy(alpha = 0.3f) // More visible divider
+          color = Color.White.copy(alpha = 0.3f)
       )
         
         Column(
@@ -266,13 +266,13 @@ private fun SmartFrequencyLockSection(
             )
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF3B82F6).copy(alpha = 0.5f) // More visible blue glass badge
+                color = Color(0xFF3B82F6).copy(alpha = 0.5f)
             ) {
               Text(
                   text = lockStatus.policyType.name.replace("_", " "),
                   style = MaterialTheme.typography.bodyMedium,
                   fontWeight = FontWeight.Medium,
-                  color = Color.White, // White text for better contrast
+                  color = Color.White,
                   modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
               )
             }
@@ -288,17 +288,17 @@ private fun SmartFrequencyLockSection(
               Text(
                   text = stringResource(R.string.liquid_smart_lock_thermal_policy),
                   style = MaterialTheme.typography.bodyMedium,
-                  color = Color.White.copy(alpha = 0.8f) // More visible
+                  color = Color.White.copy(alpha = 0.8f)
               )
               Surface(
                   shape = RoundedCornerShape(8.dp),
-                  color = Color(0xFF8B5CF6).copy(alpha = 0.5f) // More visible purple glass badge
+                  color = Color(0xFF8B5CF6).copy(alpha = 0.5f)
               ) {
                 Text(
                     text = lockStatus.thermalPolicy,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = Color.White, // White text for better contrast
+                    color = Color.White,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
               }
@@ -314,7 +314,7 @@ private fun SmartFrequencyLockSection(
             Text(
                 text = stringResource(R.string.liquid_smart_lock_locked_clusters),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f) // More visible
+                color = Color.White.copy(alpha = 0.8f)
             )
             Text(
                 text = stringResource(R.string.liquid_smart_lock_clusters_format, lockStatus.clusterCount),
@@ -327,7 +327,7 @@ private fun SmartFrequencyLockSection(
       }
       
       HorizontalDivider(
-          color = Color.White.copy(alpha = 0.3f) // More visible divider
+          color = Color.White.copy(alpha = 0.3f)
       )
       
       // Action Buttons
@@ -570,14 +570,14 @@ internal fun ClusterFrequencyCard(
 ) {
   // Determine cluster-specific color
   val clusterColor = when (clusterIndex) {
-    0 -> Color(0xFF10B981) // Green for Performance
-    1 -> Color(0xFF3B82F6) // Blue for Efficiency  
-    else -> Color(0xFF8B5CF6) // Purple for additional clusters
+    0 -> Color(0xFF10B981)
+    1 -> Color(0xFF3B82F6) 
+    else -> Color(0xFF8B5CF6)
   }
   
   Surface(
       shape = RoundedCornerShape(16.dp),
-      color = clusterColor.copy(alpha = 0.15f), // Cluster-specific colored glass
+      color = clusterColor.copy(alpha = 0.15f),
   ) {
     Column(
         modifier = Modifier
@@ -594,7 +594,7 @@ internal fun ClusterFrequencyCard(
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(clusterColor.copy(alpha = 0.3f)), // Cluster-specific glass badge
+                .background(clusterColor.copy(alpha = 0.3f)),
             contentAlignment = Alignment.Center
         ) {
           Text(
@@ -608,7 +608,7 @@ internal fun ClusterFrequencyCard(
             text = clusterName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White // Consistent white text
+            color = Color.White
         )
       }
       
@@ -622,7 +622,7 @@ internal fun ClusterFrequencyCard(
             onClick = onMinClick,
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF10B981).copy(alpha = 0.15f), // Green glass effect
+            color = Color(0xFF10B981).copy(alpha = 0.15f),
         ) {
           Column(
               modifier = Modifier.padding(12.dp),
@@ -631,7 +631,7 @@ internal fun ClusterFrequencyCard(
             Text(
                 text = stringResource(R.string.liquid_smart_lock_min),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f) // Consistent white text
+                color = Color.White.copy(alpha = 0.7f)
             )
             Text(
                 text = "$minFreq",
@@ -652,7 +652,7 @@ internal fun ClusterFrequencyCard(
             onClick = onMaxClick,
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF8B5CF6).copy(alpha = 0.15f), // Purple glass effect
+            color = Color(0xFF8B5CF6).copy(alpha = 0.15f),
         ) {
           Column(
               modifier = Modifier.padding(12.dp),
@@ -661,7 +661,7 @@ internal fun ClusterFrequencyCard(
             Text(
                 text = stringResource(R.string.liquid_smart_lock_max),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f) // Consistent white text
+                color = Color.White.copy(alpha = 0.7f)
             )
             Text(
                 text = "$maxFreq",
@@ -691,9 +691,9 @@ internal fun PolicySelectionCard(
       onClick = onSelect,
       shape = RoundedCornerShape(12.dp),
       color = if (isSelected)
-        Color(0xFF3B82F6).copy(alpha = 0.5f) // Stronger blue glass for selected - more visible
+        Color(0xFF3B82F6).copy(alpha = 0.5f)
       else
-        Color.White.copy(alpha = 0.1f), // Subtle white glass for unselected
+        Color.White.copy(alpha = 0.1f),
   ) {
     Row(
         modifier = Modifier
@@ -711,7 +711,7 @@ internal fun PolicySelectionCard(
             text = policy.name.replace("_", " "),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.8f) // Consistent white text
+            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.8f)
         )
         Text(
             text = when (policy) {
@@ -721,7 +721,7 @@ internal fun PolicySelectionCard(
               LockPolicyType.BATTERY_SAVING -> stringResource(R.string.liquid_lock_policy_battery_saving_desc)
             },
             style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.7f) // Consistent white text
+            color = Color.White.copy(alpha = 0.7f)
         )
       }
     }
@@ -760,13 +760,13 @@ private fun ModernClusterCard(
   var minFreqSlider by remember(cluster.clusterNumber) { mutableFloatStateOf(currentMinFreq) }
   var maxFreqSlider by remember(cluster.clusterNumber) { mutableFloatStateOf(currentMaxFreq) }
   var showGovernorDialog by remember { mutableStateOf(false) }
-  var isExpanded by remember { mutableStateOf(true) } // Default expanded in detailed view
+  var isExpanded by remember { mutableStateOf(true) }
 
   // Cluster-specific colors
   val clusterColor = when (clusterIndex) {
-    0 -> Color(0xFF10B981) // Green for Performance
-    1 -> Color(0xFF3B82F6) // Blue for Efficiency  
-    else -> Color(0xFF8B5CF6) // Purple for additional clusters
+    0 -> Color(0xFF10B981)
+    1 -> Color(0xFF3B82F6) 
+    else -> Color(0xFF8B5CF6)
   }
 
   // Sync state
@@ -784,7 +784,7 @@ private fun ModernClusterCard(
   Surface(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = clusterColor.copy(alpha = 0.15f) // Colored glass effect
+      color = clusterColor.copy(alpha = 0.15f)
   ) {
     Column(modifier = Modifier.fillMaxWidth()) {
       // Cluster Header
@@ -801,14 +801,14 @@ private fun ModernClusterCard(
               modifier =
                   Modifier.size(40.dp)
                       .clip(CircleShape)
-                      .background(clusterColor.copy(alpha = 0.3f)), // Stronger cluster color
+                      .background(clusterColor.copy(alpha = 0.3f)),
               contentAlignment = Alignment.Center,
           ) {
             Text(
                 text = "C${clusterIndex}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White, // White text on colored background
+                color = Color.White,
             )
           }
 
@@ -822,7 +822,7 @@ private fun ModernClusterCard(
             Text(
                 text = "${cluster.minFreq} MHz - ${cluster.maxFreq} MHz",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.8f), // Slightly more opaque
+                color = Color.White.copy(alpha = 0.8f),
             )
           }
         }
@@ -842,7 +842,7 @@ private fun ModernClusterCard(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-          HorizontalDivider(color = Color.White.copy(alpha = 0.3f)) // Consistent white divider
+          HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
 
           // Frequency Controls - Clickable Cards
           var showMinFreqDialog by remember { mutableStateOf(false) }
@@ -935,7 +935,7 @@ private fun FrequencyClickableCard(
   Surface(
       onClick = onClick,
       shape = RoundedCornerShape(16.dp),
-      color = color.copy(alpha = 0.12f), // Colored glass effect instead of stroke
+      color = color.copy(alpha = 0.12f),
       modifier = Modifier.fillMaxWidth()
   ) {
     Row(
@@ -1001,7 +1001,7 @@ internal fun FrequencySelectionDialog(
     onSelect: (Int) -> Unit,
 ) {
   val sortedFreqs = remember(availableFrequencies) { 
-    availableFrequencies.sorted().reversed() // Highest first
+    availableFrequencies.sorted().reversed()
   }
   
   LiquidDialog(
@@ -1012,7 +1012,7 @@ internal fun FrequencySelectionDialog(
           Text(
               text = stringResource(R.string.liquid_smart_lock_no_frequencies_available),
               style = MaterialTheme.typography.bodyMedium,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(0.7f),
+              color = Color.White.copy(alpha = 0.7f),
               textAlign = TextAlign.Center,
               modifier = Modifier
                   .fillMaxWidth()
@@ -1033,9 +1033,9 @@ internal fun FrequencySelectionDialog(
                   onClick = { onSelect(freq) },
                   shape = RoundedCornerShape(12.dp),
                   color = if (isSelected) 
-                      Color(0xFF10B981).copy(alpha = 0.15f) // Green glass for selected
+                      Color(0xFF10B981).copy(alpha = 0.2f)
                   else 
-                      id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f), // Subtle glass
+                      Color.White.copy(alpha = 0.08f),
               ) {
                 Row(
                     modifier = Modifier
@@ -1055,16 +1055,16 @@ internal fun FrequencySelectionDialog(
                         color = if (isSelected) 
                             Color(0xFF10B981)
                         else 
-                            id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(),
+                            Color.White,
                     )
                     Text(
                         text = stringResource(R.string.liquid_smart_lock_mhz),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         color = if (isSelected) 
-                            Color(0xFF10B981).copy(alpha = 0.7f)
+                            Color(0xFF10B981).copy(alpha = 0.8f)
                         else 
-                            id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(0.7f),
+                            Color.White.copy(alpha = 0.7f),
                     )
                   }
                   
@@ -1105,7 +1105,7 @@ private fun GovernorSelector(currentGovernor: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFF3B82F6).copy(alpha = 0.12f), // Blue glass effect
+        color = Color(0xFF3B82F6).copy(alpha = 0.12f),
     ) {
       Row(
           modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -1163,9 +1163,9 @@ private fun GovernorSelectionLiquidDialog(
                 onClick = { onSelect(governor) },
                 shape = RoundedCornerShape(12.dp),
                 color = if (isSelected) 
-                    Color(0xFF3B82F6).copy(alpha = 0.15f) // Blue glass for selected
+                    Color(0xFF3B82F6).copy(alpha = 0.2f)
                 else 
-                    id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveSurfaceColor(0.05f), // Subtle glass
+                    Color.White.copy(alpha = 0.08f),
             ) {
               Row(
                   modifier = Modifier
@@ -1181,7 +1181,7 @@ private fun GovernorSelectionLiquidDialog(
                     color = if (isSelected) 
                         Color(0xFF3B82F6)
                     else 
-                        id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(),
+                        Color.White,
                 )
 
                 if (isSelected) {
@@ -1682,47 +1682,37 @@ private fun LiquidCPUSetOnBootCard(viewModel: TuningViewModel) {
 
   Surface(
       modifier = Modifier.fillMaxWidth(),
-      shape = RoundedCornerShape(24.dp),
+      shape = RoundedCornerShape(16.dp),
       color = Color(0xFF8B5CF6).copy(alpha = 0.15f) // Purple glass for set on boot
   ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp),
+            .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
       Row(
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+          modifier = Modifier.weight(1f)
       ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(
-                    if (cpuSetOnBoot) Color(0xFF8B5CF6).copy(alpha = 0.3f) // Stronger purple glass when enabled
-                    else Color.White.copy(alpha = 0.1f) // Subtle white glass when disabled
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-          Icon(
-              imageVector = Icons.Rounded.PowerSettingsNew,
-              contentDescription = null,
-              tint = if (cpuSetOnBoot) Color(0xFF8B5CF6) else Color.White.copy(alpha = 0.7f),
-              modifier = Modifier.size(24.dp)
-          )
-        }
+        Icon(
+            imageVector = Icons.Rounded.PowerSettingsNew,
+            contentDescription = null,
+            tint = if (cpuSetOnBoot) Color(0xFF8B5CF6) else Color.White.copy(alpha = 0.7f),
+            modifier = Modifier.size(20.dp)
+        )
         Column {
           Text(
               text = stringResource(R.string.set_on_boot),
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
+              style = MaterialTheme.typography.bodyLarge,
+              fontWeight = FontWeight.Medium,
               color = Color.White
           )
           Text(
               text = stringResource(R.string.apply_cpu_on_boot_desc),
-              style = MaterialTheme.typography.bodyMedium,
+              style = MaterialTheme.typography.bodySmall,
               color = Color.White.copy(alpha = 0.7f)
           )
         }
@@ -1730,8 +1720,7 @@ private fun LiquidCPUSetOnBootCard(viewModel: TuningViewModel) {
       
       LiquidToggle(
           checked = cpuSetOnBoot,
-          onCheckedChange = { enabled -> viewModel.setCpuSetOnBoot(enabled) },
-          modifier = Modifier.size(56.dp)
+          onCheckedChange = { enabled -> viewModel.setCpuSetOnBoot(enabled) }
       )
     }
   }
