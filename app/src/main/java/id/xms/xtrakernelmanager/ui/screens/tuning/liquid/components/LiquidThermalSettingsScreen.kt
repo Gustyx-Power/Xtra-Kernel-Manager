@@ -63,7 +63,7 @@ fun LiquidThermalSettingsScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = PaddingValues(20.dp)
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 100.dp)
             ) {
                 // Hero Section
                 item {
@@ -100,12 +100,12 @@ private fun ModernTopBar(
     title: String,
     onNavigateBack: () -> Unit
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        contentPadding = PaddingValues(0.dp)
+        color = Color(0xFFEF4444).copy(alpha = 0.15f) // Red glass untuk thermal
     ) {
         Row(
             modifier = Modifier
@@ -119,12 +119,12 @@ private fun ModernTopBar(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
+                    .background(Color.White.copy(alpha = 0.2f))
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = Color.White
                 )
             }
             
@@ -132,7 +132,7 @@ private fun ModernTopBar(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
             
             // Placeholder for balance
@@ -146,9 +146,10 @@ private fun HeroThermalCard(
     prefsThermal: String,
     selectedPolicy: String
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(28.dp),
+        color = Color(0xFFEF4444).copy(alpha = 0.15f) // Red glass untuk hero card
     ) {
         Box(
             modifier = Modifier
@@ -156,7 +157,7 @@ private fun HeroThermalCard(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            Color(0xFFEF4444).copy(alpha = 0.1f),
                             Color.Transparent
                         ),
                         radius = 300f
@@ -178,8 +179,8 @@ private fun HeroThermalCard(
                         .background(
                             Brush.linearGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.secondary
+                                    Color(0xFFEF4444),
+                                    Color(0xFFF97316)
                                 )
                             )
                         ),
@@ -188,7 +189,7 @@ private fun HeroThermalCard(
                     Icon(
                         imageVector = Icons.Default.Thermostat,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = Color.White,
                         modifier = Modifier.size(40.dp)
                     )
                 }
@@ -197,7 +198,7 @@ private fun HeroThermalCard(
                     text = "Thermal Control Center",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 
                 // Status indicators
@@ -207,12 +208,12 @@ private fun HeroThermalCard(
                     StatusChip(
                         label = "Index",
                         value = prefsThermal,
-                        color = MaterialTheme.colorScheme.error
+                        color = Color(0xFFEF4444)
                     )
                     StatusChip(
                         label = "Policy",
                         value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else "",
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color(0xFFF97316)
                     )
                 }
             }
@@ -228,7 +229,7 @@ private fun StatusChip(
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = color.copy(alpha = 0.1f),
+        color = Color.White.copy(alpha = 0.2f),
         modifier = Modifier.padding(4.dp)
     ) {
         Column(
@@ -244,7 +245,7 @@ private fun StatusChip(
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -280,9 +281,10 @@ private fun ModernThermalIndexCard(
         }
     }
 
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFFF97316).copy(alpha = 0.15f) // Orange glass untuk thermal index
     ) {
         Column(
             modifier = Modifier
@@ -302,8 +304,8 @@ private fun ModernThermalIndexCard(
                         .background(
                             Brush.linearGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.error,
-                                    MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                                    Color(0xFFF97316),
+                                    Color(0xFFF97316).copy(alpha = 0.8f)
                                 )
                             )
                         ),
@@ -312,7 +314,7 @@ private fun ModernThermalIndexCard(
                     Icon(
                         imageVector = thermalIcon,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onError,
+                        tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -322,27 +324,24 @@ private fun ModernThermalIndexCard(
                         text = "Thermal Index",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     Text(
                         text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.error,
+                        color = Color(0xFFF97316),
                         fontWeight = FontWeight.Medium
                     )
                 }
             }
             
             // Interactive Selection Card
-            Card(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onShowDialog() },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -358,20 +357,20 @@ private fun ModernThermalIndexCard(
                         Icon(
                             imageVector = Icons.Default.Tune,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
+                            tint = Color(0xFFF97316),
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = "Change Thermal Index",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color.White
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
+                        tint = Color(0xFFF97316)
                     )
                 }
             }
@@ -397,9 +396,10 @@ private fun ModernThermalPolicyCard(
         ThermalPolicyPresets.getPolicyByName(selectedPolicy) 
     }
 
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFFFBBF24).copy(alpha = 0.15f) // Yellow glass untuk thermal policy
     ) {
         Column(
             modifier = Modifier
@@ -419,8 +419,8 @@ private fun ModernThermalPolicyCard(
                         .background(
                             Brush.linearGradient(
                                 colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                                    Color(0xFFFBBF24),
+                                    Color(0xFFFBBF24).copy(alpha = 0.8f)
                                 )
                             )
                         ),
@@ -429,7 +429,7 @@ private fun ModernThermalPolicyCard(
                     Icon(
                         imageVector = Icons.Default.Psychology,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
+                        tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -439,12 +439,12 @@ private fun ModernThermalPolicyCard(
                         text = "Thermal Policy",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     Text(
                         text = selectedPolicy,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFFFBBF24),
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -452,13 +452,10 @@ private fun ModernThermalPolicyCard(
             
             // Policy Details
             currentPolicy?.let { policy ->
-                Card(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    color = Color.White.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -470,40 +467,37 @@ private fun ModernThermalPolicyCard(
                             icon = Icons.Default.Warning,
                             label = "Emergency",
                             value = "${policy.emergencyThreshold}°C",
-                            color = MaterialTheme.colorScheme.error
+                            color = Color(0xFFEF4444)
                         )
                         ThermalDetailRow(
                             icon = Icons.Default.Info,
                             label = "Warning",
                             value = "${policy.warningThreshold}°C",
-                            color = MaterialTheme.colorScheme.tertiary
+                            color = Color(0xFFF97316)
                         )
                         ThermalDetailRow(
                             icon = Icons.Default.Restore,
                             label = "Restore",
                             value = "${policy.restoreThreshold}°C",
-                            color = MaterialTheme.colorScheme.secondary
+                            color = Color(0xFF10B981)
                         )
                         ThermalDetailRow(
                             icon = Icons.Default.Error,
                             label = "Critical",
                             value = "${policy.criticalThreshold}°C",
-                            color = MaterialTheme.colorScheme.error
+                            color = Color(0xFFDC2626)
                         )
                     }
                 }
             }
             
             // Change Policy Button
-            Card(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onShowDialog() },
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -519,20 +513,20 @@ private fun ModernThermalPolicyCard(
                         Icon(
                             imageVector = Icons.Default.Tune,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = Color(0xFFFBBF24),
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
                             text = "Change Thermal Policy",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color.White
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = Color(0xFFFBBF24)
                     )
                 }
             }
@@ -565,7 +559,7 @@ private fun ThermalDetailRow(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
         Text(
@@ -585,12 +579,9 @@ private fun ModernToggleCard(
     onCheckedChange: (Boolean) -> Unit,
     icon: ImageVector
 ) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    Surface(
+        color = Color.White.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -607,7 +598,7 @@ private fun ModernToggleCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = Color(0xFFF97316),
                     modifier = Modifier.size(20.dp)
                 )
                 Column {
@@ -615,12 +606,12 @@ private fun ModernToggleCard(
                         text = title,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White
                     )
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
