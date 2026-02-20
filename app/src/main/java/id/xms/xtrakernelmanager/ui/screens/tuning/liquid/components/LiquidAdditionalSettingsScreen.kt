@@ -27,7 +27,8 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidIOControl
 fun LiquidAdditionalSettingsScreen(
     viewModel: TuningViewModel, 
     preferencesManager: PreferencesManager,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToPerAppProfile: () -> Unit = {}
 ) {
     val cpuClusters by viewModel.cpuClusters.collectAsState()
     val availableGovernors = cpuClusters.firstOrNull()?.availableGovernors ?: emptyList()
@@ -46,14 +47,14 @@ fun LiquidAdditionalSettingsScreen(
                 GlassmorphicCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
                     shape = CircleShape,
                     contentPadding = PaddingValues(0.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -66,10 +67,11 @@ fun LiquidAdditionalSettingsScreen(
                         }
                         Text(
                             text = stringResource(R.string.liquid_additional_settings),
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor()
                         )
+                        // Spacer for balance
                         Spacer(modifier = Modifier.width(48.dp))
                     }
                 }
@@ -79,10 +81,30 @@ fun LiquidAdditionalSettingsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
             ) {
+                // Per App Profile Section
+                item {
+                    LiquidPerAppProfileCard(
+                        preferencesManager = preferencesManager,
+                        availableGovernors = availableGovernors,
+                        onNavigateToFullScreen = onNavigateToPerAppProfile
+                    )
+                }
+                
+                // System Settings Group
+                item {
+                    Text(
+                        text = "System Settings",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = id.xms.xtrakernelmanager.ui.screens.home.components.liquid.adaptiveTextColor(),
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp)
+                    )
+                }
+                
                 // Network Settings Section
                 item {
                     LiquidNetworkSettings(viewModel = viewModel)
@@ -91,14 +113,6 @@ fun LiquidAdditionalSettingsScreen(
                 // I/O Control Section
                 item {
                     LiquidIOControl(viewModel = viewModel)
-                }
-                
-                // Per App Profile Section - All settings embedded directly
-                item {
-                    LiquidPerAppProfileCard(
-                        preferencesManager = preferencesManager,
-                        availableGovernors = availableGovernors
-                    )
                 }
             }
         }
