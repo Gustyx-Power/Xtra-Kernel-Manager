@@ -489,7 +489,9 @@ jobs:
           fi
           
           cat build-info/build-info.json
-          cat build-info/checksums.txt
+          if [ -f "build-info/checksums.txt" ]; then
+            cat build-info/checksums.txt
+          fi
 
       - name: Prepare Release Artifact
         id: rename
