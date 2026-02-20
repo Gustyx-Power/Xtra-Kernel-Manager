@@ -236,6 +236,7 @@ private fun ThermalIndexOptionCard(
             Color(0xFFEF4444).copy(alpha = 0.2f) 
         else 
             Color(0xFFFBBF24).copy(alpha = 0.12f)
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
