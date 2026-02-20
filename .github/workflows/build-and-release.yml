@@ -281,10 +281,40 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Update Progress (20%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "20" "Installing Android NDK..."
+
       - name: Install Android NDK
         run: |
           sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+
+      - name: Update Progress (25%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "25" "Setting up Rust..."
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -294,6 +324,21 @@ jobs:
 
       - name: Install cargo-ndk
         run: cargo install cargo-ndk
+
+      - name: Update Progress (30%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "30" "Caching Dependencies..."
 
       - name: Cache Rust dependencies
         uses: actions/cache@v5
@@ -305,15 +350,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build Rust Native Library
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
-          export COMMIT_MSG
-          ./update_progress.sh "${{ steps.notify_start.outputs.message_id }}" "40" "Building Native Libraries..."
-          
-          cd app/src/main/rust/xkm_native
-          cargo ndk -t arm64-v8a -o ../../jniLibs build --release 2>&1 | tee ../../../../../rust_build.log
-          cat ../../../../../rust_build.log >> ../../../../../build.log
+      - name: Update Progress (35%)
+        if: steps.notify_start.outputs.message_id != ''
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -322,6 +360,16 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "35" "Building Rust Native Library..."
+
+      - name: Build Rust Native Library
+        run: |
+          cd app/src/main/rust/xkm_native
+          cargo ndk -t arm64-v8a -o ../../jniLibs build --release 2>&1 | tee ../../../../../rust_build.log
+          cat ../../../../../rust_build.log >> ../../../../../build.log
 
       - name: Verify Native Library
         run: |
@@ -331,6 +379,21 @@ jobs:
             echo "Native library NOT found"
             exit 1
           fi
+
+      - name: Update Progress (45%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "45" "Configuring Gradle..."
 
       - name: Create gradle.properties
         run: |
@@ -349,6 +412,21 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Update Progress (50%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "50" "Preparing Keystore..."
 
       - name: Checkout Keystore Repository
         if: |
@@ -379,10 +457,8 @@ jobs:
             -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
             -keypass ${{ secrets.KEY_PASSWORD }}
 
-      - name: Build Signed Release APK
-        if: |
-          (github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
+      - name: Update Progress (55%)
+        if: steps.notify_start.outputs.message_id != ''
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -394,13 +470,33 @@ jobs:
         run: |
           COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           export COMMIT_MSG
-          ./update_progress.sh "$MESSAGE_ID" "60" "Building APK..."
-          
+          ./update_progress.sh "$MESSAGE_ID" "55" "Building APK..."
+
+      - name: Build Signed Release APK
+        if: |
+          (github.event_name == 'push') || 
+          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
+        run: |
           ./gradlew assembleRelease \
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
             -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
             -PmyKeyPassword=${{ secrets.KEY_PASSWORD }} 2>&1 | tee -a build.log
+
+      - name: Update Progress (70%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "70" "Optimizing APK..."
 
       - name: Optimize APK for Play Protect
         if: |
