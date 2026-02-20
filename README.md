@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&colorA=363A4F&logo=rust&logoColor=D9E0EE">
     <img src="https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&colorA=363A4F&logo=android&logoColor=D9E0EE">
     <a href="https://deepwiki.com/Gustyx-Power/Xtra-Kernel-Manager"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-
+    <a href="https://github.com/Gustyx-Power/Xtra-Kernel-Manager/actions/workflows/build-and-release.yml"><img src="https://github.com/Gustyx-Power/Xtra-Kernel-Manager/actions/workflows/build-and-release.yml/badge.svg?branch=staging-version-3.1&event=workflow_dispatch" alt="Build & Release"></a>
 </p>
 
 <p align="center">
