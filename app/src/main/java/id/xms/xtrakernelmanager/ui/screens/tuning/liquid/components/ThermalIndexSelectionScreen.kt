@@ -109,12 +109,12 @@ private fun ModernTopBar(
     subtitle: String,
     onNavigateBack: () -> Unit
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        contentPadding = PaddingValues(0.dp)
+        color = Color(0xFFEF4444).copy(alpha = 0.15f)
     ) {
         Row(
             modifier = Modifier
@@ -128,12 +128,12 @@ private fun ModernTopBar(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
+                    .background(Color.White.copy(alpha = 0.2f))
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = Color.White
                 )
             }
             
@@ -145,12 +145,12 @@ private fun ModernTopBar(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
             
@@ -167,9 +167,10 @@ private fun InfoCard(
     icon: ImageVector,
     color: Color
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFFF97316).copy(alpha = 0.15f)
     ) {
         Row(
             modifier = Modifier
@@ -182,13 +183,13 @@ private fun InfoCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(color.copy(alpha = 0.1f)),
+                    .background(Color(0xFFF97316).copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = color,
+                    tint = Color(0xFFF97316),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -201,12 +202,12 @@ private fun InfoCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.8f),
                     lineHeight = 20.sp
                 )
             }
@@ -225,14 +226,16 @@ private fun ThermalIndexOptionCard(
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
     )
     
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .scale(scale)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        contentPadding = PaddingValues(0.dp)
-    ) {
+        color = if (isSelected) 
+            Color(0xFFEF4444).copy(alpha = 0.2f) 
+        else 
+            Color(0xFFFBBF24).copy(alpha = 0.12f)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -240,8 +243,8 @@ private fun ThermalIndexOptionCard(
                     if (isSelected) {
                         Brush.horizontalGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
-                                MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                                Color(0xFFEF4444).copy(alpha = 0.15f),
+                                Color(0xFFF97316).copy(alpha = 0.1f)
                             )
                         )
                     } else {
@@ -270,15 +273,15 @@ private fun ThermalIndexOptionCard(
                             if (isSelected) {
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        MaterialTheme.colorScheme.error,
-                                        MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                                        Color(0xFFEF4444),
+                                        Color(0xFFEF4444).copy(alpha = 0.8f)
                                     )
                                 )
                             } else {
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        MaterialTheme.colorScheme.surfaceVariant,
-                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
+                                        Color(0xFFFBBF24).copy(alpha = 0.3f),
+                                        Color(0xFFFBBF24).copy(alpha = 0.2f)
                                     )
                                 )
                             }
@@ -288,8 +291,8 @@ private fun ThermalIndexOptionCard(
                     Icon(
                         imageVector = option.icon,
                         contentDescription = null,
-                        tint = if (isSelected) MaterialTheme.colorScheme.onError
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = if (isSelected) Color.White
+                        else Color(0xFFFBBF24),
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -303,18 +306,18 @@ private fun ThermalIndexOptionCard(
                         text = stringResource(option.nameRes),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.onSurface
+                        color = if (isSelected) Color(0xFFEF4444)
+                        else Color.White
                     )
                     Text(
                         text = option.shortDescription,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.White.copy(alpha = 0.8f)
                     )
                     Text(
                         text = option.detailedDescription,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = Color.White.copy(alpha = 0.6f),
                         lineHeight = 16.sp
                     )
                 }
@@ -329,13 +332,13 @@ private fun ThermalIndexOptionCard(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.error),
+                            .background(Color(0xFFEF4444)),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onError,
+                            tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
                     }

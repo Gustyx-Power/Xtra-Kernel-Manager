@@ -101,12 +101,12 @@ private fun ModernTopBar(
     subtitle: String,
     onNavigateBack: () -> Unit
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        contentPadding = PaddingValues(0.dp)
+        color = Color(0xFFFBBF24).copy(alpha = 0.15f)
     ) {
         Row(
             modifier = Modifier
@@ -120,12 +120,12 @@ private fun ModernTopBar(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.3f))
+                    .background(Color.White.copy(alpha = 0.2f))
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = Color.White
                 )
             }
             
@@ -137,12 +137,12 @@ private fun ModernTopBar(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
             
@@ -159,9 +159,10 @@ private fun InfoCard(
     icon: ImageVector,
     color: Color
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF10B981).copy(alpha = 0.15f)
     ) {
         Row(
             modifier = Modifier
@@ -174,13 +175,13 @@ private fun InfoCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(color.copy(alpha = 0.1f)),
+                    .background(Color(0xFF10B981).copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = color,
+                    tint = Color(0xFF10B981),
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -193,12 +194,12 @@ private fun InfoCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color.White
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.White.copy(alpha = 0.8f),
                     lineHeight = 20.sp
                 )
             }
@@ -224,8 +225,8 @@ private fun ThermalPolicyCard(
         if (isSelected) {
             Brush.horizontalGradient(
                 colors = listOf(
-                    Color(0x4D6750A4), // primaryContainer with alpha
-                    Color(0x1A6750A4)  // primary with alpha
+                    Color(0xFFFBBF24).copy(alpha = 0.2f),
+                    Color(0xFFF59E0B).copy(alpha = 0.15f)
                 )
             )
         } else {
@@ -242,27 +243,30 @@ private fun ThermalPolicyCard(
         if (isSelected) {
             Brush.linearGradient(
                 colors = listOf(
-                    Color(0xFF6750A4), // primary
-                    Color(0xCC6750A4)  // primary with alpha
+                    Color(0xFFFBBF24),
+                    Color(0xFFFBBF24).copy(alpha = 0.8f)
                 )
             )
         } else {
             Brush.linearGradient(
                 colors = listOf(
-                    Color(0xFFE7E0EC), // surfaceVariant
-                    Color(0xCCE7E0EC)  // surfaceVariant with alpha
+                    Color(0xFF3B82F6).copy(alpha = 0.3f),
+                    Color(0xFF3B82F6).copy(alpha = 0.2f)
                 )
             )
         }
     }
     
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .scale(scale)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        contentPadding = PaddingValues(0.dp)
+        color = if (isSelected) 
+            Color(0xFFFBBF24).copy(alpha = 0.15f)
+        else 
+            Color(0xFF3B82F6).copy(alpha = 0.12f)
     ) {
         Box(
             modifier = Modifier
@@ -296,7 +300,7 @@ private fun ThermalPolicyCard(
                             Icon(
                                 imageVector = Icons.Default.Psychology,
                                 contentDescription = null,
-                                tint = if (isSelected) Color.White else Color(0xFF49454F),
+                                tint = if (isSelected) Color.White else Color(0xFF3B82F6),
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -305,7 +309,7 @@ private fun ThermalPolicyCard(
                             text = policy.name,
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) Color(0xFF6750A4) else Color(0xFF1D1B20)
+                            color = if (isSelected) Color(0xFFFBBF24) else Color.White
                         )
                     }
                     
@@ -323,7 +327,7 @@ private fun ThermalPolicyCard(
                             modifier = Modifier
                                 .size(32.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF6750A4)),
+                                .background(Color(0xFFFBBF24)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -337,16 +341,10 @@ private fun ThermalPolicyCard(
                 }
                 
                 // Temperature Thresholds
-                Card(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) 
-                            Color(0x4D6750A4)
-                        else 
-                            Color(0x4DE7E0EC)
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                    color = Color.White.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -358,7 +356,7 @@ private fun ThermalPolicyCard(
                             text = "Temperature Thresholds",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1D1B20)
+                            color = Color.White
                         )
                         
                         // Temperature rows
@@ -369,14 +367,14 @@ private fun ThermalPolicyCard(
                             ThermalThresholdChip(
                                 label = "Emergency",
                                 temperature = "${policy.emergencyThreshold}°C",
-                                color = Color(0xFFBA1A1A),
+                                color = Color(0xFFEF4444),
                                 icon = Icons.Default.Warning,
                                 modifier = Modifier.weight(1f)
                             )
                             ThermalThresholdChip(
                                 label = "Warning",
                                 temperature = "${policy.warningThreshold}°C",
-                                color = Color(0xFF7D5260),
+                                color = Color(0xFFF97316),
                                 icon = Icons.Default.Info,
                                 modifier = Modifier.weight(1f)
                             )
@@ -389,14 +387,14 @@ private fun ThermalPolicyCard(
                             ThermalThresholdChip(
                                 label = "Restore",
                                 temperature = "${policy.restoreThreshold}°C",
-                                color = Color(0xFF006A6B),
+                                color = Color(0xFF10B981),
                                 icon = Icons.Default.Restore,
                                 modifier = Modifier.weight(1f)
                             )
                             ThermalThresholdChip(
                                 label = "Critical",
                                 temperature = "${policy.criticalThreshold}°C",
-                                color = Color(0xFFBA1A1A),
+                                color = Color(0xFFDC2626),
                                 icon = Icons.Default.Error,
                                 modifier = Modifier.weight(1f)
                             )
@@ -417,7 +415,7 @@ private fun ThermalThresholdChip(
     modifier: Modifier = Modifier
 ) {
     // Stable background color
-    val backgroundColor = remember(color) { color.copy(alpha = 0.1f) }
+    val backgroundColor = remember(color) { color.copy(alpha = 0.2f) }
     
     Surface(
         modifier = modifier,
@@ -447,7 +445,7 @@ private fun ThermalThresholdChip(
             Text(
                 text = temperature,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF1D1B20),
+                color = Color.White,
                 fontWeight = FontWeight.Bold
             )
         }
