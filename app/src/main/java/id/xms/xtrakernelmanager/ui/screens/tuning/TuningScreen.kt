@@ -248,7 +248,16 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                       }
                   )
               }
-              "liquid_additional_settings" -> LiquidAdditionalSettingsScreen(viewModel, preferencesManager) { currentRoute = "main" }
+              "liquid_additional_settings" -> LiquidAdditionalSettingsScreen(
+                  viewModel = viewModel,
+                  preferencesManager = preferencesManager,
+                  onNavigateBack = { currentRoute = "main" },
+                  onNavigateToPerAppProfile = { currentRoute = "liquid_per_app_profile" }
+              )
+              "liquid_per_app_profile" -> id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidPerAppProfileScreen(
+                  preferencesManager = preferencesManager,
+                  onNavigateBack = { currentRoute = "liquid_additional_settings" }
+              )
               else -> Text("Unknown route: $route")
           }
       }
