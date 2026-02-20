@@ -501,6 +501,21 @@ jobs:
             echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
           fi
 
+      - name: Update Progress (80%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "80" "Preparing Release..."
+
       - name: Notify Build Complete
         if: |
           (github.event_name == 'push') || 
@@ -522,10 +537,8 @@ jobs:
             exit 1
           fi
           
-          # Get commit message and escape special characters
           COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           
-          # Determine build label and type
           if [ "${{ github.event_name }}" == "push" ]; then
             BUILD_LABEL="Auto Release Build"
             BUILD_TYPE="release"
@@ -538,7 +551,6 @@ jobs:
             fi
           fi
           
-          # Create caption with proper formatting
           CAPTION="<b>XKM $BUILD_LABEL</b>
           Version: $VERSION
           Size: $APK_SIZE
@@ -550,7 +562,9 @@ jobs:
           echo "Uploading APK: $APK_FILE"
           echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
           
-          # Upload APK to Telegram
+          export COMMIT_MSG
+          ./update_progress.sh "$START_MESSAGE_ID" "90" "Uploading APK..."
+          
           RESPONSE=$(curl -sS -F chat_id="$CHAT_ID" \
             -F document=@"$APK_FILE" \
             -F parse_mode="HTML" \
@@ -559,17 +573,26 @@ jobs:
           
           echo "Telegram Response: $RESPONSE"
           
-          # Check if upload was successful
           if echo "$RESPONSE" | grep -q '"ok":true'; then
             echo "APK uploaded successfully!"
-            ./update_progress.sh "$MESSAGE_ID" "100" "Build Complete!"
+            
+            APK_MESSAGE_ID=$(echo "$RESPONSE" | jq -r '.result.message_id')
+            
+            ./update_progress.sh "$START_MESSAGE_ID" "100" "Build Complete! ✅"
+            
+            if [ -n "$APK_MESSAGE_ID" ] && [ "$APK_MESSAGE_ID" != "null" ]; then
+              echo "Pinning message: $APK_MESSAGE_ID"
+              curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/pinChatMessage" \
+                -d chat_id="$CHAT_ID" \
+                -d message_id="$APK_MESSAGE_ID" \
+                -d disable_notification=false
+            fi
           else
             echo "Failed to upload APK!"
             echo "$RESPONSE"
-            ./update_progress.sh "$MESSAGE_ID" "100" "Upload Failed!"
+            ./update_progress.sh "$START_MESSAGE_ID" "100" "Upload Failed! ❌"
           fi
           
-          # Upload Build Log
           if [ -f "build.log" ]; then
             echo "Uploading Build Log..."
             curl -sS -F chat_id="$CHAT_ID" \
@@ -577,14 +600,6 @@ jobs:
               -F caption="Build Log" \
               "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument"
           fi
-          
-          # Delete start message logic moved to Cleanup only
-          # We want to KEEP the progress bar message on success as a record
-          # if [ -n "$START_MESSAGE_ID" ]; then
-          #   curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
-          #     -d chat_id="$CHAT_ID" \
-          #     -d message_id="$START_MESSAGE_ID"
-          # fi
 
       - name: Cleanup on Failure
         if: |
