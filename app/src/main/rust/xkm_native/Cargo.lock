@@ -85,9 +85,9 @@ checksum = "92ecc6618181def0457392ccd0ee51198e065e016d1d527a7ac1b6dc7c1f09d2"
 
 [[package]]
 name = "jni"
-version = "0.22.0"
+version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "051ac7b04986c689b0c2e136bd26f992509d4d3e10aff8557ca002d5de7eae39"
+checksum = "e2fc3e99c2f191cafcbc52f44ae7352145cc7a8e7e3242f0b5b173b75b7467af"
 dependencies = [
  "cesu8",
  "cfg-if",
