@@ -40,7 +40,7 @@ leakcanary = "2.14"
 # KSP
 ksp = "2.3.6"
 lifecycle-service = "2.10.0"
-foundation = "1.10.3"
+foundation = "1.10.4"
 
 # YukiHookAPI - For Xposed Module (Banking Hide Mode)
 yukihookapi = "1.3.1"
