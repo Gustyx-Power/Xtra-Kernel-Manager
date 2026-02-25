@@ -198,7 +198,7 @@ dependencies {
     // Lottie for animations
     implementation("com.airbnb.android:lottie-compose:6.4.0")
 
-    implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.4")
+    implementation("com.patrykandpatrick.vico:compose-m3:3.0.1")
 
     // Backdrop (Liquid Glass)
     implementation("io.github.kyant0:backdrop:1.0.6")
