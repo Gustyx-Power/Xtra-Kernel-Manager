@@ -18,11 +18,16 @@ pub extern "system" fn JNI_OnLoad(
 
 #[inline]
 fn create_jstring_safe(env: EnvUnowned, s: String) -> jstring {
-    env.with_env(|env| {
+    let result = env.with_env(|env| {
         env.new_string(s)
             .unwrap_or_else(|_| env.new_string("").unwrap())
             .into_raw()
-    })
+    });
+    
+    match result {
+        Ok(ptr) => ptr,
+        Err(_) => std::ptr::null_mut(),
+    }
 }
 
 #[unsafe(no_mangle)]
@@ -313,15 +318,21 @@ pub extern "system" fn Java_id_xms_xtrakernelmanager_domain_native_NativeLib_get
     _class: JClass,
     key: JString,
 ) -> jstring {
-    env.with_env(|env| {
-        let key_str: String = env.get_string(&key)
+    let result = env.with_env(|env| {
+        // Use to_string() instead of deprecated get_string()
+        let key_str: String = env.to_string(&key)
             .map(|s| s.into())
             .unwrap_or_default();
         let value = utils::get_system_property(&key_str).unwrap_or_default();
         env.new_string(value)
             .unwrap_or_else(|_| env.new_string("").unwrap())
             .into_raw()
-    })
+    });
+    
+    match result {
+        Ok(ptr) => ptr,
+        Err(_) => std::ptr::null_mut(),
+    }
 }
 
 #[unsafe(no_mangle)]
