@@ -11,13 +11,21 @@ on:
           - release
           - debug
         default: release
+      build_format:
+        description: 'Build Format'
+        required: true
+        type: choice
+        options:
+          - apk
+          - aab
+        default: apk
       upload_telegram:
         description: 'Upload to Telegram?'
         required: false
         default: true
         type: boolean
       sign_apk:
-        description: 'Sign APK? (release only)'
+        description: 'Sign APK/AAB? (release only)'
         required: false
         default: true
         type: boolean
@@ -140,11 +148,13 @@ jobs:
           # Set defaults based on trigger type
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             echo "build_type=${{ inputs.build_type || 'release' }}" >> $GITHUB_OUTPUT
+            echo "build_format=${{ inputs.build_format || 'apk' }}" >> $GITHUB_OUTPUT
             echo "upload_telegram=${{ inputs.upload_telegram || 'true' }}" >> $GITHUB_OUTPUT
             echo "sign_apk=${{ inputs.sign_apk || 'true' }}" >> $GITHUB_OUTPUT
           else
             # Auto trigger defaults
             echo "build_type=release" >> $GITHUB_OUTPUT
+            echo "build_format=apk" >> $GITHUB_OUTPUT
             echo "upload_telegram=true" >> $GITHUB_OUTPUT
             echo "sign_apk=true" >> $GITHUB_OUTPUT
           fi
@@ -262,7 +272,7 @@ jobs:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           cache: gradle
 
-      - name: Update Progress (10%)
+      - name: Update Progress (15%)
         if: steps.notify_start.outputs.message_id != ''
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -274,17 +284,22 @@ jobs:
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          sleep 3
           COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           export COMMIT_MSG
-          ./update_progress.sh "$MESSAGE_ID" "10" "Setting up Environment..."
+          ./update_progress.sh "$MESSAGE_ID" "15" "Setting up Environment..."
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+
+
       - name: Install Android NDK
         run: |
           sdkmanager --install "ndk;${{ env.NDK_VERSION }}"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/${{ env.NDK_VERSION }}" >> $GITHUB_ENV
+
+
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -305,15 +320,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
 
-      - name: Build Rust Native Library
-        run: |
-          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
-          export COMMIT_MSG
-          ./update_progress.sh "${{ steps.notify_start.outputs.message_id }}" "40" "Building Native Libraries..."
-          
-          cd app/src/main/rust/xkm_native
-          cargo ndk -t arm64-v8a -o ../../jniLibs build --release 2>&1 | tee ../../../../../rust_build.log
-          cat ../../../../../rust_build.log >> ../../../../../build.log
+      - name: Update Progress (35%)
+        if: steps.notify_start.outputs.message_id != ''
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -322,6 +330,17 @@ jobs:
           BRANCH: ${{ github.ref_name }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          sleep 3
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "35" "Building Rust Native Library..."
+
+      - name: Build Rust Native Library
+        run: |
+          cd app/src/main/rust/xkm_native
+          cargo ndk -t arm64-v8a -o ../../jniLibs build --release 2>&1 | tee ../../../../../rust_build.log
+          cat ../../../../../rust_build.log >> ../../../../../build.log
 
       - name: Verify Native Library
         run: |
@@ -332,9 +351,11 @@ jobs:
             exit 1
           fi
 
+
+
       - name: Create gradle.properties
         run: |
-          echo "org.gradle.jvmargs=-Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8" > gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8 -Djava.awt.headless=true" > gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
           echo "org.gradle.caching=true" >> gradle.properties
           echo "org.gradle.configuration-cache=true" >> gradle.properties
@@ -343,12 +364,13 @@ jobs:
           echo "kotlin.code.style=official" >> gradle.properties
           echo "android.nonTransitiveRClass=true" >> gradle.properties
           echo "android.nonFinalResIds=true" >> gradle.properties
-          # Play Protect compatibility optimizations
           echo "android.enableR8.fullMode=true" >> gradle.properties
           echo "android.experimental.enableSourceSetPathsMap=true" >> gradle.properties
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+
 
       - name: Checkout Keystore Repository
         if: |
@@ -379,10 +401,8 @@ jobs:
             -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
             -keypass ${{ secrets.KEY_PASSWORD }}
 
-      - name: Build Signed Release APK
-        if: |
-          (github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
+      - name: Update Progress (55%)
+        if: steps.notify_start.outputs.message_id != ''
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -392,20 +412,50 @@ jobs:
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
+          sleep 3
           COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           export COMMIT_MSG
-          ./update_progress.sh "$MESSAGE_ID" "60" "Building APK..."
-          
+          BUILD_FORMAT="${{ steps.defaults.outputs.build_format }}"
+          if [ "$BUILD_FORMAT" = "aab" ]; then
+            ./update_progress.sh "$MESSAGE_ID" "55" "Building AAB Bundle..."
+          else
+            ./update_progress.sh "$MESSAGE_ID" "55" "Building APK..."
+          fi
+
+      - name: Build Signed Release APK
+        if: |
+          steps.defaults.outputs.build_format == 'apk' && (
+            (github.event_name == 'push') || 
+            (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
+          )
+        run: |
           ./gradlew assembleRelease \
             -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
             -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
             -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
             -PmyKeyPassword=${{ secrets.KEY_PASSWORD }} 2>&1 | tee -a build.log
 
+      - name: Build Signed Release AAB
+        if: |
+          steps.defaults.outputs.build_format == 'aab' && 
+          github.event_name == 'workflow_dispatch' && 
+          inputs.build_type == 'release' && 
+          inputs.sign_apk == true
+        run: |
+          ./gradlew bundleRelease \
+            -PmyKeystorePath=$GITHUB_WORKSPACE/release.keystore \
+            -PmyKeystorePassword=${{ secrets.KEYSTORE_PASSWORD }} \
+            -PmyKeyAlias=${{ secrets.KEY_ALIAS }} \
+            -PmyKeyPassword=${{ secrets.KEY_PASSWORD }} 2>&1 | tee -a build.log
+
+
+
       - name: Optimize APK for Play Protect
         if: |
-          (github.event_name == 'push') || 
-          (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
+          steps.defaults.outputs.build_format == 'apk' && (
+            (github.event_name == 'push') || 
+            (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release')
+          )
         run: |
           # Verify APK signature
           APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
@@ -430,9 +480,46 @@ jobs:
             strings "$APK_PATH" | grep -i "root\|su\|superuser" | head -5 || echo "No suspicious strings found"
           fi
 
+      - name: Verify AAB Bundle
+        if: |
+          steps.defaults.outputs.build_format == 'aab' && 
+          github.event_name == 'workflow_dispatch' && 
+          inputs.build_type == 'release'
+        run: |
+          # Verify AAB bundle
+          AAB_PATH=$(find app/build/outputs/bundle/release -name "*.aab" -type f 2>/dev/null | head -n 1)
+          if [ -n "$AAB_PATH" ] && [ -f "$AAB_PATH" ]; then
+            echo "AAB found: $AAB_PATH"
+            
+            # Check AAB signature
+            if [ "${{ inputs.sign_apk }}" = "true" ]; then
+              echo "AAB signature verification:"
+              jarsigner -verify -verbose -certs "$AAB_PATH"
+            fi
+            
+            # Check AAB size
+            AAB_SIZE=$(stat -c%s "$AAB_PATH")
+            echo "AAB size: $AAB_SIZE bytes ($(($AAB_SIZE / 1024 / 1024)) MB)"
+            
+            # List AAB contents
+            unzip -l "$AAB_PATH" | head -20
+          fi
+
       - name: Build Unsigned Release APK
-        if: github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == false
+        if: |
+          steps.defaults.outputs.build_format == 'apk' && 
+          github.event_name == 'workflow_dispatch' && 
+          inputs.build_type == 'release' && 
+          inputs.sign_apk == false
         run: ./gradlew assembleRelease
+
+      - name: Build Unsigned Release AAB
+        if: |
+          steps.defaults.outputs.build_format == 'aab' && 
+          github.event_name == 'workflow_dispatch' && 
+          inputs.build_type == 'release' && 
+          inputs.sign_apk == false
+        run: ./gradlew bundleRelease
 
       - name: Build Debug APK
         if: github.event_name == 'workflow_dispatch' && inputs.build_type == 'debug'
@@ -458,26 +545,41 @@ jobs:
             "gradle_version": "$(./gradlew --version | grep Gradle | cut -d' ' -f2)",
             "kotlin_version": "$(./gradlew --version | grep Kotlin | cut -d' ' -f4)",
             "build_tools": "$(ls $ANDROID_SDK_ROOT/build-tools/ | tail -1)",
+            "build_format": "${{ steps.defaults.outputs.build_format }}",
             "signed": "${{ inputs.sign_apk }}",
             "reproducible": true
           }
           EOF
           
-          # Generate checksums
-          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
-          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
-            sha256sum "$APK_PATH" > build-info/checksums.txt
-            md5sum "$APK_PATH" >> build-info/checksums.txt
+          # Generate checksums for APK
+          if [ "${{ steps.defaults.outputs.build_format }}" = "apk" ]; then
+            APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+            if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
+              sha256sum "$APK_PATH" > build-info/checksums.txt
+              md5sum "$APK_PATH" >> build-info/checksums.txt
+            fi
+          fi
+          
+          # Generate checksums for AAB
+          if [ "${{ steps.defaults.outputs.build_format }}" = "aab" ]; then
+            AAB_PATH=$(find app/build/outputs/bundle/release -name "*.aab" -type f 2>/dev/null | head -n 1)
+            if [ -n "$AAB_PATH" ] && [ -f "$AAB_PATH" ]; then
+              sha256sum "$AAB_PATH" > build-info/checksums.txt
+              md5sum "$AAB_PATH" >> build-info/checksums.txt
+            fi
           fi
           
           cat build-info/build-info.json
-          cat build-info/checksums.txt
+          if [ -f "build-info/checksums.txt" ]; then
+            cat build-info/checksums.txt
+          fi
 
       - name: Prepare Release Artifact
         id: rename
         run: |
           mkdir -p app/dist
           VERSION="${{ steps.defaults.outputs.version }}"
+          BUILD_FORMAT="${{ steps.defaults.outputs.build_format }}"
           
           # Determine build type
           if [ "${{ github.event_name }}" == "push" ]; then
@@ -486,20 +588,57 @@ jobs:
             BUILD_TYPE="${{ inputs.build_type }}"
           fi
           
-          if [ "$BUILD_TYPE" = "release" ]; then
-            APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
-            APK_NAME="XKM-$VERSION.apk"
+          if [ "$BUILD_FORMAT" = "aab" ]; then
+            # Handle AAB
+            if [ "$BUILD_TYPE" = "release" ]; then
+              AAB_PATH=$(find app/build/outputs/bundle/release -name "*.aab" -type f 2>/dev/null | head -n 1)
+              AAB_NAME="XKM-$VERSION.aab"
+            else
+              AAB_PATH=$(find app/build/outputs/bundle/debug -name "*.aab" -type f 2>/dev/null | head -n 1)
+              AAB_NAME="XKM-$VERSION-debug.aab"
+            fi
+            
+            if [ -n "$AAB_PATH" ] && [ -f "$AAB_PATH" ]; then
+              cp "$AAB_PATH" "app/dist/$AAB_NAME"
+              FILE_SIZE=$(du -h "app/dist/$AAB_NAME" | cut -f1)
+              echo "file_size=$FILE_SIZE" >> $GITHUB_OUTPUT
+              echo "file_name=$AAB_NAME" >> $GITHUB_OUTPUT
+              echo "file_type=aab" >> $GITHUB_OUTPUT
+            fi
           else
-            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f 2>/dev/null | head -n 1)
-            APK_NAME="XKM-$VERSION-debug.apk"
+            # Handle APK
+            if [ "$BUILD_TYPE" = "release" ]; then
+              APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" -type f 2>/dev/null | head -n 1)
+              APK_NAME="XKM-$VERSION.apk"
+            else
+              APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" -type f 2>/dev/null | head -n 1)
+              APK_NAME="XKM-$VERSION-debug.apk"
+            fi
+            
+            if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
+              cp "$APK_PATH" "app/dist/$APK_NAME"
+              FILE_SIZE=$(du -h "app/dist/$APK_NAME" | cut -f1)
+              echo "file_size=$FILE_SIZE" >> $GITHUB_OUTPUT
+              echo "file_name=$APK_NAME" >> $GITHUB_OUTPUT
+              echo "file_type=apk" >> $GITHUB_OUTPUT
+            fi
           fi
-          
-          if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
-            cp "$APK_PATH" "app/dist/$APK_NAME"
-            APK_SIZE=$(du -h "app/dist/$APK_NAME" | cut -f1)
-            echo "apk_size=$APK_SIZE" >> $GITHUB_OUTPUT
-            echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
-          fi
+
+      - name: Update Progress (75%)
+        if: steps.notify_start.outputs.message_id != ''
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
+          VERSION: ${{ steps.defaults.outputs.version }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          sleep 3
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
+          export COMMIT_MSG
+          ./update_progress.sh "$MESSAGE_ID" "75" "Preparing Release..."
 
       - name: Notify Build Complete
         if: |
@@ -509,67 +648,88 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           VERSION: ${{ steps.defaults.outputs.version }}
-          APK_SIZE: ${{ steps.rename.outputs.apk_size }}
-          APK_NAME: ${{ steps.rename.outputs.apk_name }}
+          FILE_SIZE: ${{ steps.rename.outputs.file_size }}
+          FILE_NAME: ${{ steps.rename.outputs.file_name }}
+          FILE_TYPE: ${{ steps.rename.outputs.file_type }}
           COMMIT_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
           WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           START_MESSAGE_ID: ${{ steps.notify_start.outputs.message_id }}
         run: |
-          APK_FILE="app/dist/$APK_NAME"
+          BUILD_FILE="app/dist/$FILE_NAME"
           
-          if [ ! -f "$APK_FILE" ]; then
-            echo "APK file not found"
+          if [ ! -f "$BUILD_FILE" ]; then
+            echo "Build file not found"
             exit 1
           fi
           
-          # Get commit message and escape special characters
           COMMIT_MSG=$(git log -1 --pretty=format:"%s" | sed 's/[<>&"]/\\&/g')
           
-          # Determine build label and type
           if [ "${{ github.event_name }}" == "push" ]; then
             BUILD_LABEL="Auto Release Build"
             BUILD_TYPE="release"
           else
             BUILD_TYPE="${{ inputs.build_type }}"
             if [ "$BUILD_TYPE" = "release" ]; then
-              BUILD_LABEL="Manual Release Build"
+              if [ "$FILE_TYPE" = "aab" ]; then
+                BUILD_LABEL="Release AAB Bundle"
+              else
+                BUILD_LABEL="Manual Release Build"
+              fi
             else
-              BUILD_LABEL="Debug Build"
+              if [ "$FILE_TYPE" = "aab" ]; then
+                BUILD_LABEL="Debug AAB Bundle"
+              else
+                BUILD_LABEL="Debug Build"
+              fi
             fi
           fi
           
-          # Create caption with proper formatting
           CAPTION="<b>XKM $BUILD_LABEL</b>
           Version: $VERSION
-          Size: $APK_SIZE
+          Format: ${FILE_TYPE^^}
+          Size: $FILE_SIZE
           
           <blockquote><code>$COMMIT_MSG</code></blockquote>
           
           <a href=\"$COMMIT_URL\">Commit</a> | <a href=\"$WORKFLOW_URL\">Workflow</a>"
           
-          echo "Uploading APK: $APK_FILE"
-          echo "File size: $(ls -lh "$APK_FILE" | awk '{print $5}')"
+          echo "Uploading file: $BUILD_FILE"
+          echo "File size: $(ls -lh "$BUILD_FILE" | awk '{print $5}')"
           
-          # Upload APK to Telegram
+          export COMMIT_MSG
+          sleep 3
+          ./update_progress.sh "$START_MESSAGE_ID" "90" "Uploading ${FILE_TYPE^^}..."
+          
+          sleep 2
           RESPONSE=$(curl -sS -F chat_id="$CHAT_ID" \
-            -F document=@"$APK_FILE" \
+            -F document=@"$BUILD_FILE" \
             -F parse_mode="HTML" \
             --form-string "caption=$CAPTION" \
             "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument")
           
           echo "Telegram Response: $RESPONSE"
           
-          # Check if upload was successful
           if echo "$RESPONSE" | grep -q '"ok":true'; then
-            echo "APK uploaded successfully!"
-            ./update_progress.sh "$MESSAGE_ID" "100" "Build Complete!"
+            echo "File uploaded successfully!"
+            
+            FILE_MESSAGE_ID=$(echo "$RESPONSE" | jq -r '.result.message_id')
+            
+            sleep 3
+            ./update_progress.sh "$START_MESSAGE_ID" "100" "Build Complete! ✅"
+            
+            if [ -n "$FILE_MESSAGE_ID" ] && [ "$FILE_MESSAGE_ID" != "null" ]; then
+              echo "Pinning message: $FILE_MESSAGE_ID"
+              curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/pinChatMessage" \
+                -d chat_id="$CHAT_ID" \
+                -d message_id="$FILE_MESSAGE_ID" \
+                -d disable_notification=false
+            fi
           else
-            echo "Failed to upload APK!"
+            echo "Failed to upload file!"
             echo "$RESPONSE"
-            ./update_progress.sh "$MESSAGE_ID" "100" "Upload Failed!"
+            ./update_progress.sh "$START_MESSAGE_ID" "100" "Upload Failed! ❌"
           fi
           
-          # Upload Build Log
           if [ -f "build.log" ]; then
             echo "Uploading Build Log..."
             curl -sS -F chat_id="$CHAT_ID" \
@@ -577,14 +737,6 @@ jobs:
               -F caption="Build Log" \
               "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/sendDocument"
           fi
-          
-          # Delete start message logic moved to Cleanup only
-          # We want to KEEP the progress bar message on success as a record
-          # if [ -n "$START_MESSAGE_ID" ]; then
-          #   curl -s -X POST "https://botapi.arasea.dpdns.org/bot$BOT_TOKEN/deleteMessage" \
-          #     -d chat_id="$CHAT_ID" \
-          #     -d message_id="$START_MESSAGE_ID"
-          # fi
 
       - name: Cleanup on Failure
         if: |
