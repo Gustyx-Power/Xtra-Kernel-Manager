@@ -31,10 +31,10 @@ android {
 
     defaultConfig {
         applicationId = "id.xms.xtrakernelmanager"
-        minSdk = 31
+        minSdk = 29
         targetSdk = 36
         versionCode = 3
-        versionName = "3.0-Release"
+        versionName = "3.0.1-Release"
 
         // Build Parsing
         val buildDate = SimpleDateFormat("yyyy.MM.dd").format(Date())
