@@ -44,7 +44,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        resConfigs("en", "in", "ru")
+        resConfigs("in", "ru")
     }
     
     signingConfigs {
