@@ -264,10 +264,9 @@
 # Prevent stripping of JNI method signatures and parameter names
 -keepattributes Signature,InnerClasses,EnclosingMethod,*Annotation*,MethodParameters
 
-# Keep all native library loading code
+# Keep all native library loading code (static initializers)
 -keepclassmembers class * {
-    static { *; }
-    void <clinit>();
+    <clinit>();
 }
 
 # Keep System.loadLibrary and System.load calls
@@ -278,7 +277,7 @@
 
 # Keep all classes that load native libraries
 -keepclasseswithmembers class * {
-    static { System.loadLibrary(...); }
+    static <methods>;
 }
 
 # Prevent obfuscation of field names accessed from native code
