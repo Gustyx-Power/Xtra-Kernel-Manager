@@ -125,12 +125,12 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                GlassmorphicCard(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     shape = CircleShape,
-                    contentPadding = PaddingValues(0.dp)
+                    color = Color(0xFF3B82F6).copy(alpha = 0.15f)
                 ) {
                     Row(
                         modifier = Modifier
@@ -143,14 +143,14 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                             Icon(
                                 Icons.AutoMirrored.Rounded.ArrowBack,
                                 contentDescription = "Back",
-                                tint = adaptiveTextColor()
+                                tint = Color.White
                             )
                         }
                         Text(
                             text = stringResource(R.string.ram_control),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = adaptiveTextColor()
+                            color = Color.White
                         )
                         Spacer(modifier = Modifier.width(48.dp))
                     }
@@ -165,23 +165,22 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                     .padding(horizontal = 24.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header Info Card
                 LiquidInfoCard(
                     icon = Icons.Rounded.Memory,
                     title = "Memory Management",
-                    description = "Configure RAM, ZRAM, and Swap settings for optimal performance"
+                    description = "Configure RAM, ZRAM, and Swap settings for optimal performance",
+                    color = Color(0xFF8B5CF6)
                 )
 
-                // ZRAM Section
                 LiquidRAMSection(
                     title = "ZRAM",
                     icon = Icons.Rounded.Compress,
-                    color = Color(0xFF10B981),
+                    color = Color(0xFF84CC16), // Light Green
                     enabled = zramEnabled,
                     onEnabledChange = {
                         zramEnabled = it
                         if (it && zramSize < 512f) {
-                            zramSize = 2048f // Set default 2GB when enabling
+                            zramSize = 2048f 
                         }
                     }
                 ) {
@@ -200,13 +199,12 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                                 onValueChange = { zramSize = it },
                                 onValueFinished = {},
                                 icon = Icons.Rounded.Storage,
-                                color = Color(0xFF10B981)
+                                color = Color(0xFF84CC16)
                             )
 
-                            // Apply Button
                             LiquidApplyButton(
                                 text = "Apply ZRAM",
-                                color = Color(0xFF10B981),
+                                color = Color(0xFF84CC16),
                                 onClick = {
                                     showZramDialog = true
                                     triggerZramApply = true
@@ -216,17 +214,20 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                     }
                 }
 
-                // Compression Algorithm Section (Separate)
                 AnimatedVisibility(
                     visible = zramEnabled,
                     enter = expandVertically() + fadeIn(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
-                    GlassmorphicCard(
+                    Surface(
                         modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(20.dp)
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color(0xFF84CC16).copy(alpha = 0.15f)
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -235,13 +236,13 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                                     modifier = Modifier
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(10.dp))
-                                        .background(Color(0xFF10B981).copy(alpha = 0.2f)),
+                                        .background(Color(0xFF84CC16).copy(alpha = 0.2f)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Rounded.Settings,
                                         contentDescription = null,
-                                        tint = Color(0xFF10B981),
+                                        tint = Color(0xFF84CC16),
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -249,7 +250,7 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                                     text = "Compression Algorithm",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = adaptiveTextColor()
+                                    color = Color.White
                                 )
                             }
 
@@ -261,16 +262,15 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                     }
                 }
 
-                // Swap Section
                 LiquidRAMSection(
                     title = "Swap",
                     icon = Icons.Rounded.SwapHoriz,
-                    color = Color(0xFF3B82F6),
+                    color = Color(0xFFD946EF), // Magenta
                     enabled = swapEnabled,
                     onEnabledChange = {
                         swapEnabled = it
                         if (it && swapSize < 512f) {
-                            swapSize = 2048f // Set default 2GB when enabling
+                            swapSize = 2048f 
                         }
                     }
                 ) {
@@ -289,13 +289,12 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                                 onValueChange = { swapSize = it },
                                 onValueFinished = {},
                                 icon = Icons.Rounded.SdCard,
-                                color = Color(0xFF3B82F6)
+                                color = Color(0xFFD946EF)
                             )
 
-                            // Apply Button
                             LiquidApplyButton(
                                 text = "Apply Swap",
-                                color = Color(0xFF3B82F6),
+                                color = Color(0xFFD946EF),
                                 onClick = {
                                     showSwapDialog = true
                                     triggerSwapApply = true
@@ -305,16 +304,14 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                     }
                 }
 
-                // Advanced Settings
                 Text(
                     text = "Advanced Settings",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = adaptiveTextColor(),
+                    color = Color.White,
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                // Swappiness
                 LiquidSliderCard(
                     label = "Swappiness",
                     value = swappiness,
@@ -328,7 +325,6 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                     description = "Controls how aggressively the kernel swaps memory pages"
                 )
 
-                // Dirty Ratio
                 LiquidSliderCard(
                     label = "Dirty Ratio",
                     value = dirtyRatio,
@@ -342,7 +338,6 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
                     description = "Percentage of memory that can be dirty before writing to disk"
                 )
 
-                // Min Free Memory
                 LiquidSliderCard(
                     label = "Min Free Memory",
                     value = minFreeMem,
@@ -360,7 +355,6 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
             }
         }
 
-        // ZRAM Apply Dialog
         if (showZramDialog) {
             LiquidLogDialog(
                 title = "Applying ZRAM",
@@ -369,7 +363,6 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
             )
         }
 
-        // Swap Apply Dialog
         if (showSwapDialog) {
             LiquidLogDialog(
                 title = "Applying Swap",
@@ -384,13 +377,16 @@ fun LiquidRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Un
 fun LiquidInfoCard(
     icon: ImageVector,
     title: String,
-    description: String
+    description: String,
+    color: Color
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = color.copy(alpha = 0.15f)
     ) {
         Row(
+            modifier = Modifier.padding(20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -401,7 +397,7 @@ fun LiquidInfoCard(
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
-                                Color(0xFF3B82F6).copy(alpha = 0.3f),
+                                Color(0xFFD946EF).copy(alpha = 0.3f),
                                 Color(0xFF8B5CF6).copy(alpha = 0.3f)
                             )
                         )
@@ -411,7 +407,7 @@ fun LiquidInfoCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = Color(0xFF3B82F6),
+                    tint = color,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -420,13 +416,13 @@ fun LiquidInfoCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = adaptiveTextColor()
+                    color = Color.White
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = adaptiveTextColor(0.7f)
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
         }
@@ -442,12 +438,15 @@ fun LiquidRAMSection(
     onEnabledChange: (Boolean) -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    GlassmorphicCard(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        shape = RoundedCornerShape(24.dp),
+        color = color.copy(alpha = 0.15f)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            // Header with toggle
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -475,7 +474,7 @@ fun LiquidRAMSection(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = adaptiveTextColor()
+                        color = Color.White
                     )
                 }
 
@@ -486,7 +485,6 @@ fun LiquidRAMSection(
                 )
             }
 
-            // Content
             content()
         }
     }
@@ -511,11 +509,10 @@ fun LiquidSliderCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(adaptiveSurfaceColor(0.05f))
+            .background(color.copy(alpha = 0.15f))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -535,11 +532,11 @@ fun LiquidSliderCard(
                     text = label,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = adaptiveTextColor()
+                    color = Color.White
                 )
             }
             Surface(
-                color = color.copy(alpha = 0.15f),
+                color = color.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
@@ -552,16 +549,14 @@ fun LiquidSliderCard(
             }
         }
 
-        // Description
         description?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
-                color = adaptiveTextColor(0.6f)
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
 
-        // Liquid Slider
         id.xms.xtrakernelmanager.ui.components.liquid.LiquidSlider(
             value = { value },
             onValueChange = onValueChange,
@@ -590,11 +585,11 @@ fun LiquidCompressionSelector(
                 onClick = { onAlgoSelected(algo) },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                color = if (isSelected) Color(0xFF10B981).copy(alpha = 0.2f)
-                else adaptiveSurfaceColor(0.1f),
+                color = if (isSelected) Color(0xFF84CC16).copy(alpha = 0.3f)
+                else Color.White.copy(alpha = 0.1f),
                 border = if (isSelected) androidx.compose.foundation.BorderStroke(
                     2.dp,
-                    Color(0xFF10B981)
+                    Color(0xFF84CC16)
                 ) else null
             ) {
                 Box(
@@ -605,7 +600,7 @@ fun LiquidCompressionSelector(
                         text = algo.uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color(0xFF10B981) else adaptiveTextColor(0.7f)
+                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.7f)
                     )
                 }
             }
@@ -613,11 +608,9 @@ fun LiquidCompressionSelector(
     }
 }
 
-// Extension function for formatting float
 private fun Float.formatDecimal(decimals: Int): String {
     return "%.${decimals}f".format(this)
 }
-
 
 @Composable
 fun LiquidApplyButton(
@@ -677,7 +670,6 @@ fun LiquidLogDialog(
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -700,7 +692,6 @@ fun LiquidLogDialog(
 
                 HorizontalDivider(color = adaptiveSurfaceColor(0.2f))
 
-                // Log Messages
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -716,7 +707,7 @@ fun LiquidLogDialog(
                             Icon(
                                 imageVector = Icons.Rounded.ChevronRight,
                                 contentDescription = null,
-                                tint = Color(0xFF10B981),
+                                tint = Color(0xFF84CC16),
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
@@ -728,7 +719,6 @@ fun LiquidLogDialog(
                     }
                 }
 
-                // Loading indicator if still processing
                 if (logs.lastOrNull()?.contains("completed") != true) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -736,7 +726,7 @@ fun LiquidLogDialog(
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color(0xFF10B981),
+                            color = Color(0xFF84CC16),
                             strokeWidth = 2.dp
                         )
                     }
