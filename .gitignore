@@ -110,3 +110,7 @@ build.sh
 .gradle/
 backdrop_catalog
 pico.save
+aab-to-apks.bat
+gradle/gradle-daemon-jvm.properties
+bundletool.jar
+app-release.apks
