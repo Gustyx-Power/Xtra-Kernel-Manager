@@ -156,6 +156,168 @@
 -keepnames class id.xms.xtrakernelmanager.domain.native.NativeLib$ThermalZone { *; }
 -keepnames class id.xms.xtrakernelmanager.domain.native.NativeLib$MemInfo { *; }
 
+# Keep ALL native methods explicitly (mapped from Rust JNI functions)
+-keepclassmembers class id.xms.xtrakernelmanager.domain.native.NativeLib {
+    # CPU Module
+    *** detectCpuClustersNative();
+    *** readCoreDataNative();
+    *** readCpuLoadNative();
+    *** readCpuTemperatureNative();
+    *** readCoreTemperatureNative(int);
+    *** getCpuModelNative();
+    
+    # GPU Module
+    *** readGpuFreqNative();
+    *** readGpuBusyNative();
+    *** resetGpuStatsNative();
+    *** getGpuVendorNative();
+    *** getGpuModelNative();
+    *** getGpuAvailableFrequenciesNative();
+    *** getGpuAvailablePoliciesNative();
+    *** getGpuDriverInfoNative();
+    
+    # Power/Battery Module
+    *** readBatteryLevelNative();
+    *** readBatteryTempNative();
+    *** readBatteryVoltageNative();
+    *** readBatteryCurrentNative();
+    *** readDrainRateNative();
+    *** isChargingNative();
+    *** readWakeupCountNative();
+    *** readSuspendCountNative();
+    *** readCycleCountNative();
+    *** readBatteryHealthNative();
+    *** readBatteryCapacityLevelNative();
+    
+    # Thermal Module
+    *** readThermalZoneNative(int);
+    *** getThermalZoneTypeNative(int);
+    *** readThermalZonesNative();
+    
+    # Memory Module
+    *** readMemInfoNative();
+    *** readMemInfoDetailedNative();
+    *** getMemoryPressureNative();
+    
+    # ZRAM Module
+    *** readZramSizeNative();
+    *** getZramCompressionRatioNative();
+    *** getZramCompressedSizeNative();
+    *** getZramOrigDataSizeNative();
+    *** getZramAlgorithmNative();
+    *** getAvailableZramAlgorithmsNative();
+    *** readZramDeviceStatsNative(int);
+    *** getSwappinessNative();
+    
+    # System Utils
+    *** getSystemPropertyNative(java.lang.String);
+    
+    # Public wrapper methods (Kotlin)
+    *** detectCpuClusters();
+    *** readBatteryCurrent();
+    *** readCpuLoad();
+    *** readCpuTemperature();
+    *** readCoreData();
+    *** readGpuFreq();
+    *** readGpuBusy();
+    *** resetGpuStats();
+    *** readBatteryLevel();
+    *** readDrainRate();
+    *** readWakeupCount();
+    *** readSuspendCount();
+    *** isCharging();
+    *** readBatteryTemp();
+    *** readBatteryVoltage();
+    *** readMemInfo();
+    *** readZramSize();
+    *** getSystemProperty(java.lang.String);
+    *** getGpuVendor();
+    *** getGpuModel();
+    *** readCycleCount();
+    *** readBatteryHealth();
+    *** readBatteryCapacityLevel();
+    *** getZramCompressionRatio();
+    *** getZramCompressedSize();
+    *** getZramOrigDataSize();
+    *** getZramAlgorithm();
+    *** getSwappiness();
+    *** getMemoryPressure();
+    *** getAvailableZramAlgorithms();
+    *** getGpuAvailableFrequencies();
+    *** getGpuAvailablePolicies();
+    *** getGpuDriverInfo();
+    *** readThermalZones();
+    *** getVulkanVersion(android.content.Context);
+}
+
+# ===== JNI/Rust for AAB Packages =====
+# Keep all native methods and their declaring classes
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
+
+# Keep all classes that contain native methods (critical for Rust JNI)
+-keepclasseswithmembers class * {
+    native <methods>;
+}
+
+# Prevent stripping of JNI method signatures and parameter names
+-keepattributes Signature,InnerClasses,EnclosingMethod,*Annotation*,MethodParameters
+
+# Keep all native library loading code
+-keepclassmembers class * {
+    static { *; }
+    void <clinit>();
+}
+
+# Keep System.loadLibrary and System.load calls
+-keepclassmembers class java.lang.System {
+    public static void loadLibrary(java.lang.String);
+    public static void load(java.lang.String);
+}
+
+# Keep all classes that load native libraries
+-keepclasseswithmembers class * {
+    static { System.loadLibrary(...); }
+}
+
+# Prevent obfuscation of field names accessed from native code
+-keepclassmembers class * {
+    @com.sun.jna.* *;
+}
+
+# Keep all JNI registration methods (for dynamic JNI registration)
+-keepclassmembers class * {
+    *** JNI_OnLoad(...);
+    *** JNI_OnUnload(...);
+}
+
+# Keep all classes referenced from native code (Rust FFI)
+-keep class ** {
+    native <methods>;
+}
+
+# Prevent removal of empty constructors (needed for JNI object creation)
+-keepclassmembers class * {
+    public <init>();
+}
+
+# Keep all enums (often used in JNI/Rust interop)
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
+
+# Additional AAB-specific rules for native libraries
+-keep class **.R$* { *; }
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
+
+# Ensure native library extraction works correctly in AAB
+-keep class com.android.vending.** { *; }
+-keep class com.google.android.play.** { *; }
+
 # ===== Serialization =====
 -keepclassmembers class * implements java.io.Serializable {
     static final long serialVersionUID;
