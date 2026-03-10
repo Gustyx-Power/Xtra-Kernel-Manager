@@ -69,7 +69,7 @@ pub fn read_file_libc(path: &str) -> Option<String> {
 pub fn get_system_property(_key: &str) -> Option<String> {
     #[cfg(target_os = "android")]
     {
-        android_properties::getprop(_key).ok()
+        android_properties::getprop(_key).value()
     }
     
     #[cfg(not(target_os = "android"))]
