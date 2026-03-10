@@ -10,6 +10,10 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    groups:
+      gradle-dependencies:
+        patterns:
+          - "*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -22,6 +26,10 @@ updates:
     commit-message:
       prefix: "chore(ci)"
       include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
 
   - package-ecosystem: "cargo"
     directory: "/app/src/main/rust/xkm_native"
@@ -34,3 +42,7 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
+    groups:
+      cargo-dependencies:
+        patterns:
+          - "*"
