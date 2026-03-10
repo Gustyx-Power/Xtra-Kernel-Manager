@@ -23,8 +23,8 @@ import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.BottomNavItem
 import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
 import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
-import id.xms.xtrakernelmanager.ui.components.liquid.LiquidBottomTabs
-import id.xms.xtrakernelmanager.ui.components.liquid.LiquidBottomTab
+import id.xms.xtrakernelmanager.ui.components.frosted.FrostedBottomTabs
+import id.xms.xtrakernelmanager.ui.components.frosted.FrostedBottomTab
 import id.xms.xtrakernelmanager.ui.components.classic.ClassicBottomBar
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
@@ -47,8 +47,8 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.SmartFrequencyLockScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedCPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.SmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialSmartFrequencyLockScreen
@@ -181,7 +181,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
     } else if (previousLayoutSwitching && !isLayoutSwitching) {
       // Layout switching just completed
       val layoutName = when (layoutStyle) {
-        "liquid" -> "Liquid Glass"
+        "liquid" -> "Frosted Glass"
         "classic" -> "Classic"
         else -> "Material"
       }
@@ -247,7 +247,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         composable("legacy_cpu_settings") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          LiquidCPUSettingsScreen(
+          FrostedCPUSettingsScreen(
               viewModel = tuningViewModel,
               onNavigateBack = { navController.popBackStack() },
               onNavigateToSmartLock = { navController.navigate("smart_frequency_lock") }
@@ -421,7 +421,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
             .padding(bottom = if (layoutStyle == "liquid") 120.dp else 80.dp)
     ) {
       // Simple target layout name
-      val targetLayoutName = if (layoutStyle == "liquid") "Liquid Glass" else "Material"
+      val targetLayoutName = if (layoutStyle == "liquid") "Frosted Glass" else "Material"
       id.xms.xtrakernelmanager.ui.components.MorphingLayoutSwitcher(
           isLoading = isLayoutSwitching,
           targetLayout = targetLayoutName,
@@ -466,7 +466,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
         val contentColor = if (isDark) androidx.compose.ui.graphics.Color.White 
                            else androidx.compose.ui.graphics.Color.Black
         
-        LiquidBottomTabs(
+        FrostedBottomTabs(
             selectedTabIndex = { selectedIndex },
             onTabSelected = { index -> navigateToRoute(bottomNavItems[index].route) },
             tabsCount = bottomNavItems.size,
@@ -477,7 +477,7 @@ fun Navigation(preferencesManager: PreferencesManager) {
                 .padding(bottom = 24.dp)
         ) {
           bottomNavItems.forEachIndexed { index, item ->
-            LiquidBottomTab(
+            FrostedBottomTab(
                 onClick = { navigateToRoute(item.route) },
                 onPress = { press() },
                 onRelease = { release() }

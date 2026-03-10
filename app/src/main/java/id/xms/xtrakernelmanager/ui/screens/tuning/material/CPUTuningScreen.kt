@@ -452,7 +452,7 @@ fun SmartFrequencyLockCard(onNavigateToSmartLock: () -> Unit) {
         }
         Column {
           Text(
-              stringResource(R.string.liquid_smart_frequency_lock),
+              stringResource(R.string.frosted_smart_frequency_lock),
               style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
               color = MaterialTheme.colorScheme.onTertiaryContainer,
           )

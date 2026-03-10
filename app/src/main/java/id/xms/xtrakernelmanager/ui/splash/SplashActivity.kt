@@ -85,7 +85,7 @@ class SplashActivity : ComponentActivity() {
             }
             "liquid" -> {
                 LaunchedEffect(Unit) {
-                    val intent = Intent(context, LiquidSplashActivity::class.java)
+                    val intent = Intent(context, FrostedSplashActivity::class.java)
                     context.startActivity(intent)
                     (context as? android.app.Activity)?.finish()
                     (context as? android.app.Activity)?.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)

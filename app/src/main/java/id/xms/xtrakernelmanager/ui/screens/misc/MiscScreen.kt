@@ -22,7 +22,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.section.BatteryInfoSection
 import id.xms.xtrakernelmanager.ui.screens.misc.section.DisplaySection
 import id.xms.xtrakernelmanager.ui.screens.misc.section.GameControlSection
 import id.xms.xtrakernelmanager.ui.screens.misc.material.MaterialMiscScreen
-import id.xms.xtrakernelmanager.ui.screens.misc.liquid.LiquidMiscScreen
+import id.xms.xtrakernelmanager.ui.screens.misc.frosted.FrostedMiscScreen
 
 @Composable
 fun MiscScreen(
@@ -45,8 +45,8 @@ fun MiscScreen(
         },
     )
   } else {
-    LiquidMiscScreen(viewModel, onNavigateToFunctionalRom, onNavigateToAppPicker)
+    FrostedMiscScreen(viewModel, onNavigateToFunctionalRom, onNavigateToAppPicker)
   }
 }
 
-// Legacy implementation kept for reference - now using LiquidMiscScreen
+// Legacy implementation kept for reference - now using FrostedMiscScreen

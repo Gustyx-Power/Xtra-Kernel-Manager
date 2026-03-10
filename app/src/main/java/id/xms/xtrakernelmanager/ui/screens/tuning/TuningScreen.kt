@@ -24,15 +24,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.TuningConfig
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.LiquidTuningScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidCPUSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidGPUSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidRAMSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.ThermalIndexSelectionScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.ThermalPolicySelectionScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidThermalSettingsScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidAdditionalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.FrostedTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedCPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedGPUSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedRAMSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedThermalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.ThermalIndexSelectionScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.ThermalPolicySelectionScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedThermalSettingsScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedAdditionalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicTuningScreen
 
 // ... (existing imports)
@@ -192,7 +192,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
           }
       ) { route ->
           when (route) {
-              "main" -> LiquidTuningScreen(
+              "main" -> FrostedTuningScreen(
                   viewModel = viewModel,
                   preferencesManager = preferencesManager,
                   isRootAvailable = isRootAvailable,
@@ -210,14 +210,14 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                   },
               )
               // Detail Screens
-              "liquid_cpu_settings" -> LiquidCPUSettingsScreen(
+              "liquid_cpu_settings" -> FrostedCPUSettingsScreen(
                   viewModel = viewModel,
                   onNavigateBack = { currentRoute = "main" },
                   onNavigateToSmartLock = { onNavigate("smart_frequency_lock") }
               )
-              "liquid_gpu_settings" -> LiquidGPUSettingsScreen(viewModel) { currentRoute = "main" }
-              "liquid_ram_settings" -> LiquidRAMSettingsScreen(viewModel) { currentRoute = "main" }
-              "liquid_thermal_settings" -> LiquidThermalSettingsScreen(
+              "liquid_gpu_settings" -> FrostedGPUSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_ram_settings" -> FrostedRAMSettingsScreen(viewModel) { currentRoute = "main" }
+              "liquid_thermal_settings" -> FrostedThermalSettingsScreen(
                   viewModel = viewModel,
                   onNavigateBack = { currentRoute = "main" },
                   onNavigateToIndexSelection = { currentRoute = "thermal_index_selection" },
@@ -248,13 +248,13 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                       }
                   )
               }
-              "liquid_additional_settings" -> LiquidAdditionalSettingsScreen(
+              "liquid_additional_settings" -> FrostedAdditionalSettingsScreen(
                   viewModel = viewModel,
                   preferencesManager = preferencesManager,
                   onNavigateBack = { currentRoute = "main" },
                   onNavigateToPerAppProfile = { currentRoute = "liquid_per_app_profile" }
               )
-              "liquid_per_app_profile" -> id.xms.xtrakernelmanager.ui.screens.tuning.liquid.components.LiquidPerAppProfileScreen(
+              "liquid_per_app_profile" -> id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedPerAppProfileScreen(
                   preferencesManager = preferencesManager,
                   onNavigateBack = { currentRoute = "liquid_additional_settings" }
               )
@@ -265,7 +265,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
 
     // Export Confirmation Dialog
     if (showExportDialog) {
-      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
+      id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog(
           onDismissRequest = { showExportDialog = false },
           title = stringResource(R.string.tuning_export_title),
           content = {
@@ -283,7 +283,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             }
           },
           confirmButton = {
-            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
                 text = stringResource(R.string.tuning_export_button),
                 onClick = {
                   showExportDialog = false
@@ -296,7 +296,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             )
           },
           dismissButton = {
-            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
                 text = stringResource(R.string.cancel),
                 onClick = { showExportDialog = false },
                 isPrimary = false
@@ -307,7 +307,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
 
     // Import Confirmation Dialog
     if (showImportDialog) {
-      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
+      id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog(
           onDismissRequest = { showImportDialog = false },
           title = stringResource(R.string.tuning_import_title),
           content = {
@@ -325,7 +325,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             }
           },
           confirmButton = {
-            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
                 text = stringResource(R.string.tuning_import_button),
                 onClick = {
                   showImportDialog = false
@@ -335,7 +335,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             )
           },
           dismissButton = {
-            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
                 text = stringResource(R.string.cancel),
                 onClick = { showImportDialog = false },
                 isPrimary = false
@@ -346,7 +346,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
 
     // LOADING POPUP saat import
     if (isImporting) {
-      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
+      id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog(
           onDismissRequest = {},
           title = stringResource(R.string.tuning_importing),
           content = {
@@ -370,7 +370,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
 
     // SOC Compatibility Warning Dialog
     if (showSOCWarning) {
-      id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialog(
+      id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog(
           onDismissRequest = {
             showSOCWarning = false
             pendingImportConfig = null
@@ -398,7 +398,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             }
           },
           confirmButton = {
-            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
                 text = stringResource(R.string.tuning_apply_anyway),
                 onClick = {
                   scope.launch {
@@ -419,7 +419,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
             )
           },
           dismissButton = {
-            id.xms.xtrakernelmanager.ui.components.liquid.LiquidDialogButton(
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
                 text = stringResource(R.string.cancel),
                 onClick = {
                   showSOCWarning = false

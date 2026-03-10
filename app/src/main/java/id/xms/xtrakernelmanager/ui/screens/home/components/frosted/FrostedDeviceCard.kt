@@ -1,0 +1,274 @@
+package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
+
+import android.os.SystemClock
+import android.text.format.DateUtils
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccessTime
+import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.DeveloperBoard
+import androidx.compose.material.icons.rounded.Fingerprint
+import androidx.compose.material.icons.rounded.NightsStay
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import id.xms.xtrakernelmanager.data.model.SystemInfo
+import id.xms.xtrakernelmanager.ui.theme.NeonBlue
+import id.xms.xtrakernelmanager.ui.theme.NeonGreen
+import id.xms.xtrakernelmanager.ui.theme.NeonPurple
+import kotlinx.coroutines.delay
+
+@Composable
+fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
+    // Uptime calculation
+    var uptime by remember { mutableStateOf(calculateUptime()) }
+    var deepSleep by remember { mutableStateOf("9999%") }
+
+    LaunchedEffect(Unit) {
+        // Update loop
+        while (true) {
+            uptime = calculateUptime()
+            
+            // Format Deep Sleep
+            val deepSleepMillis = systemInfo.deepSleep
+            val seconds = deepSleepMillis / 1000
+            val hours = seconds / 3600
+            val minutes = (seconds % 3600) / 60
+            deepSleep = "${hours}h ${minutes}m"
+            
+            delay(60000)
+        }
+    }
+
+    // Determine Brand Logo
+    val manufacturer = android.os.Build.MANUFACTURER
+    val logoRes = remember(manufacturer) {
+        when {
+            manufacturer.contains("xiaomi", ignoreCase = true) -> id.xms.xtrakernelmanager.R.drawable.mi_logo
+            manufacturer.contains("redmi", ignoreCase = true) -> id.xms.xtrakernelmanager.R.drawable.redmi_logo
+            manufacturer.contains("poco", ignoreCase = true) -> id.xms.xtrakernelmanager.R.drawable.poco_logo
+            manufacturer.contains("oneplus", ignoreCase = true) -> id.xms.xtrakernelmanager.R.drawable.oneplus_logo
+            else -> null 
+        }
+    }
+
+    FrostedSharedCard(
+        modifier = modifier.heightIn(min = 320.dp),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .background(NeonBlue.copy(alpha = 0.85f))
+        ) {
+            
+            // Brand Logo - Top Right Corner
+            if (logoRes != null) {
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = logoRes),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(80.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                )
+            } else {
+                 Icon(
+                    imageVector = Icons.Rounded.Android,
+                    contentDescription = null,
+                    tint = Color.White.copy(alpha = 0.8f), 
+                    modifier = Modifier
+                        .size(64.dp) 
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                )
+            }
+            
+            // Text & Stats
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 150.dp), // Reserve 150dp for phone
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                 // Header: Chips
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    GlassChip(text = android.os.Build.MANUFACTURER.uppercase(), color = Color.White)
+                    GlassChip(text = android.os.Build.BOARD.uppercase(), color = Color.White)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Device Model
+                Text(
+                    text = systemInfo.deviceModel
+                         .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
+                         .trim()
+                         .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_unknown_device) },
+                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
+                    color = Color.White,
+                    lineHeight = 30.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                
+                Text(
+                    text = android.os.Build.DEVICE,
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp),
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontFamily = FontFamily.Monospace
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Row 1
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        InfoTile(
+                            icon = Icons.Rounded.Android,
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_android),
+                            value = systemInfo.androidVersion,
+                            color = Color.White,
+                            modifier = Modifier.weight(1.5f).height(68.dp)
+                        )
+                         InfoTile(
+                            icon = Icons.Rounded.DeveloperBoard,
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_kernel),
+                            value = systemInfo.kernelVersion,
+                            color = Color.White,
+                            modifier = Modifier.weight(1.5f).height(68.dp)
+                        )
+                    }
+                     // Row 2
+                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        InfoTile(
+                            icon = Icons.Rounded.AccessTime,
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_uptime),
+                            value = uptime,
+                            color = Color.White,
+                            modifier = Modifier.weight(1f).height(68.dp)
+                        )
+                        InfoTile(
+                            icon = androidx.compose.material.icons.Icons.Rounded.NightsStay, 
+                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_sleep),
+                            value = deepSleep,
+                            color = Color.White, 
+                            modifier = Modifier.weight(1f).height(68.dp)
+                        )
+                    }
+                    
+                    // Row 3 - Fingerprint (Full Width)
+                    InfoTile(
+                        icon = androidx.compose.material.icons.Icons.Rounded.Fingerprint,
+                        label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_fingerprint),
+                        value = android.os.Build.FINGERPRINT,
+                        color = Color.White,
+                        modifier = Modifier.fillMaxWidth().height(68.dp)
+                    )
+                    // Row 3 (Manufacturer) - Removed as it is redundant and space consuming
+                }
+            }
+
+            // 3. Futuristic Phone Mockup Layer
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd) 
+                    .offset(x = 60.dp, y = 40.dp)
+            ) {
+                FrostedDeviceMockup(
+                    size = androidx.compose.ui.unit.DpSize(140.dp, 280.dp),
+                    rotation = -15f,
+                    showWallpaper = true,
+                    glowColor = Color.White,
+                    accentColor = Color.White
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlassChip(text: String, color: Color) {
+    Box(
+        modifier = Modifier
+            .border(1.dp, color.copy(alpha = 0.3f), CircleShape)
+            .background(color.copy(alpha = 0.1f), CircleShape)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = color,
+            letterSpacing = 1.sp
+        )
+    }
+}
+
+@Composable
+private fun InfoTile(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.15f))
+            .padding(10.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
+        Spacer(modifier = Modifier.height(3.dp))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
+            color = Color.White,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+            color = Color.White.copy(alpha = 0.7f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+private fun calculateUptime(): String {
+    val uptimeMillis = SystemClock.elapsedRealtime()
+    return if (uptimeMillis > DateUtils.DAY_IN_MILLIS) {
+         "${uptimeMillis / DateUtils.DAY_IN_MILLIS}d"
+    } else {
+         val hours = uptimeMillis / DateUtils.HOUR_IN_MILLIS
+         val minutes = (uptimeMillis % DateUtils.HOUR_IN_MILLIS) / DateUtils.MINUTE_IN_MILLIS
+         "${hours}h ${minutes}m"
+    }
+}

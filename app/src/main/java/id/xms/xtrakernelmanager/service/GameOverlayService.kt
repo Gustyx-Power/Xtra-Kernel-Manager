@@ -292,7 +292,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
           setContent { 
             val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
             if (layoutStyle == "liquid") {
-              LiquidGameOverlayTheme { GameOverlayContent() }
+              FrostedGameOverlayTheme { GameOverlayContent() }
             } else {
               GameOverlayTheme { GameOverlayContent() }
             }
@@ -312,8 +312,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     Box(modifier = Modifier.wrapContentSize(), contentAlignment = Alignment.TopStart) {
       if (isExpanded) {
         if (isLiquidUI) {
-          // Liquid UI - Glassmorphism Light Mode
-          LiquidGamePanelCard(
+          FrostedGamePanelCard(
               viewModel = viewModel,
               isFpsEnabled = isFpsEnabled,
               onFpsToggle = { viewModel.setFpsEnabled(!isFpsEnabled) },
@@ -410,8 +409,7 @@ class GameOverlayService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         val fpsVal by viewModel.fpsValue.collectAsState()
 
         if (isLiquidUI) {
-          // Liquid UI - Glassmorphism Light Mode
-          LiquidGameSidebar(
+          FrostedGameSidebar(
               isExpanded = isExpanded,
               overlayOnRight = isOverlayOnRight,
               isDockedToEdge = isDockedToEdge,

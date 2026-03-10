@@ -727,28 +727,28 @@
     <string name="game_control_grant_usage_access">Aktifkan Izin Akses Penggunaan</string>
 
     <!-- Home Screen Components - Liquid -->
-    <string name="liquid_header_title">Xtra Kernel Manager</string>
-    <string name="liquid_header_settings">Pengaturan</string>
-    <string name="liquid_device_android">Android</string>
-    <string name="liquid_device_kernel">Kernel</string>
-    <string name="liquid_device_uptime">Waktu Aktif</string>
-    <string name="liquid_device_sleep">Tidur</string>
-    <string name="liquid_device_fingerprint">Sidik Jari</string>
-    <string name="liquid_device_smartphone_brand">Merek Smartphone</string>
-    <string name="liquid_device_unknown_device">Perangkat Tidak Dikenal</string>
-    <string name="liquid_battery_title">Baterai</string>
-    <string name="liquid_battery_current">Arus</string>
-    <string name="liquid_battery_voltage">Tegangan</string>
-    <string name="liquid_battery_temperature">Suhu</string>
-    <string name="liquid_battery_cycle_count">Jumlah Siklus</string>
-    <string name="liquid_gpu_title">GPU</string>
-    <string name="liquid_gpu_frequency">Frekuensi</string>
-    <string name="liquid_gpu_load">Beban</string>
-    <string name="liquid_gpu_name">GPU</string>
-    <string name="liquid_profile_performance">Performa</string>
-    <string name="liquid_profile_power_save">Hemat Daya</string>
-    <string name="liquid_profile_balanced">Seimbang</string>
-    <string name="liquid_profile_tap_to_change">Ketuk untuk Mengubah</string>
+    <string name="frosted_header_title">Xtra Kernel Manager</string>
+    <string name="frosted_header_settings">Pengaturan</string>
+    <string name="frosted_device_android">Android</string>
+    <string name="frosted_device_kernel">Kernel</string>
+    <string name="frosted_device_uptime">Waktu Aktif</string>
+    <string name="frosted_device_sleep">Tidur</string>
+    <string name="frosted_device_fingerprint">Sidik Jari</string>
+    <string name="frosted_device_smartphone_brand">Merek Smartphone</string>
+    <string name="frosted_device_unknown_device">Perangkat Tidak Dikenal</string>
+    <string name="frosted_battery_title">Baterai</string>
+    <string name="frosted_battery_current">Arus</string>
+    <string name="frosted_battery_voltage">Tegangan</string>
+    <string name="frosted_battery_temperature">Suhu</string>
+    <string name="frosted_battery_cycle_count">Jumlah Siklus</string>
+    <string name="frosted_gpu_title">GPU</string>
+    <string name="frosted_gpu_frequency">Frekuensi</string>
+    <string name="frosted_gpu_load">Beban</string>
+    <string name="frosted_gpu_name">GPU</string>
+    <string name="frosted_profile_performance">Performa</string>
+    <string name="frosted_profile_power_save">Hemat Daya</string>
+    <string name="frosted_profile_balanced">Seimbang</string>
+    <string name="frosted_profile_tap_to_change">Ketuk untuk Mengubah</string>
 
     <!-- Home Screen Components - Material -->
     <string name="material_header_title_short">XKM</string>
@@ -838,153 +838,153 @@
     <string name="material_temp_pmic">PMIC</string>
     <string name="material_temp_thermal">Termal</string>
 
-    <!-- Liquid Tuning Screen Strings -->
-    <string name="liquid_tuning_title">Tuning</string>
-    <string name="liquid_tuning_import_profile">Impor Profil</string>
-    <string name="liquid_tuning_export_profile">Ekspor Profil</string>
-    <string name="liquid_tuning_expand">Perluas</string>
-    <string name="liquid_tuning_collapse">Ciutkan</string>
+    <!-- Frosted Tuning Screen Strings -->
+    <string name="frosted_tuning_title">Tuning</string>
+    <string name="frosted_tuning_import_profile">Impor Profil</string>
+    <string name="frosted_tuning_export_profile">Ekspor Profil</string>
+    <string name="frosted_tuning_expand">Perluas</string>
+    <string name="frosted_tuning_collapse">Ciutkan</string>
 
-    <!-- Liquid Additional Control Strings -->
-    <string name="liquid_perf_power_saving_mode">Mode hemat daya</string>
-    <string name="liquid_perf_balanced_performance">Performa seimbang</string>
-    <string name="liquid_perf_maximum_performance">Performa maksimum</string>
-    <string name="liquid_io_select_scheduler">Pilih I/O Scheduler</string>
-    <string name="liquid_io_choose_disk_scheduling">Pilih algoritma penjadwalan disk</string>
-    <string name="liquid_tcp_select_algorithm">Pilih Algoritma TCP</string>
-    <string name="liquid_tcp_choose_network_congestion">Pilih kontrol kemacetan jaringan</string>
-    <string name="liquid_dialog_close">Tutup</string>
+    <!-- Frosted Additional Control Strings -->
+    <string name="frosted_perf_power_saving_mode">Mode hemat daya</string>
+    <string name="frosted_perf_balanced_performance">Performa seimbang</string>
+    <string name="frosted_perf_maximum_performance">Performa maksimum</string>
+    <string name="frosted_io_select_scheduler">Pilih I/O Scheduler</string>
+    <string name="frosted_io_choose_disk_scheduling">Pilih algoritma penjadwalan disk</string>
+    <string name="frosted_tcp_select_algorithm">Pilih Algoritma TCP</string>
+    <string name="frosted_tcp_choose_network_congestion">Pilih kontrol kemacetan jaringan</string>
+    <string name="frosted_dialog_close">Tutup</string>
 
-    <!-- Liquid CPU Control Strings -->
-    <string name="liquid_cpu_clusters_cores_format">%1$d Cluster • %2$d Core</string>
-    <string name="liquid_cpu_core_management">Manajemen Core</string>
-    <string name="liquid_cpu_cores_online">core online</string>
-    <string name="liquid_cpu_cluster_format">Cluster %1$d</string>
-    <string name="liquid_cpu_cores_format">%1$d core</string>
-    <string name="liquid_cpu_core_format">Core %1$d</string>
-    <string name="liquid_cpu_primary">UTAMA</string>
-    <string name="liquid_cpu_offline">Offline</string>
-    <string name="liquid_cpu_primary_core_cannot_disabled">Core utama tidak dapat dinonaktifkan</string>
+    <!-- Frosted CPU Control Strings -->
+    <string name="frosted_cpu_clusters_cores_format">%1$d Cluster • %2$d Core</string>
+    <string name="frosted_cpu_core_management">Manajemen Core</string>
+    <string name="frosted_cpu_cores_online">core online</string>
+    <string name="frosted_cpu_cluster_format">Cluster %1$d</string>
+    <string name="frosted_cpu_cores_format">%1$d core</string>
+    <string name="frosted_cpu_core_format">Core %1$d</string>
+    <string name="frosted_cpu_primary">UTAMA</string>
+    <string name="frosted_cpu_offline">Offline</string>
+    <string name="frosted_cpu_primary_core_cannot_disabled">Core utama tidak dapat dinonaktifkan</string>
     
     <!-- Smart Frequency Lock Strings -->
-    <string name="liquid_smart_frequency_lock">Smart Frequency Lock</string>
-    <string name="liquid_smart_lock_active">Aktif</string>
-    <string name="liquid_smart_lock_inactive">Nonaktif</string>
-    <string name="liquid_smart_lock_policy_type">Tipe Kebijakan</string>
-    <string name="liquid_smart_lock_thermal_policy">Kebijakan Termal</string>
-    <string name="liquid_smart_lock_locked_clusters">Cluster Terkunci</string>
-    <string name="liquid_smart_lock_clusters_format">%1$d cluster</string>
-    <string name="liquid_smart_lock_unlock">Buka Kunci</string>
-    <string name="liquid_smart_lock_edit">Edit</string>
-    <string name="liquid_smart_lock_configure_lock">Konfigurasi Kunci</string>
-    <string name="liquid_smart_lock_cluster_frequencies">Frekuensi Cluster</string>
-    <string name="liquid_smart_lock_performance">Performa</string>
-    <string name="liquid_smart_lock_efficiency">Efisiensi</string>
-    <string name="liquid_smart_lock_cluster_index_format">Cluster %1$d</string>
-    <string name="liquid_smart_lock_min">Min</string>
-    <string name="liquid_smart_lock_max">Maks</string>
-    <string name="liquid_smart_lock_mhz">MHz</string>
-    <string name="liquid_smart_lock_lock_policy">Kebijakan Kunci</string>
-    <string name="liquid_smart_lock_thermal_policy_title">Kebijakan Termal</string>
-    <string name="liquid_smart_lock_apply_lock">Terapkan Kunci</string>
-    <string name="liquid_smart_lock_lock_all_clusters">Kunci Semua Cluster</string>
-    <string name="liquid_smart_lock_min_frequency_cluster_format">Frekuensi Min - Cluster %1$d</string>
-    <string name="liquid_smart_lock_max_frequency_cluster_format">Frekuensi Maks - Cluster %1$d</string>
-    <string name="liquid_smart_lock_no_frequencies_available">Tidak ada frekuensi tersedia</string>
-    <string name="liquid_smart_lock_lock_cluster_format">Kunci Cluster %1$d</string>
-    <string name="liquid_smart_lock_frequency_range">Rentang Frekuensi</string>
-    <string name="liquid_smart_lock_min_frequency">Frekuensi Minimum</string>
-    <string name="liquid_smart_lock_max_frequency">Frekuensi Maksimum</string>
-    <string name="liquid_smart_lock_lock_frequencies">Kunci Frekuensi</string>
-    <string name="liquid_smart_lock_select_min_frequency">Pilih Frekuensi Min</string>
-    <string name="liquid_smart_lock_select_max_frequency">Pilih Frekuensi Maks</string>
-    <string name="liquid_smart_lock_frequency_locked">Frekuensi Terkunci</string>
-    <string name="liquid_smart_lock_frequency_unlocked">Frekuensi Tidak Terkunci</string>
-    <string name="liquid_smart_lock_lock">Kunci</string>
+    <string name="frosted_smart_frequency_lock">Smart Frequency Lock</string>
+    <string name="frosted_smart_lock_active">Aktif</string>
+    <string name="frosted_smart_lock_inactive">Nonaktif</string>
+    <string name="frosted_smart_lock_policy_type">Tipe Kebijakan</string>
+    <string name="frosted_smart_lock_thermal_policy">Kebijakan Termal</string>
+    <string name="frosted_smart_lock_locked_clusters">Cluster Terkunci</string>
+    <string name="frosted_smart_lock_clusters_format">%1$d cluster</string>
+    <string name="frosted_smart_lock_unlock">Buka Kunci</string>
+    <string name="frosted_smart_lock_edit">Edit</string>
+    <string name="frosted_smart_lock_configure_lock">Konfigurasi Kunci</string>
+    <string name="frosted_smart_lock_cluster_frequencies">Frekuensi Cluster</string>
+    <string name="frosted_smart_lock_performance">Performa</string>
+    <string name="frosted_smart_lock_efficiency">Efisiensi</string>
+    <string name="frosted_smart_lock_cluster_index_format">Cluster %1$d</string>
+    <string name="frosted_smart_lock_min">Min</string>
+    <string name="frosted_smart_lock_max">Maks</string>
+    <string name="frosted_smart_lock_mhz">MHz</string>
+    <string name="frosted_smart_lock_lock_policy">Kebijakan Kunci</string>
+    <string name="frosted_smart_lock_thermal_policy_title">Kebijakan Termal</string>
+    <string name="frosted_smart_lock_apply_lock">Terapkan Kunci</string>
+    <string name="frosted_smart_lock_lock_all_clusters">Kunci Semua Cluster</string>
+    <string name="frosted_smart_lock_min_frequency_cluster_format">Frekuensi Min - Cluster %1$d</string>
+    <string name="frosted_smart_lock_max_frequency_cluster_format">Frekuensi Maks - Cluster %1$d</string>
+    <string name="frosted_smart_lock_no_frequencies_available">Tidak ada frekuensi tersedia</string>
+    <string name="frosted_smart_lock_lock_cluster_format">Kunci Cluster %1$d</string>
+    <string name="frosted_smart_lock_frequency_range">Rentang Frekuensi</string>
+    <string name="frosted_smart_lock_min_frequency">Frekuensi Minimum</string>
+    <string name="frosted_smart_lock_max_frequency">Frekuensi Maksimum</string>
+    <string name="frosted_smart_lock_lock_frequencies">Kunci Frekuensi</string>
+    <string name="frosted_smart_lock_select_min_frequency">Pilih Frekuensi Min</string>
+    <string name="frosted_smart_lock_select_max_frequency">Pilih Frekuensi Maks</string>
+    <string name="frosted_smart_lock_frequency_locked">Frekuensi Terkunci</string>
+    <string name="frosted_smart_lock_frequency_unlocked">Frekuensi Tidak Terkunci</string>
+    <string name="frosted_smart_lock_lock">Kunci</string>
     
     <!-- Lock Policy Descriptions -->
-    <string name="liquid_lock_policy_manual_desc">Kontrol pengguna, tanpa override termal</string>
-    <string name="liquid_lock_policy_smart_desc">Sadar termal dengan auto-restore</string>
-    <string name="liquid_lock_policy_game_desc">Dioptimalkan untuk gaming</string>
-    <string name="liquid_lock_policy_battery_saving_desc">Hemat daya</string>
+    <string name="frosted_lock_policy_manual_desc">Kontrol pengguna, tanpa override termal</string>
+    <string name="frosted_lock_policy_smart_desc">Sadar termal dengan auto-restore</string>
+    <string name="frosted_lock_policy_game_desc">Dioptimalkan untuk gaming</string>
+    <string name="frosted_lock_policy_battery_saving_desc">Hemat daya</string>
     
     <!-- Thermal Policy Format -->
-    <string name="liquid_thermal_policy_format">Darurat: %1$.0f°C, Peringatan: %2$.0f°C</string>
+    <string name="frosted_thermal_policy_format">Darurat: %1$.0f°C, Peringatan: %2$.0f°C</string>
 
-    <!-- Liquid RAM Control Strings -->
-    <string name="liquid_ram_virtual_memory_management">Manajemen memori virtual</string>
-    <string name="liquid_ram_value">Nilai</string>
-    <string name="liquid_ram_percentage">Persentase</string>
-    <string name="liquid_ram_size_kb">Ukuran (KB)</string>
-    <string name="liquid_ram_configure_zram">Konfigurasi ZRAM</string>
-    <string name="liquid_ram_tap_to_adjust_size">Ketuk untuk menyesuaikan ukuran</string>
-    <string name="liquid_ram_compression_algorithm">Algoritma Kompresi</string>
-    <string name="liquid_ram_applying_zram">Menerapkan ZRAM</string>
-    <string name="liquid_ram_applying_swap">Menerapkan File Swap</string>
-    <string name="liquid_ram_please_wait">Mohon tunggu...</string>
-    <string name="liquid_ram_starting_zram_config">Memulai konfigurasi ZRAM...</string>
-    <string name="liquid_ram_starting_swap_config">Memulai konfigurasi file swap...</string>
+    <!-- Frosted RAM Control Strings -->
+    <string name="frosted_ram_virtual_memory_management">Manajemen memori virtual</string>
+    <string name="frosted_ram_value">Nilai</string>
+    <string name="frosted_ram_percentage">Persentase</string>
+    <string name="frosted_ram_size_kb">Ukuran (KB)</string>
+    <string name="frosted_ram_configure_zram">Konfigurasi ZRAM</string>
+    <string name="frosted_ram_tap_to_adjust_size">Ketuk untuk menyesuaikan ukuran</string>
+    <string name="frosted_ram_compression_algorithm">Algoritma Kompresi</string>
+    <string name="frosted_ram_applying_zram">Menerapkan ZRAM</string>
+    <string name="frosted_ram_applying_swap">Menerapkan File Swap</string>
+    <string name="frosted_ram_please_wait">Mohon tunggu...</string>
+    <string name="frosted_ram_starting_zram_config">Memulai konfigurasi ZRAM...</string>
+    <string name="frosted_ram_starting_swap_config">Memulai konfigurasi file swap...</string>
 
-    <!-- Liquid Thermal Settings Strings -->
-    <string name="liquid_thermal_apply_on_startup">Terapkan saat perangkat menyala</string>
-    <string name="liquid_thermal_about_title">Tentang Kontrol Termal</string>
-    <string name="liquid_thermal_about_desc">Preset termal mengontrol bagaimana perangkat Anda mengelola panas. Pilih preset yang sesuai dengan pola penggunaan Anda untuk performa dan manajemen suhu yang optimal.</string>
+    <!-- Frosted Thermal Settings Strings -->
+    <string name="frosted_thermal_apply_on_startup">Terapkan saat perangkat menyala</string>
+    <string name="frosted_thermal_about_title">Tentang Kontrol Termal</string>
+    <string name="frosted_thermal_about_desc">Preset termal mengontrol bagaimana perangkat Anda mengelola panas. Pilih preset yang sesuai dengan pola penggunaan Anda untuk performa dan manajemen suhu yang optimal.</string>
 
-    <!-- Liquid Network Settings Strings -->
-    <string name="liquid_network_hostname">Hostname</string>
-    <string name="liquid_network_tcp_congestion">TCP Congestion</string>
-    <string name="liquid_network_private_dns">DNS Pribadi</string>
+    <!-- Frosted Network Settings Strings -->
+    <string name="frosted_network_hostname">Hostname</string>
+    <string name="frosted_network_tcp_congestion">TCP Congestion</string>
+    <string name="frosted_network_private_dns">DNS Pribadi</string>
 
-    <!-- Liquid GPU Settings Strings -->
-    <string name="liquid_gpu_power_level">Level Daya</string>
-    <string name="liquid_gpu_level_format">Level %d</string>
+    <!-- Frosted GPU Settings Strings -->
+    <string name="frosted_gpu_power_level">Level Daya</string>
+    <string name="frosted_gpu_level_format">Level %d</string>
 
-    <!-- Liquid Additional Settings Strings -->
-    <string name="liquid_additional_settings">Pengaturan Tambahan</string>
+    <!-- Frosted Additional Settings Strings -->
+    <string name="frosted_additional_settings">Pengaturan Tambahan</string>
 
-    <!-- Liquid Per-App Profile Strings -->
-    <string name="liquid_per_app_profiles">Profil Per-Aplikasi</string>
-    <string name="liquid_per_app_profiles_configured">%d profil dikonfigurasi</string>
+    <!-- Frosted Per-App Profile Strings -->
+    <string name="frosted_per_app_profiles">Profil Per-Aplikasi</string>
+    <string name="frosted_per_app_profiles_configured">%d profil dikonfigurasi</string>
 
-    <!-- Liquid I/O Control Strings -->
-    <string name="liquid_io_scheduler">I/O Scheduler</string>
+    <!-- Frosted I/O Control Strings -->
+    <string name="frosted_io_scheduler">I/O Scheduler</string>
 
-    <!-- Liquid Recent Cards Strings -->
-    <string name="liquid_recent_cores_online">Core Online</string>
-    <string name="liquid_recent_current_frequency">Frekuensi Saat Ini</string>
-    <string name="liquid_recent_frequency_range">Rentang Frekuensi</string>
-    <string name="liquid_recent_max_freq_format">Maks %s GHz</string>
-    <string name="liquid_recent_cpu_load">Beban CPU</string>
-    <string name="liquid_recent_clusters">Cluster</string>
-    <string name="liquid_recent_governors">Governor</string>
-    <string name="liquid_recent_soc">SOC</string>
-    <string name="liquid_recent_process">Proses</string>
-    <string name="liquid_recent_gpu_load">Beban GPU</string>
-    <string name="liquid_recent_power_level">Level Daya</string>
-    <string name="liquid_recent_memory">Memori</string>
-    <string name="liquid_recent_cus">CU</string>
-    <string name="liquid_recent_opengl">OpenGL</string>
-    <string name="liquid_recent_vulkan">Vulkan</string>
-    <string name="liquid_recent_resolution">Resolusi</string>
-    <string name="liquid_recent_refresh_rate">Refresh Rate</string>
-    <string name="liquid_recent_normal_temperature">Suhu Normal</string>
-    <string name="liquid_recent_thermal_preset">Preset Termal</string>
-    <string name="liquid_recent_stable">Stabil</string>
-    <string name="liquid_recent_cooling">Pendinginan</string>
-    <string name="liquid_recent_zram">ZRAM</string>
-    <string name="liquid_recent_disabled">Nonaktif</string>
-    <string name="liquid_recent_swap">Swap</string>
-    <string name="liquid_recent_swappiness">Swappiness</string>
-    <string name="liquid_recent_dirty_ratio">Dirty Ratio</string>
-    <string name="liquid_recent_min_free_memory">Memori Bebas Min</string>
-    <string name="liquid_recent_io_scheduler">I/O Scheduler</string>
-    <string name="liquid_recent_tcp_congestion">TCP Congestion</string>
-    <string name="liquid_recent_performance_mode">Mode Performa</string>
-    <string name="liquid_recent_ghz_unit">GHz</string>
-    <string name="liquid_recent_mhz_unit">MHz</string>
-    <string name="liquid_recent_mb_unit">MB</string>
-    <string name="liquid_recent_gb_unit">GB</string>
-    <string name="liquid_recent_hz_unit">Hz</string>
+    <!-- Frosted Recent Cards Strings -->
+    <string name="frosted_recent_cores_online">Core Online</string>
+    <string name="frosted_recent_current_frequency">Frekuensi Saat Ini</string>
+    <string name="frosted_recent_frequency_range">Rentang Frekuensi</string>
+    <string name="frosted_recent_max_freq_format">Maks %s GHz</string>
+    <string name="frosted_recent_cpu_load">Beban CPU</string>
+    <string name="frosted_recent_clusters">Cluster</string>
+    <string name="frosted_recent_governors">Governor</string>
+    <string name="frosted_recent_soc">SOC</string>
+    <string name="frosted_recent_process">Proses</string>
+    <string name="frosted_recent_gpu_load">Beban GPU</string>
+    <string name="frosted_recent_power_level">Level Daya</string>
+    <string name="frosted_recent_memory">Memori</string>
+    <string name="frosted_recent_cus">CU</string>
+    <string name="frosted_recent_opengl">OpenGL</string>
+    <string name="frosted_recent_vulkan">Vulkan</string>
+    <string name="frosted_recent_resolution">Resolusi</string>
+    <string name="frosted_recent_refresh_rate">Refresh Rate</string>
+    <string name="frosted_recent_normal_temperature">Suhu Normal</string>
+    <string name="frosted_recent_thermal_preset">Preset Termal</string>
+    <string name="frosted_recent_stable">Stabil</string>
+    <string name="frosted_recent_cooling">Pendinginan</string>
+    <string name="frosted_recent_zram">ZRAM</string>
+    <string name="frosted_recent_disabled">Nonaktif</string>
+    <string name="frosted_recent_swap">Swap</string>
+    <string name="frosted_recent_swappiness">Swappiness</string>
+    <string name="frosted_recent_dirty_ratio">Dirty Ratio</string>
+    <string name="frosted_recent_min_free_memory">Memori Bebas Min</string>
+    <string name="frosted_recent_io_scheduler">I/O Scheduler</string>
+    <string name="frosted_recent_tcp_congestion">TCP Congestion</string>
+    <string name="frosted_recent_performance_mode">Mode Performa</string>
+    <string name="frosted_recent_ghz_unit">GHz</string>
+    <string name="frosted_recent_mhz_unit">MHz</string>
+    <string name="frosted_recent_mb_unit">MB</string>
+    <string name="frosted_recent_gb_unit">GB</string>
+    <string name="frosted_recent_hz_unit">Hz</string>
 
     <!-- Material Component Strings -->
     <string name="material_additional_control">Kontrol Tambahan</string>
@@ -1053,11 +1053,11 @@
     <string name="material_tuning_title">Tuning</string>
     <string name="material_active_profile">Profil Aktif</string>
     
-    <!-- Liquid Recent Strings -->
-    <string name="liquid_recent_advanced_settings">Pengaturan Lanjutan</string>
-    <string name="liquid_recent_fine_tune_performance">Setel performa sistem dengan detail</string>
-    <string name="liquid_recent_per_app_profiles">Profil Per-Aplikasi</string>
-    <string name="liquid_recent_balance">Seimbang</string>
+    <!-- Frosted Recent Strings -->
+    <string name="frosted_recent_advanced_settings">Pengaturan Lanjutan</string>
+    <string name="frosted_recent_fine_tune_performance">Setel performa sistem dengan detail</string>
+    <string name="frosted_recent_per_app_profiles">Profil Per-Aplikasi</string>
+    <string name="frosted_recent_balance">Seimbang</string>
     <!-- New Material UI Strings -->
     <string name="battery_monitor_title">Monitor Baterai</string>
     <string name="history_title">Riwayat</string>

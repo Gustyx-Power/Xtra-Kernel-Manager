@@ -117,7 +117,7 @@ fun MaterialSettingsSheet(preferencesManager: PreferencesManager, currentLayout:
       
       val displayLayout = targetLayoutSelection
       val targetLayoutName = when (displayLayout) {
-          "liquid" -> "Liquid Glass"
+          "liquid" -> "Frosted Glass"
           "material" -> "Material"
           else -> "Classic"
       }

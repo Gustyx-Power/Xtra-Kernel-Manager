@@ -287,7 +287,7 @@
     <string name="restore_threshold">Restore Threshold</string>
     <string name="critical_threshold">Critical Threshold</string>
     <string name="emergency_temp">Emergency</string>
-    <string name="liquid_thermal_policy_format">Emergency: %1$.0f°C, Warning: %2$.0f°C</string>
+    <string name="frosted_thermal_policy_format">Emergency: %1$.0f°C, Warning: %2$.0f°C</string>
 
     <!-- RAM Control -->
     <string name="ram_control">RAM Control</string>
@@ -845,9 +845,9 @@
 
     <!-- Layout Style -->
     <string name="layout_style">Layout Style</string>
-    <string name="layout_style_desc">Choose between classic Liquid Glass or pure Material 3 design</string>
-    <string name="layout_legacy">Liquid Glass</string>
-    <string name="layout_legacy_desc">Liquid Glass design with visual effects</string>
+    <string name="layout_style_desc">Choose between classic Frosted Glass or pure Material 3 design</string>
+    <string name="layout_legacy">Frosted Glass</string>
+    <string name="layout_legacy_desc">Frosted Glass design with visual effects</string>
     <string name="layout_material">Material</string>
     <string name="layout_material_desc">Pure Material 3 design, clean and simple</string>
 
@@ -917,28 +917,28 @@
     <string name="battery_stats_awake_sleep">Show Awake/Deep sleep statistics</string>
 
     <!-- Home Screen Components - Liquid -->
-    <string name="liquid_header_title">Xtra Kernel Manager</string>
-    <string name="liquid_header_settings">Settings</string>
-    <string name="liquid_device_android">Android</string>
-    <string name="liquid_device_kernel">Kernel</string>
-    <string name="liquid_device_uptime">Uptime</string>
-    <string name="liquid_device_sleep">Sleep</string>
-    <string name="liquid_device_fingerprint">Fingerprint</string>
-    <string name="liquid_device_smartphone_brand">Smartphone Brand</string>
-    <string name="liquid_device_unknown_device">Unknown Device</string>
-    <string name="liquid_battery_title">Battery</string>
-    <string name="liquid_battery_current">Current</string>
-    <string name="liquid_battery_voltage">Voltage</string>
-    <string name="liquid_battery_temperature">Temperature</string>
-    <string name="liquid_battery_cycle_count">Cycle Count</string>
-    <string name="liquid_gpu_title">GPU</string>
-    <string name="liquid_gpu_frequency">Frequency</string>
-    <string name="liquid_gpu_load">Load</string>
-    <string name="liquid_gpu_name">GPU</string>
-    <string name="liquid_profile_performance">Performance</string>
-    <string name="liquid_profile_power_save">Power Save</string>
-    <string name="liquid_profile_balanced">Balanced</string>
-    <string name="liquid_profile_tap_to_change">Tap to Change</string>
+    <string name="frosted_header_title">Xtra Kernel Manager</string>
+    <string name="frosted_header_settings">Settings</string>
+    <string name="frosted_device_android">Android</string>
+    <string name="frosted_device_kernel">Kernel</string>
+    <string name="frosted_device_uptime">Uptime</string>
+    <string name="frosted_device_sleep">Sleep</string>
+    <string name="frosted_device_fingerprint">Fingerprint</string>
+    <string name="frosted_device_smartphone_brand">Smartphone Brand</string>
+    <string name="frosted_device_unknown_device">Unknown Device</string>
+    <string name="frosted_battery_title">Battery</string>
+    <string name="frosted_battery_current">Current</string>
+    <string name="frosted_battery_voltage">Voltage</string>
+    <string name="frosted_battery_temperature">Temperature</string>
+    <string name="frosted_battery_cycle_count">Cycle Count</string>
+    <string name="frosted_gpu_title">GPU</string>
+    <string name="frosted_gpu_frequency">Frequency</string>
+    <string name="frosted_gpu_load">Load</string>
+    <string name="frosted_gpu_name">GPU</string>
+    <string name="frosted_profile_performance">Performance</string>
+    <string name="frosted_profile_power_save">Power Save</string>
+    <string name="frosted_profile_balanced">Balanced</string>
+    <string name="frosted_profile_tap_to_change">Tap to Change</string>
 
     <!-- Home Screen Components - Material -->
     <string name="material_header_title_short">XKM</string>
@@ -1028,150 +1028,150 @@
     <string name="material_temp_pmic">PMIC</string>
     <string name="material_temp_thermal">Thermal</string>
 
-    <!-- Liquid Tuning Screen Strings -->
-    <string name="liquid_tuning_title">Tuning</string>
-    <string name="liquid_tuning_import_profile">Import Profile</string>
-    <string name="liquid_tuning_export_profile">Export Profile</string>
-    <string name="liquid_tuning_expand">Expand</string>
-    <string name="liquid_tuning_collapse">Collapse</string>
+    <!-- Frosted Tuning Screen Strings -->
+    <string name="frosted_tuning_title">Tuning</string>
+    <string name="frosted_tuning_import_profile">Import Profile</string>
+    <string name="frosted_tuning_export_profile">Export Profile</string>
+    <string name="frosted_tuning_expand">Expand</string>
+    <string name="frosted_tuning_collapse">Collapse</string>
 
-    <!-- Liquid Additional Control Strings -->
-    <string name="liquid_perf_power_saving_mode">Power saving mode</string>
-    <string name="liquid_perf_balanced_performance">Balanced performance</string>
-    <string name="liquid_perf_maximum_performance">Maximum performance</string>
-    <string name="liquid_io_select_scheduler">Select I/O Scheduler</string>
-    <string name="liquid_io_choose_disk_scheduling">Choose disk scheduling algorithm</string>
-    <string name="liquid_tcp_select_algorithm">Select TCP Algorithm</string>
-    <string name="liquid_tcp_choose_network_congestion">Choose network congestion control</string>
-    <string name="liquid_dialog_close">Close</string>
+    <!-- Frosted Additional Control Strings -->
+    <string name="frosted_perf_power_saving_mode">Power saving mode</string>
+    <string name="frosted_perf_balanced_performance">Balanced performance</string>
+    <string name="frosted_perf_maximum_performance">Maximum performance</string>
+    <string name="frosted_io_select_scheduler">Select I/O Scheduler</string>
+    <string name="frosted_io_choose_disk_scheduling">Choose disk scheduling algorithm</string>
+    <string name="frosted_tcp_select_algorithm">Select TCP Algorithm</string>
+    <string name="frosted_tcp_choose_network_congestion">Choose network congestion control</string>
+    <string name="frosted_dialog_close">Close</string>
 
-    <!-- Liquid CPU Control Strings -->
-    <string name="liquid_cpu_clusters_cores_format">%1$d Cluster • %2$d Core</string>
-    <string name="liquid_cpu_core_management">Core Management</string>
-    <string name="liquid_cpu_cores_online">cores online</string>
-    <string name="liquid_cpu_cluster_format">Cluster %1$d</string>
-    <string name="liquid_cpu_cores_format">%1$d cores</string>
-    <string name="liquid_cpu_core_format">Core %1$d</string>
-    <string name="liquid_cpu_primary">PRIMARY</string>
-    <string name="liquid_cpu_offline">Offline</string>
-    <string name="liquid_cpu_primary_core_cannot_disabled">Primary core cannot be disabled</string>
+    <!-- Frosted CPU Control Strings -->
+    <string name="frosted_cpu_clusters_cores_format">%1$d Cluster • %2$d Core</string>
+    <string name="frosted_cpu_core_management">Core Management</string>
+    <string name="frosted_cpu_cores_online">cores online</string>
+    <string name="frosted_cpu_cluster_format">Cluster %1$d</string>
+    <string name="frosted_cpu_cores_format">%1$d cores</string>
+    <string name="frosted_cpu_core_format">Core %1$d</string>
+    <string name="frosted_cpu_primary">PRIMARY</string>
+    <string name="frosted_cpu_offline">Offline</string>
+    <string name="frosted_cpu_primary_core_cannot_disabled">Primary core cannot be disabled</string>
     
     <!-- Smart Frequency Lock Strings -->
-    <string name="liquid_smart_frequency_lock">Smart Frequency Lock</string>
-    <string name="liquid_smart_lock_active">Active</string>
-    <string name="liquid_smart_lock_inactive">Inactive</string>
-    <string name="liquid_smart_lock_policy_type">Policy Type</string>
-    <string name="liquid_smart_lock_thermal_policy">Thermal Policy</string>
-    <string name="liquid_smart_lock_locked_clusters">Locked Clusters</string>
-    <string name="liquid_smart_lock_clusters_format">%1$d clusters</string>
-    <string name="liquid_smart_lock_unlock">Unlock</string>
-    <string name="liquid_smart_lock_edit">Edit</string>
-    <string name="liquid_smart_lock_configure_lock">Configure Lock</string>
-    <string name="liquid_smart_lock_cluster_frequencies">Cluster Frequencies</string>
-    <string name="liquid_smart_lock_performance">Performance</string>
-    <string name="liquid_smart_lock_efficiency">Efficiency</string>
-    <string name="liquid_smart_lock_cluster_index_format">Cluster %1$d</string>
-    <string name="liquid_smart_lock_min">Min</string>
-    <string name="liquid_smart_lock_max">Max</string>
-    <string name="liquid_smart_lock_mhz">MHz</string>
-    <string name="liquid_smart_lock_lock_policy">Lock Policy</string>
-    <string name="liquid_smart_lock_thermal_policy_title">Thermal Policy</string>
-    <string name="liquid_smart_lock_apply_lock">Apply Lock</string>
-    <string name="liquid_smart_lock_lock_all_clusters">Lock All Clusters</string>
-    <string name="liquid_smart_lock_min_frequency_cluster_format">Min Frequency - Cluster %1$d</string>
-    <string name="liquid_smart_lock_max_frequency_cluster_format">Max Frequency - Cluster %1$d</string>
-    <string name="liquid_smart_lock_no_frequencies_available">No frequencies available</string>
-    <string name="liquid_smart_lock_lock_cluster_format">Lock Cluster %1$d</string>
-    <string name="liquid_smart_lock_frequency_range">Frequency Range</string>
-    <string name="liquid_smart_lock_min_frequency">Minimum Frequency</string>
-    <string name="liquid_smart_lock_max_frequency">Maximum Frequency</string>
-    <string name="liquid_smart_lock_lock_frequencies">Lock Frequencies</string>
-    <string name="liquid_smart_lock_select_min_frequency">Select Min Frequency</string>
-    <string name="liquid_smart_lock_select_max_frequency">Select Max Frequency</string>
-    <string name="liquid_smart_lock_frequency_locked">Frequency Locked</string>
-    <string name="liquid_smart_lock_frequency_unlocked">Frequency Unlocked</string>
-    <string name="liquid_smart_lock_lock">Lock</string>
+    <string name="frosted_smart_frequency_lock">Smart Frequency Lock</string>
+    <string name="frosted_smart_lock_active">Active</string>
+    <string name="frosted_smart_lock_inactive">Inactive</string>
+    <string name="frosted_smart_lock_policy_type">Policy Type</string>
+    <string name="frosted_smart_lock_thermal_policy">Thermal Policy</string>
+    <string name="frosted_smart_lock_locked_clusters">Locked Clusters</string>
+    <string name="frosted_smart_lock_clusters_format">%1$d clusters</string>
+    <string name="frosted_smart_lock_unlock">Unlock</string>
+    <string name="frosted_smart_lock_edit">Edit</string>
+    <string name="frosted_smart_lock_configure_lock">Configure Lock</string>
+    <string name="frosted_smart_lock_cluster_frequencies">Cluster Frequencies</string>
+    <string name="frosted_smart_lock_performance">Performance</string>
+    <string name="frosted_smart_lock_efficiency">Efficiency</string>
+    <string name="frosted_smart_lock_cluster_index_format">Cluster %1$d</string>
+    <string name="frosted_smart_lock_min">Min</string>
+    <string name="frosted_smart_lock_max">Max</string>
+    <string name="frosted_smart_lock_mhz">MHz</string>
+    <string name="frosted_smart_lock_lock_policy">Lock Policy</string>
+    <string name="frosted_smart_lock_thermal_policy_title">Thermal Policy</string>
+    <string name="frosted_smart_lock_apply_lock">Apply Lock</string>
+    <string name="frosted_smart_lock_lock_all_clusters">Lock All Clusters</string>
+    <string name="frosted_smart_lock_min_frequency_cluster_format">Min Frequency - Cluster %1$d</string>
+    <string name="frosted_smart_lock_max_frequency_cluster_format">Max Frequency - Cluster %1$d</string>
+    <string name="frosted_smart_lock_no_frequencies_available">No frequencies available</string>
+    <string name="frosted_smart_lock_lock_cluster_format">Lock Cluster %1$d</string>
+    <string name="frosted_smart_lock_frequency_range">Frequency Range</string>
+    <string name="frosted_smart_lock_min_frequency">Minimum Frequency</string>
+    <string name="frosted_smart_lock_max_frequency">Maximum Frequency</string>
+    <string name="frosted_smart_lock_lock_frequencies">Lock Frequencies</string>
+    <string name="frosted_smart_lock_select_min_frequency">Select Min Frequency</string>
+    <string name="frosted_smart_lock_select_max_frequency">Select Max Frequency</string>
+    <string name="frosted_smart_lock_frequency_locked">Frequency Locked</string>
+    <string name="frosted_smart_lock_frequency_unlocked">Frequency Unlocked</string>
+    <string name="frosted_smart_lock_lock">Lock</string>
     
     <!-- Lock Policy Descriptions -->
-    <string name="liquid_lock_policy_manual_desc">User control, no thermal override</string>
-    <string name="liquid_lock_policy_smart_desc">Thermal aware with auto-restore</string>
-    <string name="liquid_lock_policy_game_desc">Optimized for gaming</string>
-    <string name="liquid_lock_policy_battery_saving_desc">Power saving</string>
+    <string name="frosted_lock_policy_manual_desc">User control, no thermal override</string>
+    <string name="frosted_lock_policy_smart_desc">Thermal aware with auto-restore</string>
+    <string name="frosted_lock_policy_game_desc">Optimized for gaming</string>
+    <string name="frosted_lock_policy_battery_saving_desc">Power saving</string>
 
-    <!-- Liquid RAM Control Strings -->
-    <string name="liquid_ram_virtual_memory_management">Virtual memory management</string>
-    <string name="liquid_ram_value">Value</string>
-    <string name="liquid_ram_percentage">Percentage</string>
-    <string name="liquid_ram_size_kb">Size (KB)</string>
-    <string name="liquid_ram_configure_zram">Configure ZRAM</string>
-    <string name="liquid_ram_tap_to_adjust_size">Tap to adjust size</string>
-    <string name="liquid_ram_compression_algorithm">Compression Algorithm</string>
-    <string name="liquid_ram_applying_zram">Applying ZRAM</string>
-    <string name="liquid_ram_applying_swap">Applying Swap File</string>
-    <string name="liquid_ram_please_wait">Please wait...</string>
-    <string name="liquid_ram_starting_zram_config">Starting ZRAM configuration...</string>
-    <string name="liquid_ram_starting_swap_config">Starting swap file configuration...</string>
+    <!-- Frosted RAM Control Strings -->
+    <string name="frosted_ram_virtual_memory_management">Virtual memory management</string>
+    <string name="frosted_ram_value">Value</string>
+    <string name="frosted_ram_percentage">Percentage</string>
+    <string name="frosted_ram_size_kb">Size (KB)</string>
+    <string name="frosted_ram_configure_zram">Configure ZRAM</string>
+    <string name="frosted_ram_tap_to_adjust_size">Tap to adjust size</string>
+    <string name="frosted_ram_compression_algorithm">Compression Algorithm</string>
+    <string name="frosted_ram_applying_zram">Applying ZRAM</string>
+    <string name="frosted_ram_applying_swap">Applying Swap File</string>
+    <string name="frosted_ram_please_wait">Please wait...</string>
+    <string name="frosted_ram_starting_zram_config">Starting ZRAM configuration...</string>
+    <string name="frosted_ram_starting_swap_config">Starting swap file configuration...</string>
 
-    <!-- Liquid Thermal Settings Strings -->
-    <string name="liquid_thermal_apply_on_startup">Apply on device startup</string>
-    <string name="liquid_thermal_about_title">About Thermal Control</string>
-    <string name="liquid_thermal_about_desc">Thermal presets control how your device manages heat. Choose a preset that matches your usage pattern for optimal performance and temperature management.</string>
+    <!-- Frosted Thermal Settings Strings -->
+    <string name="frosted_thermal_apply_on_startup">Apply on device startup</string>
+    <string name="frosted_thermal_about_title">About Thermal Control</string>
+    <string name="frosted_thermal_about_desc">Thermal presets control how your device manages heat. Choose a preset that matches your usage pattern for optimal performance and temperature management.</string>
 
-    <!-- Liquid Network Settings Strings -->
-    <string name="liquid_network_hostname">Hostname</string>
-    <string name="liquid_network_tcp_congestion">TCP Congestion</string>
-    <string name="liquid_network_private_dns">Private DNS</string>
+    <!-- Frosted Network Settings Strings -->
+    <string name="frosted_network_hostname">Hostname</string>
+    <string name="frosted_network_tcp_congestion">TCP Congestion</string>
+    <string name="frosted_network_private_dns">Private DNS</string>
 
-    <!-- Liquid GPU Settings Strings -->
-    <string name="liquid_gpu_power_level">Power Level</string>
-    <string name="liquid_gpu_level_format">Level %d</string>
+    <!-- Frosted GPU Settings Strings -->
+    <string name="frosted_gpu_power_level">Power Level</string>
+    <string name="frosted_gpu_level_format">Level %d</string>
 
-    <!-- Liquid Additional Settings Strings -->
-    <string name="liquid_additional_settings">Additional Settings</string>
+    <!-- Frosted Additional Settings Strings -->
+    <string name="frosted_additional_settings">Additional Settings</string>
 
-    <!-- Liquid Per-App Profile Strings -->
-    <string name="liquid_per_app_profiles">Per-App Profiles</string>
-    <string name="liquid_per_app_profiles_configured">%d profiles configured</string>
+    <!-- Frosted Per-App Profile Strings -->
+    <string name="frosted_per_app_profiles">Per-App Profiles</string>
+    <string name="frosted_per_app_profiles_configured">%d profiles configured</string>
 
-    <!-- Liquid I/O Control Strings -->
-    <string name="liquid_io_scheduler">I/O Scheduler</string>
+    <!-- Frosted I/O Control Strings -->
+    <string name="frosted_io_scheduler">I/O Scheduler</string>
 
-    <!-- Liquid Recent Cards Strings -->
-    <string name="liquid_recent_cores_online">Cores Online</string>
-    <string name="liquid_recent_current_frequency">Current Frequency</string>
-    <string name="liquid_recent_frequency_range">Frequency Range</string>
-    <string name="liquid_recent_max_freq_format">Max %s GHz</string>
-    <string name="liquid_recent_cpu_load">CPU Load</string>
-    <string name="liquid_recent_clusters">Clusters</string>
-    <string name="liquid_recent_governors">Governors</string>
-    <string name="liquid_recent_soc">SOC</string>
-    <string name="liquid_recent_process">Process</string>
-    <string name="liquid_recent_gpu_load">GPU Load</string>
-    <string name="liquid_recent_power_level">Power Level</string>
-    <string name="liquid_recent_memory">Memory</string>
-    <string name="liquid_recent_cus">CUs</string>
-    <string name="liquid_recent_opengl">OpenGL</string>
-    <string name="liquid_recent_vulkan">Vulkan</string>
-    <string name="liquid_recent_resolution">Resolution</string>
-    <string name="liquid_recent_refresh_rate">Refresh Rate</string>
-    <string name="liquid_recent_normal_temperature">Normal Temperature</string>
-    <string name="liquid_recent_thermal_preset">Thermal Preset</string>
-    <string name="liquid_recent_stable">Stable</string>
-    <string name="liquid_recent_cooling">Cooling</string>
-    <string name="liquid_recent_zram">ZRAM</string>
-    <string name="liquid_recent_disabled">Disabled</string>
-    <string name="liquid_recent_swap">Swap</string>
-    <string name="liquid_recent_swappiness">Swappiness</string>
-    <string name="liquid_recent_dirty_ratio">Dirty Ratio</string>
-    <string name="liquid_recent_min_free_memory">Min Free Memory</string>
-    <string name="liquid_recent_io_scheduler">I/O Scheduler</string>
-    <string name="liquid_recent_tcp_congestion">TCP Congestion</string>
-    <string name="liquid_recent_performance_mode">Performance Mode</string>
-    <string name="liquid_recent_ghz_unit">GHz</string>
-    <string name="liquid_recent_mhz_unit">MHz</string>
-    <string name="liquid_recent_mb_unit">MB</string>
-    <string name="liquid_recent_gb_unit">GB</string>
-    <string name="liquid_recent_hz_unit">Hz</string>
+    <!-- Frosted Recent Cards Strings -->
+    <string name="frosted_recent_cores_online">Cores Online</string>
+    <string name="frosted_recent_current_frequency">Current Frequency</string>
+    <string name="frosted_recent_frequency_range">Frequency Range</string>
+    <string name="frosted_recent_max_freq_format">Max %s GHz</string>
+    <string name="frosted_recent_cpu_load">CPU Load</string>
+    <string name="frosted_recent_clusters">Clusters</string>
+    <string name="frosted_recent_governors">Governors</string>
+    <string name="frosted_recent_soc">SOC</string>
+    <string name="frosted_recent_process">Process</string>
+    <string name="frosted_recent_gpu_load">GPU Load</string>
+    <string name="frosted_recent_power_level">Power Level</string>
+    <string name="frosted_recent_memory">Memory</string>
+    <string name="frosted_recent_cus">CUs</string>
+    <string name="frosted_recent_opengl">OpenGL</string>
+    <string name="frosted_recent_vulkan">Vulkan</string>
+    <string name="frosted_recent_resolution">Resolution</string>
+    <string name="frosted_recent_refresh_rate">Refresh Rate</string>
+    <string name="frosted_recent_normal_temperature">Normal Temperature</string>
+    <string name="frosted_recent_thermal_preset">Thermal Preset</string>
+    <string name="frosted_recent_stable">Stable</string>
+    <string name="frosted_recent_cooling">Cooling</string>
+    <string name="frosted_recent_zram">ZRAM</string>
+    <string name="frosted_recent_disabled">Disabled</string>
+    <string name="frosted_recent_swap">Swap</string>
+    <string name="frosted_recent_swappiness">Swappiness</string>
+    <string name="frosted_recent_dirty_ratio">Dirty Ratio</string>
+    <string name="frosted_recent_min_free_memory">Min Free Memory</string>
+    <string name="frosted_recent_io_scheduler">I/O Scheduler</string>
+    <string name="frosted_recent_tcp_congestion">TCP Congestion</string>
+    <string name="frosted_recent_performance_mode">Performance Mode</string>
+    <string name="frosted_recent_ghz_unit">GHz</string>
+    <string name="frosted_recent_mhz_unit">MHz</string>
+    <string name="frosted_recent_mb_unit">MB</string>
+    <string name="frosted_recent_gb_unit">GB</string>
+    <string name="frosted_recent_hz_unit">Hz</string>
 
     <!-- Material Component Strings -->
     <string name="material_additional_control">Additional Control</string>
@@ -1240,11 +1240,11 @@
     <string name="material_tuning_title">Tuning</string>
     <string name="material_active_profile">Active Profile</string>
     
-    <!-- Liquid Recent Strings -->
-    <string name="liquid_recent_advanced_settings">Advanced Settings</string>
-    <string name="liquid_recent_fine_tune_performance">Fine tune system performance in detail</string>
-    <string name="liquid_recent_per_app_profiles">Per-App Profiles</string>
-    <string name="liquid_recent_balance">Balance</string>
+    <!-- Frosted Recent Strings -->
+    <string name="frosted_recent_advanced_settings">Advanced Settings</string>
+    <string name="frosted_recent_fine_tune_performance">Fine tune system performance in detail</string>
+    <string name="frosted_recent_per_app_profiles">Per-App Profiles</string>
+    <string name="frosted_recent_balance">Balance</string>
 
     <!-- New Material UI Strings -->
     <string name="battery_monitor_title">Battery Monitor</string>

@@ -63,11 +63,11 @@ fun CoreControlCard(
           Spacer(modifier = Modifier.width(16.dp))
           Column {
             Text(
-                text = stringResource(R.string.liquid_cpu_core_management),
+                text = stringResource(R.string.frosted_cpu_core_management),
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             )
             Text(
-                text = stringResource(R.string.liquid_cpu_clusters_cores_format, onlineCores, totalCores) + " " + stringResource(R.string.liquid_cpu_cores_online),
+                text = stringResource(R.string.frosted_cpu_clusters_cores_format, onlineCores, totalCores) + " " + stringResource(R.string.frosted_cpu_cores_online),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -134,7 +134,7 @@ private fun ClusterCoreSection(
     Column(modifier = Modifier.padding(16.dp)) {
       // Cluster Header
       Text(
-          text = stringResource(R.string.liquid_cpu_cluster_format, clusterNumber),
+          text = stringResource(R.string.frosted_cpu_cluster_format, clusterNumber),
           style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
           color = MaterialTheme.colorScheme.primary,
           modifier = Modifier.padding(bottom = 12.dp)
@@ -205,7 +205,7 @@ private fun CoreItem(
       
       Column {
         Text(
-            text = stringResource(R.string.liquid_cpu_core_format, core.coreNumber),
+            text = stringResource(R.string.frosted_cpu_core_format, core.coreNumber),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
             color = if (isOnline) 
                 MaterialTheme.colorScheme.onSurface 
@@ -221,7 +221,7 @@ private fun CoreItem(
           )
         } else if (!isOnline) {
           Text(
-              text = stringResource(R.string.liquid_cpu_offline),
+              text = stringResource(R.string.frosted_cpu_offline),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.error,
           )
@@ -251,7 +251,7 @@ private fun CoreItem(
   // Core 0 warning
   if (isCore0) {
     Text(
-        text = stringResource(R.string.liquid_cpu_primary_core_cannot_disabled),
+        text = stringResource(R.string.frosted_cpu_primary_core_cannot_disabled),
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
         modifier = Modifier.padding(start = 48.dp, top = 4.dp)

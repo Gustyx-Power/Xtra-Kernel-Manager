@@ -6,5 +6,5 @@ echo "=== Monitoring Process Manager Logs ==="
 echo "Press Ctrl+C to stop"
 echo ""
 
-adb logcat -c  # Clear log
-adb logcat | grep -E "(LiquidProcessManager|MaterialProcessManager|ProcessModels|AndroidRuntime|FATAL)"
+adb logcat -c
+adb logcat | grep -E "(FrostedProcessManager|MaterialProcessManager|ProcessModels|AndroidRuntime|FATAL)"

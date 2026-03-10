@@ -118,7 +118,7 @@ fun ClassicSettingsSheet(preferencesManager: PreferencesManager, currentLayout: 
             if (isLayoutSwitching) {
                  val displayLayout = targetLayoutSelection
                  val targetLayoutName = when (displayLayout) {
-                    "liquid" -> "Liquid Glass"
+                    "liquid" -> "Frosted Glass"
                     "material" -> "Material"
                     else -> "Classic"
                 }

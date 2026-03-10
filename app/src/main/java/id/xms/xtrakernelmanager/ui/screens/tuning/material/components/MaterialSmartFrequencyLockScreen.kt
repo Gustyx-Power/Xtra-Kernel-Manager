@@ -57,7 +57,7 @@ fun MaterialSmartFrequencyLockScreen(
             TopAppBar(
                 title = {
                     Text(
-                        stringResource(R.string.liquid_smart_frequency_lock),
+                        stringResource(R.string.frosted_smart_frequency_lock),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 24.sp
                     )

@@ -22,14 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.screens.home.components.classic.ClassicSettingsSheet
-import id.xms.xtrakernelmanager.ui.screens.home.components.liquid.LiquidSettingsSheet
+import id.xms.xtrakernelmanager.ui.screens.home.components.frosted.FrostedSettingsSheet
 import id.xms.xtrakernelmanager.ui.screens.home.components.material.MaterialSettingsSheet
 
 @Composable
 fun SettingsSheet(preferencesManager: PreferencesManager, currentLayout: String, onDismiss: () -> Unit) {
     when (currentLayout) {
         "classic" -> ClassicSettingsSheet(preferencesManager, currentLayout, onDismiss)
-        "liquid" -> LiquidSettingsSheet(preferencesManager, currentLayout, onDismiss)
+        "liquid" -> FrostedSettingsSheet(preferencesManager, currentLayout, onDismiss)
         else -> MaterialSettingsSheet(preferencesManager, currentLayout, onDismiss)
     }
 }

@@ -210,7 +210,7 @@ fun HomeScreen(
                                 )
                         }
                         else -> {
-                                // Liquid Home Screen (Formerly Legacy/Glass UI)
+                                // Frosted Home Screen (Formerly Legacy/Glass UI)
                                 val backdrop = rememberLayerBackdrop()
 
                                 Box(modifier = Modifier.fillMaxSize()) {
@@ -265,7 +265,7 @@ fun HomeScreen(
                                                 ) { paddingValues ->
                                                         // Apply system padding for status bar
                                                         Box(Modifier.fillMaxSize().padding(paddingValues)) {
-                LiquidHomeScreen(
+                FrostedHomeScreen(
                         cpuInfo = cpuInfo,
                         gpuInfo = gpuInfo,
                         batteryInfo = batteryInfo,

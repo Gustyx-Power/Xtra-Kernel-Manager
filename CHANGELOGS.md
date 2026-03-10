@@ -6,9 +6,9 @@ All notable changes to this project will be documented in here.
 
 ## [3.0-Release] - February 10, 2026
 
-### 💎 Liquid UI vs Material
+### 💎 Frosted UI vs Material
 - **Dual Design System** - Choose your preferred visual style
-  - **Liquid UI** - The new signature layout with Wavy Blob ornaments, neon aesthetics, and glassmorphism
+  - **Frosted UI** - The new signature layout with Wavy Blob ornaments, neon aesthetics, and glassmorphism
   - **Material UI** - Clean, standard Material 3 design for purists
 - **Dynamic Components**
   - **Responsive Recent Cards** - Auto-sizing cards with colored backgrounds
