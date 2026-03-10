@@ -1,11 +1,11 @@
 [versions]
 # Build
-agp = "9.0.1"
+agp = "9.1.0"
 kotlin = "2.3.10"
 compose = "1.7.5"
 
 # Compose
-compose-bom = "2026.02.00"
+compose-bom = "2026.02.01"
 
 # AndroidX
 core-ktx = "1.17.0"
@@ -20,7 +20,7 @@ material3 = "1.4.0"
 haze = "1.7.2"
 
 # Hilt
-hilt = "2.59.1"
+hilt = "2.59.2"
 hilt-navigation-compose = "1.3.0"
 
 # DataStore
@@ -31,7 +31,7 @@ coroutines = "1.10.2"
 
 # Testing
 junit = "4.13.2"
-androidx-test-ext-junit = "1.2.1"
+androidx-test-ext-junit = "1.3.0"
 espresso-core = "3.7.0"
 
 # Debug
@@ -40,7 +40,7 @@ leakcanary = "2.14"
 # KSP
 ksp = "2.3.6"
 lifecycle-service = "2.10.0"
-foundation = "1.10.3"
+foundation = "1.10.4"
 
 # YukiHookAPI - For Xposed Module (Banking Hide Mode)
 yukihookapi = "1.3.1"
