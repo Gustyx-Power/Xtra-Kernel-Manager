@@ -80,62 +80,56 @@ fun FrostedTuningScreen(
                 shape = CircleShape,
                 contentPadding = PaddingValues(0.dp)
             ) {
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(id.xms.xtrakernelmanager.ui.theme.NeonBlue.copy(alpha = 0.85f))
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Title
+                    Text(
+                        text = stringResource(R.string.frosted_tuning_title),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    // Action buttons
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Title
-                        Text(
-                            text = stringResource(R.string.frosted_tuning_title),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = androidx.compose.ui.graphics.Color.White
-                        )
-                        
-                        // Action buttons
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        // Import button
+                        Surface(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(32.dp)
                         ) {
-                            // Import button
-                            Surface(
-                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f),
-                                shape = CircleShape,
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                IconButton(onClick = onImportClick) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.FolderOpen,
-                                        contentDescription = stringResource(R.string.frosted_tuning_import_profile),
-                                        modifier = Modifier.size(18.dp),
-                                        tint = androidx.compose.ui.graphics.Color.White
-                                    )
-                                }
+                            IconButton(onClick = onImportClick) {
+                                Icon(
+                                    imageVector = Icons.Rounded.FolderOpen,
+                                    contentDescription = stringResource(R.string.frosted_tuning_import_profile),
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
                             }
-                            
-                            // Export button
-                            Surface(
-                                color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.15f),
-                                shape = CircleShape,
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                IconButton(onClick = onExportClick) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Save,
-                                        contentDescription = stringResource(R.string.frosted_tuning_export_profile),
-                                        modifier = Modifier.size(18.dp),
-                                        tint = androidx.compose.ui.graphics.Color.White
-                                    )
-                                }
+                        }
+                        
+                        // Export button
+                        Surface(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            shape = CircleShape,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            IconButton(onClick = onExportClick) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Save,
+                                    contentDescription = stringResource(R.string.frosted_tuning_export_profile),
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                         }
                     }
