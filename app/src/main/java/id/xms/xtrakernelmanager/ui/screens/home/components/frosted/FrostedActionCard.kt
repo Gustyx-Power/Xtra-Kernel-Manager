@@ -3,6 +3,7 @@ package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,11 +24,25 @@ fun FrostedActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-        Box(
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val cardBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color.White.copy(alpha = 0.55f)
+    }
+    
+    val cardBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(backgroundColor.copy(alpha = 0.1f))
-            .border(1.dp, backgroundColor.copy(alpha = 0.2f), RoundedCornerShape(24.dp))
+            .background(cardBackground)
+            .border(0.8.dp, cardBorder, RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
             .padding(16.dp),
         contentAlignment = Alignment.Center

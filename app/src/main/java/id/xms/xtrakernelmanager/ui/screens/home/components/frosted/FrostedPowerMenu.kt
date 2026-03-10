@@ -1,7 +1,9 @@
 package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,20 +16,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.ui.model.PowerAction
 import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
-import id.xms.xtrakernelmanager.ui.theme.*
 
 @Composable
 fun FrostedPowerMenu(
     onAction: (PowerAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val glassBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
+    
+    val textColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
+    
+    val borderColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.15f)
+    } else {
+        Color.White.copy(alpha = 0.6f)
+    }
+    
     FrostedSharedCard(
         modifier = modifier,
         contentPadding = PaddingValues(0.dp)
     ) {
         Box(
             modifier = Modifier
-                .background(Color(0xFF1E293B).copy(alpha = 0.85f))
+                .background(glassBackground)
+                .border(
+                    width = if (isDarkTheme) 0.8.dp else 1.2.dp,
+                    color = borderColor,
+                    shape = MaterialTheme.shapes.large
+                )
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -37,7 +63,7 @@ fun FrostedPowerMenu(
                     text = "Power Actions",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = textColor
                 )
                 
                 // First Row: Power Off, Reboot
@@ -49,12 +75,14 @@ fun FrostedPowerMenu(
                         modifier = Modifier.weight(1f),
                         action = PowerAction.PowerOff,
                         color = Color(0xFFEF4444), // Red
+                        isDarkTheme = isDarkTheme,
                         onClick = { onAction(PowerAction.PowerOff) }
                     )
                     PowerActionButton(
                         modifier = Modifier.weight(1f),
                         action = PowerAction.Reboot,
                         color = Color(0xFF3B82F6), // Blue
+                        isDarkTheme = isDarkTheme,
                         onClick = { onAction(PowerAction.Reboot) }
                     )
                 }
@@ -68,12 +96,14 @@ fun FrostedPowerMenu(
                         modifier = Modifier.weight(1f),
                         action = PowerAction.Recovery,
                         color = Color(0xFFF59E0B), // Orange
+                        isDarkTheme = isDarkTheme,
                         onClick = { onAction(PowerAction.Recovery) }
                     )
                     PowerActionButton(
                         modifier = Modifier.weight(1f),
                         action = PowerAction.Bootloader,
                         color = Color(0xFF10B981), // Green
+                        isDarkTheme = isDarkTheme,
                         onClick = { onAction(PowerAction.Bootloader) }
                     )
                 }
@@ -86,7 +116,8 @@ fun FrostedPowerMenu(
                     PowerActionButton(
                         modifier = Modifier.fillMaxWidth(0.5f),
                         action = PowerAction.SystemUI,
-                        color = NeonPurple,
+                        color = Color(0xFF8B5CF6), // Purple
+                        isDarkTheme = isDarkTheme,
                         onClick = { onAction(PowerAction.SystemUI) }
                     )
                 }
@@ -99,13 +130,27 @@ fun FrostedPowerMenu(
 private fun PowerActionButton(
     action: PowerAction,
     color: Color,
+    isDarkTheme: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val buttonBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color.White.copy(alpha = 0.55f)
+    }
+    
+    val buttonBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(color.copy(alpha = 0.25f)) // Increased opacity for better visibility on dark bg
+            .background(buttonBackground)
+            .border(0.8.dp, buttonBorder, RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(12.dp),
         contentAlignment = Alignment.Center

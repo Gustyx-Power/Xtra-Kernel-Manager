@@ -1,6 +1,8 @@
 package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -28,6 +30,38 @@ fun FrostedStatTile(
     color: Color,
     badgeText: String? = null
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val glassBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
+    
+    val textColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
+    
+    val textSecondaryColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.65f)
+    } else {
+        Color(0xFF5A5A5A).copy(alpha = 0.7f)
+    }
+    
+    val tileBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color.White.copy(alpha = 0.55f)
+    }
+    
+    val tileBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
     FrostedSharedCard(
         modifier = modifier.height(IntrinsicSize.Max),
         contentPadding = PaddingValues(0.dp)
@@ -35,7 +69,12 @@ fun FrostedStatTile(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color.copy(alpha = 0.85f))
+                .background(glassBackground)
+                .border(
+                    width = if (isDarkTheme) 0.8.dp else 1.2.dp,
+                    color = if (isDarkTheme) Color.White.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.6f),
+                    shape = MaterialTheme.shapes.large
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -50,14 +89,14 @@ fun FrostedStatTile(
                 ) {
                     Surface(
                         shape = MaterialTheme.shapes.medium,
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = tileBackground,
                         modifier = Modifier.size(36.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = icon,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = textColor,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -65,15 +104,15 @@ fun FrostedStatTile(
 
                     if (badgeText != null) {
                         Surface(
-                            color = Color.White.copy(alpha = 0.15f),
+                            color = tileBackground,
                             shape = CircleShape,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                            border = androidx.compose.foundation.BorderStroke(0.8.dp, tileBorder)
                         ) {
                             Text(
                                 text = badgeText,
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                color = textColor,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
@@ -88,7 +127,7 @@ fun FrostedStatTile(
                         style = MaterialTheme.typography.labelMedium.copy(
                             platformStyle = PlatformTextStyle(includeFontPadding = false)
                         ),
-                        color = Color.White.copy(alpha = 0.7f),
+                        color = textSecondaryColor,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
@@ -101,7 +140,7 @@ fun FrostedStatTile(
                             )
                         ),
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
+                        color = textColor,
                         lineHeight = 32.sp
                     )
                     Text(
@@ -109,7 +148,7 @@ fun FrostedStatTile(
                         style = MaterialTheme.typography.bodySmall.copy(
                             platformStyle = PlatformTextStyle(includeFontPadding = false)
                         ),
-                        color = Color.White.copy(alpha = 0.6f)
+                        color = textSecondaryColor
                     )
                 }
             }

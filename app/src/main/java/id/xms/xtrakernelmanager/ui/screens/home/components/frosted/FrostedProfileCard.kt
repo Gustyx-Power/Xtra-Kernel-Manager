@@ -1,7 +1,9 @@
 package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -25,13 +27,38 @@ fun FrostedProfileCard(
     onProfileChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val glassBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
+    
+    val textColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
+    
+    val borderColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.15f)
+    } else {
+        Color.White.copy(alpha = 0.6f)
+    }
+    
     FrostedSharedCard(
         modifier = modifier,
         contentPadding = PaddingValues(0.dp)
     ) {
         Box(
             modifier = Modifier
-                .background(Color(0xFF1E293B).copy(alpha = 0.85f))
+                .background(glassBackground)
+                .border(
+                    width = if (isDarkTheme) 0.8.dp else 1.2.dp,
+                    color = borderColor,
+                    shape = MaterialTheme.shapes.large
+                )
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -41,7 +68,7 @@ fun FrostedProfileCard(
                     text = "Performance Profile",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = textColor
                 )
                 
                 Row(
@@ -55,6 +82,7 @@ fun FrostedProfileCard(
                         label = "Battery",
                         color = NeonGreen,
                         isSelected = currentProfile == "Battery",
+                        isDarkTheme = isDarkTheme,
                         onClick = { onProfileChange("Battery") }
                     )
                     
@@ -65,6 +93,7 @@ fun FrostedProfileCard(
                         label = "Balance",
                         color = NeonBlue,
                         isSelected = currentProfile == "Balance",
+                        isDarkTheme = isDarkTheme,
                         onClick = { onProfileChange("Balance") }
                     )
                     
@@ -75,6 +104,7 @@ fun FrostedProfileCard(
                         label = "Performance",
                         color = NeonPurple,
                         isSelected = currentProfile == "Performance",
+                        isDarkTheme = isDarkTheme,
                         onClick = { onProfileChange("Performance") }
                     )
                 }
@@ -90,16 +120,45 @@ private fun ProfileButton(
     label: String,
     color: Color,
     isSelected: Boolean,
+    isDarkTheme: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val buttonBackground = if (isSelected) {
+        color.copy(alpha = 0.3f)
+    } else {
+        if (isDarkTheme) {
+            Color(0xFF000000).copy(alpha = 0.3f)
+        } else {
+            Color.White.copy(alpha = 0.5f)
+        }
+    }
+    
+    val buttonBorder = if (isSelected) {
+        color.copy(alpha = 0.5f)
+    } else {
+        if (isDarkTheme) {
+            Color.White.copy(alpha = 0.15f)
+        } else {
+            Color.White.copy(alpha = 0.4f)
+        }
+    }
+    
+    val textColor = if (isSelected) {
+        color
+    } else {
+        if (isDarkTheme) {
+            Color.White.copy(alpha = 0.7f)
+        } else {
+            Color(0xFF2C2C2C).copy(alpha = 0.7f)
+        }
+    }
+    
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (isSelected) color.copy(alpha = 0.3f) 
-                else Color.White.copy(alpha = 0.1f)
-            )
+            .background(buttonBackground)
+            .border(0.8.dp, buttonBorder, RoundedCornerShape(12.dp))
             .clickable { onClick() }
             .padding(12.dp),
         contentAlignment = Alignment.Center
@@ -111,13 +170,13 @@ private fun ProfileButton(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = if (isSelected) color else Color.White.copy(alpha = 0.7f),
+                tint = textColor,
                 modifier = Modifier.size(20.dp)
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isSelected) color else Color.White.copy(alpha = 0.7f),
+                color = textColor,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
         }

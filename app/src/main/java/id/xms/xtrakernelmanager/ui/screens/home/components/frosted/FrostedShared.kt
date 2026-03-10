@@ -21,17 +21,32 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
 @Composable
 fun adaptiveTextColor(): Color {
-    return Color.Black
+    val isDarkTheme = isSystemInDarkTheme()
+    return if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
 }
 
 @Composable
 fun adaptiveTextColor(alpha: Float): Color {
-    return Color.Black.copy(alpha = alpha)
+    val isDarkTheme = isSystemInDarkTheme()
+    return if (isDarkTheme) {
+        Color.White.copy(alpha = alpha * 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = alpha * 0.85f)
+    }
 }
 
 @Composable
 fun adaptiveSurfaceColor(alpha: Float = 0.1f): Color {
-    return Color.Black.copy(alpha = alpha)
+    val isDarkTheme = isSystemInDarkTheme()
+    return if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = alpha)
+    } else {
+        Color.White.copy(alpha = alpha)
+    }
 }
 
 @Composable
@@ -52,6 +67,14 @@ fun FrostedSharedCard(
 
 @Composable
 fun FrostedBatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val silhouetteColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.5f)
+    } else {
+        Color(0xFF5A5A5A).copy(alpha = 0.6f)
+    }
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp)
@@ -59,12 +82,12 @@ fun FrostedBatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
         Box(
             modifier = Modifier
                 .size(20.dp, 4.dp)
-                .background(Color.Gray, MaterialTheme.shapes.extraSmall)
+                .background(silhouetteColor, MaterialTheme.shapes.extraSmall)
         )
         Box(
             modifier = Modifier
                 .size(50.dp, 80.dp)
-                .border(4.dp, Color.Gray, MaterialTheme.shapes.medium)
+                .border(4.dp, silhouetteColor, MaterialTheme.shapes.medium)
                 .padding(4.dp),
             contentAlignment = Alignment.BottomCenter
         ) {

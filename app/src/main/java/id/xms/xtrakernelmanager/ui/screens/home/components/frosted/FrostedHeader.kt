@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -31,18 +32,38 @@ fun FrostedHeader(
     title: String = stringResource(id.xms.xtrakernelmanager.R.string.frosted_header_title),
     showVersionBadge: Boolean = true
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val textColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
+    
+    val badgeBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.4f)
+    } else {
+        Color.White.copy(alpha = 0.6f)
+    }
+    
+    val badgeBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.25f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
     id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
         modifier = modifier
             .fillMaxWidth()
             .testTag("FrostedHeader"),
         shape = CircleShape,
         contentPadding = PaddingValues(0.dp),
-        onClick = onSettingsClick // Make settings icon action clear
+        onClick = onSettingsClick
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp), // Comfortable touch target but compact visual
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -55,28 +76,26 @@ fun FrostedHeader(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     ),
-                    color = Color.White
+                    color = textColor
                 )
                 
-                // Version Badge (only show if enabled)
                 if (showVersionBadge) {
                     Surface(
-                        color = Color.White.copy(alpha = 0.15f),
+                        color = badgeBackground,
                         shape = CircleShape
                     ) {
                         Text(
                             text = "v${BuildConfig.VERSION_NAME}",
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            color = Color.White
+                            color = textColor
                         )
                     }
                 }
             }
 
-            // Settings Icon (Mini FAB style or just Icon)
             Surface(
-                color = Color.White.copy(alpha = 0.15f),
+                color = badgeBackground,
                 shape = CircleShape,
                 modifier = Modifier.size(32.dp).clickable(onClick = onSettingsClick)
             ) {
@@ -85,7 +104,7 @@ fun FrostedHeader(
                         imageVector = Icons.Rounded.Settings,
                         contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.frosted_header_settings),
                         modifier = Modifier.size(18.dp),
-                        tint = Color.White
+                        tint = textColor
                     )
                 }
             }

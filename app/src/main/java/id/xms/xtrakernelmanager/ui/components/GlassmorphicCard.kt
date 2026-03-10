@@ -40,9 +40,19 @@ fun GlassmorphicCard(
   val finalPadding = contentPadding ?: PaddingValues(dimens.cardPadding)
   val isDark = isSystemInDarkTheme()
 
-  // Force Light Mode style glass effect (White tint + higher opacity) as requested
-  val glassColor = Color.White.copy(alpha = 0.4f)
-  val glassBorder = Color.White.copy(alpha = 0.4f)
+  // OriginOS-inspired frosted glass effect
+  val glassColor = if (isDark) {
+      Color(0xFF000000).copy(alpha = 0.35f)
+  } else {
+      Color(0xFFFFFFFF).copy(alpha = 0.45f)
+  }
+  
+  val glassBorder = if (isDark) {
+      Color.White.copy(alpha = 0.15f)
+  } else {
+      Color.White.copy(alpha = 0.6f)
+  }
+  
   val shadowColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
 
   // Base modifier without shadow to avoid artifacts behind transparent content
@@ -74,23 +84,37 @@ fun GlassmorphicCard(
                       // We can render border here if needed, or via modifier.border below
                     }
             )
-    // Add border on top
-    baseModifier = baseModifier.border(1.dp, glassBorder, shape)
+    // Add border on top with adaptive width
+    baseModifier = baseModifier.border(
+        width = if (isDark) 0.8.dp else 1.2.dp,
+        color = glassBorder,
+        shape = shape
+    )
   } else {
-    // Fallback
-    baseModifier = baseModifier.background(glassColor).border(1.dp, glassBorder, shape)
+    // Fallback with adaptive border
+    baseModifier = baseModifier
+        .background(glassColor)
+        .border(
+            width = if (isDark) 0.8.dp else 1.2.dp,
+            color = glassBorder,
+            shape = shape
+        )
   }
 
-  // Override internal theme to force dark text on the white glass card
+  // Adaptive content color scheme based on theme
   val currentColorScheme = MaterialTheme.colorScheme
   val forcedContentScheme = if (isDark) {
       currentColorScheme.copy(
-          onSurface = Color.Black,
-          onSurfaceVariant = Color.DarkGray, // or Color(0xFF444444)
-          primary = currentColorScheme.primary // Keep primary color
+          onSurface = Color.White.copy(alpha = 0.95f),
+          onSurfaceVariant = Color.White.copy(alpha = 0.65f),
+          primary = currentColorScheme.primary
       )
   } else {
-      currentColorScheme
+      currentColorScheme.copy(
+          onSurface = Color(0xFF2C2C2C).copy(alpha = 0.85f),
+          onSurfaceVariant = Color(0xFF5A5A5A).copy(alpha = 0.7f),
+          primary = currentColorScheme.primary
+      )
   }
 
   if (onClick != null) {

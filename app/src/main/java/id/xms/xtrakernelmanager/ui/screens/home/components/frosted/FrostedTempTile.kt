@@ -1,7 +1,9 @@
 package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -26,11 +28,48 @@ fun FrostedTempTile(
     thermalTemp: Int,
     color: Color
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val glassBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
+    
+    val textColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
+    
+    val textSecondaryColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.65f)
+    } else {
+        Color(0xFF5A5A5A).copy(alpha = 0.7f)
+    }
+    
+    val tileBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color.White.copy(alpha = 0.55f)
+    }
+    
+    val tileBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
     FrostedSharedCard(modifier = modifier, contentPadding = PaddingValues(0.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color.copy(alpha = 0.85f))
+                .background(glassBackground)
+                .border(
+                    width = if (isDarkTheme) 0.8.dp else 1.2.dp,
+                    color = if (isDarkTheme) Color.White.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.6f),
+                    shape = MaterialTheme.shapes.large
+                )
         ) {
             Column(
                 modifier = Modifier
@@ -46,29 +85,29 @@ fun FrostedTempTile(
                 ) {
                     Surface(
                         shape = MaterialTheme.shapes.medium,
-                        color = Color.White.copy(alpha = 0.2f),
+                        color = tileBackground,
                         modifier = Modifier.size(36.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Rounded.Thermostat,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = textColor,
                                 modifier = Modifier.size(18.dp)
                             )
                         }
                     }
 
                     Surface(
-                        color = Color.White.copy(alpha = 0.15f),
+                        color = tileBackground,
                         shape = CircleShape,
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                        border = BorderStroke(0.8.dp, tileBorder)
                     ) {
                         Text(
                             text = "TEMP",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
+                            color = textColor,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
@@ -78,10 +117,10 @@ fun FrostedTempTile(
 
                 // List of Temps
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    TempRow("CPU", "${cpuTemp}°C")
-                    TempRow("GPU", "${gpuTemp}°C")
-                    TempRow("PMIC", "${pmicTemp}°C")
-                    TempRow("Thermal", "${thermalTemp}°C")
+                    TempRow("CPU", "${cpuTemp}°C", textSecondaryColor, textColor)
+                    TempRow("GPU", "${gpuTemp}°C", textSecondaryColor, textColor)
+                    TempRow("PMIC", "${pmicTemp}°C", textSecondaryColor, textColor)
+                    TempRow("Thermal", "${thermalTemp}°C", textSecondaryColor, textColor)
                 }
             }
         }
@@ -89,7 +128,7 @@ fun FrostedTempTile(
 }
 
 @Composable
-private fun TempRow(label: String, value: String) {
+private fun TempRow(label: String, value: String, labelColor: Color, valueColor: Color) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -98,13 +137,13 @@ private fun TempRow(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.7f),
+            color = labelColor,
             fontWeight = FontWeight.SemiBold
         )
         Text(
             text = value,
             style = MaterialTheme.typography.labelLarge,
-            color = Color.White,
+            color = valueColor,
             fontWeight = FontWeight.Bold
         )
     }

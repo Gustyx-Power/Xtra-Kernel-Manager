@@ -36,13 +36,41 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.data.model.SystemInfo
-import id.xms.xtrakernelmanager.ui.theme.NeonBlue
-import id.xms.xtrakernelmanager.ui.theme.NeonGreen
-import id.xms.xtrakernelmanager.ui.theme.NeonPurple
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.isSystemInDarkTheme
 
 @Composable
 fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
+    // Detect system theme - OriginOS style
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    // OriginOS-inspired frosted glass colors
+    val glassBackground = if (isDarkTheme) {
+        // Dark theme: dark glass with transparency for blur effect (like screenshot 1)
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        // Light theme: lighter glass with high transparency (like screenshot 2)
+        Color(0xFFFFFFFF).copy(alpha = 0.45f)
+    }
+    
+    val textColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.95f)
+    } else {
+        Color(0xFF2C2C2C).copy(alpha = 0.85f)
+    }
+    
+    val textSecondaryColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.65f)
+    } else {
+        Color(0xFF5A5A5A).copy(alpha = 0.7f)
+    }
+    
+    val borderColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.15f)
+    } else {
+        Color.White.copy(alpha = 0.6f)
+    }
+    
     // Uptime calculation
     var uptime by remember { mutableStateOf(calculateUptime()) }
     var deepSleep by remember { mutableStateOf("9999%") }
@@ -83,7 +111,12 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(NeonBlue.copy(alpha = 0.85f))
+                .background(glassBackground)
+                .border(
+                    width = if (isDarkTheme) 0.8.dp else 1.2.dp,
+                    color = borderColor,
+                    shape = RoundedCornerShape(24.dp)
+                )
         ) {
             
             // Brand Logo - Top Right Corner
@@ -101,7 +134,7 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                  Icon(
                     imageVector = Icons.Rounded.Android,
                     contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.8f), 
+                    tint = textColor.copy(alpha = 0.6f), 
                     modifier = Modifier
                         .size(64.dp) 
                         .align(Alignment.TopEnd)
@@ -118,8 +151,8 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
             ) {
                  // Header: Chips
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GlassChip(text = android.os.Build.MANUFACTURER.uppercase(), color = Color.White)
-                    GlassChip(text = android.os.Build.BOARD.uppercase(), color = Color.White)
+                    GlassChip(text = android.os.Build.MANUFACTURER.uppercase(), color = textColor, isDarkTheme = isDarkTheme)
+                    GlassChip(text = android.os.Build.BOARD.uppercase(), color = textColor, isDarkTheme = isDarkTheme)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -131,7 +164,7 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                          .trim()
                          .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_unknown_device) },
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
-                    color = Color.White,
+                    color = textColor,
                     lineHeight = 30.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -140,7 +173,7 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                 Text(
                     text = android.os.Build.DEVICE,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp),
-                    color = Color.White.copy(alpha = 0.7f),
+                    color = textSecondaryColor,
                     fontFamily = FontFamily.Monospace
                 )
 
@@ -152,14 +185,18 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                             icon = Icons.Rounded.Android,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_android),
                             value = systemInfo.androidVersion,
-                            color = Color.White,
+                            color = textColor,
+                            secondaryColor = textSecondaryColor,
+                            isDarkTheme = isDarkTheme,
                             modifier = Modifier.weight(1.5f).height(68.dp)
                         )
                          InfoTile(
                             icon = Icons.Rounded.DeveloperBoard,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_kernel),
                             value = systemInfo.kernelVersion,
-                            color = Color.White,
+                            color = textColor,
+                            secondaryColor = textSecondaryColor,
+                            isDarkTheme = isDarkTheme,
                             modifier = Modifier.weight(1.5f).height(68.dp)
                         )
                     }
@@ -169,14 +206,18 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                             icon = Icons.Rounded.AccessTime,
                             label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_uptime),
                             value = uptime,
-                            color = Color.White,
+                            color = textColor,
+                            secondaryColor = textSecondaryColor,
+                            isDarkTheme = isDarkTheme,
                             modifier = Modifier.weight(1f).height(68.dp)
                         )
                         InfoTile(
                             icon = androidx.compose.material.icons.Icons.Rounded.NightsStay, 
                             label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_sleep),
                             value = deepSleep,
-                            color = Color.White, 
+                            color = textColor,
+                            secondaryColor = textSecondaryColor,
+                            isDarkTheme = isDarkTheme,
                             modifier = Modifier.weight(1f).height(68.dp)
                         )
                     }
@@ -186,7 +227,9 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                         icon = androidx.compose.material.icons.Icons.Rounded.Fingerprint,
                         label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_fingerprint),
                         value = android.os.Build.FINGERPRINT,
-                        color = Color.White,
+                        color = textColor,
+                        secondaryColor = textSecondaryColor,
+                        isDarkTheme = isDarkTheme,
                         modifier = Modifier.fillMaxWidth().height(68.dp)
                     )
                     // Row 3 (Manufacturer) - Removed as it is redundant and space consuming
@@ -203,8 +246,8 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                     size = androidx.compose.ui.unit.DpSize(140.dp, 280.dp),
                     rotation = -15f,
                     showWallpaper = true,
-                    glowColor = Color.White,
-                    accentColor = Color.White
+                    glowColor = textColor.copy(alpha = 0.6f),
+                    accentColor = textColor.copy(alpha = 0.8f)
                 )
             }
         }
@@ -212,11 +255,24 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun GlassChip(text: String, color: Color) {
+private fun GlassChip(text: String, color: Color, isDarkTheme: Boolean) {
+    // OriginOS style chip
+    val chipBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.4f)
+    } else {
+        Color.White.copy(alpha = 0.6f)
+    }
+    
+    val chipBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.25f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
     Box(
         modifier = Modifier
-            .border(1.dp, color.copy(alpha = 0.3f), CircleShape)
-            .background(color.copy(alpha = 0.1f), CircleShape)
+            .border(0.8.dp, chipBorder, CircleShape)
+            .background(chipBackground, CircleShape)
             .padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
         Text(
@@ -234,28 +290,48 @@ private fun InfoTile(
     label: String,
     value: String,
     color: Color,
+    secondaryColor: Color,
+    isDarkTheme: Boolean,
     modifier: Modifier = Modifier
 ) {
+    // OriginOS style info tile
+    val tileBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.35f)
+    } else {
+        Color.White.copy(alpha = 0.55f)
+    }
+    
+    val tileBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.18f)
+    } else {
+        Color.White.copy(alpha = 0.5f)
+    }
+    
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.15f))
+            .background(tileBackground)
+            .border(
+                width = 0.8.dp,
+                color = tileBorder,
+                shape = RoundedCornerShape(16.dp)
+            )
             .padding(10.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(icon, null, tint = color, modifier = Modifier.size(14.dp))
+        Icon(icon, null, tint = color.copy(alpha = 0.85f), modifier = Modifier.size(14.dp))
         Spacer(modifier = Modifier.height(3.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
-            color = Color.White,
+            color = color,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = Color.White.copy(alpha = 0.7f),
+            color = secondaryColor,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
