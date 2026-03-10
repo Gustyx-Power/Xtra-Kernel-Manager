@@ -67,30 +67,12 @@ pub fn read_file_libc(path: &str) -> Option<String> {
     }
 }
 pub fn get_system_property(_key: &str) -> Option<String> {
-    #[cfg(unix)]
+    #[cfg(target_os = "android")]
     {
-        use std::ffi::CString;
-
-        unsafe {
-            let key_c = CString::new(_key).ok()?;
-            let mut value = [0u8; 92]; // PROP_VALUE_MAX
-
-            let len = libc::__system_property_get(
-                key_c.as_ptr(),
-                value.as_mut_ptr() as *mut libc::c_char,
-            );
-
-            if len > 0 {
-                std::str::from_utf8(&value[..len as usize])
-                    .ok()
-                    .map(|s| s.to_string())
-            } else {
-                None
-            }
-        }
+        android_properties::getprop(_key).ok()
     }
     
-    #[cfg(windows)]
+    #[cfg(not(target_os = "android"))]
     {
         None
     }

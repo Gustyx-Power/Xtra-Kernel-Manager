@@ -2,7 +2,7 @@
 # Copy this file to gradle.properties for local development
 
 # Gradle JVM settings
-org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8
+org.gradle.jvmargs=-Xmx8096m -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8
 org.gradle.daemon=true
 org.gradle.configureondemand=true
 org.gradle.parallel=true
