@@ -76,17 +76,15 @@ fun FrostedCPUSettingsScreen(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-          Surface(
+          GlassmorphicCard(
               modifier = Modifier
                   .fillMaxWidth()
                   .padding(horizontal = 24.dp, vertical = 16.dp),
               shape = CircleShape,
-              color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+              contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
           ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {

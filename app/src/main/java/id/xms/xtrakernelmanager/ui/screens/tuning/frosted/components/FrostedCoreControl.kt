@@ -43,13 +43,13 @@ fun FrostedCoreControl(
       animationSpec = tween(300)
   )
 
-  Surface(
+  GlassmorphicCard(
       modifier = modifier.fillMaxWidth().animateContentSize(),
       onClick = { expanded = !expanded },
       shape = RoundedCornerShape(24.dp),
-      color = Color(0xFF3B82F6).copy(alpha = 0.15f) // Blue glass for core control
+      contentPadding = PaddingValues(20.dp)
   ) {
-    Column(modifier = Modifier.padding(20.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
       // Header
       Row(
           modifier = Modifier.fillMaxWidth(),
@@ -63,14 +63,14 @@ fun FrostedCoreControl(
           // Icon Container
           Surface(
               shape = RoundedCornerShape(16.dp),
-              color = Color(0xFF3B82F6).copy(alpha = 0.3f), // Stronger blue glass for icon
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
               modifier = Modifier.size(56.dp),
           ) {
             Box(contentAlignment = Alignment.Center) {
               Icon(
                   imageVector = Icons.Rounded.Memory,
                   contentDescription = null,
-                  tint = Color(0xFF3B82F6),
+                  tint = MaterialTheme.colorScheme.onSurface,
                   modifier = Modifier.size(28.dp),
               )
             }
@@ -81,7 +81,7 @@ fun FrostedCoreControl(
                 text = stringResource(R.string.frosted_cpu_core_management),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -89,26 +89,20 @@ fun FrostedCoreControl(
             ) {
               Surface(
                   shape = CircleShape,
-                  color = if (onlineCores == totalCores) 
-                      Color(0xFF10B981).copy(alpha = 0.3f) // Green glass for all online
-                  else 
-                      Color(0xFF8B5CF6).copy(alpha = 0.3f), // Purple glass for partial
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
               ) {
                 Text(
                     text = "$onlineCores/$totalCores",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    color = if (onlineCores == totalCores) 
-                        Color(0xFF10B981)
-                    else 
-                        Color(0xFF8B5CF6),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
               }
               Text(
                   text = stringResource(R.string.frosted_cpu_cores_online),
                   style = MaterialTheme.typography.bodyMedium,
-                  color = Color.White.copy(alpha = 0.7f),
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
               )
             }
           }
@@ -117,14 +111,14 @@ fun FrostedCoreControl(
         // Expand Icon
         Surface(
             shape = CircleShape,
-            color = Color.White.copy(alpha = 0.1f), // Subtle white glass
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             modifier = Modifier.size(40.dp),
         ) {
           Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = Icons.Rounded.ExpandMore,
                 contentDescription = if (expanded) "Collapse" else "Expand",
-                tint = Color.White.copy(alpha = 0.7f),
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(24.dp).rotate(rotationAngle),
             )
           }
@@ -135,7 +129,7 @@ fun FrostedCoreControl(
       AnimatedVisibility(visible = expanded) {
         Column(modifier = Modifier.padding(top = 20.dp)) {
           HorizontalDivider(
-              color = Color.White.copy(alpha = 0.2f),
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
               modifier = Modifier.padding(bottom = 16.dp)
           )
 
@@ -167,7 +161,7 @@ private fun FrostedClusterCoreSection(
 ) {
   Surface(
       shape = RoundedCornerShape(20.dp),
-      color = Color(0xFF10B981).copy(alpha = 0.1f), // Green glass effect for cluster sections
+      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
       // Cluster Header
@@ -179,18 +173,18 @@ private fun FrostedClusterCoreSection(
         Text(
             text = stringResource(R.string.frosted_cpu_cluster_format, clusterNumber),
             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            color = Color(0xFF10B981),
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Surface(
             shape = CircleShape,
-            color = Color(0xFF10B981).copy(alpha = 0.3f), // Green glass badge
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
         ) {
           Text(
               text = stringResource(R.string.frosted_cpu_cores_format, cores.size),
               style = MaterialTheme.typography.labelSmall,
               fontWeight = FontWeight.Medium,
               modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-              color = Color(0xFF10B981),
+              color = MaterialTheme.colorScheme.onSurface,
           )
         }
       }
@@ -201,7 +195,7 @@ private fun FrostedClusterCoreSection(
 
         if (index != cores.lastIndex) {
           HorizontalDivider(
-              color = Color.White.copy(alpha = 0.1f),
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
               modifier = Modifier.padding(vertical = 12.dp)
           )
         }
@@ -233,26 +227,21 @@ private fun FrostedCoreItem(
           modifier =
               Modifier.size(44.dp)
                   .clip(RoundedCornerShape(12.dp))
-                  .background(
-                      if (isOnline)
-                          Color(0xFF10B981).copy(alpha = 0.2f) // Green glass for online
-                      else
-                          Color(0xFFEF4444).copy(alpha = 0.2f) // Red glass for offline
-                  ),
+                  .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
           contentAlignment = Alignment.Center,
       ) {
         if (isOnline) {
           Icon(
               Icons.Rounded.Memory,
               contentDescription = null,
-              tint = Color(0xFF10B981),
+              tint = MaterialTheme.colorScheme.onSurface,
               modifier = Modifier.size(22.dp)
           )
         } else {
           Icon(
               Icons.Rounded.PowerOff,
               contentDescription = null,
-              tint = Color(0xFFEF4444),
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
               modifier = Modifier.size(22.dp)
           )
         }
@@ -267,23 +256,23 @@ private fun FrostedCoreItem(
               text = stringResource(R.string.frosted_cpu_core_format, core.coreNumber),
               style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
               color = if (isOnline)
-                  Color.White
+                  MaterialTheme.colorScheme.onSurface
               else
-                  Color.White.copy(alpha = 0.5f)
+                  MaterialTheme.colorScheme.onSurfaceVariant
           )
 
           // Core 0 Badge
           if (isCore0) {
             Surface(
                 shape = RoundedCornerShape(6.dp),
-                color = Color(0xFF8B5CF6).copy(alpha = 0.2f), // Purple glass for primary badge
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
             ) {
               Text(
                   text = stringResource(R.string.frosted_cpu_primary),
                   style = MaterialTheme.typography.labelSmall,
                   fontWeight = FontWeight.Bold,
                   modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                  color = Color(0xFF8B5CF6),
+                  color = MaterialTheme.colorScheme.onSurface,
               )
             }
           }
@@ -297,13 +286,13 @@ private fun FrostedCoreItem(
           ) {
             Surface(
                 shape = CircleShape,
-                color = Color(0xFF10B981),
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(6.dp)
             ) {}
             Text(
                 text = "${core.currentFreq} MHz",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF10B981),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium,
             )
           }
@@ -311,7 +300,7 @@ private fun FrostedCoreItem(
           Text(
               text = stringResource(R.string.frosted_cpu_offline),
               style = MaterialTheme.typography.bodySmall,
-              color = Color(0xFFEF4444),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
               fontWeight = FontWeight.Medium,
           )
         }
@@ -337,7 +326,7 @@ private fun FrostedCoreItem(
     Text(
         text = stringResource(R.string.frosted_cpu_primary_core_cannot_disabled),
         style = MaterialTheme.typography.labelSmall,
-        color = Color.White.copy(alpha = 0.6f),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = 58.dp, top = 6.dp)
     )
   }
