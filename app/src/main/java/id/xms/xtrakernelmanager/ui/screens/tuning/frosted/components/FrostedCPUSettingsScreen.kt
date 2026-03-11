@@ -81,7 +81,7 @@ fun FrostedCPUSettingsScreen(
                   .fillMaxWidth()
                   .padding(horizontal = 24.dp, vertical = 16.dp),
               shape = CircleShape,
-              color = Color(0xFF3B82F6).copy(alpha = 0.15f) // Blue glass header
+              color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
           ) {
             Row(
                 modifier = Modifier
@@ -94,14 +94,14 @@ fun FrostedCPUSettingsScreen(
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
               }
               Text(
                   text = stringResource(R.string.cpu_control),
                   style = MaterialTheme.typography.titleMedium,
                   fontWeight = FontWeight.Bold,
-                  color = Color.White
+                  color = MaterialTheme.colorScheme.onSurface
               )
               Spacer(modifier = Modifier.width(48.dp))
             }
@@ -191,13 +191,13 @@ private fun SmartFrequencyLockSection(
   val isLocked by viewModel.isCpuFrequencyLocked.collectAsState()
   val lockStatus by viewModel.cpuLockStatus.collectAsState()
   
-  Surface(
+  GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = Color(0xFF10B981).copy(alpha = 0.15f) // Green glass for smart lock section
+      contentPadding = PaddingValues(24.dp)
   ) {
     Column(
-        modifier = Modifier.padding(24.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       // Header
@@ -215,15 +215,15 @@ private fun SmartFrequencyLockSection(
                   .size(48.dp)
                   .clip(CircleShape)
                   .background(
-                      if (isLocked) Color(0xFF10B981).copy(alpha = 0.5f) // Stronger green glass when locked - more visible
-                      else Color.White.copy(alpha = 0.2f) // More visible white glass when unlocked
+                      if (isLocked) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f)
+                      else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
                   ),
               contentAlignment = Alignment.Center
           ) {
             Icon(
                 imageVector = if (isLocked) Icons.Default.Lock else Icons.Default.LockOpen,
                 contentDescription = null,
-                tint = if (isLocked) Color(0xFF10B981) else Color.White,
+                tint = if (isLocked) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(24.dp)
             )
           }
@@ -233,12 +233,12 @@ private fun SmartFrequencyLockSection(
                 text = stringResource(R.string.frosted_smart_frequency_lock),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = if (isLocked) stringResource(R.string.frosted_smart_lock_active) else stringResource(R.string.frosted_smart_lock_inactive),
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isLocked) Color(0xFF10B981) else Color.White.copy(alpha = 0.8f) // More visible when inactive
+                color = if (isLocked) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
           }
         }
@@ -247,7 +247,7 @@ private fun SmartFrequencyLockSection(
       // Status Info
       if (isLocked) {
       HorizontalDivider(
-          color = Color.White.copy(alpha = 0.3f)
+          color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
       )
         
         Column(
@@ -262,17 +262,17 @@ private fun SmartFrequencyLockSection(
             Text(
                 text = stringResource(R.string.frosted_smart_lock_policy_type),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f) // More visible
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = Color(0xFF3B82F6).copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
             ) {
               Text(
                   text = lockStatus.policyType.name.replace("_", " "),
                   style = MaterialTheme.typography.bodyMedium,
                   fontWeight = FontWeight.Medium,
-                  color = Color.White,
+                  color = MaterialTheme.colorScheme.onSurface,
                   modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
               )
             }
@@ -288,17 +288,17 @@ private fun SmartFrequencyLockSection(
               Text(
                   text = stringResource(R.string.frosted_smart_lock_thermal_policy),
                   style = MaterialTheme.typography.bodyMedium,
-                  color = Color.White.copy(alpha = 0.8f)
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
               )
               Surface(
                   shape = RoundedCornerShape(8.dp),
-                  color = Color(0xFF8B5CF6).copy(alpha = 0.5f)
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
               ) {
                 Text(
                     text = lockStatus.thermalPolicy,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
               }
@@ -314,20 +314,20 @@ private fun SmartFrequencyLockSection(
             Text(
                 text = stringResource(R.string.frosted_smart_lock_locked_clusters),
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
             )
             Text(
                 text = stringResource(R.string.frosted_smart_lock_clusters_format, lockStatus.clusterCount),
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
           }
         }
       }
       
       HorizontalDivider(
-          color = Color.White.copy(alpha = 0.3f)
+          color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
       )
       
       // Action Buttons
@@ -341,7 +341,7 @@ private fun SmartFrequencyLockSection(
               onClick = { viewModel.unlockCpuFrequencies() },
               modifier = Modifier.weight(1f),
               colors = ButtonDefaults.buttonColors(
-                  containerColor = Color(0xFFEF4444)
+                  containerColor = MaterialTheme.colorScheme.error
               ),
               shape = RoundedCornerShape(16.dp)
           ) {
@@ -363,7 +363,7 @@ private fun SmartFrequencyLockSection(
               onClick = onNavigateToConfig,
               modifier = Modifier.weight(1f),
               colors = ButtonDefaults.buttonColors(
-                  containerColor = Color(0xFF3B82F6)
+                  containerColor = MaterialTheme.colorScheme.primary
               ),
               shape = RoundedCornerShape(16.dp)
           ) {
@@ -385,7 +385,7 @@ private fun SmartFrequencyLockSection(
               onClick = onNavigateToConfig,
               modifier = Modifier.fillMaxWidth(),
               colors = ButtonDefaults.buttonColors(
-                  containerColor = Color(0xFF10B981)
+                  containerColor = MaterialTheme.colorScheme.tertiary
               ),
               shape = RoundedCornerShape(16.dp)
           ) {
@@ -570,19 +570,17 @@ internal fun ClusterFrequencyCard(
 ) {
   // Determine cluster-specific color
   val clusterColor = when (clusterIndex) {
-    0 -> Color(0xFF10B981)
-    1 -> Color(0xFF3B82F6) 
-    else -> Color(0xFF8B5CF6)
+    0 -> MaterialTheme.colorScheme.tertiary
+    1 -> MaterialTheme.colorScheme.primary
+    else -> MaterialTheme.colorScheme.secondary
   }
   
-  Surface(
+  GlassmorphicCard(
       shape = RoundedCornerShape(16.dp),
-      color = clusterColor.copy(alpha = 0.15f),
+      contentPadding = PaddingValues(16.dp)
   ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
       // Header
@@ -608,7 +606,7 @@ internal fun ClusterFrequencyCard(
             text = clusterName,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            color = Color.White
+            color = MaterialTheme.colorScheme.onSurface
         )
       }
       
@@ -622,7 +620,7 @@ internal fun ClusterFrequencyCard(
             onClick = onMinClick,
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF10B981).copy(alpha = 0.15f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
         ) {
           Column(
               modifier = Modifier.padding(12.dp),
@@ -631,18 +629,18 @@ internal fun ClusterFrequencyCard(
             Text(
                 text = stringResource(R.string.frosted_smart_lock_min),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "$minFreq",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF10B981)
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = stringResource(R.string.frosted_smart_lock_mhz),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF10B981).copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
           }
         }
@@ -652,7 +650,7 @@ internal fun ClusterFrequencyCard(
             onClick = onMaxClick,
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF8B5CF6).copy(alpha = 0.15f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
         ) {
           Column(
               modifier = Modifier.padding(12.dp),
@@ -661,18 +659,18 @@ internal fun ClusterFrequencyCard(
             Text(
                 text = stringResource(R.string.frosted_smart_lock_max),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "$maxFreq",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF8B5CF6)
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = stringResource(R.string.frosted_smart_lock_mhz),
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF8B5CF6).copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
           }
         }
@@ -691,9 +689,9 @@ internal fun PolicySelectionCard(
       onClick = onSelect,
       shape = RoundedCornerShape(12.dp),
       color = if (isSelected)
-        Color(0xFF3B82F6).copy(alpha = 0.5f)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
       else
-        Color.White.copy(alpha = 0.1f),
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
   ) {
     Row(
         modifier = Modifier
@@ -711,7 +709,7 @@ internal fun PolicySelectionCard(
             text = policy.name.replace("_", " "),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            color = if (isSelected) Color.White else Color.White.copy(alpha = 0.8f)
+            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
         )
         Text(
             text = when (policy) {
@@ -721,7 +719,7 @@ internal fun PolicySelectionCard(
               LockPolicyType.BATTERY_SAVING -> stringResource(R.string.frosted_lock_policy_battery_saving_desc)
             },
             style = MaterialTheme.typography.bodySmall,
-            color = Color.White.copy(alpha = 0.7f)
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
         )
       }
     }
@@ -764,9 +762,9 @@ private fun ModernClusterCard(
 
   // Cluster-specific colors
   val clusterColor = when (clusterIndex) {
-    0 -> Color(0xFF10B981)
-    1 -> Color(0xFF3B82F6) 
-    else -> Color(0xFF8B5CF6)
+    0 -> MaterialTheme.colorScheme.tertiary
+    1 -> MaterialTheme.colorScheme.primary
+    else -> MaterialTheme.colorScheme.secondary
   }
 
   // Sync state
@@ -781,10 +779,10 @@ private fun ModernClusterCard(
     }
 
   // Colored Glassmorphic Card
-  Surface(
+  GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = clusterColor.copy(alpha = 0.15f)
+      contentPadding = PaddingValues(0.dp)
   ) {
     Column(modifier = Modifier.fillMaxWidth()) {
       // Cluster Header
@@ -808,7 +806,7 @@ private fun ModernClusterCard(
                 text = "C${clusterIndex}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
             )
           }
 
@@ -817,12 +815,12 @@ private fun ModernClusterCard(
                 text = clusterTitle,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "${cluster.minFreq} MHz - ${cluster.maxFreq} MHz",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.8f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
             )
           }
         }
@@ -831,7 +829,7 @@ private fun ModernClusterCard(
           Icon(
               imageVector = Icons.Rounded.KeyboardArrowDown,
               contentDescription = "Expand",
-              tint = Color.White,
+              tint = MaterialTheme.colorScheme.onSurface,
               modifier = Modifier.rotate(if (isExpanded) 180f else 0f),
           )
         }
@@ -842,7 +840,7 @@ private fun ModernClusterCard(
             modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-          HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
+          HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
 
           // Frequency Controls - Clickable Cards
           var showMinFreqDialog by remember { mutableStateOf(false) }
@@ -851,14 +849,14 @@ private fun ModernClusterCard(
           FrequencyClickableCard(
               label = stringResource(R.string.min_frequency),
               value = minFreqSlider.toInt(),
-              color = Color(0xFF10B981),
+              color = MaterialTheme.colorScheme.tertiary,
               onClick = { showMinFreqDialog = true }
           )
 
           FrequencyClickableCard(
               label = stringResource(R.string.max_frequency),
               value = maxFreqSlider.toInt(),
-              color = Color(0xFF8B5CF6),
+              color = MaterialTheme.colorScheme.secondary,
               onClick = { showMaxFreqDialog = true }
           )
           
@@ -935,7 +933,7 @@ private fun FrequencyClickableCard(
   Surface(
       onClick = onClick,
       shape = RoundedCornerShape(16.dp),
-      color = color.copy(alpha = 0.12f),
+      color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
       modifier = Modifier.fillMaxWidth()
   ) {
     Row(
@@ -952,7 +950,7 @@ private fun FrequencyClickableCard(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Medium,
-            color = Color.White.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -962,13 +960,13 @@ private fun FrequencyClickableCard(
               text = "$value",
               style = MaterialTheme.typography.headlineMedium,
               fontWeight = FontWeight.Bold,
-              color = color,
+              color = MaterialTheme.colorScheme.onSurface,
           )
           Text(
               text = stringResource(R.string.frosted_smart_lock_mhz),
               style = MaterialTheme.typography.bodyLarge,
               fontWeight = FontWeight.Medium,
-              color = color.copy(alpha = 0.7f),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
               modifier = Modifier.padding(bottom = 4.dp)
           )
         }
@@ -978,13 +976,13 @@ private fun FrequencyClickableCard(
           modifier = Modifier
               .size(48.dp)
               .clip(CircleShape)
-              .background(color.copy(alpha = 0.15f)),
+              .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)),
           contentAlignment = Alignment.Center
       ) {
         Icon(
             imageVector = Icons.Rounded.Tune,
             contentDescription = null,
-            tint = color,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(24.dp)
         )
       }
@@ -1009,15 +1007,15 @@ internal fun FrequencySelectionDialog(
       title = title,
       content = {
         if (sortedFreqs.isEmpty()) {
-          Text(
-              text = stringResource(R.string.frosted_smart_lock_no_frequencies_available),
-              style = MaterialTheme.typography.bodyMedium,
-              color = Color.White.copy(alpha = 0.7f),
-              textAlign = TextAlign.Center,
-              modifier = Modifier
-                  .fillMaxWidth()
-                  .padding(vertical = 16.dp)
-          )
+              Text(
+                  text = stringResource(R.string.frosted_smart_lock_no_frequencies_available),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                  textAlign = TextAlign.Center,
+                  modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(vertical = 16.dp)
+              )
         } else {
           LazyColumn(
               modifier = Modifier
@@ -1033,9 +1031,9 @@ internal fun FrequencySelectionDialog(
                   onClick = { onSelect(freq) },
                   shape = RoundedCornerShape(12.dp),
                   color = if (isSelected) 
-                      Color(0xFF10B981).copy(alpha = 0.2f)
+                      MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
                   else 
-                      Color.White.copy(alpha = 0.08f),
+                      MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
               ) {
                 Row(
                     modifier = Modifier
@@ -1052,19 +1050,13 @@ internal fun FrequencySelectionDialog(
                         text = "$freq",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                        color = if (isSelected) 
-                            Color(0xFF10B981)
-                        else 
-                            Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
                         text = stringResource(R.string.frosted_smart_lock_mhz),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
-                        color = if (isSelected) 
-                            Color(0xFF10B981).copy(alpha = 0.8f)
-                        else 
-                            Color.White.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                   }
                   
@@ -1072,7 +1064,7 @@ internal fun FrequencySelectionDialog(
                     Icon(
                         imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
-                        tint = Color(0xFF10B981),
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)
                     )
                   }
@@ -1099,13 +1091,13 @@ private fun GovernorSelector(currentGovernor: String, onClick: () -> Unit) {
         text = stringResource(R.string.cpu_governor),
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Medium,
-        color = Color.White.copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
     )
 
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = Color(0xFF3B82F6).copy(alpha = 0.12f),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
     ) {
       Row(
           modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -1119,19 +1111,19 @@ private fun GovernorSelector(currentGovernor: String, onClick: () -> Unit) {
           Icon(
               imageVector = Icons.Rounded.Settings,
               contentDescription = null,
-              tint = Color(0xFF3B82F6),
+              tint = MaterialTheme.colorScheme.onSurface,
           )
           Text(
               text = currentGovernor,
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
-              color = Color.White
+              color = MaterialTheme.colorScheme.onSurface
           )
         }
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.7f),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
         )
       }
     }
@@ -1163,9 +1155,9 @@ private fun GovernorSelectionFrostedDialog(
                 onClick = { onSelect(governor) },
                 shape = RoundedCornerShape(12.dp),
                 color = if (isSelected) 
-                    Color(0xFF3B82F6).copy(alpha = 0.2f)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
                 else 
-                    Color.White.copy(alpha = 0.08f),
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
             ) {
               Row(
                   modifier = Modifier
@@ -1178,17 +1170,14 @@ private fun GovernorSelectionFrostedDialog(
                     text = governor,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                    color = if (isSelected) 
-                        Color(0xFF3B82F6)
-                    else 
-                        Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
 
                 if (isSelected) {
                   Icon(
                       imageVector = Icons.Rounded.CheckCircle,
                       contentDescription = null,
-                      tint = Color(0xFF3B82F6),
+                      tint = MaterialTheme.colorScheme.onSurface,
                       modifier = Modifier.size(24.dp)
                   )
                 }
@@ -1621,9 +1610,9 @@ fun CpuLockNotificationOverlay(viewModel: TuningViewModel) {
         Card(
             colors = CardDefaults.cardColors(
                 containerColor = when {
-                    notification?.contains("success") == true -> Color(0xFF4CAF50)
+                    notification?.contains("success") == true -> MaterialTheme.colorScheme.tertiary
                     notification?.contains("failed") == true -> MaterialTheme.colorScheme.error
-                    notification?.contains("override") == true -> Color(0xFFFF9800)
+                    notification?.contains("override") == true -> MaterialTheme.colorScheme.secondary
                     else -> MaterialTheme.colorScheme.secondaryContainer
                 }
             ),
@@ -1642,7 +1631,7 @@ fun CpuLockNotificationOverlay(viewModel: TuningViewModel) {
                         else -> Icons.Filled.Info
                     },
                     contentDescription = null,
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Column(
@@ -1652,13 +1641,13 @@ fun CpuLockNotificationOverlay(viewModel: TuningViewModel) {
                         text = notification ?: "",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     
                     Text(
                         text = "Tap to dismiss",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                     )
                 }
                 
@@ -1668,7 +1657,7 @@ fun CpuLockNotificationOverlay(viewModel: TuningViewModel) {
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = "Dismiss",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -1680,15 +1669,13 @@ fun CpuLockNotificationOverlay(viewModel: TuningViewModel) {
 private fun FrostedCPUSetOnBootCard(viewModel: TuningViewModel) {
   val cpuSetOnBoot by viewModel.preferencesManager.getCpuSetOnBoot().collectAsState(initial = false)
 
-  Surface(
+  GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(16.dp),
-      color = Color(0xFF8B5CF6).copy(alpha = 0.15f) // Purple glass for set on boot
+      contentPadding = PaddingValues(16.dp)
   ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -1700,7 +1687,7 @@ private fun FrostedCPUSetOnBootCard(viewModel: TuningViewModel) {
         Icon(
             imageVector = Icons.Rounded.PowerSettingsNew,
             contentDescription = null,
-            tint = if (cpuSetOnBoot) Color(0xFF8B5CF6) else Color.White.copy(alpha = 0.7f),
+            tint = if (cpuSetOnBoot) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             modifier = Modifier.size(20.dp)
         )
         Column {
@@ -1708,12 +1695,12 @@ private fun FrostedCPUSetOnBootCard(viewModel: TuningViewModel) {
               text = stringResource(R.string.set_on_boot),
               style = MaterialTheme.typography.bodyLarge,
               fontWeight = FontWeight.Medium,
-              color = Color.White
+              color = MaterialTheme.colorScheme.onSurface
           )
           Text(
               text = stringResource(R.string.apply_cpu_on_boot_desc),
               style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.7f)
+              color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
           )
         }
       }
