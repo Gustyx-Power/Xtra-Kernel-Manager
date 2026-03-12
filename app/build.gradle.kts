@@ -141,16 +141,16 @@ kotlin {
 
 dependencies {
     // Core Android
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.core:core-ktx:1.18.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.activity:activity-compose:1.12.4")
+    implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.work:work-runtime-ktx:2.11.1")
 
 
     // Compose BOM
-    val composeBom = platform("androidx.compose:compose-bom:2026.02.00")
+    val composeBom = platform("androidx.compose:compose-bom:2026.03.00")
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -171,7 +171,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
 
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.2.0")
+    implementation("androidx.datastore:datastore-preferences:1.2.1")
 
     // LibSu - Root Access
     implementation("com.github.topjohnwu.libsu:core:6.0.0")
@@ -179,7 +179,7 @@ dependencies {
     implementation("com.github.topjohnwu.libsu:nio:6.0.0")
     
     // Firebase 
-    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
     implementation("com.google.firebase:firebase-database") 
     
     // Google Play Services (for Play Protect compatibility)
@@ -196,9 +196,9 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     // Lottie for animations
-    implementation("com.airbnb.android:lottie-compose:6.4.0")
+    implementation("com.airbnb.android:lottie-compose:6.7.1")
 
-    implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.4")
+    implementation("com.patrykandpatrick.vico:compose-m3:3.1.0-alpha.1")
 
     // Backdrop (Liquid Glass)
     implementation("io.github.kyant0:backdrop:1.0.6")
@@ -217,7 +217,7 @@ dependencies {
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
