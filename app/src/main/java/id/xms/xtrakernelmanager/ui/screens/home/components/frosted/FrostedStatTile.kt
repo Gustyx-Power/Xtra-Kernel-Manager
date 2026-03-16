@@ -119,7 +119,7 @@ fun FrostedStatTile(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Column(verticalArrangement = Arrangement.spacedBy((-2).dp)) {
                     Text(
@@ -132,16 +132,17 @@ fun FrostedStatTile(
                     )
                     Text(
                         text = value,
-                        style = MaterialTheme.typography.headlineMedium.copy(
+                        style = MaterialTheme.typography.titleLarge.copy(
                             platformStyle = PlatformTextStyle(includeFontPadding = false),
                             lineHeightStyle = LineHeightStyle(
                                 alignment = LineHeightStyle.Alignment.Center,
                                 trim = LineHeightStyle.Trim.Both
-                            )
+                            ),
+                            fontSize = 20.sp
                         ),
                         fontWeight = FontWeight.ExtraBold,
                         color = textColor,
-                        lineHeight = 32.sp
+                        lineHeight = 24.sp
                     )
                     Text(
                         text = subValue,
