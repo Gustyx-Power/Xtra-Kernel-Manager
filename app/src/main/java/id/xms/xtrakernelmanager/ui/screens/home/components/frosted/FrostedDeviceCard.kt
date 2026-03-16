@@ -46,10 +46,8 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
     
     // OriginOS-inspired frosted glass colors
     val glassBackground = if (isDarkTheme) {
-        // Dark theme: dark glass with transparency for blur effect (like screenshot 1)
         Color(0xFF000000).copy(alpha = 0.35f)
     } else {
-        // Light theme: lighter glass with high transparency (like screenshot 2)
         Color(0xFFFFFFFF).copy(alpha = 0.45f)
     }
     
@@ -60,35 +58,15 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
     }
     
     val textSecondaryColor = if (isDarkTheme) {
-        Color.White.copy(alpha = 0.65f)
+        Color(0xFF6B9EFF).copy(alpha = 0.85f)
     } else {
-        Color(0xFF5A5A5A).copy(alpha = 0.7f)
+        Color(0xFF3B82F6).copy(alpha = 0.85f)
     }
     
     val borderColor = if (isDarkTheme) {
         Color.White.copy(alpha = 0.15f)
     } else {
         Color.White.copy(alpha = 0.6f)
-    }
-    
-    // Uptime calculation
-    var uptime by remember { mutableStateOf(calculateUptime()) }
-    var deepSleep by remember { mutableStateOf("9999%") }
-
-    LaunchedEffect(Unit) {
-        // Update loop
-        while (true) {
-            uptime = calculateUptime()
-            
-            // Format Deep Sleep
-            val deepSleepMillis = systemInfo.deepSleep
-            val seconds = deepSleepMillis / 1000
-            val hours = seconds / 3600
-            val minutes = (seconds % 3600) / 60
-            deepSleep = "${hours}h ${minutes}m"
-            
-            delay(60000)
-        }
     }
 
     // Determine Brand Logo
@@ -104,7 +82,7 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
     }
 
     FrostedSharedCard(
-        modifier = modifier.heightIn(min = 320.dp),
+        modifier = modifier.height(280.dp),
         contentPadding = PaddingValues(0.dp)
     ) {
         Box(
@@ -117,28 +95,31 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
                     color = borderColor,
                     shape = RoundedCornerShape(24.dp)
                 )
+                .clip(RoundedCornerShape(24.dp))
         ) {
             
-            // Brand Logo - Top Right Corner
             if (logoRes != null) {
                 androidx.compose.foundation.Image(
                     painter = androidx.compose.ui.res.painterResource(id = logoRes),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(56.dp)
                         .align(Alignment.TopEnd)
-                        .padding(16.dp),
+                        .padding(12.dp),
                     contentScale = androidx.compose.ui.layout.ContentScale.Fit
                 )
-            } else {
-                 Icon(
-                    imageVector = Icons.Rounded.Android,
-                    contentDescription = null,
-                    tint = textColor.copy(alpha = 0.6f), 
-                    modifier = Modifier
-                        .size(64.dp) 
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd) 
+                    .offset(x = 35.dp, y = 50.dp)
+            ) {
+                FrostedDeviceMockup(
+                    size = androidx.compose.ui.unit.DpSize(120.dp, 240.dp),
+                    rotation = 0f,
+                    showWallpaper = true,
+                    glowColor = textColor.copy(alpha = 0.6f),
+                    accentColor = textColor.copy(alpha = 0.8f)
                 )
             }
             
@@ -146,109 +127,177 @@ fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(start = 24.dp, top = 24.dp, bottom = 24.dp, end = 150.dp), // Reserve 150dp for phone
+                    .padding(24.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                 // Header: Chips
+                // Header: Brand & Board Chips
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    GlassChip(text = android.os.Build.MANUFACTURER.uppercase(), color = textColor, isDarkTheme = isDarkTheme)
-                    GlassChip(text = android.os.Build.BOARD.uppercase(), color = textColor, isDarkTheme = isDarkTheme)
+                    GlassChip(
+                        text = android.os.Build.MANUFACTURER.uppercase(), 
+                        color = textSecondaryColor, 
+                        isDarkTheme = isDarkTheme
+                    )
+                    GlassChip(
+                        text = android.os.Build.BOARD.uppercase(), 
+                        color = textSecondaryColor, 
+                        isDarkTheme = isDarkTheme
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Device Model
-                Text(
-                    text = systemInfo.deviceModel
-                         .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
-                         .trim()
-                         .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_unknown_device) },
-                    style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 28.sp),
-                    color = textColor,
-                    lineHeight = 30.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                
-                Text(
-                    text = android.os.Build.DEVICE,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium, fontSize = 12.sp),
-                    color = textSecondaryColor,
-                    fontFamily = FontFamily.Monospace
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Row 1
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        InfoTile(
-                            icon = Icons.Rounded.Android,
-                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_android),
-                            value = systemInfo.androidVersion,
-                            color = textColor,
-                            secondaryColor = textSecondaryColor,
-                            isDarkTheme = isDarkTheme,
-                            modifier = Modifier.weight(1.5f).height(68.dp)
-                        )
-                         InfoTile(
-                            icon = Icons.Rounded.DeveloperBoard,
-                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_kernel),
-                            value = systemInfo.kernelVersion,
-                            color = textColor,
-                            secondaryColor = textSecondaryColor,
-                            isDarkTheme = isDarkTheme,
-                            modifier = Modifier.weight(1.5f).height(68.dp)
-                        )
-                    }
-                     // Row 2
-                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        InfoTile(
-                            icon = Icons.Rounded.AccessTime,
-                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_uptime),
-                            value = uptime,
-                            color = textColor,
-                            secondaryColor = textSecondaryColor,
-                            isDarkTheme = isDarkTheme,
-                            modifier = Modifier.weight(1f).height(68.dp)
-                        )
-                        InfoTile(
-                            icon = androidx.compose.material.icons.Icons.Rounded.NightsStay, 
-                            label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_sleep),
-                            value = deepSleep,
-                            color = textColor,
-                            secondaryColor = textSecondaryColor,
-                            isDarkTheme = isDarkTheme,
-                            modifier = Modifier.weight(1f).height(68.dp)
+                Column(
+                    modifier = Modifier.fillMaxWidth(0.55f)
+                ) {
+                    Text(
+                        text = systemInfo.deviceModel
+                             .replace(android.os.Build.MANUFACTURER, "", ignoreCase = true)
+                             .trim()
+                             .ifBlank { stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_unknown_device) },
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.ExtraBold, 
+                            fontSize = 28.sp
+                        ),
+                        color = textColor,
+                        lineHeight = 30.sp,
+                        maxLines = 3,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    
+                    // SoC Name
+                    if (systemInfo.socName.isNotEmpty() && systemInfo.socName != "Unknown") {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = systemInfo.socName.uppercase(),
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 12.sp,
+                                letterSpacing = 1.sp
+                            ),
+                            color = textSecondaryColor.copy(alpha = 0.7f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     
-                    // Row 3 - Fingerprint (Full Width)
-                    InfoTile(
-                        icon = androidx.compose.material.icons.Icons.Rounded.Fingerprint,
-                        label = stringResource(id.xms.xtrakernelmanager.R.string.frosted_device_fingerprint),
-                        value = android.os.Build.FINGERPRINT,
-                        color = textColor,
-                        secondaryColor = textSecondaryColor,
-                        isDarkTheme = isDarkTheme,
-                        modifier = Modifier.fillMaxWidth().height(68.dp)
-                    )
-                    // Row 3 (Manufacturer) - Removed as it is redundant and space consuming
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val totalRamGB = (systemInfo.totalRam / (1024f * 1024f * 1024f))
+                        val usedRamGB = ((systemInfo.totalRam - systemInfo.availableRam) / (1024f * 1024f * 1024f))
+                        val zramSizeGB = (systemInfo.zramSize / (1024f * 1024f * 1024f))
+                        val ramPercentage = if (systemInfo.totalRam > 0) {
+                            ((systemInfo.totalRam - systemInfo.availableRam).toFloat() / systemInfo.totalRam.toFloat()).coerceIn(0f, 1f)
+                        } else 0f
+                        
+                        val ramLabel = if (zramSizeGB >= 0.1f) {
+                            String.format("%.1f GB + %.1f GB", totalRamGB, zramSizeGB)
+                        } else {
+                            String.format("%.1f GB", totalRamGB)
+                        }
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "RAM:",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                color = textColor.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = ramLabel,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                ),
+                                color = textColor
+                            )
+                        }
+                        
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(textColor.copy(alpha = 0.15f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(ramPercentage)
+                                    .fillMaxHeight()
+                                    .background(Color(0xFF4CAF50))
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        val totalStorageGiB = (systemInfo.totalStorage / (1024f * 1024f * 1024f))
+                        val usedStorageGiB = ((systemInfo.totalStorage - systemInfo.availableStorage) / (1024f * 1024f * 1024f))
+                        val storagePercentage = if (systemInfo.totalStorage > 0) {
+                            ((systemInfo.totalStorage - systemInfo.availableStorage).toFloat() / systemInfo.totalStorage.toFloat()).coerceIn(0f, 1f)
+                        } else 0f
+                        
+                        val marketingTotal = when {
+                            totalStorageGiB >= 220f -> 256 
+                            totalStorageGiB >= 110f -> 128
+                            totalStorageGiB >= 55f -> 64
+                            totalStorageGiB >= 27f -> 32
+                            else -> totalStorageGiB.toInt()
+                        }
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "ROM:",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                                color = textColor.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = String.format("%.2f GB / %d GB", usedStorageGiB, marketingTotal),
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                ),
+                                color = textColor
+                            )
+                        }
+                        
+                        // ROM Progress Bar (shows actual usage)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(textColor.copy(alpha = 0.15f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(storagePercentage)
+                                    .fillMaxHeight()
+                                    .background(Color(0xFF4CAF50))
+                            )
+                        }
+                    }
                 }
-            }
 
-            // 3. Futuristic Phone Mockup Layer
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd) 
-                    .offset(x = 60.dp, y = 40.dp)
-            ) {
-                FrostedDeviceMockup(
-                    size = androidx.compose.ui.unit.DpSize(140.dp, 280.dp),
-                    rotation = -15f,
-                    showWallpaper = true,
-                    glowColor = textColor.copy(alpha = 0.6f),
-                    accentColor = textColor.copy(alpha = 0.8f)
-                )
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                ) {
+                    // Android Version Badge
+                    GlassChip(
+                        text = "Android ${systemInfo.androidVersion}", 
+                        color = textColor, 
+                        isDarkTheme = isDarkTheme
+                    )
+                }
             }
         }
     }
@@ -281,70 +330,5 @@ private fun GlassChip(text: String, color: Color, isDarkTheme: Boolean) {
             color = color,
             letterSpacing = 1.sp
         )
-    }
-}
-
-@Composable
-private fun InfoTile(
-    icon: ImageVector,
-    label: String,
-    value: String,
-    color: Color,
-    secondaryColor: Color,
-    isDarkTheme: Boolean,
-    modifier: Modifier = Modifier
-) {
-    // OriginOS style info tile
-    val tileBackground = if (isDarkTheme) {
-        Color(0xFF000000).copy(alpha = 0.35f)
-    } else {
-        Color.White.copy(alpha = 0.55f)
-    }
-    
-    val tileBorder = if (isDarkTheme) {
-        Color.White.copy(alpha = 0.18f)
-    } else {
-        Color.White.copy(alpha = 0.5f)
-    }
-    
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(tileBackground)
-            .border(
-                width = 0.8.dp,
-                color = tileBorder,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(10.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(icon, null, tint = color.copy(alpha = 0.85f), modifier = Modifier.size(14.dp))
-        Spacer(modifier = Modifier.height(3.dp))
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, fontSize = 13.sp),
-            color = color,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = secondaryColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-private fun calculateUptime(): String {
-    val uptimeMillis = SystemClock.elapsedRealtime()
-    return if (uptimeMillis > DateUtils.DAY_IN_MILLIS) {
-         "${uptimeMillis / DateUtils.DAY_IN_MILLIS}d"
-    } else {
-         val hours = uptimeMillis / DateUtils.HOUR_IN_MILLIS
-         val minutes = (uptimeMillis % DateUtils.HOUR_IN_MILLIS) / DateUtils.MINUTE_IN_MILLIS
-         "${hours}h ${minutes}m"
     }
 }
