@@ -995,4 +995,15 @@ class PreferencesManager(private val context: Context) {
   
   fun getHideAccessibilityDetectorApps(): Flow<String> =
       context.dataStore.data.map { prefs -> prefs[HIDE_ACCESSIBILITY_DETECTOR_APPS] ?: "[]" }
+
+  private val SOC_NAME = stringPreferencesKey("soc_name")
+
+  /** Save SoC name to DataStore */
+  suspend fun setSocName(socName: String) {
+    context.dataStore.edit { prefs -> prefs[SOC_NAME] = socName }
+  }
+
+  /** Get SoC name from DataStore */
+  fun getSocName(): Flow<String> =
+      context.dataStore.data.map { prefs -> prefs[SOC_NAME] ?: "" }
 }
