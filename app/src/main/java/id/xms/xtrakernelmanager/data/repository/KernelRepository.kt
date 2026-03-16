@@ -2,12 +2,14 @@ package id.xms.xtrakernelmanager.data.repository
 
 import android.util.Log
 import id.xms.xtrakernelmanager.data.model.*
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.domain.native.NativeLib
 import id.xms.xtrakernelmanager.domain.root.RootManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
-class KernelRepository {
+class KernelRepository(private val preferencesManager: PreferencesManager) {
 
   private val TAG = "KernelRepository"
   private var cachedClusters: List<ClusterInfo>? = null
@@ -580,6 +582,9 @@ class KernelRepository {
         val selinux =
             RootManager.executeCommand("getenforce 2>/dev/null").getOrNull()?.trim() ?: "Unknown"
 
+        // Get SoC name from DataStore or detect it
+        val socName = getSocName()
+
         // Use native MemInfo for faster reading
         val memInfo = NativeLib.readMemInfo()
         val (totalRam, availableRam) =
@@ -618,11 +623,43 @@ class KernelRepository {
                     ?.toLongOrNull()
                 ?: 0L
 
-        val statFs = android.os.StatFs(android.os.Environment.getDataDirectory().path)
-        val totalStorage = statFs.totalBytes
-        val availableStorage = statFs.availableBytes
+        // Get storage info
+        val (totalStorage, availableStorage) = try {
+          // Get available from StatFs
+          val statFs = android.os.StatFs(android.os.Environment.getDataDirectory().path)
+          val availBytes = statFs.availableBytes
+          var totalBytes = 0L
+    
+          val propSize = RootManager.executeCommand("getprop ro.boot.flash.size").getOrNull()?.trim()
+          if (!propSize.isNullOrEmpty()) {
+            // Parse size
+            val sizeGB = propSize.replace("GB", "").replace("gb", "").trim().toIntOrNull()
+            if (sizeGB != null && sizeGB > 0) {
+              totalBytes = sizeGB.toLong() * 1024 * 1024 * 1024
+            }
+          }
+          
+          if (totalBytes == 0L) {
+            val partitions = RootManager.executeCommand("cat /proc/partitions").getOrNull()
+            if (!partitions.isNullOrEmpty()) {
+              val lines = partitions.lines().filter { it.contains("sda") || it.contains("userdata") }
+              val sizes = lines.mapNotNull { line ->
+                val parts = line.trim().split("\\s+".toRegex())
+                if (parts.size >= 3) parts[2].toLongOrNull()?.times(1024) else null
+              }
+              totalBytes = sizes.maxOrNull() ?: 0L
+            }
+          }
+          if (totalBytes == 0L) {
+            totalBytes = statFs.totalBytes
+          }
+          
+          Pair(totalBytes, availBytes)
+        } catch (e: Exception) {
+          val statFs = android.os.StatFs(android.os.Environment.getDataDirectory().path)
+          Pair(statFs.totalBytes, statFs.availableBytes)
+        }
 
-        // Use native swap info
         val swapTotalBytes =
             if (memInfo != null) {
               memInfo.swapTotalKb * 1024
@@ -670,6 +707,74 @@ class KernelRepository {
             swapTotal = swapTotalBytes,
             swapFree = swapFreeBytes,
             deepSleep = android.os.SystemClock.elapsedRealtime() - android.os.SystemClock.uptimeMillis(),
+            socName = socName,
         )
       }
+
+  /**
+   * Get SoC name from DataStore or detect it from getprop
+   */
+  private suspend fun getSocName(): String {
+    // Try to get from DataStore first
+    val savedSoc = preferencesManager.getSocName().first()
+    if (savedSoc.isNotEmpty()) {
+      return savedSoc
+    }
+
+    // Detect SoC from getprop
+    return withContext(Dispatchers.IO) {
+      try {
+        val result = RootManager.executeCommand("getprop | grep soc").getOrNull() ?: ""
+        
+        // Find all lines that contain "ro." and end with ".soc" or contain "soc" in the property name
+        val socLines = result.lines().filter { line ->
+          line.contains("ro.") && (
+            line.contains(".soc]") || 
+            line.contains(".soc_name]") || 
+            line.contains(".soc_model]") ||
+            line.contains("_soc]")
+          )
+        }
+        
+        if (socLines.isEmpty()) {
+          return@withContext "Unknown"
+        }
+        
+        // Priority order for SoC detection:
+        // 1. Custom ROM specific (ro.infinity.soc, ro.custom.soc, etc) - exact .soc ending
+        // 2. Vendor specific (ro.vendor.qti.soc_name, ro.vendor.qti.soc_model)
+        // 3. System specific (ro.soc.model, ro.soc_name)
+        // 4. Any other ro.*.soc property
+        
+        val priorityPatterns = listOf(
+          Regex("\\[ro\\.(?!vendor)[^.]+\\.soc\\]"),  // ro.xxx.soc (NOT ro.vendor.*) - custom ROM priority
+          Regex("\\[ro\\.vendor\\.[^.]+\\.soc"),      // ro.vendor.xxx.soc*
+          Regex("\\[ro\\.soc"),                        // ro.soc*
+          Regex("\\[ro\\.[^.]+\\.[^.]*soc")           // any ro.*.soc pattern
+        )
+        
+        var socLine: String? = null
+        for (pattern in priorityPatterns) {
+          socLine = socLines.firstOrNull { pattern.containsMatchIn(it) }
+          if (socLine != null) break
+        }
+        
+        // If still not found, take the first line
+        socLine = socLine ?: socLines.firstOrNull() ?: return@withContext "Unknown"
+        
+        // Extract SoC name from line like: [ro.infinity.soc]: [taro]
+        val socName = socLine.substringAfter("]: [").substringBefore("]").trim()
+        
+        if (socName.isNotEmpty() && socName != "Unknown") {
+          // Save to DataStore for future use
+          preferencesManager.setSocName(socName)
+          socName
+        } else {
+          "Unknown"
+        }
+      } catch (e: Exception) {
+        "Unknown"
+      }
+    }
+  }
 }
