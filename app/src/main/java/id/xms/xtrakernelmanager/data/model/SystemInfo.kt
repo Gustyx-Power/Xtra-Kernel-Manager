@@ -19,6 +19,6 @@ data class SystemInfo(
     val zramUsed: Long = 0,
     val totalStorage: Long = 0,
     val availableStorage: Long = 0,
-    val deepSleep: Long = 0, // milliseconds
+    val deepSleep: Long = 0,
     val socName: String = "",
 )
