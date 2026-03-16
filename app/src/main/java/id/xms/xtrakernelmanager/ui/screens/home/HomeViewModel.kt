@@ -8,6 +8,7 @@ import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.data.model.GPUInfo
 import id.xms.xtrakernelmanager.data.model.PowerInfo
 import id.xms.xtrakernelmanager.data.model.SystemInfo
+import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.data.repository.BatteryRepository
 import id.xms.xtrakernelmanager.data.repository.KernelRepository
 import id.xms.xtrakernelmanager.data.repository.PowerRepository
@@ -21,7 +22,7 @@ import kotlinx.coroutines.withContext
 
 class HomeViewModel : ViewModel() {
 
-  private val kernelRepository = KernelRepository()
+  private var kernelRepository: KernelRepository? = null
   private val powerRepository = PowerRepository()
 
   private val _cpuInfo = MutableStateFlow(CPUInfo())
@@ -47,6 +48,9 @@ class HomeViewModel : ViewModel() {
 
   fun loadBatteryInfo(context: Context) {
     this.context = context
+    if (kernelRepository == null) {
+      kernelRepository = KernelRepository(PreferencesManager(context))
+    }
   }
 
   private fun startMonitoring() {
@@ -54,14 +58,17 @@ class HomeViewModel : ViewModel() {
       withContext(Dispatchers.IO) {
         while (true) {
           try {
-            val cpu = kernelRepository.getCPUInfo()
-            val gpu = kernelRepository.getGPUInfo()
-            val sys = kernelRepository.getSystemInfo()
+            val repo = kernelRepository
+            if (repo != null) {
+              val cpu = repo.getCPUInfo()
+              val gpu = repo.getGPUInfo()
+              val sys = repo.getSystemInfo()
 
-            // Update state (StateFlow is thread-safe)
-            _cpuInfo.value = cpu
-            _gpuInfo.value = gpu
-            _systemInfo.value = sys
+              // Update state (StateFlow is thread-safe)
+              _cpuInfo.value = cpu
+              _gpuInfo.value = gpu
+              _systemInfo.value = sys
+            }
 
             context?.let {
               val bat = BatteryRepository.getBatteryInfo(it)

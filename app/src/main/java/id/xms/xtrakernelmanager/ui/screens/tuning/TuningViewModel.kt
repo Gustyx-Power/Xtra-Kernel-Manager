@@ -46,7 +46,7 @@ class TuningViewModel(
         id.xms.xtrakernelmanager.domain.usecase.GameOverlayUseCase(),
     private val tomlManager: TomlConfigManager = TomlConfigManager(preferencesManager.getContext()),
     private val kernelRepository: id.xms.xtrakernelmanager.data.repository.KernelRepository =
-        id.xms.xtrakernelmanager.data.repository.KernelRepository(),
+        id.xms.xtrakernelmanager.data.repository.KernelRepository(preferencesManager),
 ) : ViewModel() {
 
   // CPU Lock State - Smart CPU Locker instance

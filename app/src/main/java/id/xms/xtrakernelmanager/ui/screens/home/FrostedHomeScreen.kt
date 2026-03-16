@@ -71,6 +71,25 @@ fun FrostedHomeScreen(
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     var hasCheckedAccessibility by remember { mutableStateOf(false) }
     
+    // uptime
+    var uptime by remember { mutableStateOf(calculateUptimeString()) }
+    var deepSleep by remember { mutableStateOf("0h 0m") }
+    
+    LaunchedEffect(Unit) {
+        while (true) {
+            uptime = calculateUptimeString()
+            
+            // Deep Sleep
+            val deepSleepMillis = systemInfo.deepSleep
+            val seconds = deepSleepMillis / 1000
+            val hours = seconds / 3600
+            val minutes = (seconds % 3600) / 60
+            deepSleep = "${hours}h ${minutes}m"
+            
+            delay(60000)
+        }
+    }
+    
     LaunchedEffect(Unit) {
         if (!hasCheckedAccessibility) {
             delay(1000)
@@ -113,6 +132,7 @@ fun FrostedHomeScreen(
         ) {
             Spacer(modifier = Modifier.height(dimens.spacingLarge))
      
+            // Header
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 0
@@ -122,105 +142,84 @@ fun FrostedHomeScreen(
                     modifier = Modifier
                 )
             }
-
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 100
             ) {
                 FrostedDeviceCard(systemInfo = systemInfo, modifier = Modifier.fillMaxWidth())
             }
-
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 200
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
-                    horizontalArrangement = Arrangement.spacedBy(dimens.spacingLarge)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(dimens.spacingLarge)
                 ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max),
+                        horizontalArrangement = Arrangement.spacedBy(dimens.spacingLarge)
+                    ) {
+                        FrostedStatTile(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            icon = Icons.Rounded.Memory,
+                            label = "UPTIME",
+                            value = uptime,
+                            subValue = "",
+                            color = Color(0xFF4A9B8E),
+                            badgeText = ""
+                        )
+                        
+                        FrostedStatTile(
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            icon = Icons.Rounded.Memory,
+                            label = "DEEP SLEEP",
+                            value = deepSleep,
+                            subValue = "",
+                            color = Color(0xFF4A9B8E),
+                            badgeText = ""
+                        )
+                    }
                     FrostedStatTile(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        modifier = Modifier.fillMaxWidth(),
                         icon = Icons.Rounded.Memory,
-                        label = "CPU",
-                        value = "${safeDivide((cpuInfo.cores.maxOfOrNull { it.currentFreq } ?: 0).toLong(), 1000)} MHz",
-                        subValue = cpuInfo.cores.firstOrNull { it.isOnline }?.governor ?: "Unknown",
-                        color = NeonGreen,
-                        badgeText = "${String.format(Locale.US, "%.0f", cpuInfo.totalLoad)}%"
-                    )
-                    
-                    FrostedTempTile(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        cpuTemp = cpuInfo.temperature.toInt(),
-                        gpuTemp = gpuInfo.temperature.toInt(),
-                        pmicTemp = batteryInfo.pmicTemp.toInt(),
-                        thermalTemp = batteryInfo.temperature.toInt(),
-                        color = Color(0xFFFF1744)
+                        label = "KERNEL REV",
+                        value = systemInfo.kernelVersion,
+                        subValue = "",
+                        color = NeonOrange,
+                        badgeText = ""
                     )
                 }
             }
-
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 300
             ) {
-                FrostedGPUCard(gpuInfo = gpuInfo, modifier = Modifier.fillMaxWidth())
+                FrostedCPUCard(cpuInfo = cpuInfo, modifier = Modifier.fillMaxWidth())
             }
-
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 400
             ) {
-                FrostedBatteryCard(batteryInfo = batteryInfo, modifier = Modifier.fillMaxWidth())
+                FrostedGPUCard(gpuInfo = gpuInfo, modifier = Modifier.fillMaxWidth())
             }
-            
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 500
             ) {
-                FrostedStatTile(
-                    modifier = Modifier.fillMaxWidth(),
-                    icon = Icons.Filled.Memory,
-                    label = "RAM",
-                    value = "${bytesToMB(maxOf(systemInfo.totalRam, 0))} MB",
-                    subValue = "${bytesToMB(maxOf(systemInfo.availableRam, 0))} MB Free",
-                    color = NeonBlue,
-                    badgeText = "${safePercentage(maxOf(systemInfo.totalRam - systemInfo.availableRam, 0), maxOf(systemInfo.totalRam, 1))}%"
-                )
+                FrostedBatteryCard(batteryInfo = batteryInfo, modifier = Modifier.fillMaxWidth())
             }
-            
-            AnimatedComponent(
-                visible = isVisible,
-                delayMillis = 550
-            ) {
-                FrostedStatTile(
-                    modifier = Modifier.fillMaxWidth(),
-                    icon = Icons.Filled.Folder,
-                    label = "Storage",
-                    value = "${bytesToMB(maxOf(systemInfo.totalStorage, 0))} MB",
-                    subValue = "${bytesToMB(maxOf(systemInfo.availableStorage, 0))} MB Free",
-                    color = NeonOrange,
-                    badgeText = "${safePercentage(maxOf(systemInfo.totalStorage - systemInfo.availableStorage, 0), maxOf(systemInfo.totalStorage, 1))}%"
-                )
-            }
-            
             AnimatedComponent(
                 visible = isVisible,
                 delayMillis = 600
             ) {
-                FrostedProfileCard(
-                    currentProfile = currentProfile,
-                    onProfileChange = onProfileChange,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            
-            AnimatedComponent(
-                visible = isVisible,
-                delayMillis = 650
-            ) {
-                FrostedPowerMenu(
-                    onAction = onPowerAction,
-                    modifier = Modifier.fillMaxWidth()
+                FrostedTempTile(
+                    modifier = Modifier.fillMaxWidth(),
+                    cpuTemp = cpuInfo.temperature.toInt(),
+                    gpuTemp = gpuInfo.temperature.toInt(),
+                    pmicTemp = batteryInfo.pmicTemp.toInt(),
+                    thermalTemp = batteryInfo.temperature.toInt(),
+                    color = Color(0xFFFF1744)
                 )
             }
             
@@ -265,6 +264,17 @@ fun FrostedHomeScreen(
                 }
             )
         }
+    }
+}
+
+private fun calculateUptimeString(): String {
+    val uptimeMillis = android.os.SystemClock.elapsedRealtime()
+    return if (uptimeMillis > android.text.format.DateUtils.DAY_IN_MILLIS) {
+         "${uptimeMillis / android.text.format.DateUtils.DAY_IN_MILLIS}d"
+    } else {
+         val hours = uptimeMillis / android.text.format.DateUtils.HOUR_IN_MILLIS
+         val minutes = (uptimeMillis % android.text.format.DateUtils.HOUR_IN_MILLIS) / android.text.format.DateUtils.MINUTE_IN_MILLIS
+         "${hours}h ${minutes}m"
     }
 }
 
