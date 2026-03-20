@@ -19,14 +19,41 @@ if ! command -v adb &> /dev/null; then
     exit 1
 fi
 
-# Check for connected devices
-DEVICE_COUNT=$(adb devices | grep -v "List" | grep "device" | wc -l)
-if [ "$DEVICE_COUNT" -eq 0 ]; then
-    echo -e "${RED}❌ Error: No device connected. Please connect your Android device.${NC}"
-    exit 1
+# Check for Waydroid
+WAYDROID_AVAILABLE=false
+if command -v waydroid &> /dev/null; then
+    if waydroid status | grep -q "RUNNING"; then
+        WAYDROID_AVAILABLE=true
+        echo -e "${GREEN}🐧 Waydroid detected and running!${NC}"
+    fi
 fi
 
-echo -e "${GREEN}📱 Device found. Proceeding with build...${NC}"
+# Check for connected devices
+DEVICE_COUNT=$(adb devices | grep -v "List" | grep "device" | wc -l)
+
+# Determine installation target
+INSTALL_TARGET=""
+if [ "$WAYDROID_AVAILABLE" = true ] && [ "$DEVICE_COUNT" -gt 0 ]; then
+    echo -e "${YELLOW}Multiple targets available:${NC}"
+    echo "1) ADB Device ($DEVICE_COUNT device(s) connected)"
+    echo "2) Waydroid"
+    read -p "Select target (1/2): " choice
+    case $choice in
+        1) INSTALL_TARGET="adb" ;;
+        2) INSTALL_TARGET="waydroid" ;;
+        *) echo -e "${RED}Invalid choice. Defaulting to ADB.${NC}"; INSTALL_TARGET="adb" ;;
+    esac
+elif [ "$WAYDROID_AVAILABLE" = true ]; then
+    echo -e "${GREEN}📱 Using Waydroid as target...${NC}"
+    INSTALL_TARGET="waydroid"
+elif [ "$DEVICE_COUNT" -gt 0 ]; then
+    echo -e "${GREEN}📱 Device found. Proceeding with build...${NC}"
+    INSTALL_TARGET="adb"
+else
+    echo -e "${RED}❌ Error: No device connected and Waydroid not running.${NC}"
+    echo -e "${YELLOW}Tip: Start Waydroid with 'waydroid session start' or connect an Android device.${NC}"
+    exit 1
+fi
 
 # Setup NDK Path
 if [ -z "$ANDROID_NDK_HOME" ]; then
@@ -111,34 +138,53 @@ fi
 
 echo -e "${YELLOW}📦 Installing APK ($APK_PATH)...${NC}"
 
-# ColorOS 16 fix: Use push + pm install instead of adb install (which hangs)
-APK_NAME=$(basename "$APK_PATH")
-REMOTE_PATH="/data/local/tmp/$APK_NAME"
-
-echo -e "${YELLOW}📤 Pushing APK to device...${NC}"
-adb push "$APK_PATH" "$REMOTE_PATH"
-
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Push Failed!${NC}"
-    exit 1
-fi
-
-echo -e "${YELLOW}📲 Installing via pm install (root)...${NC}"
-adb shell "su -c 'pm install -r -d $REMOTE_PATH'"
-
-if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Installation Failed!${NC}"
-    # Cleanup temp file
-    adb shell "rm -f $REMOTE_PATH"
-    exit 1
-else
-    echo -e "${GREEN}✅ Installed Successfully!${NC}"
-    # Cleanup temp file
-    adb shell "rm -f $REMOTE_PATH"
+if [ "$INSTALL_TARGET" = "waydroid" ]; then
+    # Install to Waydroid
+    echo -e "${YELLOW}🐧 Installing to Waydroid...${NC}"
+    waydroid app install "$APK_PATH"
     
-    echo -e "${YELLOW}🚀 Launching App...${NC}"
-    # Try to launch using monkey (generic) or specific intent
-    adb shell monkey -p $PACKAGE_NAME -c android.intent.category.LAUNCHER 1
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Waydroid Installation Failed!${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✅ Installed Successfully to Waydroid!${NC}"
+    
+    echo -e "${YELLOW}🚀 Launching App in Waydroid...${NC}"
+    waydroid app launch "$PACKAGE_NAME"
     
     echo -e "${GREEN}✨ Done!${NC}"
+    echo -e "${YELLOW}Tip: Use 'waydroid show-full-ui' to see the Waydroid window.${NC}"
+else
+    # Install to ADB device (original method)
+    APK_NAME=$(basename "$APK_PATH")
+    REMOTE_PATH="/data/local/tmp/$APK_NAME"
+    
+    echo -e "${YELLOW}📤 Pushing APK to device...${NC}"
+    adb push "$APK_PATH" "$REMOTE_PATH"
+    
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Push Failed!${NC}"
+        exit 1
+    fi
+    
+    echo -e "${YELLOW}📲 Installing via pm install (root)...${NC}"
+    adb shell "su -c 'pm install -r -d $REMOTE_PATH'"
+    
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}❌ Installation Failed!${NC}"
+        # Cleanup temp file
+        adb shell "rm -f $REMOTE_PATH"
+        exit 1
+    else
+        echo -e "${GREEN}✅ Installed Successfully!${NC}"
+        # Cleanup temp file
+        adb shell "rm -f $REMOTE_PATH"
+        
+        echo -e "${YELLOW}🚀 Launching App...${NC}"
+        # Try to launch using monkey (generic) or specific intent
+        adb shell monkey -p $PACKAGE_NAME -c android.intent.category.LAUNCHER 1
+        
+        echo -e "${GREEN}✨ Done!${NC}"
+    fi
 fi
