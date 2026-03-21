@@ -393,4 +393,76 @@
     <string name="banking_mode_disabled_desc">Обычный режим работы</string>
     <string name="banking_mode_warning">⚠️ Игровой оверлей и функции доступности отключены для предотвращения обнаружения банковскими приложениями</string>
 
+    <!-- Setup Screen -->
+    <string name="setup_welcome_title">Готовы начать?</string>
+    <string name="setup_welcome_subtitle">Настройте ядро в соответствии с вашими потребностями.\nДавайте настроим ваш опыт XKM.</string>
+    <string name="setup_performance_title">Настройка производительности</string>
+    <string name="setup_performance_subtitle">Настройте параметры CPU и GPU для оптимальной производительности</string>
+    <string name="setup_battery_title">Оптимизация батареи</string>
+    <string name="setup_battery_subtitle">Максимизируйте время работы батареи с помощью интеллектуального управления питанием</string>
+    <string name="setup_gaming_title">Игровой опыт</string>
+    <string name="setup_gaming_subtitle">Разблокируйте максимальную игровую производительность и функции</string>
+    
+    <string name="setup_feature_performance">Производительность</string>
+    <string name="setup_feature_performance_desc">Оптимизируйте настройки CPU и GPU для максимальной производительности</string>
+    <string name="setup_feature_battery">Время работы батареи</string>
+    <string name="setup_feature_battery_desc">Продлите время работы батареи с помощью интеллектуального управления питанием</string>
+    <string name="setup_feature_gaming">Игровой режим</string>
+    <string name="setup_feature_gaming_desc">Улучшите игровой опыт с помощью оптимизации в реальном времени</string>
+    
+    <string name="setup_feature_cpu_governor">Регулятор CPU</string>
+    <string name="setup_feature_cpu_governor_desc">Выберите между режимами производительности, сбалансированным или энергосбережения</string>
+    <string name="setup_feature_gpu_scaling">Масштабирование GPU</string>
+    <string name="setup_feature_gpu_scaling_desc">Настройте частоту GPU для лучшей графической производительности</string>
+    <string name="setup_feature_io_scheduler">Планировщик I/O</string>
+    <string name="setup_feature_io_scheduler_desc">Оптимизируйте операции чтения/записи хранилища</string>
+    
+    <string name="setup_feature_power_profiles">Профили питания</string>
+    <string name="setup_feature_power_profiles_desc">Автоматическое переключение между режимами питания</string>
+    <string name="setup_feature_sleep_optimization">Оптимизация сна</string>
+    <string name="setup_feature_sleep_optimization_desc">Настройки глубокого сна для минимального расхода батареи</string>
+    <string name="setup_feature_battery_stats">Статистика батареи</string>
+    <string name="setup_feature_battery_stats_desc">Отслеживайте использование и состояние батареи в реальном времени</string>
+    
+    <string name="setup_feature_game_booster">Игровой ускоритель</string>
+    <string name="setup_feature_game_booster_desc">Автоматически оптимизируйте настройки во время игры</string>
+    <string name="setup_feature_touch_response">Отклик касания</string>
+    <string name="setup_feature_touch_response_desc">Уменьшите задержку касания для лучшей отзывчивости</string>
+    <string name="setup_feature_thermal_control">Тепловой контроль</string>
+    <string name="setup_feature_thermal_control_desc">Управляйте температурой устройства во время интенсивных игр</string>
+    
+    <string name="setup_permissions_title">Разрешения</string>
+    <string name="setup_permissions_subtitle">Предоставьте необходимые разрешения для полной функциональности</string>
+    
+    <string name="setup_permission_root">Root доступ</string>
+    <string name="setup_permission_root_desc">Требуется для изменения параметров ядра и системных настроек</string>
+    <string name="setup_permission_root_detected">Обнаружен root manager: %1$s</string>
+    <string name="setup_root_force_stop_title">Требуется принудительная остановка</string>
+    <string name="setup_root_force_stop_desc">После предоставления root доступа в %1$s, вы должны принудительно остановить XKM, чтобы разрешение вступило в силу. Перейдите в Настройки → Приложения → XKM → Остановить</string>
+    <string name="setup_permission_accessibility">Служба специальных возможностей</string>
+    <string name="setup_permission_accessibility_desc">Обнаружение активных приложений для профилей</string>
+    <string name="setup_permission_usage">Доступ к использованию</string>
+    <string name="setup_permission_usage_desc">Мониторинг использования приложений и статистики экранного времени</string>
+    <string name="setup_permission_overlay">Поверх других приложений</string>
+    <string name="setup_permission_overlay_desc">Показывать игровой оверлей и плавающие элементы управления</string>
+    <string name="setup_permission_battery">Оптимизация батареи</string>
+    <string name="setup_permission_battery_desc">Отключить оптимизацию батареи для фоновых служб</string>
+    <string name="setup_permission_notification">Уведомления</string>
+    <string name="setup_permission_notification_desc">Показывать статистику батареи и уведомления о производительности</string>
+    
+    <string name="setup_style_title">Выберите стиль</string>
+    <string name="setup_style_subtitle">Выберите дизайн интерфейса, который вам больше подходит</string>
+    
+    <string name="setup_style_material">Material Design</string>
+    <string name="setup_style_material_desc">Современный дизайн Material You с динамическими цветами</string>
+    <string name="setup_style_frosted">Frosted Glass</string>
+    <string name="setup_style_frosted_desc">Элегантный глассморфизм с эффектами размытия</string>
+    <string name="setup_style_classic">Classic</string>
+    <string name="setup_style_classic_desc">Традиционный дизайн для всех версий Android</string>
+    
+    <string name="setup_complete_title">Всё готово!</string>
+    <string name="setup_complete_subtitle">Ваш XKM готов раскрыть всю мощь вашего устройства</string>
+    
+    <string name="setup_continue">Продолжить</string>
+    <string name="setup_get_started">Начать</string>
 </resources>

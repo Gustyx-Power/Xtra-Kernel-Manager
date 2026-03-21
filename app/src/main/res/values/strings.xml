@@ -855,10 +855,6 @@
     <string name="setup_welcome">Welcome to XKM</string>
     <string name="setup_welcome_desc">The ultimate kernel manager for focused performance and deep
         system control.</string>
-    <string name="setup_get_started">Get Started</string>
-    <string name="setup_permissions_title">Permissions</string>
-    <string name="setup_permissions_desc">We need a few permissions to unleash the full power of
-        your kernel.</string>
     <string name="setup_root_access">Root Access</string>
     <string name="setup_root_desc">Required to modify kernel settings.</string>
     <string name="setup_usage_access">Usage Access</string>
@@ -1348,4 +1344,77 @@
     <string name="banking_mode_enabled_desc">Accessibility service disabled for banking security</string>
     <string name="banking_mode_disabled_desc">Normal operation mode</string>
     <string name="banking_mode_warning">⚠️ Game overlay and accessibility features are disabled to prevent banking app detection</string>
+
+    <!-- Setup Screen -->
+    <string name="setup_welcome_title">Ready to begin?</string>
+    <string name="setup_welcome_subtitle">Customize your kernel to match your needs.\nLet\'s configure your XKM experience.</string>
+    <string name="setup_performance_title">Performance Tuning</string>
+    <string name="setup_performance_subtitle">Configure CPU and GPU settings for optimal performance</string>
+    <string name="setup_battery_title">Battery Optimization</string>
+    <string name="setup_battery_subtitle">Maximize battery life with smart power management</string>
+    <string name="setup_gaming_title">Gaming Experience</string>
+    <string name="setup_gaming_subtitle">Unlock maximum gaming performance and features</string>
+    
+    <string name="setup_feature_performance">Performance</string>
+    <string name="setup_feature_performance_desc">Optimize CPU and GPU settings for maximum performance</string>
+    <string name="setup_feature_battery">Battery Life</string>
+    <string name="setup_feature_battery_desc">Extend battery life with intelligent power management</string>
+    <string name="setup_feature_gaming">Gaming Mode</string>
+    <string name="setup_feature_gaming_desc">Enhance gaming experience with real-time optimizations</string>
+    
+    <string name="setup_feature_cpu_governor">CPU Governor</string>
+    <string name="setup_feature_cpu_governor_desc">Choose between performance, balanced, or power-saving modes</string>
+    <string name="setup_feature_gpu_scaling">GPU Scaling</string>
+    <string name="setup_feature_gpu_scaling_desc">Adjust GPU frequency for better graphics performance</string>
+    <string name="setup_feature_io_scheduler">I/O Scheduler</string>
+    <string name="setup_feature_io_scheduler_desc">Optimize storage read/write operations</string>
+    
+    <string name="setup_feature_power_profiles">Power Profiles</string>
+    <string name="setup_feature_power_profiles_desc">Automatic switching between power modes</string>
+    <string name="setup_feature_sleep_optimization">Sleep Optimization</string>
+    <string name="setup_feature_sleep_optimization_desc">Deep sleep tweaks for minimal battery drain</string>
+    <string name="setup_feature_battery_stats">Battery Stats</string>
+    <string name="setup_feature_battery_stats_desc">Monitor battery usage and health in real-time</string>
+    
+    <string name="setup_feature_game_booster">Game Booster</string>
+    <string name="setup_feature_game_booster_desc">Automatically optimize settings when gaming</string>
+    <string name="setup_feature_touch_response">Touch Response</string>
+    <string name="setup_feature_touch_response_desc">Reduce touch latency for better responsiveness</string>
+    <string name="setup_feature_thermal_control">Thermal Control</string>
+    <string name="setup_feature_thermal_control_desc">Manage device temperature during intensive gaming</string>
+    
+    <string name="setup_permissions_title">Permissions</string>
+    <string name="setup_permissions_subtitle">Grant necessary permissions for full functionality</string>
+    
+    <string name="setup_permission_root">Root Access</string>
+    <string name="setup_permission_root_desc">Required to modify kernel parameters and system settings</string>
+    <string name="setup_permission_root_detected">Detected root manager: %1$s</string>
+    <string name="setup_root_force_stop_title">Force Stop Required</string>
+    <string name="setup_root_force_stop_desc">After granting root access in %1$s, you must force stop XKM for the permission to take effect. Go to Settings → Apps → XKM → Force Stop</string>
+    <string name="setup_permission_accessibility">Accessibility Service</string>
+    <string name="setup_permission_accessibility_desc">Detect foreground apps for per-app profiles</string>
+    <string name="setup_permission_usage">Usage Access</string>
+    <string name="setup_permission_usage_desc">Monitor app usage and screen time statistics</string>
+    <string name="setup_permission_overlay">Display Over Other Apps</string>
+    <string name="setup_permission_overlay_desc">Show game overlay and floating controls</string>
+    <string name="setup_permission_battery">Battery Optimization</string>
+    <string name="setup_permission_battery_desc">Disable battery optimization for background services</string>
+    <string name="setup_permission_notification">Notifications</string>
+    <string name="setup_permission_notification_desc">Show battery stats and performance notifications</string>
+    
+    <string name="setup_style_title">Choose Your Style</string>
+    <string name="setup_style_subtitle">Select the interface design that fits you best</string>
+    
+    <string name="setup_style_material">Material Design</string>
+    <string name="setup_style_material_desc">Modern Material You design with dynamic colors</string>
+    <string name="setup_style_frosted">Frosted Glass</string>
+    <string name="setup_style_frosted_desc">Elegant glassmorphism with blur effects</string>
+    <string name="setup_style_classic">Classic</string>
+    <string name="setup_style_classic_desc">Traditional solid design for all Android versions</string>
+    
+    <string name="setup_complete_title">All Set!</string>
+    <string name="setup_complete_subtitle">Your XKM is ready to unleash the full power of your device</string>
+    
+    <string name="setup_continue">Continue</string>
+    <string name="setup_get_started">Get Started</string>
 </resources>

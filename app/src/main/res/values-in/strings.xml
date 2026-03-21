@@ -1190,4 +1190,77 @@
     <string name="banking_mode_enabled_desc">Layanan aksesibilitas dinonaktifkan untuk keamanan perbankan</string>
     <string name="banking_mode_disabled_desc">Mode operasi normal</string>
     <string name="banking_mode_warning">⚠️ Overlay game dan fitur aksesibilitas dinonaktifkan untuk mencegah deteksi aplikasi perbankan</string>
+
+    <!-- Setup Screen -->
+    <string name="setup_welcome_title">Siap untuk memulai?</string>
+    <string name="setup_welcome_subtitle">Sesuaikan kernel Anda sesuai kebutuhan.\nMari konfigurasikan pengalaman XKM Anda.</string>
+    <string name="setup_performance_title">Penyetelan Performa</string>
+    <string name="setup_performance_subtitle">Konfigurasikan pengaturan CPU dan GPU untuk performa optimal</string>
+    <string name="setup_battery_title">Optimasi Baterai</string>
+    <string name="setup_battery_subtitle">Maksimalkan daya tahan baterai dengan manajemen daya cerdas</string>
+    <string name="setup_gaming_title">Pengalaman Gaming</string>
+    <string name="setup_gaming_subtitle">Buka performa gaming maksimal dan fitur-fitur</string>
+    
+    <string name="setup_feature_performance">Performa</string>
+    <string name="setup_feature_performance_desc">Optimalkan pengaturan CPU dan GPU untuk performa maksimal</string>
+    <string name="setup_feature_battery">Daya Tahan Baterai</string>
+    <string name="setup_feature_battery_desc">Perpanjang daya tahan baterai dengan manajemen daya cerdas</string>
+    <string name="setup_feature_gaming">Mode Gaming</string>
+    <string name="setup_feature_gaming_desc">Tingkatkan pengalaman gaming dengan optimasi real-time</string>
+    
+    <string name="setup_feature_cpu_governor">CPU Governor</string>
+    <string name="setup_feature_cpu_governor_desc">Pilih antara mode performa, seimbang, atau hemat daya</string>
+    <string name="setup_feature_gpu_scaling">Penskalaan GPU</string>
+    <string name="setup_feature_gpu_scaling_desc">Sesuaikan frekuensi GPU untuk performa grafis lebih baik</string>
+    <string name="setup_feature_io_scheduler">I/O Scheduler</string>
+    <string name="setup_feature_io_scheduler_desc">Optimalkan operasi baca/tulis penyimpanan</string>
+    
+    <string name="setup_feature_power_profiles">Profil Daya</string>
+    <string name="setup_feature_power_profiles_desc">Perpindahan otomatis antar mode daya</string>
+    <string name="setup_feature_sleep_optimization">Optimasi Tidur</string>
+    <string name="setup_feature_sleep_optimization_desc">Tweak deep sleep untuk pengurasan baterai minimal</string>
+    <string name="setup_feature_battery_stats">Statistik Baterai</string>
+    <string name="setup_feature_battery_stats_desc">Pantau penggunaan dan kesehatan baterai secara real-time</string>
+    
+    <string name="setup_feature_game_booster">Game Booster</string>
+    <string name="setup_feature_game_booster_desc">Optimalkan pengaturan secara otomatis saat gaming</string>
+    <string name="setup_feature_touch_response">Respons Sentuhan</string>
+    <string name="setup_feature_touch_response_desc">Kurangi latensi sentuhan untuk responsivitas lebih baik</string>
+    <string name="setup_feature_thermal_control">Kontrol Termal</string>
+    <string name="setup_feature_thermal_control_desc">Kelola suhu perangkat saat gaming intensif</string>
+    
+    <string name="setup_permissions_title">Izin</string>
+    <string name="setup_permissions_subtitle">Berikan izin yang diperlukan untuk fungsionalitas penuh</string>
+    
+    <string name="setup_permission_root">Akses Root</string>
+    <string name="setup_permission_root_desc">Diperlukan untuk memodifikasi parameter kernel dan pengaturan sistem</string>
+    <string name="setup_permission_root_detected">Terdeteksi root manager: %1$s</string>
+    <string name="setup_root_force_stop_title">Force Stop Diperlukan</string>
+    <string name="setup_root_force_stop_desc">Setelah memberikan akses root di %1$s, Anda harus force stop XKM agar izin berlaku. Buka Pengaturan → Aplikasi → XKM → Force Stop</string>
+    <string name="setup_permission_accessibility">Layanan Aksesibilitas</string>
+    <string name="setup_permission_accessibility_desc">Deteksi aplikasi aktif untuk profil per-aplikasi</string>
+    <string name="setup_permission_usage">Akses Penggunaan</string>
+    <string name="setup_permission_usage_desc">Pantau penggunaan aplikasi dan statistik waktu layar</string>
+    <string name="setup_permission_overlay">Tampilkan di Atas Aplikasi Lain</string>
+    <string name="setup_permission_overlay_desc">Tampilkan overlay game dan kontrol mengambang</string>
+    <string name="setup_permission_battery">Optimasi Baterai</string>
+    <string name="setup_permission_battery_desc">Nonaktifkan optimasi baterai untuk layanan latar belakang</string>
+    <string name="setup_permission_notification">Notifikasi</string>
+    <string name="setup_permission_notification_desc">Tampilkan statistik baterai dan notifikasi performa</string>
+    
+    <string name="setup_style_title">Pilih Gaya Anda</string>
+    <string name="setup_style_subtitle">Pilih desain antarmuka yang paling cocok untuk Anda</string>
+    
+    <string name="setup_style_material">Material Design</string>
+    <string name="setup_style_material_desc">Desain Material You modern dengan warna dinamis</string>
+    <string name="setup_style_frosted">Frosted Glass</string>
+    <string name="setup_style_frosted_desc">Glassmorphism elegan dengan efek blur</string>
+    <string name="setup_style_classic">Classic</string>
+    <string name="setup_style_classic_desc">Desain solid tradisional untuk semua versi Android</string>
+    
+    <string name="setup_complete_title">Semua Siap!</string>
+    <string name="setup_complete_subtitle">XKM Anda siap melepaskan kekuatan penuh perangkat Anda</string>
+    
+    <string name="setup_continue">Lanjutkan</string>
+    <string name="setup_get_started">Mulai</string>
 </resources>
