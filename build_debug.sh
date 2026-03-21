@@ -3,7 +3,7 @@
 # Configuration
 APP_MODULE="app"
 PACKAGE_NAME="id.xms.xtrakernelmanager.dev"
-MAIN_ACTIVITY=".MainActivity" # Adjust if your main activity has a different name or path relative to package
+MAIN_ACTIVITY=".MainActivity"
 
 # Colors
 GREEN='\033[0;32m'
@@ -11,11 +11,11 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}🚀 Starting Debug Build Process for macOS...${NC}"
+echo -e "${YELLOW}Starting Debug Build Process for macOS...${NC}"
 
 # Check if ADB is available
 if ! command -v adb &> /dev/null; then
-    echo -e "${RED}❌ Error: ADB not found in PATH. Please install Android Platform Tools.${NC}"
+    echo -e "${RED}Error: ADB not found in PATH. Please install Android Platform Tools.${NC}"
     exit 1
 fi
 
@@ -24,7 +24,7 @@ WAYDROID_AVAILABLE=false
 if command -v waydroid &> /dev/null; then
     if waydroid status | grep -q "RUNNING"; then
         WAYDROID_AVAILABLE=true
-        echo -e "${GREEN}🐧 Waydroid detected and running!${NC}"
+        echo -e "${GREEN}Waydroid detected and running!${NC}"
     fi
 fi
 
@@ -44,13 +44,13 @@ if [ "$WAYDROID_AVAILABLE" = true ] && [ "$DEVICE_COUNT" -gt 0 ]; then
         *) echo -e "${RED}Invalid choice. Defaulting to ADB.${NC}"; INSTALL_TARGET="adb" ;;
     esac
 elif [ "$WAYDROID_AVAILABLE" = true ]; then
-    echo -e "${GREEN}📱 Using Waydroid as target...${NC}"
+    echo -e "${GREEN}Using Waydroid as target...${NC}"
     INSTALL_TARGET="waydroid"
 elif [ "$DEVICE_COUNT" -gt 0 ]; then
-    echo -e "${GREEN}📱 Device found. Proceeding with build...${NC}"
+    echo -e "${GREEN}Device found. Proceeding with build...${NC}"
     INSTALL_TARGET="adb"
 else
-    echo -e "${RED}❌ Error: No device connected and Waydroid not running.${NC}"
+    echo -e "${RED}Error: No device connected and Waydroid not running.${NC}"
     echo -e "${YELLOW}Tip: Start Waydroid with 'waydroid session start' or connect an Android device.${NC}"
     exit 1
 fi
@@ -60,28 +60,28 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
     # Prioritize specific versions we know work (r26, r25)
     if [ -d "/usr/local/share/android-commandlinetools/ndk/26.1.10909125" ]; then
         export ANDROID_NDK_HOME="/usr/local/share/android-commandlinetools/ndk/26.1.10909125"
-        echo -e "${GREEN}✅ Auto-configured NDK (r26) at $ANDROID_NDK_HOME${NC}"
+        echo -e "${GREEN}Auto-configured NDK (r26) at $ANDROID_NDK_HOME${NC}"
     elif [ -d "/usr/local/share/android-commandlinetools/ndk-bundle" ]; then
         export ANDROID_NDK_HOME="/usr/local/share/android-commandlinetools/ndk-bundle"
-        echo -e "${GREEN}✅ Auto-configured NDK (bundle) at $ANDROID_NDK_HOME${NC}"
+        echo -e "${GREEN}Auto-configured NDK (bundle) at $ANDROID_NDK_HOME${NC}"
     elif [ -d "$HOME/Library/Android/sdk/ndk-bundle" ]; then
         export ANDROID_NDK_HOME="$HOME/Library/Android/sdk/ndk-bundle"
-        echo -e "${GREEN}✅ Auto-configured NDK at $ANDROID_NDK_HOME${NC}"
+        echo -e "${GREEN}Auto-configured NDK at $ANDROID_NDK_HOME${NC}"
     fi
 fi
 
 # Rust Build
-echo -e "${YELLOW}🦀 Building Rust Native Library (Release)...${NC}"
+echo -e "${YELLOW}Building Rust Native Library (Release)...${NC}"
 
 # Check for Cargo
 if ! command -v cargo &> /dev/null; then
-    echo -e "${RED}❌ Error: Rust/Cargo not found. Please install Rust.${NC}"
+    echo -e "${RED}Error: Rust/Cargo not found. Please install Rust.${NC}"
     exit 1
 fi
 
 # Check/Install cargo-ndk
 if ! command -v cargo-ndk &> /dev/null; then
-    echo -e "${YELLOW}⚠️ cargo-ndk not found. Installing...${NC}"
+    echo -e "${YELLOW}cargo-ndk not found. Installing...${NC}"
     cargo install cargo-ndk
 fi
 
@@ -97,15 +97,15 @@ if [ -d "$RUST_DIR" ]; then
     cargo ndk -t arm64-v8a -o ../../jniLibs build --release
     
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Rust Build Failed!${NC}"
+        echo -e "${RED}Rust Build Failed!${NC}"
         # cd back before exiting? simpler to just exit, shell context ends
         exit 1
     fi
     
     cd "$CURRENT_DIR"
-    echo -e "${GREEN}✅ Rust Build Successful!${NC}"
+    echo -e "${GREEN}Rust Build Successful!${NC}"
 else
-    echo -e "${RED}❌ Error: Rust directory not found at $RUST_DIR${NC}"
+    echo -e "${RED}Error: Rust directory not found at $RUST_DIR${NC}"
     exit 1
 fi
 
@@ -113,15 +113,15 @@ fi
 # ./gradlew clean 
 
 # Build Debug APK
-echo -e "${YELLOW}🔨 Building Debug APK...${NC}"
+echo -e "${YELLOW}Building Debug APK...${NC}"
 ./gradlew :$APP_MODULE:assembleDebug
 
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Build Failed!${NC}"
+    echo -e "${RED}Build Failed!${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✅ Build Successful!${NC}"
+echo -e "${GREEN}Build Successful!${NC}"
 
 # Find the generated APK
 APK_PATH=$(find $APP_MODULE/build/outputs/apk/debug -name "*-debug.apk" | head -n 1)
@@ -132,59 +132,59 @@ if [ -z "$APK_PATH" ]; then
 fi
 
 if [ ! -f "$APK_PATH" ]; then
-    echo -e "${RED}❌ Error: APK not found at $APK_PATH${NC}"
+    echo -e "${RED}Error: APK not found at $APK_PATH${NC}"
     exit 1
 fi
 
-echo -e "${YELLOW}📦 Installing APK ($APK_PATH)...${NC}"
+echo -e "${YELLOW}Installing APK ($APK_PATH)...${NC}"
 
 if [ "$INSTALL_TARGET" = "waydroid" ]; then
     # Install to Waydroid
-    echo -e "${YELLOW}🐧 Installing to Waydroid...${NC}"
+    echo -e "${YELLOW}Installing to Waydroid...${NC}"
     waydroid app install "$APK_PATH"
     
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Waydroid Installation Failed!${NC}"
+        echo -e "${RED}Waydroid Installation Failed!${NC}"
         exit 1
     fi
     
-    echo -e "${GREEN}✅ Installed Successfully to Waydroid!${NC}"
+    echo -e "${GREEN}Installed Successfully to Waydroid!${NC}"
     
-    echo -e "${YELLOW}🚀 Launching App in Waydroid...${NC}"
+    echo -e "${YELLOW}Launching App in Waydroid...${NC}"
     waydroid app launch "$PACKAGE_NAME"
     
-    echo -e "${GREEN}✨ Done!${NC}"
+    echo -e "${GREEN}Done!${NC}"
     echo -e "${YELLOW}Tip: Use 'waydroid show-full-ui' to see the Waydroid window.${NC}"
 else
     # Install to ADB device (original method)
     APK_NAME=$(basename "$APK_PATH")
     REMOTE_PATH="/data/local/tmp/$APK_NAME"
     
-    echo -e "${YELLOW}📤 Pushing APK to device...${NC}"
+    echo -e "${YELLOW}Pushing APK to device...${NC}"
     adb push "$APK_PATH" "$REMOTE_PATH"
     
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Push Failed!${NC}"
+        echo -e "${RED}Push Failed!${NC}"
         exit 1
     fi
     
-    echo -e "${YELLOW}📲 Installing via pm install (root)...${NC}"
+    echo -e "${YELLOW}Installing via pm install (root)...${NC}"
     adb shell "su -c 'pm install -r -d $REMOTE_PATH'"
     
     if [ $? -ne 0 ]; then
-        echo -e "${RED}❌ Installation Failed!${NC}"
+        echo -e "${RED}Installation Failed!${NC}"
         # Cleanup temp file
         adb shell "rm -f $REMOTE_PATH"
         exit 1
     else
-        echo -e "${GREEN}✅ Installed Successfully!${NC}"
+        echo -e "${GREEN}Installed Successfully!${NC}"
         # Cleanup temp file
         adb shell "rm -f $REMOTE_PATH"
         
-        echo -e "${YELLOW}🚀 Launching App...${NC}"
+        echo -e "${YELLOW}Launching App...${NC}"
         # Try to launch using monkey (generic) or specific intent
         adb shell monkey -p $PACKAGE_NAME -c android.intent.category.LAUNCHER 1
         
-        echo -e "${GREEN}✨ Done!${NC}"
+        echo -e "${GREEN}Done!${NC}"
     fi
 fi
