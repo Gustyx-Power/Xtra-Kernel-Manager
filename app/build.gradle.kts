@@ -189,8 +189,10 @@ dependencies {
     // TOML Parser
     implementation("org.tomlj:tomlj:1.1.1")
 
-    // Accompanist (for system UI controller)
+    // Accompanist (for system UI controller and pager)
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
+    implementation("com.google.accompanist:accompanist-pager:0.36.0")
+    implementation("com.google.accompanist:accompanist-pager-indicators:0.36.0")
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
