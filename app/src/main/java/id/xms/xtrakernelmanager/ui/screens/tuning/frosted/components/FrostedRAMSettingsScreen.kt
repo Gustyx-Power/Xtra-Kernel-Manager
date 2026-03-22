@@ -19,8 +19,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -125,17 +123,15 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                Surface(
+                GlassmorphicCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     shape = CircleShape,
-                    color = Color(0xFF3B82F6).copy(alpha = 0.15f)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -143,14 +139,14 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
                             Icon(
                                 Icons.AutoMirrored.Rounded.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White
+                                tint = adaptiveTextColor()
                             )
                         }
                         Text(
                             text = stringResource(R.string.ram_control),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = adaptiveTextColor()
                         )
                         Spacer(modifier = Modifier.width(48.dp))
                     }
@@ -219,38 +215,28 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
                     enter = expandVertically() + fadeIn(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
-                    Surface(
+                    GlassmorphicCard(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(24.dp),
-                        color = Color(0xFF84CC16).copy(alpha = 0.15f)
+                        contentPadding = PaddingValues(20.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(20.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(Color(0xFF84CC16).copy(alpha = 0.2f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Settings,
-                                        contentDescription = null,
-                                        tint = Color(0xFF84CC16),
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
+                                Icon(
+                                    imageVector = Icons.Rounded.Settings,
+                                    contentDescription = null,
+                                    tint = Color(0xFF84CC16),
+                                    modifier = Modifier.size(40.dp)
+                                )
                                 Text(
                                     text = "Compression Algorithm",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
+                                    color = adaptiveTextColor()
                                 )
                             }
 
@@ -380,49 +366,32 @@ fun FrostedInfoCard(
     description: String,
     color: Color
 ) {
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = color.copy(alpha = 0.15f)
+        contentPadding = PaddingValues(20.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(
-                                Color(0xFFD946EF).copy(alpha = 0.3f),
-                                Color(0xFF8B5CF6).copy(alpha = 0.3f)
-                            )
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(48.dp)
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = adaptiveTextColor()
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = adaptiveTextColor(0.8f)
                 )
             }
         }
@@ -438,13 +407,11 @@ fun FrostedRAMSection(
     onEnabledChange: (Boolean) -> Unit,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = color.copy(alpha = 0.15f)
+        contentPadding = PaddingValues(20.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -456,25 +423,17 @@ fun FrostedRAMSection(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(color.copy(alpha = 0.2f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = color,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(40.dp)
+                    )
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = adaptiveTextColor()
                     )
                 }
 
@@ -505,66 +464,66 @@ fun FrostedSliderCard(
 ) {
     val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(color.copy(alpha = 0.15f))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = adaptiveTextColor()
+                    )
+                }
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = adaptiveSurfaceColor(0.2f)
+                ) {
+                    Text(
+                        text = valueDisplay,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
             }
-            Surface(
-                color = color.copy(alpha = 0.2f),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = valueDisplay,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                )
-            }
-        }
 
-        description?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.8f)
+            description?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = adaptiveTextColor(0.8f)
+                )
+            }
+
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedSlider(
+                value = { value },
+                onValueChange = onValueChange,
+                valueRange = valueRange,
+                visibilityThreshold = (valueRange.endInclusive - valueRange.start) / 100f,
+                backdrop = backdrop,
+                modifier = Modifier.padding(vertical = 8.dp)
             )
         }
-
-        id.xms.xtrakernelmanager.ui.components.frosted.FrostedSlider(
-            value = { value },
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            visibilityThreshold = (valueRange.endInclusive - valueRange.start) / 100f,
-            backdrop = backdrop,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
     }
 }
 
@@ -581,26 +540,20 @@ fun FrostedCompressionSelector(
     ) {
         algorithms.forEach { algo ->
             val isSelected = algo == selectedAlgo
-            Surface(
+            GlassmorphicCard(
                 onClick = { onAlgoSelected(algo) },
                 modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                color = if (isSelected) Color(0xFF84CC16).copy(alpha = 0.3f)
-                else Color.White.copy(alpha = 0.1f),
-                border = if (isSelected) androidx.compose.foundation.BorderStroke(
-                    2.dp,
-                    Color(0xFF84CC16)
-                ) else null
+                contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 Box(
-                    modifier = Modifier.padding(vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = algo.uppercase(),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.7f)
+                        color = if (isSelected) Color(0xFF84CC16) else adaptiveTextColor(0.7f)
                     )
                 }
             }
@@ -618,14 +571,13 @@ fun FrostedApplyButton(
     color: Color,
     onClick: () -> Unit
 ) {
-    Surface(
+    GlassmorphicCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = color.copy(alpha = 0.15f)
+        contentPadding = PaddingValues(16.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
