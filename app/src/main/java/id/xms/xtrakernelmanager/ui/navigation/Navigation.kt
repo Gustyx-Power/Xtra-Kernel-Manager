@@ -58,6 +58,7 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialTh
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -258,13 +259,18 @@ fun Navigation(preferencesManager: PreferencesManager) {
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
           val currentIndex by tuningViewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
           val currentOnBoot by tuningViewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
+          val scope = rememberCoroutineScope()
           MaterialThermalIndexSelectionScreen(
               viewModel = tuningViewModel,
               currentIndex = currentIndex,
               onNavigateBack = { navController.popBackStack() },
               onIndexSelected = { index ->
                   tuningViewModel.setThermalPreset(index, currentOnBoot)
-                  navController.popBackStack()
+                  // Add small delay to ensure state is saved before navigation
+                  scope.launch {
+                      delay(100)
+                      navController.popBackStack()
+                  }
               }
           )
         }
@@ -272,13 +278,18 @@ fun Navigation(preferencesManager: PreferencesManager) {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
           val currentPolicy by tuningViewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
+          val scope = rememberCoroutineScope()
           MaterialThermalPolicySelectionScreen(
               viewModel = tuningViewModel,
               currentPolicy = currentPolicy,
               onNavigateBack = { navController.popBackStack() },
               onPolicySelected = { policy ->
                   tuningViewModel.setCpuLockThermalPolicy(policy)
-                  navController.popBackStack()
+                  // Add small delay to ensure state is saved before navigation
+                  scope.launch {
+                      delay(100)
+                      navController.popBackStack()
+                  }
               }
           )
         }
