@@ -433,7 +433,7 @@ class TuningViewModel(
   private val defaultLockStatus = LockStatus(
       isLocked = false,
       policyType = LockPolicyType.MANUAL,
-      thermalPolicy = "PolicyB",
+      thermalPolicy = "Policy B (Balanced)",
       isThermalOverrideActive = false,
       lastTemperature = 0f,
       lastUpdate = System.currentTimeMillis(),
@@ -1731,7 +1731,7 @@ class TuningViewModel(
   fun lockCpuFrequencies(
     clusterConfigs: Map<Int, CpuClusterLockConfig>,
     policyType: LockPolicyType = LockPolicyType.MANUAL,
-    thermalPolicy: String = "PolicyB"
+    thermalPolicy: String = "Policy B (Balanced)"
   ) {
     viewModelScope.launch {
       val result = smartCpuLocker.lockCpuFrequencies(

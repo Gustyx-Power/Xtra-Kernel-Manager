@@ -232,7 +232,11 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                       onNavigateBack = { currentRoute = "liquid_thermal_settings" },
                       onIndexSelected = { index ->
                           viewModel.setThermalPreset(index, currentOnBoot)
-                          currentRoute = "liquid_thermal_settings"
+                          // Add small delay to ensure state is saved before navigation
+                          scope.launch {
+                              delay(100)
+                              currentRoute = "liquid_thermal_settings"
+                          }
                       }
                   )
               }
@@ -244,7 +248,11 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                       onNavigateBack = { currentRoute = "liquid_thermal_settings" },
                       onPolicySelected = { policy ->
                           viewModel.setCpuLockThermalPolicy(policy)
-                          currentRoute = "liquid_thermal_settings"
+                          // Add small delay to ensure state is saved before navigation
+                          scope.launch {
+                              delay(100)
+                              currentRoute = "liquid_thermal_settings"
+                          }
                       }
                   )
               }
