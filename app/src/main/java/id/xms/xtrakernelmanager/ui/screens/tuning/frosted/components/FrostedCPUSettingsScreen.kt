@@ -1206,7 +1206,7 @@ private fun CPULockControls(
   
   var showLockDialog by remember { mutableStateOf(false) }
   var selectedPolicy by remember { mutableStateOf(LockPolicyType.SMART) }
-  var selectedThermalPolicy by remember { mutableStateOf("PolicyB") }
+  var selectedThermalPolicy by remember { mutableStateOf("Policy B (Balanced)") }
   
   Column(
     modifier = modifier,
