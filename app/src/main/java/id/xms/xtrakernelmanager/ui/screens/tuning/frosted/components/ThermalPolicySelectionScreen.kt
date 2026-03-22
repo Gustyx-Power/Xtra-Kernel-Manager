@@ -39,6 +39,9 @@ fun ThermalPolicySelectionScreen(
     onPolicySelected: (String) -> Unit
 ) {
     val allPolicies = remember { ThermalPolicyPresets.getAllPolicies() }
+    
+    // Stabilize currentPolicy to prevent glitches during state updates
+    val stableCurrentPolicy by remember { derivedStateOf { currentPolicy } }
 
     Box(modifier = Modifier.fillMaxSize()) {
         WavyBlobOrnament(modifier = Modifier.fillMaxSize())
@@ -76,7 +79,10 @@ fun ThermalPolicySelectionScreen(
                     key = { index -> allPolicies[index].name }
                 ) { index ->
                     val policy = allPolicies[index]
-                    val isSelected = policy.name == currentPolicy
+                    // Use stable state for isSelected to prevent glitches
+                    val isSelected = remember(stableCurrentPolicy, policy.name) {
+                        policy.name == stableCurrentPolicy
+                    }
                     
                     ThermalPolicyCard(
                         policy = policy,
@@ -192,10 +198,16 @@ private fun ThermalPolicyCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // Stabilize isSelected state to prevent unnecessary recompositions
+    val stableIsSelected by remember { derivedStateOf { isSelected } }
+    
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.02f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
-        label = "policy_card_scale"
+        targetValue = if (stableIsSelected) 1.02f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "policy_card_scale_${policy.name}"
     )
     
     GlassmorphicCard(
@@ -223,7 +235,7 @@ private fun ThermalPolicyCard(
                     Icon(
                         imageVector = Icons.Default.Psychology,
                         contentDescription = null,
-                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        tint = if (stableIsSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(28.dp)
                     )
                     
@@ -231,17 +243,23 @@ private fun ThermalPolicyCard(
                         text = policy.name,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        color = if (stableIsSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
                 AnimatedVisibility(
-                    visible = isSelected,
+                    visible = stableIsSelected,
                     enter = scaleIn(
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
                     ) + fadeIn(),
                     exit = scaleOut(
-                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
                     ) + fadeOut()
                 ) {
                     Icon(

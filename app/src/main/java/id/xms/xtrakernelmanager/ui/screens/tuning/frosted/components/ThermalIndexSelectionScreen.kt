@@ -47,6 +47,9 @@ fun ThermalIndexSelectionScreen(
             ThermalIndexOption("Thermal 20", R.string.thermal_20, R.string.thermal_20_long_desc, Icons.Default.LocalFireDepartment, R.string.thermal_20_detail)
         )
     }
+    
+    // Stabilize currentIndex to prevent glitches during state updates
+    val stableCurrentIndex by remember { derivedStateOf { currentIndex } }
 
     Box(modifier = Modifier.fillMaxSize()) {
         WavyBlobOrnament(modifier = Modifier.fillMaxSize())
@@ -69,7 +72,7 @@ fun ThermalIndexSelectionScreen(
                 contentPadding = PaddingValues(20.dp)
             ) {
                 // Header Info Card
-                item {
+                item(key = "info_card") {
                     InfoCard(
                         title = stringResource(R.string.thermal_index_system),
                         description = stringResource(R.string.thermal_index_system_desc),
@@ -84,7 +87,10 @@ fun ThermalIndexSelectionScreen(
                     key = { index -> thermalOptions[index].key }
                 ) { index ->
                     val option = thermalOptions[index]
-                    val isSelected = option.key == currentIndex
+                    // Use stable state for isSelected to prevent glitches
+                    val isSelected = remember(stableCurrentIndex, option.key) {
+                        option.key == stableCurrentIndex
+                    }
                     
                     ThermalIndexOptionCard(
                         option = option,
@@ -94,7 +100,7 @@ fun ThermalIndexSelectionScreen(
                 }
                 
                 // Bottom spacing
-                item {
+                item(key = "bottom_spacer") {
                     Spacer(modifier = Modifier.height(20.dp))
                 }
             }
@@ -200,9 +206,16 @@ private fun ThermalIndexOptionCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // Stabilize isSelected state to prevent unnecessary recompositions
+    val stableIsSelected by remember { derivedStateOf { isSelected } }
+    
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.02f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+        targetValue = if (stableIsSelected) 1.02f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "index_card_scale_${option.key}"
     )
     
     GlassmorphicCard(
@@ -221,7 +234,7 @@ private fun ThermalIndexOptionCard(
             Icon(
                 imageVector = option.icon,
                 contentDescription = null,
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                tint = if (stableIsSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(28.dp)
             )
             
@@ -233,7 +246,7 @@ private fun ThermalIndexOptionCard(
                     text = stringResource(option.nameRes),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    color = if (stableIsSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = stringResource(option.shortDescRes),
@@ -249,9 +262,19 @@ private fun ThermalIndexOptionCard(
             }
             
             AnimatedVisibility(
-                visible = isSelected,
-                enter = scaleIn() + fadeIn(),
-                exit = scaleOut() + fadeOut()
+                visible = stableIsSelected,
+                enter = scaleIn(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ) + fadeIn(),
+                exit = scaleOut(
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ) + fadeOut()
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
