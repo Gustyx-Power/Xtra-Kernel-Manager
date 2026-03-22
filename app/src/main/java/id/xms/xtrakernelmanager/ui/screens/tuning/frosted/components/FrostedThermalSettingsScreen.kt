@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -53,7 +52,7 @@ fun FrostedThermalSettingsScreen(
             containerColor = Color.Transparent,
             topBar = {
                 ModernTopBar(
-                    title = "Thermal Management",
+                    title = stringResource(R.string.thermal_management),
                     onNavigateBack = onNavigateBack
                 )
             }
@@ -100,42 +99,31 @@ private fun ModernTopBar(
     title: String,
     onNavigateBack: () -> Unit
 ) {
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFEF4444).copy(alpha = 0.15f) // Red glass untuk thermal
+        contentPadding = PaddingValues(16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = onNavigateBack,
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f))
-            ) {
+            IconButton(onClick = onNavigateBack) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.White
+                    contentDescription = stringResource(R.string.back)
                 )
             }
             
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = FontWeight.Bold
             )
             
-            // Placeholder for balance
             Spacer(modifier = Modifier.size(40.dp))
         }
     }
@@ -146,76 +134,39 @@ private fun HeroThermalCard(
     prefsThermal: String,
     selectedPolicy: String
 ) {
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
-        color = Color(0xFFEF4444).copy(alpha = 0.15f) // Red glass untuk hero card
+        contentPadding = PaddingValues(24.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(
-                            Color(0xFFEF4444).copy(alpha = 0.1f),
-                            Color.Transparent
-                        ),
-                        radius = 300f
-                    )
-                )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            Icon(
+                imageVector = Icons.Default.Thermostat,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp)
+            )
+            
+            Text(
+                text = stringResource(R.string.thermal_control_center),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Central Icon
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFEF4444),
-                                    Color(0xFFF97316)
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Thermostat,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
-                
-                Text(
-                    text = "Thermal Control Center",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                StatusChip(
+                    label = stringResource(R.string.thermal_index_label),
+                    value = prefsThermal
                 )
-                
-                // Status indicators
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    StatusChip(
-                        label = "Index",
-                        value = prefsThermal,
-                        color = Color(0xFFEF4444)
-                    )
-                    StatusChip(
-                        label = "Policy",
-                        value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else "",
-                        color = Color(0xFFF97316)
-                    )
-                }
+                StatusChip(
+                    label = stringResource(R.string.thermal_policy_label),
+                    value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else ""
+                )
             }
         }
     }
@@ -224,31 +175,22 @@ private fun HeroThermalCard(
 @Composable
 private fun StatusChip(
     label: String,
-    value: String,
-    color: Color
+    value: String
 ) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = Color.White.copy(alpha = 0.2f),
-        modifier = Modifier.padding(4.dp)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp, 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = color,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold
+        )
     }
 }
 
@@ -281,72 +223,48 @@ private fun ModernThermalIndexCard(
         }
     }
 
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFF97316).copy(alpha = 0.15f) // Orange glass untuk thermal index
+        contentPadding = PaddingValues(20.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFF97316),
-                                    Color(0xFFF97316).copy(alpha = 0.8f)
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = thermalIcon,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
+                Icon(
+                    imageVector = thermalIcon,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Thermal Index",
+                        text = stringResource(R.string.thermal_index),
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = stringResource(presetMap[prefsThermal] ?: R.string.thermal_not_set),
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFFF97316),
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
             
-            // Interactive Selection Card
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onShowDialog() },
-                color = Color.White.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(16.dp)
+            GlassmorphicCard(
+                onClick = onShowDialog,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(16.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -357,28 +275,24 @@ private fun ModernThermalIndexCard(
                         Icon(
                             imageVector = Icons.Default.Tune,
                             contentDescription = null,
-                            tint = Color(0xFFF97316),
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Change Thermal Index",
+                            text = stringResource(R.string.thermal_change_index),
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White
+                            fontWeight = FontWeight.Medium
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = Color(0xFFF97316)
+                        contentDescription = null
                     )
                 }
             }
             
-            // Set on Boot Toggle
             ModernToggleCard(
                 title = stringResource(R.string.set_on_boot),
-                subtitle = "Apply thermal index on device startup",
+                subtitle = stringResource(R.string.thermal_apply_index_on_boot),
                 checked = prefsOnBoot,
                 onCheckedChange = { viewModel.setThermalPreset(prefsThermal, it) },
                 icon = Icons.Default.PowerSettingsNew
@@ -396,113 +310,76 @@ private fun ModernThermalPolicyCard(
         ThermalPolicyPresets.getPolicyByName(selectedPolicy) 
     }
 
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFFBBF24).copy(alpha = 0.15f) // Yellow glass untuk thermal policy
+        contentPadding = PaddingValues(20.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFFFBBF24),
-                                    Color(0xFFFBBF24).copy(alpha = 0.8f)
-                                )
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Psychology,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Psychology,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Thermal Policy",
+                        text = stringResource(R.string.thermal_policy),
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = selectedPolicy,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFFFBBF24),
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
             
-            // Policy Details
             currentPolicy?.let { policy ->
-                Surface(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Color.White.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ThermalDetailRow(
-                            icon = Icons.Default.Warning,
-                            label = "Emergency",
-                            value = "${policy.emergencyThreshold}°C",
-                            color = Color(0xFFEF4444)
-                        )
-                        ThermalDetailRow(
-                            icon = Icons.Default.Info,
-                            label = "Warning",
-                            value = "${policy.warningThreshold}°C",
-                            color = Color(0xFFF97316)
-                        )
-                        ThermalDetailRow(
-                            icon = Icons.Default.Restore,
-                            label = "Restore",
-                            value = "${policy.restoreThreshold}°C",
-                            color = Color(0xFF10B981)
-                        )
-                        ThermalDetailRow(
-                            icon = Icons.Default.Error,
-                            label = "Critical",
-                            value = "${policy.criticalThreshold}°C",
-                            color = Color(0xFFDC2626)
-                        )
-                    }
+                    ThermalDetailRow(
+                        icon = Icons.Default.Warning,
+                        label = stringResource(R.string.emergency_temp),
+                        value = "${policy.emergencyThreshold}°C"
+                    )
+                    ThermalDetailRow(
+                        icon = Icons.Default.Info,
+                        label = stringResource(R.string.warning_temp),
+                        value = "${policy.warningThreshold}°C"
+                    )
+                    ThermalDetailRow(
+                        icon = Icons.Default.Restore,
+                        label = stringResource(R.string.restore_temp),
+                        value = "${policy.restoreThreshold}°C"
+                    )
+                    ThermalDetailRow(
+                        icon = Icons.Default.Error,
+                        label = stringResource(R.string.critical_temp),
+                        value = "${policy.criticalThreshold}°C"
+                    )
                 }
             }
             
-            // Change Policy Button
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onShowDialog() },
-                color = Color.White.copy(alpha = 0.1f),
-                shape = RoundedCornerShape(16.dp)
+            GlassmorphicCard(
+                onClick = onShowDialog,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(16.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -513,20 +390,17 @@ private fun ModernThermalPolicyCard(
                         Icon(
                             imageVector = Icons.Default.Tune,
                             contentDescription = null,
-                            tint = Color(0xFFFBBF24),
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "Change Thermal Policy",
+                            text = stringResource(R.string.change_thermal_policy),
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium,
-                            color = Color.White
+                            fontWeight = FontWeight.Medium
                         )
                     }
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
-                        contentDescription = null,
-                        tint = Color(0xFFFBBF24)
+                        contentDescription = null
                     )
                 }
             }
@@ -538,8 +412,7 @@ private fun ModernThermalPolicyCard(
 private fun ThermalDetailRow(
     icon: ImageVector,
     label: String,
-    value: String,
-    color: Color
+    value: String
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -553,20 +426,18 @@ private fun ThermalDetailRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = color
+                modifier = Modifier.size(16.dp)
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color = color
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -579,14 +450,13 @@ private fun ModernToggleCard(
     onCheckedChange: (Boolean) -> Unit,
     icon: ImageVector
 ) {
-    Surface(
-        color = Color.White.copy(alpha = 0.1f),
-        shape = RoundedCornerShape(16.dp)
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        contentPadding = PaddingValues(16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -598,20 +468,18 @@ private fun ModernToggleCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = Color(0xFFF97316),
                     modifier = Modifier.size(20.dp)
                 )
                 Column {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        color = Color.White
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
