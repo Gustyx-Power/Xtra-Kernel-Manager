@@ -48,68 +48,55 @@ fun FrostedDialog(
                     .clickable(enabled = false) {},
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(0.dp)
-            ) {                val defaultBackgroundColor = if (isLightTheme) {
-                    Color(0xFFFAFAFA).copy(0.95f)
-                } else {
-                    Color(0xFF333333).copy(0.95f)
-                }
-
-                val finalBackgroundColor = backgroundColor ?: defaultBackgroundColor
-
+            ) {
                 val contentColor = if (isLightTheme) {
-                    Color.Black
+                    Color.Black.copy(alpha = 0.85f)
                 } else {
-                    Color.White
+                    Color.White.copy(alpha = 0.95f)
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(finalBackgroundColor)
-                ) {
-                    CompositionLocalProvider(LocalContentColor provides contentColor) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            // Title
-                            Text(
-                                text = title,
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontWeight = FontWeight.Medium,
-                                    fontSize = 24.sp
-                                ),
-                                color = contentColor,
-                                modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
-                            )
+                CompositionLocalProvider(LocalContentColor provides contentColor) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Title
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 24.sp
+                            ),
+                            color = contentColor,
+                            modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
+                        )
 
-                            // Content
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp, 12.dp, 24.dp, 12.dp)
-                            ) {
-                                content()
+                        // Content
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 12.dp, 24.dp, 12.dp)
+                        ) {
+                            content()
+                        }
+
+                        // Action buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 12.dp, 24.dp, 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Dismiss button (if provided)
+                            dismissButton?.let {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    it()
+                                }
                             }
 
-                            // Action buttons
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp, 12.dp, 24.dp, 24.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Dismiss button (if provided)
-                                dismissButton?.let {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        it()
-                                    }
-                                }
-
-                                // Confirm button
-                                Box(modifier = Modifier.weight(1f)) {
-                                    confirmButton()
-                                }
+                            // Confirm button
+                            Box(modifier = Modifier.weight(1f)) {
+                                confirmButton()
                             }
                         }
                     }
@@ -148,63 +135,50 @@ fun FrostedDialog(
                 shape = RoundedCornerShape(28.dp),
                 contentPadding = PaddingValues(0.dp)
             ) {
-                // Add semi-transparent background layer inside card for better text readability
-                val backgroundColor = if (isLightTheme) {
-                    Color(0xFFFAFAFA).copy(0.95f)
-                } else {
-                    Color(0xFF333333).copy(0.95f)
-                }
-
                 val contentColor = if (isLightTheme) {
-                    Color.Black
+                    Color.Black.copy(alpha = 0.85f)
                 } else {
-                    Color.White
+                    Color.White.copy(alpha = 0.95f)
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(backgroundColor)
-                ) {
-                    CompositionLocalProvider(LocalContentColor provides contentColor) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth()
+                CompositionLocalProvider(LocalContentColor provides contentColor) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // Title
+                        Box(
+                            modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
                         ) {
-                            // Title
-                            Box(
-                                modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp)
-                            ) {
-                                title()
-                            }
+                            title()
+                        }
 
-                            // Content
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp, 12.dp, 24.dp, 12.dp)
-                            ) {
-                                content()
-                            }
+                        // Content
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 12.dp, 24.dp, 12.dp)
+                        ) {
+                            content()
+                        }
 
-                            // Action buttons
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp, 12.dp, 24.dp, 24.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Dismiss button (if provided)
-                                dismissButton?.let {
-                                    Box(modifier = Modifier.weight(1f)) {
-                                        it()
-                                    }
-                                }
-
-                                // Confirm button
+                        // Action buttons
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp, 12.dp, 24.dp, 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Dismiss button (if provided)
+                            dismissButton?.let {
                                 Box(modifier = Modifier.weight(1f)) {
-                                    confirmButton()
+                                    it()
                                 }
+                            }
+
+                            // Confirm button
+                            Box(modifier = Modifier.weight(1f)) {
+                                confirmButton()
                             }
                         }
                     }
