@@ -251,6 +251,33 @@
     <!-- Thermal Control -->
     <string name="thermal_control">Kontrol Termal</string>
     <string name="thermal_control_desc">Pengaturan manajemen suhu</string>
+    <string name="thermal_management">Manajemen Termal</string>
+    <string name="thermal_control_center">Pusat Kontrol Termal</string>
+    <string name="thermal_index">Indeks Termal</string>
+    <string name="thermal_index_label">Indeks</string>
+    <string name="thermal_policy_label">Kebijakan</string>
+    <string name="thermal_change_index">Ubah Indeks Termal</string>
+    <string name="thermal_apply_index_on_boot">Terapkan indeks termal saat perangkat menyala</string>
+    <string name="thermal_policy">Kebijakan Termal</string>
+    <string name="thermal_policy_system">Sistem Kebijakan Termal</string>
+    <string name="thermal_policy_system_desc">Kebijakan termal menentukan ambang suhu untuk berbagai kondisi performa. Setiap kebijakan memiliki batas suhu darurat, peringatan, pemulihan, dan kritis yang spesifik.</string>
+    <string name="thermal_index_system">Sistem Indeks Termal</string>
+    <string name="thermal_index_system_desc">Indeks termal mengontrol bagaimana perangkat mengelola pembangkitan panas dan throttling performa. Pilih mode yang paling sesuai dengan pola penggunaan Anda.</string>
+    <string name="thermal_choose_behavior">Pilih profil perilaku termal</string>
+    <string name="thermal_choose_management_mode">Pilih mode manajemen termal</string>
+    <string name="thermal_temperature_thresholds">Ambang Suhu</string>
+    <string name="thermal_not_set_long_desc">Tidak ada manajemen termal diterapkan</string>
+    <string name="thermal_not_set_detail">Perilaku sistem default</string>
+    <string name="thermal_class_0_long_desc">Manajemen termal seimbang</string>
+    <string name="thermal_class_0_detail">Keseimbangan optimal antara performa dan suhu</string>
+    <string name="thermal_extreme_long_desc">Mode performa maksimum</string>
+    <string name="thermal_extreme_detail">Performa tinggi dengan peningkatan pembangkitan panas</string>
+    <string name="thermal_dynamic_long_desc">Kontrol termal adaptif</string>
+    <string name="thermal_dynamic_detail">Menyesuaikan secara otomatis berdasarkan pola penggunaan</string>
+    <string name="thermal_incalls_long_desc">Dioptimalkan untuk panggilan suara</string>
+    <string name="thermal_incalls_detail">Mengurangi panas selama panggilan telepon</string>
+    <string name="thermal_20_long_desc">Profil termal kustom</string>
+    <string name="thermal_20_detail">Profil manajemen termal lanjutan</string>
     <string name="thermal_preset">Preset Termal</string>
     <string name="thermal_select_preset">Pilih Thermal</string>
     <string name="change_preset">Ubah Preset</string>
@@ -270,6 +297,27 @@
     <string name="thermal_not_set">Belum diatur</string>
     <string name="thermal_not_set_desc">Tidak ada profil termal diterapkan</string>
     <string name="thermal_unknown_desc">Preset tidak dikenal</string>
+
+    <!-- Smart Thermal Policy -->
+    <string name="smart_thermal_policy">Kebijakan Termal Pintar</string>
+    <string name="smart_thermal_policy_desc">Manajemen suhu cerdas untuk penguncian frekuensi CPU</string>
+    <string name="thermal_policy_settings">Pengaturan Kebijakan Termal</string>
+    <string name="thermal_policy_settings_desc">Konfigurasi perilaku termal untuk penguncian frekuensi pintar</string>
+    <string name="current_thermal_policy">Kebijakan Termal Saat Ini</string>
+    <string name="current_policy">Kebijakan Saat Ini</string>
+    <string name="available_thermal_policies">Kebijakan Termal Tersedia</string>
+    <string name="select_thermal_policy">Pilih Kebijakan Termal</string>
+    <string name="choose_thermal_behavior">Pilih perilaku termal untuk penguncian frekuensi pintar</string>
+    <string name="change_thermal_policy">Ubah Kebijakan Termal</string>
+    <string name="emergency_threshold">Ambang Darurat</string>
+    <string name="warning_threshold">Ambang Peringatan</string>
+    <string name="restore_threshold">Ambang Pemulihan</string>
+    <string name="critical_threshold">Ambang Kritis</string>
+    <string name="emergency_temp">Darurat</string>
+    <string name="warning_temp">Peringatan</string>
+    <string name="restore_temp">Pemulihan</string>
+    <string name="critical_temp">Kritis</string>
+    <string name="frosted_thermal_policy_format">Darurat: %1$.0f°C, Peringatan: %2$.0f°C</string>
 
     <!-- RAM Control -->
     <string name="ram_control">Kontrol RAM</string>
@@ -932,9 +980,6 @@
     <string name="frosted_lock_policy_smart_desc">Sadar termal dengan auto-restore</string>
     <string name="frosted_lock_policy_game_desc">Dioptimalkan untuk gaming</string>
     <string name="frosted_lock_policy_battery_saving_desc">Hemat daya</string>
-    
-    <!-- Thermal Policy Format -->
-    <string name="frosted_thermal_policy_format">Darurat: %1$.0f°C, Peringatan: %2$.0f°C</string>
 
     <!-- Frosted RAM Control Strings -->
     <string name="frosted_ram_virtual_memory_management">Manajemen memori virtual</string>

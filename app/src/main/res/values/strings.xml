@@ -251,6 +251,33 @@
     <!-- Thermal Control -->
     <string name="thermal_control">Thermal Control</string>
     <string name="thermal_control_desc">Temperature management settings</string>
+    <string name="thermal_management">Thermal Management</string>
+    <string name="thermal_control_center">Thermal Control Center</string>
+    <string name="thermal_index">Thermal Index</string>
+    <string name="thermal_index_label">Index</string>
+    <string name="thermal_policy_label">Policy</string>
+    <string name="thermal_change_index">Change Thermal Index</string>
+    <string name="thermal_apply_index_on_boot">Apply thermal index on device startup</string>
+    <string name="thermal_policy">Thermal Policy</string>
+    <string name="thermal_policy_system">Thermal Policy System</string>
+    <string name="thermal_policy_system_desc">Thermal policies define temperature thresholds for different performance states. Each policy has specific emergency, warning, restore, and critical temperature limits.</string>
+    <string name="thermal_index_system">Thermal Index System</string>
+    <string name="thermal_index_system_desc">Thermal index controls how your device manages heat generation and performance throttling. Choose the mode that best fits your usage pattern.</string>
+    <string name="thermal_choose_behavior">Choose thermal behavior profile</string>
+    <string name="thermal_choose_management_mode">Choose thermal management mode</string>
+    <string name="thermal_temperature_thresholds">Temperature Thresholds</string>
+    <string name="thermal_not_set_long_desc">No thermal management applied</string>
+    <string name="thermal_not_set_detail">Default system behavior</string>
+    <string name="thermal_class_0_long_desc">Balanced thermal management</string>
+    <string name="thermal_class_0_detail">Optimal balance between performance and temperature</string>
+    <string name="thermal_extreme_long_desc">Maximum performance mode</string>
+    <string name="thermal_extreme_detail">High performance with increased heat generation</string>
+    <string name="thermal_dynamic_long_desc">Adaptive thermal control</string>
+    <string name="thermal_dynamic_detail">Automatically adjusts based on usage patterns</string>
+    <string name="thermal_incalls_long_desc">Optimized for voice calls</string>
+    <string name="thermal_incalls_detail">Reduces heat during phone calls</string>
+    <string name="thermal_20_long_desc">Custom thermal profile</string>
+    <string name="thermal_20_detail">Advanced thermal management profile</string>
     <string name="thermal_preset">Thermal Preset</string>
     <string name="thermal_select_preset">Select Thermal</string>
     <string name="change_preset">Change Preset</string>
@@ -287,6 +314,9 @@
     <string name="restore_threshold">Restore Threshold</string>
     <string name="critical_threshold">Critical Threshold</string>
     <string name="emergency_temp">Emergency</string>
+    <string name="warning_temp">Warning</string>
+    <string name="restore_temp">Restore</string>
+    <string name="critical_temp">Critical</string>
     <string name="frosted_thermal_policy_format">Emergency: %1$.0f°C, Warning: %2$.0f°C</string>
 
     <!-- RAM Control -->
