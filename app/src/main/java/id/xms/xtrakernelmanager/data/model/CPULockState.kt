@@ -10,7 +10,7 @@ data class CPULockState(
     val isLocked: Boolean = false,
     val clusterConfigs: Map<Int, CpuClusterLockConfig> = emptyMap(),
     val policyType: LockPolicyType = LockPolicyType.MANUAL,
-    val thermalPolicy: String = "PolicyB",
+    val thermalPolicy: String = "Policy B (Balanced)",
     val lastTemperature: Float = 0f,
     val lastUpdate: Long = System.currentTimeMillis(),
     val isThermalOverrideActive: Boolean = false,

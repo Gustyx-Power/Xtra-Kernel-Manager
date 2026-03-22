@@ -34,7 +34,7 @@ class SmartCPULocker(
 suspend fun lockCpuFrequencies(
     clusterConfigs: Map<Int, CpuClusterLockConfig>,
     policyType: LockPolicyType = LockPolicyType.MANUAL,
-    thermalPolicy: String = "PolicyB"
+    thermalPolicy: String = "Policy B (Balanced)"
 ): SmartLockResult {
     return try {
         if (_lockState.value.isLocked && policyType == LockPolicyType.MANUAL) {
