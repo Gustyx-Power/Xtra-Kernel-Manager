@@ -18,7 +18,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -48,8 +47,8 @@ fun ThermalPolicySelectionScreen(
             containerColor = Color.Transparent,
             topBar = {
                 ModernTopBar(
-                    title = "Thermal Policy",
-                    subtitle = "Choose thermal behavior profile",
+                    title = stringResource(R.string.thermal_policy),
+                    subtitle = stringResource(R.string.thermal_choose_behavior),
                     onNavigateBack = onNavigateBack
                 )
             }
@@ -64,8 +63,8 @@ fun ThermalPolicySelectionScreen(
                 // Header Info Card
                 item(key = "info_card") {
                     InfoCard(
-                        title = "Thermal Policy System",
-                        description = "Thermal policies define temperature thresholds for different performance states. Each policy has specific emergency, warning, restore, and critical temperature limits.",
+                        title = stringResource(R.string.thermal_policy_system),
+                        description = stringResource(R.string.thermal_policy_system_desc),
                         icon = Icons.Default.Psychology,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -101,31 +100,25 @@ private fun ModernTopBar(
     subtitle: String,
     onNavigateBack: () -> Unit
 ) {
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 16.dp),
         shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFFBBF24).copy(alpha = 0.15f)
+        contentPadding = PaddingValues(20.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
                 onClick = onNavigateBack,
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.2f))
+                modifier = Modifier.size(44.dp)
             ) {
                 Icon(
                     Icons.AutoMirrored.Rounded.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.White
+                    contentDescription = stringResource(R.string.back)
                 )
             }
             
@@ -136,17 +129,15 @@ private fun ModernTopBar(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             
-            // Placeholder for balance
             Spacer(modifier = Modifier.size(44.dp))
         }
     }
@@ -159,32 +150,21 @@ private fun InfoCard(
     icon: ImageVector,
     color: Color
 ) {
-    Surface(
+    GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        color = Color(0xFF10B981).copy(alpha = 0.15f)
+        contentPadding = PaddingValues(20.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF10B981).copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = Color(0xFF10B981),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
             
             Column(
                 modifier = Modifier.weight(1f),
@@ -193,13 +173,12 @@ private fun InfoCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 20.sp
                 )
             }
@@ -213,192 +192,116 @@ private fun ThermalPolicyCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // Stable animation state
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.02f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "policy_card_scale"
     )
     
-    // Stable colors
-    val containerColor = remember(isSelected) {
-        if (isSelected) {
-            Brush.horizontalGradient(
-                colors = listOf(
-                    Color(0xFFFBBF24).copy(alpha = 0.2f),
-                    Color(0xFFF59E0B).copy(alpha = 0.15f)
-                )
-            )
-        } else {
-            Brush.horizontalGradient(
-                colors = listOf(
-                    Color.Transparent,
-                    Color.Transparent
-                )
-            )
-        }
-    }
-    
-    val iconBackgroundBrush = remember(isSelected) {
-        if (isSelected) {
-            Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFFFBBF24),
-                    Color(0xFFFBBF24).copy(alpha = 0.8f)
-                )
-            )
-        } else {
-            Brush.linearGradient(
-                colors = listOf(
-                    Color(0xFF3B82F6).copy(alpha = 0.3f),
-                    Color(0xFF3B82F6).copy(alpha = 0.2f)
-                )
-            )
-        }
-    }
-    
-    Surface(
+    GlassmorphicCard(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .scale(scale)
-            .clickable { onClick() },
+            .scale(scale),
         shape = RoundedCornerShape(20.dp),
-        color = if (isSelected) 
-            Color(0xFFFBBF24).copy(alpha = 0.15f)
-        else 
-            Color(0xFF3B82F6).copy(alpha = 0.12f)
+        contentPadding = PaddingValues(20.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(containerColor)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Header
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
                 ) {
+                    Icon(
+                        imageVector = Icons.Default.Psychology,
+                        contentDescription = null,
+                        tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    
+                    Text(
+                        text = policy.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                
+                AnimatedVisibility(
+                    visible = isSelected,
+                    enter = scaleIn(
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    ) + fadeIn(),
+                    exit = scaleOut(
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    ) + fadeOut()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            
+            GlassmorphicCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.thermal_policy_settings),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(iconBackgroundBrush),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Psychology,
-                                contentDescription = null,
-                                tint = if (isSelected) Color.White else Color(0xFF3B82F6),
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        
-                        Text(
-                            text = policy.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSelected) Color(0xFFFBBF24) else Color.White
+                        ThermalThresholdChip(
+                            label = stringResource(R.string.emergency_temp),
+                            temperature = "${policy.emergencyThreshold}°C",
+                            icon = Icons.Default.Warning,
+                            modifier = Modifier.weight(1f)
+                        )
+                        ThermalThresholdChip(
+                            label = stringResource(R.string.warning_temp),
+                            temperature = "${policy.warningThreshold}°C",
+                            icon = Icons.Default.Info,
+                            modifier = Modifier.weight(1f)
                         )
                     }
                     
-                    // Selection indicator with stable animation
-                    AnimatedVisibility(
-                        visible = isSelected,
-                        enter = scaleIn(
-                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                        ) + fadeIn(),
-                        exit = scaleOut(
-                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                        ) + fadeOut()
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFBBF24)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-                }
-                
-                // Temperature Thresholds
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color.White.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = "Temperature Thresholds",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                        ThermalThresholdChip(
+                            label = stringResource(R.string.restore_temp),
+                            temperature = "${policy.restoreThreshold}°C",
+                            icon = Icons.Default.Restore,
+                            modifier = Modifier.weight(1f)
                         )
-                        
-                        // Temperature rows
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            ThermalThresholdChip(
-                                label = "Emergency",
-                                temperature = "${policy.emergencyThreshold}°C",
-                                color = Color(0xFFEF4444),
-                                icon = Icons.Default.Warning,
-                                modifier = Modifier.weight(1f)
-                            )
-                            ThermalThresholdChip(
-                                label = "Warning",
-                                temperature = "${policy.warningThreshold}°C",
-                                color = Color(0xFFF97316),
-                                icon = Icons.Default.Info,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            ThermalThresholdChip(
-                                label = "Restore",
-                                temperature = "${policy.restoreThreshold}°C",
-                                color = Color(0xFF10B981),
-                                icon = Icons.Default.Restore,
-                                modifier = Modifier.weight(1f)
-                            )
-                            ThermalThresholdChip(
-                                label = "Critical",
-                                temperature = "${policy.criticalThreshold}°C",
-                                color = Color(0xFFDC2626),
-                                icon = Icons.Default.Error,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
+                        ThermalThresholdChip(
+                            label = stringResource(R.string.critical_temp),
+                            temperature = "${policy.criticalThreshold}°C",
+                            icon = Icons.Default.Error,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
             }
@@ -410,42 +313,33 @@ private fun ThermalPolicyCard(
 private fun ThermalThresholdChip(
     label: String,
     temperature: String,
-    color: Color,
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
-    // Stable background color
-    val backgroundColor = remember(color) { color.copy(alpha = 0.2f) }
-    
-    Surface(
+    GlassmorphicCard(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        color = backgroundColor
+        contentPadding = PaddingValues(12.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = color,
                 modifier = Modifier.size(16.dp)
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = color,
                 fontWeight = FontWeight.Bold,
                 fontSize = 10.sp
             )
             Text(
                 text = temperature,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White,
                 fontWeight = FontWeight.Bold
             )
         }
