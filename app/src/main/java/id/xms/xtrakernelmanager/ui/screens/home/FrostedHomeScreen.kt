@@ -2,8 +2,12 @@ package id.xms.xtrakernelmanager.ui.screens.home
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
@@ -18,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -34,6 +39,7 @@ import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.screens.home.components.frosted.*
 import id.xms.xtrakernelmanager.ui.screens.home.HomeViewModel
 import id.xms.xtrakernelmanager.ui.theme.*
+import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
 import kotlinx.coroutines.delay
 import java.util.Locale
 
@@ -70,6 +76,7 @@ fun FrostedHomeScreen(
     
     var showAccessibilityDialog by remember { mutableStateOf(false) }
     var hasCheckedAccessibility by remember { mutableStateOf(false) }
+    var showPowerDialog by remember { mutableStateOf(false) }
     
     // uptime
     var uptime by remember { mutableStateOf(calculateUptimeString()) }
@@ -139,6 +146,7 @@ fun FrostedHomeScreen(
             ) {
                 FrostedHeader(
                     onSettingsClick = onSettingsClick,
+                    onPowerClick = { showPowerDialog = true },
                     modifier = Modifier
                 )
             }
@@ -264,6 +272,16 @@ fun FrostedHomeScreen(
                 }
             )
         }
+        
+        if (showPowerDialog) {
+            FrostedPowerMenuDialog(
+                onDismissRequest = { showPowerDialog = false },
+                onAction = { action ->
+                    showPowerDialog = false
+                    onPowerAction(action)
+                }
+            )
+        }
     }
 }
 
@@ -330,5 +348,124 @@ fun AnimatedComponent(
             }
     ) {
         content()
+    }
+}
+
+@Composable
+private fun FrostedPowerMenuDialog(
+    onDismissRequest: () -> Unit,
+    onAction: (id.xms.xtrakernelmanager.ui.model.PowerAction) -> Unit
+) {
+    val isDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    
+    id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog(
+        onDismissRequest = onDismissRequest,
+        title = stringResource(id.xms.xtrakernelmanager.R.string.frosted_power_actions_title),
+        content = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Power Off
+                PowerActionButton(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    action = id.xms.xtrakernelmanager.ui.model.PowerAction.PowerOff,
+                    color = Color(0xFFEF4444), // Red
+                    isDarkTheme = isDarkTheme,
+                    onClick = { onAction(id.xms.xtrakernelmanager.ui.model.PowerAction.PowerOff) }
+                )
+                
+                // Reboot
+                PowerActionButton(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    action = id.xms.xtrakernelmanager.ui.model.PowerAction.Reboot,
+                    color = Color(0xFF3B82F6), // Blue
+                    isDarkTheme = isDarkTheme,
+                    onClick = { onAction(id.xms.xtrakernelmanager.ui.model.PowerAction.Reboot) }
+                )
+                
+                // Recovery
+                PowerActionButton(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    action = id.xms.xtrakernelmanager.ui.model.PowerAction.Recovery,
+                    color = Color(0xFFF59E0B), // Orange
+                    isDarkTheme = isDarkTheme,
+                    onClick = { onAction(id.xms.xtrakernelmanager.ui.model.PowerAction.Recovery) }
+                )
+                
+                // Bootloader
+                PowerActionButton(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    action = id.xms.xtrakernelmanager.ui.model.PowerAction.Bootloader,
+                    color = Color(0xFF10B981), // Green
+                    isDarkTheme = isDarkTheme,
+                    onClick = { onAction(id.xms.xtrakernelmanager.ui.model.PowerAction.Bootloader) }
+                )
+                
+                // System UI
+                PowerActionButton(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    action = id.xms.xtrakernelmanager.ui.model.PowerAction.SystemUI,
+                    color = Color(0xFF8B5CF6), // Purple
+                    isDarkTheme = isDarkTheme,
+                    onClick = { onAction(id.xms.xtrakernelmanager.ui.model.PowerAction.SystemUI) }
+                )
+            }
+        },
+        confirmButton = {
+            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
+                text = stringResource(id.xms.xtrakernelmanager.R.string.frosted_power_actions_close),
+                onClick = onDismissRequest,
+                isPrimary = false
+            )
+        }
+    )
+}
+
+@Composable
+private fun PowerActionButton(
+    action: id.xms.xtrakernelmanager.ui.model.PowerAction,
+    color: Color,
+    isDarkTheme: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val buttonBackground = if (isDarkTheme) {
+        Color(0xFF000000).copy(alpha = 0.25f)
+    } else {
+        Color.White.copy(alpha = 0.45f)
+    }
+    
+    val buttonBorder = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.15f)
+    } else {
+        Color.White.copy(alpha = 0.4f)
+    }
+    
+    Box(
+        modifier = modifier
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .background(buttonBackground)
+            .border(0.8.dp, buttonBorder, androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = action.icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = action.getLocalizedLabel(),
+                style = MaterialTheme.typography.bodyLarge,
+                color = color,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }

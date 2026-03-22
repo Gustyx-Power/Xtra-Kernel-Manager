@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -36,7 +37,8 @@ fun FrostedHeader(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     title: String = stringResource(id.xms.xtrakernelmanager.R.string.frosted_header_title),
-    showVersionBadge: Boolean = true
+    showVersionBadge: Boolean = true,
+    onPowerClick: (() -> Unit)? = null
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     
@@ -118,20 +120,45 @@ fun FrostedHeader(
             }
         }
 
-        Surface(
-            color = settingsBackground,
-            shape = CircleShape,
-            modifier = Modifier
-                .size(40.dp)
-                .clickable(onClick = onSettingsClick)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Rounded.Settings,
-                    contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.frosted_header_settings),
-                    modifier = Modifier.size(20.dp),
-                    tint = textColor
-                )
+            Surface(
+                color = settingsBackground,
+                shape = CircleShape,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clickable(onClick = onSettingsClick)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Rounded.Settings,
+                        contentDescription = stringResource(id.xms.xtrakernelmanager.R.string.frosted_header_settings),
+                        modifier = Modifier.size(20.dp),
+                        tint = textColor
+                    )
+                }
+            }
+            
+            // Power Button
+            if (onPowerClick != null) {
+                Surface(
+                    color = settingsBackground,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable(onClick = onPowerClick)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Rounded.PowerSettingsNew,
+                            contentDescription = "Power Menu",
+                            modifier = Modifier.size(20.dp),
+                            tint = textColor
+                        )
+                    }
+                }
             }
         }
     }

@@ -948,6 +948,8 @@
     <string name="frosted_profile_power_save">Power Save</string>
     <string name="frosted_profile_balanced">Balanced</string>
     <string name="frosted_profile_tap_to_change">Tap to Change</string>
+    <string name="frosted_power_actions_title">Power Actions</string>
+    <string name="frosted_power_actions_close">Close</string>
 
     <!-- Home Screen Components - Material -->
     <string name="material_header_title_short">XKM</string>

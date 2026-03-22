@@ -762,6 +762,8 @@
     <string name="frosted_profile_power_save">Hemat Daya</string>
     <string name="frosted_profile_balanced">Seimbang</string>
     <string name="frosted_profile_tap_to_change">Ketuk untuk Mengubah</string>
+    <string name="frosted_power_actions_title">Aksi Daya</string>
+    <string name="frosted_power_actions_close">Tutup</string>
 
     <!-- Home Screen Components - Material -->
     <string name="material_header_title_short">XKM</string>

@@ -475,4 +475,8 @@
     
     <string name="setup_continue">Продолжить</string>
     <string name="setup_get_started">Начать</string>
+    
+    <!-- Home Screen Components - Liquid -->
+    <string name="frosted_power_actions_title">Действия питания</string>
+    <string name="frosted_power_actions_close">Закрыть</string>
 </resources>
