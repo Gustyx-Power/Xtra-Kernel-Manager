@@ -63,7 +63,6 @@ import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LocalBackdrop
-import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import java.io.DataOutputStream
@@ -102,11 +101,6 @@ fun HomeScreen(
         var showPowerMenu by remember { mutableStateOf(false) }
         var activePowerAction by remember { mutableStateOf<PowerAction?>(null) }
 
-        // UI State untuk Settings Sheet (Legacy)
-        @OptIn(ExperimentalMaterial3Api::class)
-        val settingsSheetState = rememberModalBottomSheetState()
-        var showSettingsBottomSheet by remember { mutableStateOf(false) }
-
         LaunchedEffect(Unit) { viewModel.loadBatteryInfo(context) }
 
         // --- DIALOGS ---
@@ -138,27 +132,6 @@ fun HomeScreen(
                                 }
                         },
                 )
-        }
-
-        if (showSettingsBottomSheet) {
-                val sheetContainerColor = if (layoutStyle == "material") {
-                    MaterialTheme.colorScheme.surface
-                } else {
-                    Color.Transparent
-                }
-
-                ModalBottomSheet(
-                        onDismissRequest = { showSettingsBottomSheet = false },
-                        sheetState = settingsSheetState,
-                        containerColor = sheetContainerColor,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                ) {
-                        SettingsSheet(
-                                preferencesManager = preferencesManager,
-                                currentLayout = layoutStyle,
-                                onDismiss = { showSettingsBottomSheet = false },
-                        )
-                }
         }
 
         if (layoutStyle.isEmpty()) {
@@ -197,7 +170,7 @@ fun HomeScreen(
                                         systemInfo = systemInfo,
                                         currentProfile = tuningViewModel.selectedProfile.collectAsState().value,
                                         onProfileChange = { tuningViewModel.applyGlobalProfile(it) },
-                                        onSettingsClick = { showSettingsBottomSheet = true },
+                                        onSettingsClick = onNavigateToSettings,
                                         onPowerAction = { action ->
                                                 if (action == PowerAction.LockScreen) {
                                                         scope.launch {
@@ -272,10 +245,7 @@ fun HomeScreen(
                         systemInfo = systemInfo,
                         currentProfile = tuningViewModel.selectedProfile.collectAsState().value,
                         onProfileChange = { tuningViewModel.applyGlobalProfile(it) },
-                        onSettingsClick = {
-                                showSettingsBottomSheet =
-                                        true
-                        },
+                        onSettingsClick = onNavigateToSettings,
                         onPowerAction = { action ->
                                 activePowerAction = action
                         }

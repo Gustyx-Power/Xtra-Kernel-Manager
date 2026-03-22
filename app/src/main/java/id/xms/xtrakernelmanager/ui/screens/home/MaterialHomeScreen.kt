@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.model.PowerAction
 import id.xms.xtrakernelmanager.ui.screens.home.components.ExpandablePowerFab
-import id.xms.xtrakernelmanager.ui.screens.home.components.SettingsSheet
 import id.xms.xtrakernelmanager.ui.screens.home.components.material.*
 import kotlinx.coroutines.delay
 import java.util.Locale
@@ -45,9 +44,6 @@ fun MaterialHomeScreen(
     // Bottom Sheet State
     val powerSheetState = rememberModalBottomSheetState()
     var showPowerBottomSheet by remember { mutableStateOf(false) }
-
-    val settingsSheetState = rememberModalBottomSheetState()
-    var showSettingsBottomSheet by remember { mutableStateOf(false) }
     
     // Check accessibility service status
     var showAccessibilityDialog by remember { mutableStateOf(false) }
@@ -93,7 +89,7 @@ fun MaterialHomeScreen(
                 
                     // Header
                     StaggeredEntry(delayMillis = 0) {
-                        MaterialHeader(onSettingsClick = { showSettingsBottomSheet = true })
+                        MaterialHeader(onSettingsClick = onSettingsClick)
                     }
 
                     // Device Info Card
@@ -174,22 +170,6 @@ fun MaterialHomeScreen(
                     showPowerBottomSheet = false
                     onPowerAction(it)
                 }
-            )
-        }
-    }
-
-    // Settings Sheet
-    if (showSettingsBottomSheet) {
-        ModalBottomSheet(
-            onDismissRequest = { showSettingsBottomSheet = false },
-            sheetState = settingsSheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-        ) {
-            SettingsSheet(
-                preferencesManager = preferencesManager,
-                currentLayout = "material",
-                onDismiss = { showSettingsBottomSheet = false },
             )
         }
     }

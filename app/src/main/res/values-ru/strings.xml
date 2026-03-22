@@ -385,6 +385,16 @@
     <string name="settings_quick_settings">Быстрые настройки</string>
     <string name="settings_customize_experience">Настройте свой опыт</string>
     <string name="settings_layout_style">Стиль макета</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Настройки</string>
+    <string name="settings_appearance">Внешний вид</string>
+    <string name="settings_layout_material">Material</string>
+    <string name="settings_layout_material_desc">Современный и чистый</string>
+    <string name="settings_layout_frosted">Frosted</string>
+    <string name="settings_layout_frosted_desc">Стеклянная тема</string>
+    <string name="settings_layout_classic">Classic</string>
+    <string name="settings_layout_classic_desc">Простой и надежный</string>
 
     <!-- Banking Mode Strings -->
     <string name="banking_mode_title">Банковский режим</string>

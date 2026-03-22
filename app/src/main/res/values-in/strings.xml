@@ -783,6 +783,16 @@
     <string name="settings_quick_settings">Pengaturan Cepat</string>
     <string name="settings_customize_experience">Sesuaikan pengalaman Anda</string>
     <string name="settings_layout_style">Gaya Tata Letak</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Pengaturan</string>
+    <string name="settings_appearance">Tampilan</string>
+    <string name="settings_layout_material">Material</string>
+    <string name="settings_layout_material_desc">Modern &amp; Bersih</string>
+    <string name="settings_layout_frosted">Frosted</string>
+    <string name="settings_layout_frosted_desc">Tema Kaca</string>
+    <string name="settings_layout_classic">Classic</string>
+    <string name="settings_layout_classic_desc">Solid &amp; Sederhana</string>
 
     <!-- Power Actions -->
     <string name="power_recovery">Pemulihan</string>

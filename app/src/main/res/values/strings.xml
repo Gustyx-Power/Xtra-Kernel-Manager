@@ -969,6 +969,16 @@
     <string name="settings_quick_settings">Quick Settings</string>
     <string name="settings_customize_experience">Customize your experience</string>
     <string name="settings_layout_style">Layout Style</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_layout_material">Material</string>
+    <string name="settings_layout_material_desc">Modern &amp; Clean</string>
+    <string name="settings_layout_frosted">Frosted</string>
+    <string name="settings_layout_frosted_desc">Glass Theme</string>
+    <string name="settings_layout_classic">Classic</string>
+    <string name="settings_layout_classic_desc">Solid &amp; Simple</string>
 
     <!-- Power Actions -->
     <string name="power_recovery">Recovery</string>
