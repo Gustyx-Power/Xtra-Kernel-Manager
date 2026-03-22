@@ -345,7 +345,7 @@ class PreferencesManager(private val context: Context) {
       prefs[CPU_FREQUENCY_LOCKED] = false
       prefs[CPU_LOCKED_CLUSTERS] = "{}"
       prefs[CPU_LOCK_POLICY_TYPE] = LockPolicyType.MANUAL.name
-      prefs[CPU_LOCK_THERMAL_POLICY] = "PolicyB"
+      prefs[CPU_LOCK_THERMAL_POLICY] = "Policy B (Balanced)"
       prefs[CPU_LOCK_ORIGINAL_FREQS] = "{}"
       prefs[CPU_LOCK_THERMAL_OVERRIDE] = false
       prefs[CPU_LOCK_RETRY_COUNT] = 0
@@ -392,7 +392,7 @@ class PreferencesManager(private val context: Context) {
           val locked = prefs[CPU_FREQUENCY_LOCKED] ?: false
           val clusterConfigsJson = prefs[CPU_LOCKED_CLUSTERS] ?: "{}"
           val policyType = prefs[CPU_LOCK_POLICY_TYPE] ?: LockPolicyType.MANUAL.name
-          val thermalPolicy = prefs[CPU_LOCK_THERMAL_POLICY] ?: "PolicyB"
+          val thermalPolicy = prefs[CPU_LOCK_THERMAL_POLICY] ?: "Policy B (Balanced)"
           val originalFreqsJson = prefs[CPU_LOCK_ORIGINAL_FREQS] ?: "{}"
           val thermalOverride = prefs[CPU_LOCK_THERMAL_OVERRIDE] ?: false
           val lastUpdate = prefs[CPU_LOCK_LAST_UPDATE] ?: 0L
@@ -441,7 +441,7 @@ class PreferencesManager(private val context: Context) {
       }
 
   fun getCpuLockThermalPolicy(): Flow<String> =
-      context.dataStore.data.map { prefs -> prefs[CPU_LOCK_THERMAL_POLICY] ?: "PolicyB" }
+      context.dataStore.data.map { prefs -> prefs[CPU_LOCK_THERMAL_POLICY] ?: "Policy B (Balanced)" }
 
   suspend fun setCpuLockThermalPolicy(policy: String) {
     context.dataStore.edit { prefs -> prefs[CPU_LOCK_THERMAL_POLICY] = policy }
