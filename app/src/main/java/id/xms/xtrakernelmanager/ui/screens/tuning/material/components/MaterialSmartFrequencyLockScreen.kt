@@ -47,7 +47,7 @@ fun MaterialSmartFrequencyLockScreen(
     }
     
     var selectedPolicy by remember { mutableStateOf(LockPolicyType.SMART) }
-    var selectedThermalPolicy by remember { mutableStateOf("PolicyB") }
+    var selectedThermalPolicy by remember { mutableStateOf("Policy B (Balanced)") }
     var selectedClusterForFreq by remember { mutableStateOf<ClusterInfo?>(null) }
     var isSelectingMin by remember { mutableStateOf(true) }
     
@@ -189,7 +189,7 @@ fun MaterialSmartFrequencyLockScreen(
                                 policyType = selectedPolicy,
                                 thermalPolicy = if (selectedPolicy == LockPolicyType.SMART) {
                                     selectedThermalPolicy
-                                } else "PolicyB"
+                                } else "Policy B (Balanced)"
                             )
                             
                             onNavigateBack()

@@ -344,6 +344,14 @@ private fun ModernThermalPolicyCard(
                 }
             }
             
+            // Usage note
+            Text(
+                text = stringResource(R.string.thermal_policy_usage_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
+            )
+            
             currentPolicy?.let { policy ->
                 Column(
                     modifier = Modifier.fillMaxWidth(),
