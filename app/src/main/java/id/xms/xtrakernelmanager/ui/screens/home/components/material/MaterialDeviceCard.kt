@@ -75,6 +75,18 @@ fun MaterialDeviceCard(systemInfo: SystemInfo) {
             fontWeight = FontWeight.Medium,
         )
 
+        // SoC Name
+        if (systemInfo.socName.isNotEmpty() && systemInfo.socName != "Unknown") {
+          Spacer(modifier = Modifier.height(4.dp))
+          Text(
+              text = systemInfo.socName.uppercase(),
+              style = MaterialTheme.typography.labelMedium,
+              color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+              fontWeight = FontWeight.SemiBold,
+              letterSpacing = 1.sp,
+          )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Surface(
