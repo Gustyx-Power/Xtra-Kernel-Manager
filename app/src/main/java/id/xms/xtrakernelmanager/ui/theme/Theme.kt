@@ -88,15 +88,15 @@ fun XtraKernelManagerTheme(
   if (!view.isInEditMode) {
     SideEffect {
       val window = (view.context as Activity).window
-      // Keep navigation bar transparent for edge-to-edge content
       window.navigationBarColor = Color.Transparent.toArgb()
       
-      // Use system status bar with proper theming
       WindowCompat.setDecorFitsSystemWindows(window, true)
       
-      // Set status bar appearance based on theme
       val windowInsetsController = WindowCompat.getInsetsController(window, view)
-      windowInsetsController.isAppearanceLightStatusBars = !darkTheme
+      
+      android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+          windowInsetsController.isAppearanceLightStatusBars = !darkTheme
+      }, 150)
     }
   }
 

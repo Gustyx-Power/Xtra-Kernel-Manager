@@ -5,7 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.DisplayMetrics
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -18,14 +21,19 @@ import id.xms.xtrakernelmanager.service.KernelConfigService
 import id.xms.xtrakernelmanager.ui.navigation.Navigation
 import id.xms.xtrakernelmanager.ui.theme.XtraKernelManagerTheme
 import id.xms.xtrakernelmanager.utils.AccessibilityServiceHelper
+import id.xms.xtrakernelmanager.utils.DisplayHelper
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 
 class MainActivity : ComponentActivity() {
   private val preferencesManager by lazy { PreferencesManager(this) }
+  private var isDCDimmingActive = false
+  private var isLowBrightnessMode = false
 
   companion object {
     private const val TARGET_DENSITY_DPI = 410
@@ -33,19 +41,26 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    
+    CoroutineScope(Dispatchers.IO).launch {
+        isDCDimmingActive = DisplayHelper.isDCDimmingEnabled(this@MainActivity)
+        val brightness = DisplayHelper.getCurrentBrightness(this@MainActivity)
+        isLowBrightnessMode = DisplayHelper.isLowBrightness(brightness)
+        
+        Handler(Looper.getMainLooper()).post {
+            setupWindowForDCDimming()
+        }
+    }
+    
     enableEdgeToEdge()
     
-    // Use system status bar with proper theming
     androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, true)
     
-    // Set navigation bar to transparent for edge-to-edge content
     window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
-    // Start foreground kernel config service (persistent tuning)
     startService(Intent(this, KernelConfigService::class.java))
     
-    // Start battery info service conditionally
-    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.IO).launch {
         try {
             val enabled = preferencesManager.isShowBatteryNotif().first()
             if (enabled) {
@@ -66,6 +81,22 @@ class MainActivity : ComponentActivity() {
           Navigation(preferencesManager = preferencesManager)
         }
       }
+    }
+  }
+  
+  private fun setupWindowForDCDimming() {
+    if (isDCDimmingActive && isLowBrightnessMode) {
+        window.addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        
+        window.attributes = window.attributes.apply {
+            flags = flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+            flags = flags and WindowManager.LayoutParams.FLAG_FULLSCREEN.inv()
+        }
+        
+        Handler(Looper.getMainLooper()).postDelayed({
+            window.decorView.invalidate()
+        }, 100)
     }
   }
 
