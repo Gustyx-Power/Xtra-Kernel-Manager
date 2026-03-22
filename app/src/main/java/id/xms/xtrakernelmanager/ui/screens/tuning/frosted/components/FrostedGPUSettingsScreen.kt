@@ -2,9 +2,7 @@ package id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,13 +20,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.model.GPUInfo
+import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog
 import id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
@@ -60,38 +58,33 @@ fun FrostedGPUSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
-                    shape = CircleShape,
-                    color = Color(0xFF8B5CF6).copy(alpha = 0.15f)
-                ) {
+          GlassmorphicCard(
+              modifier = Modifier
+                  .fillMaxWidth()
+                  .padding(horizontal = 24.dp, vertical = 16.dp),
+              shape = CircleShape,
+              contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
+          ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 Icons.AutoMirrored.Rounded.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.White
+                                contentDescription = "Back"
                             )
                         }
                         Text(
                             text = stringResource(R.string.gpu_control),
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            fontWeight = FontWeight.Bold
                         )
                         IconButton(onClick = { showRomInfoDialog = true }) {
                             Icon(
                                 Icons.Outlined.Info,
-                                contentDescription = "Info",
-                                tint = Color.White
+                                contentDescription = "Info"
                             )
                         }
                     }
@@ -218,42 +211,28 @@ private fun FrostedGPUInfoCard(
     title: String,
     description: String
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = Color(0xFFEC4899).copy(alpha = 0.15f) // Pink glass for info card
+    id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFEC4899).copy(alpha = 0.3f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = Color(0xFFEC4899),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp)
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -263,39 +242,28 @@ private fun FrostedGPUInfoCard(
 @Composable
 private fun FrostedWarningCard(title: String, message: String) {
     id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(20.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.Top
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF59E0B).copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = Color(0xFFF59E0B),
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Filled.Warning,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(32.dp)
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -326,13 +294,13 @@ private fun FrostedGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
 
   val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
 
-  Surface(
+  id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = Color(0xFF10B981).copy(alpha = 0.15f) // Green glass for frequency
+      contentPadding = PaddingValues(24.dp)
   ) {
     Column(
-        modifier = Modifier.padding(24.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Row(
@@ -344,48 +312,33 @@ private fun FrostedGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-          Box(
-              modifier = Modifier
-                  .size(48.dp)
-                  .clip(RoundedCornerShape(12.dp))
-                  .background(Color(0xFF10B981).copy(alpha = 0.3f)),
-              contentAlignment = Alignment.Center
-          ) {
-            Icon(
-                imageVector = Icons.Outlined.Speed,
-                contentDescription = null,
-                tint = Color(0xFF10B981),
-                modifier = Modifier.size(24.dp)
-            )
-          }
+          Icon(
+              imageVector = Icons.Outlined.Speed,
+              contentDescription = null,
+              modifier = Modifier.size(28.dp)
+          )
           Column {
             Text(
                 text = stringResource(R.string.gpu_frequency),
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = FontWeight.Bold
             )
             Text(
                 text = "Control GPU clock speed",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.7f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
           }
         }
 
         AnimatedVisibility(visible = isFrequencyLocked) {
-           Surface(
-               shape = RoundedCornerShape(8.dp),
-               color = MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
-           ) {
-              Text(
-                  "Locked",
-                  modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                  style = MaterialTheme.typography.labelMedium,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.error
-              )
-           }
+          Text(
+              "Locked",
+              modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+              style = MaterialTheme.typography.labelMedium,
+              fontWeight = FontWeight.Bold,
+              color = MaterialTheme.colorScheme.error
+          )
         }
       }
 
@@ -409,69 +362,64 @@ private fun FrostedGPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo
           color = Color(0xFF3B82F6)
       )
 
-      HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveSurfaceColor(0.2f))
+      HorizontalDivider()
 
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.spacedBy(12.dp)
       ) {
-        Surface(
+        id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
             onClick = {
               viewModel.setGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
               if (isFrequencyLocked) viewModel.unlockGPUFrequency()
             },
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(16.dp),
-            color = Color(0xFF10B981).copy(alpha = 0.15f)
+            contentPadding = PaddingValues(16.dp)
         ) {
           Row(
-              modifier = Modifier.padding(16.dp),
+              modifier = Modifier.fillMaxWidth(),
               horizontalArrangement = Arrangement.Center,
               verticalAlignment = Alignment.CenterVertically
           ) {
             Icon(
                 imageVector = Icons.Rounded.CheckCircle,
                 contentDescription = null,
-                tint = Color(0xFF10B981),
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.apply),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF10B981)
+                fontWeight = FontWeight.Bold
             )
           }
         }
 
-        Surface(
+        id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
             onClick = {
               if (isFrequencyLocked) viewModel.unlockGPUFrequency()
               else viewModel.lockGPUFrequency(minFreqSlider.toInt(), maxFreqSlider.toInt())
             },
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(16.dp),
-            color = if (isFrequencyLocked) Color(0xFFEF4444).copy(alpha = 0.15f)
-                   else Color(0xFF3B82F6).copy(alpha = 0.15f)
+            contentPadding = PaddingValues(16.dp)
         ) {
           Row(
-              modifier = Modifier.padding(16.dp),
+              modifier = Modifier.fillMaxWidth(),
               horizontalArrangement = Arrangement.Center,
               verticalAlignment = Alignment.CenterVertically
           ) {
             Icon(
                 imageVector = if (isFrequencyLocked) Icons.Default.LockOpen else Icons.Default.Lock,
                 contentDescription = null,
-                tint = if (isFrequencyLocked) Color(0xFFEF4444) else Color(0xFF3B82F6),
+                tint = if (isFrequencyLocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = if (isFrequencyLocked) stringResource(R.string.gpu_unlock) else stringResource(R.string.gpu_lock),
-                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = if (isFrequencyLocked) Color(0xFFEF4444) else Color(0xFF3B82F6)
+                color = if (isFrequencyLocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
             )
           }
         }
@@ -493,11 +441,7 @@ private fun FrostedGPUSliderCard(
     val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
     
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.1f))
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
@@ -512,28 +456,19 @@ private fun FrostedGPUSliderCard(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = color,
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
                     text = label,
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    fontWeight = FontWeight.SemiBold
                 )
             }
-            Surface(
-                color = color.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = valueDisplay,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = color,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                )
-            }
+            Text(
+                text = valueDisplay,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         id.xms.xtrakernelmanager.ui.components.frosted.FrostedSlider(
@@ -549,97 +484,62 @@ private fun FrostedGPUSliderCard(
 
 @Composable
 private fun FrostedGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
-  Surface(
+  id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = Color(0xFF3B82F6).copy(alpha = 0.15f) // Blue glass for power level
+      contentPadding = PaddingValues(24.dp)
   ) {
     Column(
-        modifier = Modifier.padding(24.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
       Row(
-          horizontalArrangement = Arrangement.spacedBy(16.dp),
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
           verticalAlignment = Alignment.CenterVertically
       ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF3B82F6).copy(alpha = 0.3f)),
-            contentAlignment = Alignment.Center
-        ) {
-          Icon(
-              imageVector = Icons.Rounded.BatteryChargingFull,
-              contentDescription = null,
-              tint = Color(0xFF3B82F6),
-              modifier = Modifier.size(24.dp)
-          )
-        }
-
+        Icon(
+            imageVector = Icons.Rounded.BatteryChargingFull,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp)
+        )
         Column {
           Text(
               text = stringResource(R.string.gpu_power_level_title),
               style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-              color = Color.White
+              fontWeight = FontWeight.Bold
           )
           Text(
               text = "Select performance level",
               style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.7f)
+              color = MaterialTheme.colorScheme.onSurfaceVariant
           )
         }
       }
 
-      HorizontalDivider(
-          color = Color.White.copy(alpha = 0.3f)
-      )
+      HorizontalDivider()
 
-      Box(
-          modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(16.dp))
-              .background(Color.White.copy(alpha = 0.1f))
-              .border(
-                  width = 1.dp,
-                  color = Color(0xFF3B82F6).copy(alpha = 0.3f),
-                  shape = RoundedCornerShape(16.dp)
-              )
-              .padding(20.dp)
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
       ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-          Column {
-            Text(
-                text = "Current Level",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-            Text(
-                text = stringResource(R.string.frosted_gpu_power_level),
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.6f)
-            )
-          }
-          Box(
-              modifier = Modifier
-                  .clip(RoundedCornerShape(12.dp))
-                  .background(Color(0xFF3B82F6))
-                  .padding(horizontal = 24.dp, vertical = 10.dp)
-          ) {
-            Text(
-                text = "${gpuInfo.powerLevel}",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-          }
+        Column {
+          Text(
+              text = "Current Level",
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.SemiBold
+          )
+          Text(
+              text = stringResource(R.string.frosted_gpu_power_level),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant
+          )
         }
+        Text(
+            text = "${gpuInfo.powerLevel}",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
       }
 
       val maxLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
@@ -648,8 +548,7 @@ private fun FrostedGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInf
         Text(
             text = "Available Levels (0-$maxLevel)",
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White
+            fontWeight = FontWeight.SemiBold
         )
 
         val levels = (0..maxLevel).toList()
@@ -661,57 +560,40 @@ private fun FrostedGPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInf
         ) {
           levels.forEach { level ->
             val isSelected = level == gpuInfo.powerLevel
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(
-                        if (isSelected) Color(0xFF3B82F6)
-                        else Color.White.copy(alpha = 0.1f)
-                    )
-                    .clickable { viewModel.setGPUPowerLevel(level) }
-                    .border(
-                        width = if (isSelected) 2.dp else 1.dp,
-                        color = if (isSelected) Color(0xFF3B82F6).copy(alpha = 0.5f)
-                                else Color.White.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(14.dp)
-                    ),
-                contentAlignment = Alignment.Center
+            id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
+                onClick = { viewModel.setGPUPowerLevel(level) },
+                modifier = Modifier.size(56.dp),
+                shape = RoundedCornerShape(14.dp),
+                contentPadding = PaddingValues(0.dp)
             ) {
-              Text(
-                  text = level.toString(),
-                  style = MaterialTheme.typography.titleLarge,
-                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                  color = Color.White,
-              )
+              Box(
+                  modifier = Modifier.fillMaxSize(),
+                  contentAlignment = Alignment.Center
+              ) {
+                Text(
+                    text = level.toString(),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+              }
             }
           }
         }
         
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF3B82F6).copy(alpha = 0.1f))
-                .border(
-                    width = 1.dp,
-                    color = Color(0xFF3B82F6).copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
           Icon(
               imageVector = Icons.Outlined.Info,
               contentDescription = null,
-              tint = Color(0xFF3B82F6),
               modifier = Modifier.size(18.dp),
           )
           Text(
               text = "Level 0 = Highest performance • Level $maxLevel = Lowest performance",
               style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.8f),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
         }
       }
@@ -724,81 +606,64 @@ private fun FrostedGPURendererCard(
     selectedRenderer: String,
     onRendererClick: () -> Unit
 ) {
-  Surface(
+  id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
       modifier = Modifier.fillMaxWidth(),
       shape = RoundedCornerShape(24.dp),
-      color = Color(0xFF8B5CF6).copy(alpha = 0.15f) // Purple glass for renderer
+      contentPadding = PaddingValues(24.dp)
   ) {
     Column(
-        modifier = Modifier.padding(24.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
       Row(
           horizontalArrangement = Arrangement.spacedBy(12.dp),
           verticalAlignment = Alignment.CenterVertically
       ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF8B5CF6).copy(alpha = 0.3f)),
-            contentAlignment = Alignment.Center
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.Palette,
-              contentDescription = null,
-              tint = Color(0xFF8B5CF6),
-              modifier = Modifier.size(24.dp)
-          )
-        }
+        Icon(
+            imageVector = Icons.Outlined.Palette,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp)
+        )
         Column(modifier = Modifier.weight(1f)) {
           Text(
               text = stringResource(R.string.gpu_renderer),
               style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-              color = Color.White
+              fontWeight = FontWeight.Bold
           )
           Text(
               text = selectedRenderer,
               style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.7f)
+              color = MaterialTheme.colorScheme.onSurfaceVariant
           )
         }
       }
 
-      HorizontalDivider(color = Color.White.copy(alpha = 0.3f))
+      HorizontalDivider()
 
-      Surface(
-          shape = RoundedCornerShape(12.dp),
-          color = Color(0xFF3B82F6).copy(alpha = 0.1f)
+      Row(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.Top
       ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.Info,
-              contentDescription = null,
-              modifier = Modifier.size(18.dp),
-              tint = Color(0xFF3B82F6)
-          )
-          Text(
-              text = stringResource(R.string.gpu_renderer_rom_info),
-              style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.8f)
-          )
-        }
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp)
+        )
+        Text(
+            text = stringResource(R.string.gpu_renderer_rom_info),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
       }
 
-      Surface(
+      id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
           onClick = onRendererClick,
           modifier = Modifier.fillMaxWidth(),
           shape = RoundedCornerShape(16.dp),
-          color = Color(0xFF8B5CF6).copy(alpha = 0.3f)
+          contentPadding = PaddingValues(16.dp)
       ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -810,20 +675,16 @@ private fun FrostedGPURendererCard(
             Icon(
                 imageVector = Icons.Outlined.Palette,
                 contentDescription = null,
-                tint = Color(0xFF8B5CF6),
                 modifier = Modifier.size(20.dp)
             )
             Text(
                 text = stringResource(R.string.gpu_renderer_tap_to_change),
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                fontWeight = FontWeight.Bold
             )
           }
           Icon(
               imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
               contentDescription = null,
-              tint = Color(0xFF8B5CF6),
               modifier = Modifier.size(20.dp)
           )
         }
@@ -845,7 +706,7 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
           Text(
               text = stringResource(R.string.gpu_renderer_compatibility_intro),
               style = MaterialTheme.typography.bodyMedium,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.8f)
+              color = MaterialTheme.colorScheme.onSurfaceVariant
           )
 
           id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
@@ -863,20 +724,19 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
                     contentDescription = null,
-                    tint = Color(0xFF10B981),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
                     text = stringResource(R.string.gpu_fully_supported),
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF10B981)
+                    fontWeight = FontWeight.Bold
                 )
               }
               Text(
                   text = stringResource(R.string.gpu_supported_roms),
                   style = MaterialTheme.typography.bodySmall,
-                  color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f)
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
               )
             }
           }
@@ -896,31 +756,29 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
                 Icon(
                     imageVector = Icons.Filled.Warning,
                     contentDescription = null,
-                    tint = Color(0xFFF59E0B),
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(20.dp),
                 )
                 Text(
                     text = stringResource(R.string.gpu_limited_support),
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF59E0B)
+                    fontWeight = FontWeight.Bold
                 )
               }
               Text(
                   text = stringResource(R.string.gpu_unsupported_roms),
                   style = MaterialTheme.typography.bodySmall,
-                  color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f)
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
               )
             }
           }
 
-          HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveSurfaceColor(0.2f))
+          HorizontalDivider()
 
           Text(
               text = stringResource(R.string.gpu_why_not_work),
               style = MaterialTheme.typography.titleSmall,
-              fontWeight = FontWeight.Bold,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+              fontWeight = FontWeight.Bold
           )
 
           Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -933,47 +791,34 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
                 )
                 .forEach { reason ->
                   Row(
-                      horizontalArrangement = Arrangement.spacedBy(10.dp),
+                      horizontalArrangement = Arrangement.spacedBy(8.dp),
                       verticalAlignment = Alignment.Top,
                   ) {
-                    Box(
-                        modifier =
-                            Modifier.size(6.dp)
-                                .offset(y = 8.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFF3B82F6))
-                    )
+                    Text(text = "•", style = MaterialTheme.typography.bodySmall)
                     Text(
                         text = reason,
                         style = MaterialTheme.typography.bodySmall,
-                        color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                     )
                   }
                 }
           }
 
-          Surface(
-              shape = RoundedCornerShape(12.dp),
-              color = Color(0xFF3B82F6).copy(alpha = 0.1f),
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
           ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Icon(
-                  imageVector = Icons.Outlined.Lightbulb,
-                  contentDescription = null,
-                  tint = Color(0xFF3B82F6),
-                  modifier = Modifier.size(20.dp),
-              )
-              Text(
-                  text = stringResource(R.string.gpu_verify_tip),
-                  style = MaterialTheme.typography.bodySmall,
-                  color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.8f)
-              )
-            }
+            Icon(
+                imageVector = Icons.Outlined.Lightbulb,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = stringResource(R.string.gpu_verify_tip),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
           }
         }
       },
@@ -1013,27 +858,15 @@ private fun VerificationDialog(
             if (isProcessing) {
               CircularProgressIndicator(
                   modifier = Modifier.size(56.dp),
-                  color = Color(0xFF3B82F6),
                   strokeWidth = 4.dp,
               )
             } else {
-              Box(
-                  modifier = Modifier
-                      .size(64.dp)
-                      .clip(CircleShape)
-                      .background(
-                          if (verificationSuccess) Color(0xFF10B981).copy(alpha = 0.2f)
-                          else Color(0xFFEF4444).copy(alpha = 0.2f)
-                      ),
-                  contentAlignment = Alignment.Center,
-              ) {
-                Icon(
-                    imageVector = if (verificationSuccess) Icons.Filled.CheckCircle else Icons.Filled.Error,
-                    contentDescription = null,
-                    modifier = Modifier.size(36.dp),
-                    tint = if (verificationSuccess) Color(0xFF10B981) else Color(0xFFEF4444)
-                )
-              }
+              Icon(
+                  imageVector = if (verificationSuccess) Icons.Filled.CheckCircle else Icons.Filled.Error,
+                  contentDescription = null,
+                  modifier = Modifier.size(48.dp),
+                  tint = if (verificationSuccess) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+              )
             }
           }
           
@@ -1046,21 +879,13 @@ private fun VerificationDialog(
                 Text(
                     text = stringResource(R.string.gpu_writing_system_files),
                     style = MaterialTheme.typography.bodyMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFF3B82F6).copy(alpha = 0.15f)
-                ) {
-                  Text(
-                      text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
-                      style = MaterialTheme.typography.bodySmall,
-                      color = Color(0xFF3B82F6),
-                      fontWeight = FontWeight.SemiBold,
-                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                  )
-                }
+                Text(
+                    text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold
+                )
               }
             }
             verificationSuccess -> {
@@ -1079,20 +904,19 @@ private fun VerificationDialog(
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
-                        tint = Color(0xFF10B981),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(22.dp),
                     )
                     Text(
                         text = stringResource(R.string.gpu_runtime_property_updated),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+                        fontWeight = FontWeight.Bold
                     )
                   }
                   Text(
                       text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
                       style = MaterialTheme.typography.bodySmall,
-                      color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f)
+                      color = MaterialTheme.colorScheme.onSurfaceVariant
                   )
                 }
               }
@@ -1112,20 +936,19 @@ private fun VerificationDialog(
                     Icon(
                         imageVector = Icons.Outlined.Refresh,
                         contentDescription = null,
-                        tint = Color(0xFFEF4444),
+                        tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(22.dp),
                     )
                     Text(
                         text = stringResource(R.string.gpu_reboot_required),
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+                        fontWeight = FontWeight.Bold
                     )
                   }
                   Text(
                       text = stringResource(R.string.gpu_reboot_required_desc),
                       style = MaterialTheme.typography.bodySmall,
-                      color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f)
+                      color = MaterialTheme.colorScheme.onSurfaceVariant
                   )
                 }
               }
@@ -1143,13 +966,13 @@ private fun VerificationDialog(
                       text = stringResource(R.string.gpu_failed_apply),
                       style = MaterialTheme.typography.bodyMedium,
                       fontWeight = FontWeight.Bold,
-                      color = Color(0xFFEF4444)
+                      color = MaterialTheme.colorScheme.error
                   )
                   if (verificationMessage.isNotBlank()) {
                     Text(
                         text = verificationMessage,
                         style = MaterialTheme.typography.bodySmall,
-                        color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.7f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                   }
                 }
@@ -1200,7 +1023,7 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
           Text(
               text = stringResource(R.string.gpu_change_renderer_intro),
               style = MaterialTheme.typography.bodyMedium,
-              color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.8f),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
               textAlign = androidx.compose.ui.text.style.TextAlign.Center,
           )
 
@@ -1220,27 +1043,19 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
                 Text(
                     text = stringResource(R.string.gpu_current),
                     style = MaterialTheme.typography.labelSmall,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveSurfaceColor(0.1f)
-                ) {
-                  Text(
-                      text = gpuInfo.rendererType,
-                      style = MaterialTheme.typography.bodyLarge,
-                      fontWeight = FontWeight.Medium,
-                      color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(),
-                      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                  )
-                }
+                Text(
+                    text = gpuInfo.rendererType,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium
+                )
               }
 
               Icon(
                   imageVector = Icons.Filled.ArrowDownward,
                   contentDescription = null,
-                  modifier = Modifier.size(28.dp),
-                  tint = Color(0xFF3B82F6)
+                  modifier = Modifier.size(28.dp)
               )
 
               Column(
@@ -1250,55 +1065,39 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
                 Text(
                     text = stringResource(R.string.gpu_new),
                     style = MaterialTheme.typography.labelSmall,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF3B82F6).copy(alpha = 0.15f)
-                ) {
-                  Text(
-                      text = pendingRenderer,
-                      style = MaterialTheme.typography.bodyLarge,
-                      fontWeight = FontWeight.Bold,
-                      color = Color(0xFF3B82F6),
-                      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                  )
-                }
+                Text(
+                    text = pendingRenderer,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
               }
             }
           }
 
-          HorizontalDivider(color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveSurfaceColor(0.2f))
+          HorizontalDivider()
 
-          Surface(
-              shape = RoundedCornerShape(12.dp),
-              color = Color(0xFFF59E0B).copy(alpha = 0.1f)
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
           ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(8.dp),
-              ) {
-                Icon(
-                    imageVector = Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = Color(0xFFF59E0B),
-                    modifier = Modifier.size(20.dp),
-                )
-                Text(
-                    text = stringResource(R.string.gpu_important),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
-                )
-              }
+            Icon(
+                imageVector = Icons.Filled.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+            Column {
+              Text(
+                  text = stringResource(R.string.gpu_important),
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.Bold
+              )
               Text(
                   text = stringResource(R.string.gpu_change_warnings),
                   style = MaterialTheme.typography.bodySmall,
-                  color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(0.8f)
+                  color = MaterialTheme.colorScheme.onSurfaceVariant
               )
             }
           }
@@ -1306,9 +1105,7 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
           Surface(
               onClick = onCheckCompatibility,
               modifier = Modifier.fillMaxWidth(),
-              shape = RoundedCornerShape(12.dp),
-              color = Color(0xFF3B82F6).copy(alpha = 0.1f),
-              border = BorderStroke(1.dp, Color(0xFF3B82F6).copy(alpha = 0.3f))
+              shape = RoundedCornerShape(12.dp)
           ) {
             Row(
                 modifier = Modifier.padding(12.dp),
@@ -1318,15 +1115,13 @@ private fun RebootConfirmationDialog(gpuInfo: GPUInfo, pendingRenderer: String, 
               Icon(
                   imageVector = Icons.Outlined.Info,
                   contentDescription = null,
-                  tint = Color(0xFF3B82F6),
                   modifier = Modifier.size(18.dp),
               )
               Spacer(modifier = Modifier.width(10.dp))
               Text(
                   text = stringResource(R.string.gpu_check_rom_compatibility),
                   style = MaterialTheme.typography.bodyMedium,
-                  fontWeight = FontWeight.SemiBold,
-                  color = Color(0xFF3B82F6)
+                  fontWeight = FontWeight.SemiBold
               )
             }
           }
@@ -1354,7 +1149,6 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
   FrostedDialog(
       onDismissRequest = onDismiss,
       title = stringResource(R.string.gpu_renderer_select_title),
-      backgroundColor = Color(0xFF1E3A8A).copy(alpha = 0.85f), // Navy blue background
       content = {
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -1363,12 +1157,10 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
           Text(
               text = stringResource(R.string.gpu_renderer_select_desc),
               style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.7f),
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
               textAlign = androidx.compose.ui.text.style.TextAlign.Center,
               modifier = Modifier.fillMaxWidth()
           )
-          
-          Spacer(modifier = Modifier.height(4.dp))
 
           val renderers =
               listOf(
@@ -1387,17 +1179,12 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
           renderers.forEach { (renderer, description) ->
             val isSelected = renderer == selectedRenderer
 
-            Surface(
+            id.xms.xtrakernelmanager.ui.components.GlassmorphicCard(
                 onClick = { onSelect(renderer) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = if (isSelected) Color(0xFF3B82F6).copy(alpha = 0.5f)
-                       else Color.White.copy(alpha = 0.1f),
-                border = if (isSelected) BorderStroke(2.dp, Color(0xFF3B82F6))
-                        else BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+                modifier = Modifier.fillMaxWidth()
             ) {
               Row(
-                  modifier = Modifier.fillMaxWidth().padding(16.dp),
+                  modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.CenterVertically,
               ) {
@@ -1408,32 +1195,21 @@ private fun RendererSelectionDialog(selectedRenderer: String, onDismiss: () -> U
                   Text(
                       text = renderer,
                       style = MaterialTheme.typography.bodyLarge,
-                      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color = Color.White
+                      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                   )
                   Text(
                       text = description,
                       style = MaterialTheme.typography.bodySmall,
-                      fontWeight = FontWeight.Medium,
-                      color = Color(0xFFF59E0B) // Yellow for description
+                      color = MaterialTheme.colorScheme.onSurfaceVariant
                   )
                 }
 
                 if (isSelected) {
-                  Box(
-                      modifier =
-                          Modifier.size(28.dp)
-                              .clip(CircleShape)
-                              .background(Color(0xFF3B82F6)),
-                      contentAlignment = Alignment.Center,
-                  ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp),
-                    )
-                  }
+                  Icon(
+                      imageVector = Icons.Filled.Check,
+                      contentDescription = null,
+                      modifier = Modifier.size(24.dp)
+                  )
                 }
               }
             }

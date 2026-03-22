@@ -2,10 +2,6 @@ package id.xms.xtrakernelmanager.ui.screens.tuning.frosted
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,16 +11,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material.icons.outlined.ChangeCircle
-import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -57,10 +49,31 @@ fun FrostedGPUControl(viewModel: TuningViewModel) {
 
   // Mediatek warning card
   if (isMediatek) {
-    ModernWarningCard(
-        title = stringResource(R.string.mediatek_device_detected),
-        message = stringResource(R.string.mediatek_gpu_unavailable),
-    )
+    GlassmorphicCard(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Icon(
+            imageVector = Icons.Filled.Warning,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(32.dp),
+        )
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+              text = stringResource(R.string.mediatek_device_detected),
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+          )
+          Text(
+              text = stringResource(R.string.mediatek_gpu_unavailable),
+              style = MaterialTheme.typography.bodyMedium,
+          )
+        }
+      }
+    }
     return
   }
 
@@ -135,32 +148,91 @@ fun FrostedGPUControl(viewModel: TuningViewModel) {
   // Main Content
   GlassmorphicCard(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      // Modern Header
-      ModernHeader(
-          expanded = expanded,
-          onExpandClick = { expanded = !expanded },
-          onInfoClick = { showRomInfoDialog = true },
-      )
+      // Header
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.weight(1f),
+        ) {
+          Surface(
+              shape = RoundedCornerShape(16.dp),
+              color = MaterialTheme.colorScheme.tertiaryContainer,
+              modifier = Modifier.size(48.dp),
+          ) {
+            Box(contentAlignment = Alignment.Center) {
+              Icon(
+                  imageVector = Icons.Filled.Memory,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                  modifier = Modifier.size(24.dp),
+              )
+            }
+          }
 
-      // Collapsible Content
+          Column(modifier = Modifier.weight(1f)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+              Text(
+                  text = stringResource(R.string.gpu_control),
+                  style = MaterialTheme.typography.titleLarge,
+                  fontWeight = FontWeight.Bold,
+              )
+              IconButton(
+                  onClick = { showRomInfoDialog = true },
+                  modifier = Modifier.size(24.dp),
+              ) {
+                Icon(
+                    imageVector = Icons.Outlined.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+              }
+            }
+            Text(
+                text = stringResource(R.string.gpu_control_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+
+        val rotationState by animateFloatAsState(
+            targetValue = if (expanded) 180f else 0f,
+            animationSpec = tween(300)
+        )
+
+        IconButton(
+            onClick = { expanded = !expanded },
+            modifier = Modifier.size(48.dp),
+        ) {
+          Icon(
+              imageVector = Icons.Filled.ExpandMore,
+              contentDescription = if (expanded) "Collapse" else "Expand",
+              modifier = Modifier.size(28.dp).graphicsLayer { rotationZ = rotationState },
+          )
+        }
+      }
+
       AnimatedVisibility(
           visible = expanded,
           enter = fadeIn(animationSpec = tween(300)) + expandVertically(animationSpec = tween(300)),
           exit = fadeOut(animationSpec = tween(300)) + shrinkVertically(animationSpec = tween(300)),
       ) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-          // GPU Frequency Card
           if (gpuInfo.availableFreqs.isNotEmpty()) {
             GPUFrequencyCard(viewModel = viewModel, gpuInfo = gpuInfo)
           }
-
-          // GPU Power Level Card
           GPUPowerLevelCard(viewModel = viewModel, gpuInfo = gpuInfo)
-
-          // GPU Renderer Card
           GPURendererCard(
               selectedRenderer = selectedRenderer,
               onRendererClick = { showRendererDialog = true },
@@ -171,111 +243,12 @@ fun FrostedGPUControl(viewModel: TuningViewModel) {
   }
 }
 
-// ============ MODERN COMPONENTS ============
-
-@Composable
-private fun ModernHeader(expanded: Boolean, onExpandClick: () -> Unit, onInfoClick: () -> Unit) {
-  Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.SpaceBetween,
-      verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.weight(1f),
-    ) {
-      // Modern Icon Container
-      Box(
-          modifier =
-              Modifier.size(56.dp)
-                  .shadow(4.dp, RoundedCornerShape(16.dp))
-                  .clip(RoundedCornerShape(16.dp))
-                  .background(
-                      Brush.linearGradient(
-                          colors =
-                              listOf(
-                                  MaterialTheme.colorScheme.tertiary,
-                                  MaterialTheme.colorScheme.tertiaryContainer,
-                              )
-                      )
-                  ),
-          contentAlignment = Alignment.Center,
-      ) {
-        Icon(
-            imageVector = Icons.Filled.Memory,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onTertiary,
-            modifier = Modifier.size(32.dp),
-        )
-      }
-
-      Column(modifier = Modifier.weight(1f)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          Text(
-              text = stringResource(R.string.gpu_control),
-              style = MaterialTheme.typography.titleLarge,
-              fontWeight = FontWeight.Bold,
-          )
-
-          // Modern Info Badge
-          FilledIconButton(
-              onClick = onInfoClick,
-              modifier = Modifier.size(24.dp),
-              colors =
-                  IconButtonDefaults.filledIconButtonColors(
-                      containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                  ),
-          ) {
-            Icon(
-                imageVector = Icons.Outlined.Info,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-            )
-          }
-        }
-
-        Text(
-            text = stringResource(R.string.gpu_control_description),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-    }
-
-    // Animated Expand Button
-    val rotationState by
-        animateFloatAsState(targetValue = if (expanded) 180f else 0f, animationSpec = tween(300))
-
-    FilledIconButton(
-        onClick = onExpandClick,
-        modifier = Modifier.size(56.dp),
-        colors =
-            IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-            ),
-    ) {
-      Icon(
-          imageVector = Icons.Filled.ExpandMore,
-          contentDescription = if (expanded) "Collapse" else "Expand",
-          modifier = Modifier.size(32.dp).graphicsLayer { rotationZ = rotationState },
-          tint = MaterialTheme.colorScheme.tertiary,
-      )
-    }
-  }
-}
-
 @Composable
 private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
   val isFrequencyLocked by viewModel.isGpuFrequencyLocked.collectAsState()
   val lockedMinFreq by viewModel.lockedGpuMinFreq.collectAsState()
   val lockedMaxFreq by viewModel.lockedGpuMaxFreq.collectAsState()
 
-  // Use rememberSaveable to persist slider state across recompositions and tab changes
   var minFreqSlider by rememberSaveable { 
     mutableFloatStateOf(
       if (isFrequencyLocked && lockedMinFreq > 0) lockedMinFreq.toFloat()
@@ -292,7 +265,6 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
 
   var isUserInteracting by remember { mutableStateOf(false) }
 
-  // Update slider values when GPU info changes but user is not interacting
   LaunchedEffect(gpuInfo.minFreq, isFrequencyLocked, lockedMinFreq) {
     if (!isUserInteracting) {
       val newMinFreq = if (isFrequencyLocked && lockedMinFreq > 0) lockedMinFreq.toFloat()
@@ -313,18 +285,11 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
     }
   }
 
-  ElevatedCard(
-      modifier = Modifier.fillMaxWidth(),
-      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-      colors = CardDefaults.elevatedCardColors(
-          containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-      ),
-  ) {
+  GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-      // Card Header with Lock Status
       Row(
           modifier = Modifier.fillMaxWidth(),
           horizontalArrangement = Arrangement.SpaceBetween,
@@ -334,91 +299,99 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          Box(
-              modifier = Modifier
-                  .size(40.dp)
-                  .clip(RoundedCornerShape(10.dp))
-                  .background(MaterialTheme.colorScheme.primary),
-              contentAlignment = Alignment.Center
-          ) {
-            Icon(
-                imageVector = Icons.Outlined.Speed,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(22.dp),
-            )
-          }
+          Icon(
+              imageVector = Icons.Outlined.Speed,
+              contentDescription = null,
+              modifier = Modifier.size(24.dp),
+          )
           Text(
               text = stringResource(R.string.gpu_frequency),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onPrimaryContainer,
           )
         }
 
-        // Lock Status Badge
-        AnimatedVisibility(
-            visible = isFrequencyLocked,
-            enter = scaleIn() + fadeIn(),
-            exit = scaleOut() + fadeOut(),
-        ) {
-          Surface(
-              shape = RoundedCornerShape(12.dp),
-              color = MaterialTheme.colorScheme.primaryContainer,
+        if (isFrequencyLocked) {
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+              verticalAlignment = Alignment.CenterVertically,
           ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Icon(
-                  imageVector = Icons.Filled.Lock,
-                  contentDescription = null,
-                  modifier = Modifier.size(14.dp),
-                  tint = MaterialTheme.colorScheme.onPrimaryContainer,
-              )
-              Text(
-                  text = stringResource(R.string.gpu_locked),
-                  style = MaterialTheme.typography.labelSmall,
-                  fontWeight = FontWeight.Bold,
-                  color = MaterialTheme.colorScheme.onPrimaryContainer,
-              )
-            }
+            Icon(
+                imageVector = Icons.Filled.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+            )
+            Text(
+                text = stringResource(R.string.gpu_locked),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
           }
         }
       }
 
-      HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+      HorizontalDivider()
 
-      // Min Frequency Slider
-      FrequencySliderItem(
-          label = stringResource(R.string.gpu_min_freq),
-          value = minFreqSlider.toInt(),
-          onValueChange = { 
-            isUserInteracting = true
-            minFreqSlider = it 
-          },
-          onValueChangeFinished = { isUserInteracting = false },
-          availableFreqs = gpuInfo.availableFreqs,
-          color = MaterialTheme.colorScheme.tertiary,
-      )
+      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+              text = stringResource(R.string.gpu_min_freq),
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.SemiBold,
+          )
+          Text(
+              text = "${minFreqSlider.toInt()} MHz",
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.Bold,
+          )
+        }
 
-      // Max Frequency Slider
-      FrequencySliderItem(
-          label = stringResource(R.string.gpu_max_freq),
-          value = maxFreqSlider.toInt(),
-          onValueChange = { 
-            isUserInteracting = true
-            maxFreqSlider = it 
-          },
-          onValueChangeFinished = { isUserInteracting = false },
-          availableFreqs = gpuInfo.availableFreqs,
-          color = MaterialTheme.colorScheme.secondary,
-      )
+        Slider(
+            value = minFreqSlider,
+            onValueChange = { 
+              isUserInteracting = true
+              minFreqSlider = it 
+            },
+            onValueChangeFinished = { isUserInteracting = false },
+            valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
+        )
+      }
 
-      HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+      Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+          Text(
+              text = stringResource(R.string.gpu_max_freq),
+              style = MaterialTheme.typography.labelLarge,
+              fontWeight = FontWeight.SemiBold,
+          )
+          Text(
+              text = "${maxFreqSlider.toInt()} MHz",
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.Bold,
+          )
+        }
 
-      // Action Buttons
+        Slider(
+            value = maxFreqSlider,
+            onValueChange = { 
+              isUserInteracting = true
+              maxFreqSlider = it 
+            },
+            onValueChangeFinished = { isUserInteracting = false },
+            valueRange = gpuInfo.availableFreqs.minOrNull()!!.toFloat()..gpuInfo.availableFreqs.maxOrNull()!!.toFloat(),
+        )
+      }
+
+      HorizontalDivider()
+
       Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         FilledTonalButton(
             onClick = {
@@ -447,12 +420,10 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
               }
             },
             modifier = Modifier.weight(1f),
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor =
-                        if (isFrequencyLocked) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.primary
-                ),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFrequencyLocked) MaterialTheme.colorScheme.error
+                                 else MaterialTheme.colorScheme.primary
+            ),
         ) {
           Icon(
               imageVector = if (isFrequencyLocked) Icons.Filled.LockOpen else Icons.Filled.Lock,
@@ -467,11 +438,9 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
         }
       }
 
-      // Info Text
       Text(
-          text =
-              if (isFrequencyLocked) stringResource(R.string.gpu_locked_warning)
-              else stringResource(R.string.gpu_lock_info),
+          text = if (isFrequencyLocked) stringResource(R.string.gpu_locked_warning)
+                 else stringResource(R.string.gpu_lock_info),
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -480,288 +449,148 @@ private fun GPUFrequencyCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
 }
 
 @Composable
-private fun FrequencySliderItem(
-    label: String,
-    value: Int,
-    onValueChange: (Float) -> Unit,
-    onValueChangeFinished: (() -> Unit)? = null,
-    availableFreqs: List<Int>,
-    color: Color,
-) {
-  Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-          text = label,
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.SemiBold,
-      )
-      Surface(shape = RoundedCornerShape(8.dp), color = color.copy(alpha = 0.1f)) {
-        Text(
-            text = "$value MHz",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = color,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-        )
-      }
-    }
-
-    Slider(
-        value = value.toFloat(),
-        onValueChange = onValueChange,
-        onValueChangeFinished = onValueChangeFinished,
-        valueRange = availableFreqs.minOrNull()!!.toFloat()..availableFreqs.maxOrNull()!!.toFloat(),
-        colors =
-            SliderDefaults.colors(
-                thumbColor = color,
-                activeTrackColor = color,
-                inactiveTrackColor = color.copy(alpha = 0.2f),
-            ),
-    )
-  }
-}
-
-@Composable
 private fun GPUPowerLevelCard(viewModel: TuningViewModel, gpuInfo: GPUInfo) {
-  ElevatedCard(
-      modifier = Modifier.fillMaxWidth(),
-      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-      colors = CardDefaults.elevatedCardColors(
-          containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
-      ),
-  ) {
+  GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-    ) {
-      // Header with icon and title
-      Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(12.dp),
-      ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.secondary),
-            contentAlignment = Alignment.Center
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.BatteryChargingFull,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.onSecondary,
-              modifier = Modifier.size(22.dp),
-          )
-        }
-        Column {
-          Text(
-              text = stringResource(R.string.gpu_power_level_title),
-              style = MaterialTheme.typography.titleMedium,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSecondaryContainer,
-          )
-          Text(
-              text = "Select performance level",
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-          )
-        }
-      }
-
-      HorizontalDivider(color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.2f))
-
-      // Current level display with better styling
-      Row(
-          modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(12.dp))
-              .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
-              .padding(16.dp),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Column {
-          Text(
-              text = "Current Level",
-              style = MaterialTheme.typography.labelMedium,
-              color = MaterialTheme.colorScheme.onSecondaryContainer,
-          )
-          Text(
-              text = stringResource(R.string.gpu_power_level),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-          )
-        }
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = MaterialTheme.colorScheme.secondary,
-        ) {
-          Text(
-              text = "${gpuInfo.powerLevel}",
-              style = MaterialTheme.typography.headlineSmall,
-              fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onSecondary,
-              modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-          )
-        }
-      }
-
-      // Power level selection grid with improved design
-      val maxLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
-      val levels = (0..maxLevel).toList()
-      
-      Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(
-            text = "Available Levels (0-$maxLevel)",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-        
-        // Use FlowRow for better wrapping behavior
-        androidx.compose.foundation.layout.FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-          levels.forEach { level ->
-            val isSelected = level == gpuInfo.powerLevel
-            Box(
-                modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        if (isSelected) MaterialTheme.colorScheme.secondary
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                    .clickable { viewModel.setGPUPowerLevel(level) }
-                    .border(
-                        width = if (isSelected) 2.dp else 0.dp,
-                        color = if (isSelected) MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
-                        else Color.Transparent,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-              Text(
-                  text = level.toString(),
-                  style = MaterialTheme.typography.titleMedium,
-                  fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                  color = if (isSelected) MaterialTheme.colorScheme.onSecondary
-                          else MaterialTheme.colorScheme.onSurfaceVariant,
-              )
-            }
-          }
-        }
-      }
-
-      // Info text
-      Row(
-          modifier = Modifier
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(8.dp))
-              .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-              .padding(12.dp),
-          horizontalArrangement = Arrangement.spacedBy(8.dp),
-          verticalAlignment = Alignment.CenterVertically,
-      ) {
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(16.dp),
-        )
-        Text(
-            text = "Level 0 = Highest performance, Level $maxLevel = Lowest performance",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-      }
-    }
-  }
-}
-
-@Composable
-private fun GPURendererCard(selectedRenderer: String, onRendererClick: () -> Unit) {
-  ElevatedCard(
-      modifier = Modifier.fillMaxWidth(),
-      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-      colors = CardDefaults.elevatedCardColors(
-          containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
-      ),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       Row(
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(12.dp),
       ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.tertiary),
-            contentAlignment = Alignment.Center
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.Settings,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.onTertiary,
-              modifier = Modifier.size(22.dp),
+        Icon(
+            imageVector = Icons.Outlined.BatteryChargingFull,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+        )
+        Column {
+          Text(
+              text = stringResource(R.string.gpu_power_level_title),
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.Bold,
+          )
+          Text(
+              text = "Select performance level",
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
         }
+      }
+
+      HorizontalDivider()
+
+      Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically,
+      ) {
+        Text(
+            text = "Current Level",
+            style = MaterialTheme.typography.labelMedium,
+        )
+        Text(
+            text = "${gpuInfo.powerLevel}",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+        )
+      }
+
+      val maxLevel = (gpuInfo.numPwrLevels - 1).coerceAtLeast(0)
+      val levels = (0..maxLevel).toList()
+      
+      Text(
+          text = "Available Levels (0-$maxLevel)",
+          style = MaterialTheme.typography.labelMedium,
+      )
+      
+      androidx.compose.foundation.layout.FlowRow(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(8.dp),
+      ) {
+        levels.forEach { level ->
+          val isSelected = level == gpuInfo.powerLevel
+          Box(
+              modifier = Modifier
+                  .size(52.dp)
+                  .clip(RoundedCornerShape(12.dp))
+                  .background(
+                      if (isSelected) MaterialTheme.colorScheme.primary
+                      else MaterialTheme.colorScheme.surfaceVariant
+                  )
+                  .clickable { viewModel.setGPUPowerLevel(level) },
+              contentAlignment = Alignment.Center
+          ) {
+            Text(
+                text = level.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+            )
+          }
+        }
+      }
+
+      Text(
+          text = "Level 0 = Highest performance, Level $maxLevel = Lowest performance",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
+    }
+  }
+}
+
+@Composable
+private fun GPURendererCard(selectedRenderer: String, onRendererClick: () -> Unit) {
+  GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        Icon(
+            imageVector = Icons.Outlined.Settings,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+        )
         Column(modifier = Modifier.weight(1f)) {
           Text(
               text = stringResource(R.string.gpu_renderer),
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.Bold,
-              color = MaterialTheme.colorScheme.onTertiaryContainer,
           )
           Text(
               text = selectedRenderer,
               style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.tertiary,
               fontWeight = FontWeight.SemiBold,
           )
         }
       }
 
-      HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+      HorizontalDivider()
 
-      // Info Banner
-      Surface(
-          shape = RoundedCornerShape(12.dp),
-          color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+      Row(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalAlignment = Alignment.Top,
       ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.Info,
-              contentDescription = null,
-              modifier = Modifier.size(18.dp),
-              tint = MaterialTheme.colorScheme.onTertiaryContainer,
-          )
-          Text(
-              text = stringResource(R.string.gpu_renderer_rom_info),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onTertiaryContainer,
-          )
-        }
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Text(
+            text = stringResource(R.string.gpu_renderer_rom_info),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
       }
 
-      // Renderer Selection Button
       FilledTonalButton(
           onClick = onRendererClick,
           modifier = Modifier.fillMaxWidth(),
-          shape = RoundedCornerShape(12.dp),
       ) {
         Icon(
             imageVector = Icons.Outlined.Palette,
@@ -784,89 +613,21 @@ private fun GPURendererCard(selectedRenderer: String, onRendererClick: () -> Uni
 }
 
 @Composable
-private fun ModernWarningCard(title: String, message: String) {
-  ElevatedCard(
-      modifier = Modifier.fillMaxWidth(),
-      colors =
-          CardDefaults.elevatedCardColors(
-              containerColor = MaterialTheme.colorScheme.errorContainer
-          ),
-      elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
-  ) {
-    Row(
-        modifier = Modifier.padding(20.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Box(
-          modifier =
-              Modifier.size(48.dp)
-                  .clip(CircleShape)
-                  .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f)),
-          contentAlignment = Alignment.Center,
-      ) {
-        Icon(
-            imageVector = Icons.Filled.Warning,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(28.dp),
-        )
-      }
-
-      Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-        )
-      }
-    }
-  }
-}
-
-// ============ DIALOG COMPONENTS ============
-
-@Composable
 private fun RomInfoDialog(onDismiss: () -> Unit) {
   AlertDialog(
       onDismissRequest = onDismiss,
       icon = {
-        Box(
-            modifier =
-                Modifier.size(64.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors =
-                                listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primaryContainer,
-                                )
-                        )
-                    ),
-            contentAlignment = Alignment.Center,
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.Info,
-              contentDescription = null,
-              modifier = Modifier.size(36.dp),
-              tint = MaterialTheme.colorScheme.onPrimary,
-          )
-        }
+        Icon(
+            imageVector = Icons.Outlined.Info,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+        )
       },
       title = {
         Text(
             text = stringResource(R.string.gpu_renderer_compatibility_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
         )
       },
       text = {
@@ -877,84 +638,56 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
           Text(
               text = stringResource(R.string.gpu_renderer_compatibility_intro),
               style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
 
-          // Supported ROMs Card
-          ElevatedCard(
-              colors =
-                  CardDefaults.elevatedCardColors(
-                      containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                  )
-          ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(8.dp),
-              ) {
-                Icon(
-                    imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp),
-                )
-                Text(
-                    text = stringResource(R.string.gpu_fully_supported),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-              }
+              Icon(
+                  imageVector = Icons.Filled.CheckCircle,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.primary,
+                  modifier = Modifier.size(20.dp),
+              )
               Text(
-                  text = stringResource(R.string.gpu_supported_roms),
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onPrimaryContainer,
+                  text = stringResource(R.string.gpu_fully_supported),
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.Bold,
               )
             }
+            Text(
+                text = stringResource(R.string.gpu_supported_roms),
+                style = MaterialTheme.typography.bodySmall,
+            )
           }
 
-          // Limited Support ROMs Card
-          ElevatedCard(
-              colors =
-                  CardDefaults.elevatedCardColors(
-                      containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-                  )
-          ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(8.dp),
-              ) {
-                Icon(
-                    imageVector = Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(20.dp),
-                )
-                Text(
-                    text = stringResource(R.string.gpu_limited_support),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.error,
-                )
-              }
+              Icon(
+                  imageVector = Icons.Filled.Warning,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.error,
+                  modifier = Modifier.size(20.dp),
+              )
               Text(
-                  text = stringResource(R.string.gpu_unsupported_roms),
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onErrorContainer,
+                  text = stringResource(R.string.gpu_limited_support),
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.Bold,
               )
             }
+            Text(
+                text = stringResource(R.string.gpu_unsupported_roms),
+                style = MaterialTheme.typography.bodySmall,
+            )
           }
 
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          HorizontalDivider()
 
-          // Why It Doesn't Work Section
           Text(
               text = stringResource(R.string.gpu_why_not_work),
               style = MaterialTheme.typography.titleSmall,
@@ -971,48 +704,32 @@ private fun RomInfoDialog(onDismiss: () -> Unit) {
                 )
                 .forEach { reason ->
                   Row(
-                      horizontalArrangement = Arrangement.spacedBy(10.dp),
+                      horizontalArrangement = Arrangement.spacedBy(8.dp),
                       verticalAlignment = Alignment.Top,
                   ) {
-                    Box(
-                        modifier =
-                            Modifier.size(6.dp)
-                                .offset(y = 8.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
-                    )
+                    Text(text = "•", style = MaterialTheme.typography.bodySmall)
                     Text(
                         text = reason,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f),
                     )
                   }
                 }
           }
 
-          // Tip Card
-          Surface(
-              shape = RoundedCornerShape(12.dp),
-              color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
+              verticalAlignment = Alignment.CenterVertically,
           ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-              Icon(
-                  imageVector = Icons.Outlined.Lightbulb,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.tertiary,
-                  modifier = Modifier.size(20.dp),
-              )
-              Text(
-                  text = stringResource(R.string.gpu_verify_tip),
-                  style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onTertiaryContainer,
-              )
-            }
+            Icon(
+                imageVector = Icons.Outlined.Lightbulb,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+            Text(
+                text = stringResource(R.string.gpu_verify_tip),
+                style = MaterialTheme.typography.bodySmall,
+            )
           }
         }
       },
@@ -1036,180 +753,105 @@ private fun VerificationDialog(
   AlertDialog(
       onDismissRequest = { if (!isProcessing) onDismiss() },
       icon = {
-        Box(modifier = Modifier.size(72.dp), contentAlignment = Alignment.Center) {
-          if (isProcessing) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(56.dp),
-                color = MaterialTheme.colorScheme.primary,
-                strokeWidth = 4.dp,
-            )
-          } else {
-            Box(
-                modifier =
-                    Modifier.size(64.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (verificationSuccess) MaterialTheme.colorScheme.primaryContainer
-                            else MaterialTheme.colorScheme.errorContainer
-                        ),
-                contentAlignment = Alignment.Center,
-            ) {
-              Icon(
-                  imageVector =
-                      if (verificationSuccess) Icons.Filled.CheckCircle else Icons.Filled.Error,
-                  contentDescription = null,
-                  modifier = Modifier.size(36.dp),
-                  tint =
-                      if (verificationSuccess) MaterialTheme.colorScheme.primary
-                      else MaterialTheme.colorScheme.error,
-              )
-            }
-          }
+        if (isProcessing) {
+          CircularProgressIndicator(modifier = Modifier.size(48.dp))
+        } else {
+          Icon(
+              imageVector = if (verificationSuccess) Icons.Filled.CheckCircle else Icons.Filled.Error,
+              contentDescription = null,
+              modifier = Modifier.size(48.dp),
+              tint = if (verificationSuccess) MaterialTheme.colorScheme.primary
+                     else MaterialTheme.colorScheme.error,
+          )
         }
       },
       title = {
         Text(
-            text =
-                when {
-                  isProcessing -> stringResource(R.string.gpu_applying_changes)
-                  verificationSuccess -> stringResource(R.string.gpu_changes_applied)
-                  else -> stringResource(R.string.gpu_warning)
-                },
+            text = when {
+              isProcessing -> stringResource(R.string.gpu_applying_changes)
+              verificationSuccess -> stringResource(R.string.gpu_changes_applied)
+              else -> stringResource(R.string.gpu_warning)
+            },
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
         )
       },
       text = {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
           when {
             isProcessing -> {
-              Column(
-                  horizontalAlignment = Alignment.CenterHorizontally,
-                  verticalArrangement = Arrangement.spacedBy(12.dp),
-              ) {
-                Text(
-                    text = stringResource(R.string.gpu_writing_system_files),
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                )
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                ) {
-                  Text(
-                      text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onSurfaceVariant,
-                      modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                  )
-                }
-              }
+              Text(
+                  text = stringResource(R.string.gpu_writing_system_files),
+                  style = MaterialTheme.typography.bodyMedium,
+              )
+              Text(
+                  text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
+                  style = MaterialTheme.typography.bodySmall,
+              )
             }
             verificationSuccess -> {
-              ElevatedCard(
-                  colors =
-                      CardDefaults.elevatedCardColors(
-                          containerColor =
-                              MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                      )
-              ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                  Row(
-                      verticalAlignment = Alignment.CenterVertically,
-                      horizontalArrangement = Arrangement.spacedBy(10.dp),
-                  ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.gpu_runtime_property_updated),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                  }
+                  Icon(
+                      imageVector = Icons.Filled.Check,
+                      contentDescription = null,
+                      tint = MaterialTheme.colorScheme.primary,
+                      modifier = Modifier.size(20.dp),
+                  )
                   Text(
-                      text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                      text = stringResource(R.string.gpu_runtime_property_updated),
+                      style = MaterialTheme.typography.bodyMedium,
+                      fontWeight = FontWeight.Bold,
                   )
                 }
+                Text(
+                    text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
+                    style = MaterialTheme.typography.bodySmall,
+                )
               }
 
-              ElevatedCard(
-                  colors =
-                      CardDefaults.elevatedCardColors(
-                          containerColor =
-                              MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-                      )
-              ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+              HorizontalDivider()
+
+              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                  Row(
-                      verticalAlignment = Alignment.CenterVertically,
-                      horizontalArrangement = Arrangement.spacedBy(10.dp),
-                  ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Refresh,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.gpu_reboot_required),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                    )
-                  }
+                  Icon(
+                      imageVector = Icons.Outlined.Refresh,
+                      contentDescription = null,
+                      tint = MaterialTheme.colorScheme.error,
+                      modifier = Modifier.size(20.dp),
+                  )
                   Text(
-                      text = stringResource(R.string.gpu_reboot_required_desc),
-                      style = MaterialTheme.typography.bodySmall,
-                      color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
+                      text = stringResource(R.string.gpu_reboot_required),
+                      style = MaterialTheme.typography.bodyMedium,
+                      fontWeight = FontWeight.Bold,
                   )
                 }
+                Text(
+                    text = stringResource(R.string.gpu_reboot_required_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                )
               }
             }
             else -> {
-              ElevatedCard(
-                  colors =
-                      CardDefaults.elevatedCardColors(
-                          containerColor =
-                              MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
-                      )
-              ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                  Text(
-                      text = stringResource(R.string.gpu_failed_apply),
-                      style = MaterialTheme.typography.bodyMedium,
-                      fontWeight = FontWeight.Bold,
-                      color = MaterialTheme.colorScheme.onErrorContainer,
-                  )
-                  if (verificationMessage.isNotBlank()) {
-                    Text(
-                        text = verificationMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f),
-                    )
-                  }
-                }
+              Text(
+                  text = stringResource(R.string.gpu_failed_apply),
+                  style = MaterialTheme.typography.bodyMedium,
+                  fontWeight = FontWeight.Bold,
+              )
+              if (verificationMessage.isNotBlank()) {
+                Text(
+                    text = verificationMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                )
               }
             }
           }
@@ -1221,8 +863,9 @@ private fun VerificationDialog(
             Button(
                 onClick = onReboot,
                 modifier = Modifier.fillMaxWidth(),
-                colors =
-                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                ),
             ) {
               Icon(
                   imageVector = Icons.Filled.Refresh,
@@ -1260,36 +903,17 @@ private fun RebootConfirmationDialog(
   AlertDialog(
       onDismissRequest = onDismiss,
       icon = {
-        Box(
-            modifier =
-                Modifier.size(64.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors =
-                                listOf(
-                                    MaterialTheme.colorScheme.tertiary,
-                                    MaterialTheme.colorScheme.tertiaryContainer,
-                                )
-                        )
-                    ),
-            contentAlignment = Alignment.Center,
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.ChangeCircle,
-              contentDescription = null,
-              modifier = Modifier.size(36.dp),
-              tint = MaterialTheme.colorScheme.onTertiary,
-          )
-        }
+        Icon(
+            imageVector = Icons.Outlined.ChangeCircle,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+        )
       },
       title = {
         Text(
             text = stringResource(R.string.gpu_change_renderer_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
         )
       },
       text = {
@@ -1300,120 +924,76 @@ private fun RebootConfirmationDialog(
           Text(
               text = stringResource(R.string.gpu_change_renderer_intro),
               style = MaterialTheme.typography.bodyMedium,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              textAlign = androidx.compose.ui.text.style.TextAlign.Center,
           )
 
-          // Change Preview Card
-          ElevatedCard(
-              colors =
-                  CardDefaults.elevatedCardColors(
-                      containerColor = MaterialTheme.colorScheme.surfaceVariant
-                  )
+          Column(
+              verticalArrangement = Arrangement.spacedBy(12.dp),
+              horizontalAlignment = Alignment.CenterHorizontally,
           ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-              // Current Renderer
-              Column(
-                  horizontalAlignment = Alignment.CenterHorizontally,
-                  verticalArrangement = Arrangement.spacedBy(6.dp),
-              ) {
-                Text(
-                    text = stringResource(R.string.gpu_current),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                ) {
-                  Text(
-                      text = gpuInfo.rendererType,
-                      style = MaterialTheme.typography.bodyLarge,
-                      fontWeight = FontWeight.Medium,
-                      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                  )
-                }
-              }
-
-              // Arrow Down with Animation
-              Icon(
-                  imageVector = Icons.Filled.ArrowDownward,
-                  contentDescription = null,
-                  modifier = Modifier.size(28.dp),
-                  tint = MaterialTheme.colorScheme.primary,
+              Text(
+                  text = stringResource(R.string.gpu_current),
+                  style = MaterialTheme.typography.labelSmall,
               )
+              Text(
+                  text = gpuInfo.rendererType,
+                  style = MaterialTheme.typography.bodyLarge,
+                  fontWeight = FontWeight.Medium,
+              )
+            }
 
-              // New Renderer
-              Column(
-                  horizontalAlignment = Alignment.CenterHorizontally,
-                  verticalArrangement = Arrangement.spacedBy(6.dp),
-              ) {
-                Text(
-                    text = stringResource(R.string.gpu_new),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                ) {
-                  Text(
-                      text = pendingRenderer,
-                      style = MaterialTheme.typography.bodyLarge,
-                      fontWeight = FontWeight.Bold,
-                      color = MaterialTheme.colorScheme.onPrimaryContainer,
-                      modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                  )
-                }
-              }
+            Icon(
+                imageVector = Icons.Filled.ArrowDownward,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+              Text(
+                  text = stringResource(R.string.gpu_new),
+                  style = MaterialTheme.typography.labelSmall,
+              )
+              Text(
+                  text = pendingRenderer,
+                  style = MaterialTheme.typography.bodyLarge,
+                  fontWeight = FontWeight.Bold,
+              )
             }
           }
 
-          HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+          HorizontalDivider()
 
-          // Important Warning
-          Surface(
-              shape = RoundedCornerShape(12.dp),
-              color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
+          Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(8.dp),
           ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-              Row(
-                  verticalAlignment = Alignment.CenterVertically,
-                  horizontalArrangement = Arrangement.spacedBy(8.dp),
-              ) {
-                Icon(
-                    imageVector = Icons.Filled.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(20.dp),
-                )
-                Text(
-                    text = stringResource(R.string.gpu_important),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer,
-                )
-              }
+            Icon(
+                imageVector = Icons.Filled.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+            Column {
+              Text(
+                  text = stringResource(R.string.gpu_important),
+                  style = MaterialTheme.typography.titleSmall,
+                  fontWeight = FontWeight.Bold,
+              )
               Text(
                   text = stringResource(R.string.gpu_change_warnings),
                   style = MaterialTheme.typography.bodySmall,
-                  color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
               )
             }
           }
 
-          // Check Compatibility Button
           OutlinedButton(
               onClick = onCheckCompatibility,
               modifier = Modifier.fillMaxWidth(),
-              border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
           ) {
             Icon(
                 imageVector = Icons.Outlined.Info,
@@ -1429,7 +1009,6 @@ private fun RebootConfirmationDialog(
         Button(
             onClick = onConfirm,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
         ) {
           Icon(
               imageVector = Icons.Filled.Check,
@@ -1457,28 +1036,11 @@ private fun RendererSelectionDialog(
   AlertDialog(
       onDismissRequest = onDismiss,
       icon = {
-        Box(
-            modifier =
-                Modifier.size(64.dp)
-                    .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            colors =
-                                listOf(
-                                    MaterialTheme.colorScheme.tertiary,
-                                    MaterialTheme.colorScheme.tertiaryContainer,
-                                )
-                        )
-                    ),
-            contentAlignment = Alignment.Center,
-        ) {
-          Icon(
-              imageVector = Icons.Outlined.Palette,
-              contentDescription = null,
-              modifier = Modifier.size(36.dp),
-              tint = MaterialTheme.colorScheme.onTertiary,
-          )
-        }
+        Icon(
+            imageVector = Icons.Outlined.Palette,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+        )
       },
       title = {
         Column(
@@ -1489,13 +1051,11 @@ private fun RendererSelectionDialog(
               text = stringResource(R.string.gpu_renderer_select_title),
               style = MaterialTheme.typography.headlineSmall,
               fontWeight = FontWeight.Bold,
-              textAlign = androidx.compose.ui.text.style.TextAlign.Center,
           )
           Text(
               text = stringResource(R.string.gpu_renderer_select_desc),
               style = MaterialTheme.typography.bodySmall,
               color = MaterialTheme.colorScheme.onSurfaceVariant,
-              textAlign = androidx.compose.ui.text.style.TextAlign.Center,
           )
         }
       },
@@ -1504,39 +1064,23 @@ private fun RendererSelectionDialog(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-          val renderers =
-              listOf(
-                  stringResource(R.string.gpu_renderer_opengl) to
-                      stringResource(R.string.gpu_renderer_opengl_desc),
-                  stringResource(R.string.gpu_renderer_vulkan) to
-                      stringResource(R.string.gpu_renderer_vulkan_desc),
-                  stringResource(R.string.gpu_renderer_angle) to
-                      stringResource(R.string.gpu_renderer_angle_desc),
-                  stringResource(R.string.gpu_renderer_skiagl) to
-                      stringResource(R.string.gpu_renderer_skiagl_desc),
-                  stringResource(R.string.gpu_renderer_skiavulkan) to
-                      stringResource(R.string.gpu_renderer_skiavulkan_desc),
-              )
+          val renderers = listOf(
+              stringResource(R.string.gpu_renderer_opengl) to stringResource(R.string.gpu_renderer_opengl_desc),
+              stringResource(R.string.gpu_renderer_vulkan) to stringResource(R.string.gpu_renderer_vulkan_desc),
+              stringResource(R.string.gpu_renderer_angle) to stringResource(R.string.gpu_renderer_angle_desc),
+              stringResource(R.string.gpu_renderer_skiagl) to stringResource(R.string.gpu_renderer_skiagl_desc),
+              stringResource(R.string.gpu_renderer_skiavulkan) to stringResource(R.string.gpu_renderer_skiavulkan_desc),
+          )
 
           renderers.forEach { (renderer, description) ->
             val isSelected = renderer == selectedRenderer
 
-            ElevatedCard(
+            GlassmorphicCard(
                 onClick = { onSelect(renderer) },
                 modifier = Modifier.fillMaxWidth(),
-                colors =
-                    CardDefaults.elevatedCardColors(
-                        containerColor =
-                            if (isSelected) MaterialTheme.colorScheme.tertiaryContainer
-                            else MaterialTheme.colorScheme.surface
-                    ),
-                elevation =
-                    CardDefaults.elevatedCardElevation(
-                        defaultElevation = if (isSelected) 4.dp else 1.dp
-                    ),
             ) {
               Row(
-                  modifier = Modifier.fillMaxWidth().padding(16.dp),
+                  modifier = Modifier.fillMaxWidth(),
                   horizontalArrangement = Arrangement.SpaceBetween,
                   verticalAlignment = Alignment.CenterVertically,
               ) {
@@ -1548,9 +1092,6 @@ private fun RendererSelectionDialog(
                       text = renderer,
                       style = MaterialTheme.typography.bodyLarge,
                       fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                      color =
-                          if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer
-                          else MaterialTheme.colorScheme.onSurface,
                   )
                   Text(
                       text = description,
@@ -1560,20 +1101,11 @@ private fun RendererSelectionDialog(
                 }
 
                 if (isSelected) {
-                  Box(
-                      modifier =
-                          Modifier.size(28.dp)
-                              .clip(CircleShape)
-                              .background(MaterialTheme.colorScheme.tertiary),
-                      contentAlignment = Alignment.Center,
-                  ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onTertiary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                  }
+                  Icon(
+                      imageVector = Icons.Filled.Check,
+                      contentDescription = null,
+                      modifier = Modifier.size(24.dp),
+                  )
                 }
               }
             }
