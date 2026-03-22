@@ -28,6 +28,7 @@ fun ClassicSettingsContent(
 ) {
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+    val isAndroid10Plus = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
     Scaffold(
         topBar = {
@@ -67,11 +68,14 @@ fun ClassicSettingsContent(
                     title = stringResource(R.string.settings_layout_material),
                     description = stringResource(R.string.settings_layout_material_desc),
                     isSelected = currentLayout == "material",
+                    isEnabled = isAndroid10Plus,
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        scope.launch { 
-                            preferencesManager.setLayoutStyle("material")
-                            onNavigateBack()
+                        if (isAndroid10Plus) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            scope.launch {
+                                preferencesManager.setLayoutStyle("material")
+                                onNavigateBack()
+                            }
                         }
                     }
                 )
@@ -80,11 +84,14 @@ fun ClassicSettingsContent(
                     title = stringResource(R.string.settings_layout_frosted),
                     description = stringResource(R.string.settings_layout_frosted_desc),
                     isSelected = currentLayout == "liquid",
+                    isEnabled = isAndroid10Plus,
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        scope.launch { 
-                            preferencesManager.setLayoutStyle("liquid")
-                            onNavigateBack()
+                        if (isAndroid10Plus) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            scope.launch {
+                                preferencesManager.setLayoutStyle("liquid")
+                                onNavigateBack()
+                            }
                         }
                     }
                 )
@@ -93,9 +100,10 @@ fun ClassicSettingsContent(
                     title = stringResource(R.string.settings_layout_classic),
                     description = stringResource(R.string.settings_layout_classic_desc),
                     isSelected = currentLayout == "classic",
+                    isEnabled = true,
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        scope.launch { 
+                        scope.launch {
                             preferencesManager.setLayoutStyle("classic")
                             onNavigateBack()
                         }
@@ -111,13 +119,15 @@ fun ClassicLayoutSettingItem(
     title: String,
     description: String,
     isSelected: Boolean,
+    isEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
         color = if (isSelected) ClassicColors.Primary.copy(alpha = 0.1f) else ClassicColors.Surface,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        enabled = isEnabled
     ) {
         Row(
             modifier = Modifier
@@ -131,22 +141,25 @@ fun ClassicLayoutSettingItem(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
-                    color = if (isSelected) ClassicColors.Primary else ClassicColors.OnSurface
+                    color = if (isSelected) 
+                        ClassicColors.Primary.copy(alpha = if (isEnabled) 1f else 0.38f)
+                    else 
+                        ClassicColors.OnSurface.copy(alpha = if (isEnabled) 1f else 0.38f)
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) 
-                        ClassicColors.Primary.copy(alpha = 0.7f) 
-                    else 
-                        ClassicColors.OnSurfaceVariant
+                    color = if (isSelected)
+                        ClassicColors.Primary.copy(alpha = if (isEnabled) 0.7f else 0.38f)
+                    else
+                        ClassicColors.OnSurfaceVariant.copy(alpha = if (isEnabled) 1f else 0.38f)
                 )
             }
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = ClassicColors.Primary,
+                    tint = ClassicColors.Primary.copy(alpha = if (isEnabled) 1f else 0.38f),
                     modifier = Modifier.size(24.dp)
                 )
             }
