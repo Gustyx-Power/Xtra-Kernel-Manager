@@ -278,6 +278,7 @@
     <string name="thermal_incalls_detail">Mengurangi panas selama panggilan telepon</string>
     <string name="thermal_20_long_desc">Profil termal kustom</string>
     <string name="thermal_20_detail">Profil manajemen termal lanjutan</string>
+    <string name="thermal_policy_usage_note">Digunakan untuk monitoring termal Smart CPU Lock</string>
     <string name="thermal_preset">Preset Termal</string>
     <string name="thermal_select_preset">Pilih Thermal</string>
     <string name="change_preset">Ubah Preset</string>

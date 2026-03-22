@@ -278,6 +278,7 @@
     <string name="thermal_incalls_detail">Reduces heat during phone calls</string>
     <string name="thermal_20_long_desc">Custom thermal profile</string>
     <string name="thermal_20_detail">Advanced thermal management profile</string>
+    <string name="thermal_policy_usage_note">Used for Smart CPU Lock thermal monitoring</string>
     <string name="thermal_preset">Thermal Preset</string>
     <string name="thermal_select_preset">Select Thermal</string>
     <string name="change_preset">Change Preset</string>
