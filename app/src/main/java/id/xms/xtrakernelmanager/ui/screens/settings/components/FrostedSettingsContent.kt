@@ -2,6 +2,7 @@ package id.xms.xtrakernelmanager.ui.screens.settings.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -17,6 +18,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
@@ -77,18 +79,49 @@ fun FrostedSettingsContent(
         CompositionLocalProvider(LocalBackdrop provides backdrop) {
             Scaffold(
                 topBar = {
-                    TopAppBar(
-                        title = { Text(stringResource(R.string.settings_title)) },
-                        navigationIcon = {
-                            IconButton(onClick = onNavigateBack) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    GlassmorphicCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 16.dp),
+                        shape = CircleShape,
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Back button
+                            Surface(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                shape = CircleShape,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                IconButton(onClick = onNavigateBack) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Back",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            titleContentColor = MaterialTheme.colorScheme.onSurface
-                        )
-                    )
+
+                            // Title
+                            Text(
+                                text = stringResource(R.string.settings_title),
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            // Spacer to balance the layout
+                            Spacer(modifier = Modifier.size(32.dp))
+                        }
+                    }
                 },
                 containerColor = Color.Transparent
             ) { paddingValues ->
@@ -96,7 +129,8 @@ fun FrostedSettingsContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .padding(16.dp),
+                        .padding(horizontal = 24.dp)
+                        .padding(top = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Layout Selection Section
@@ -108,7 +142,7 @@ fun FrostedSettingsContent(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         FrostedLayoutSettingItem(
                             title = stringResource(R.string.settings_layout_material),
                             description = stringResource(R.string.settings_layout_material_desc),
@@ -171,12 +205,12 @@ fun FrostedLayoutSettingItem(
 ) {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
         Surface(
             onClick = onClick,
             color = if (isSelected)
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
             else
                 Color.Transparent,
             modifier = Modifier.fillMaxWidth(),
@@ -185,36 +219,70 @@ fun FrostedLayoutSettingItem(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.primary.copy(alpha = if (isEnabled) 1f else 0.38f)
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = if (isEnabled) 1f else 0.38f)
-                    )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (isEnabled)
+                                MaterialTheme.colorScheme.onSurface
+                            else
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        )
+                        if (!isEnabled) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "(Android 10+)",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                                fontSize = 11.sp
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (isSelected)
-                            MaterialTheme.colorScheme.primary.copy(alpha = if (isEnabled) 0.7f else 0.38f)
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isEnabled)
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         else
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isEnabled) 1f else 0.38f)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp
                     )
                 }
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = if (isEnabled) 1f else 0.38f),
-                        modifier = Modifier.size(24.dp)
-                    )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(
+                            if (isSelected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isSelected) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Selected",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
             }
         }

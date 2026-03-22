@@ -1,6 +1,8 @@
 package id.xms.xtrakernelmanager.ui.screens.settings.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -14,6 +16,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import kotlinx.coroutines.launch
@@ -122,51 +125,83 @@ fun LayoutSettingItem(
     onClick: () -> Unit
 ) {
     Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
         color = if (isSelected) 
-            MaterialTheme.colorScheme.primaryContainer 
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) 
         else 
             MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 2.dp,
+        onClick = onClick,
         enabled = isEnabled
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = if (isSelected) 
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = if (isEnabled) 1f else 0.38f)
-                    else 
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = if (isEnabled) 1f else 0.38f)
-                )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isEnabled) 
+                            MaterialTheme.colorScheme.onSurface 
+                        else 
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                    if (!isEnabled) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "(Android 10+)",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                            fontSize = 11.sp
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) 
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = if (isEnabled) 0.7f else 0.38f)
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isEnabled) 
+                        MaterialTheme.colorScheme.onSurfaceVariant 
                     else 
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isEnabled) 1f else 0.38f)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
                 )
             }
-            if (isSelected) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = if (isSelected) 
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = if (isEnabled) 1f else 0.38f)
-                    else 
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = if (isEnabled) 1f else 0.38f),
-                    modifier = Modifier.size(24.dp)
-                )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(
+                        if (isSelected) 
+                            MaterialTheme.colorScheme.primary 
+                        else 
+                            MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (isSelected) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Selected",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
         }
     }
