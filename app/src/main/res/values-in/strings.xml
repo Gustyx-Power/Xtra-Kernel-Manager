@@ -522,6 +522,19 @@
     <string name="holiday_newyear_button">🚀 Semangat!</string>
     <string name="holiday_from_xkm">– Xtra Kernel Manager –</string>
 
+    <string name="holiday_christmas_title_clean">Merry Christmas</string>
+    <string name="holiday_christmas_subtitle_clean">Selamat Hari Natal</string>
+    <string name="holiday_christmas_button_clean">Terima Kasih</string>
+    <string name="holiday_newyear_title_clean">Happy New Year %1$d</string>
+    <string name="holiday_newyear_subtitle_clean">Selamat Tahun Baru</string>
+    <string name="holiday_newyear_button_clean">Semangat!</string>
+    <string name="holiday_ramadan_title_clean">Ramadan Mubarak</string>
+    <string name="holiday_ramadan_subtitle_clean">Selamat Menunaikan Ibadah Puasa</string>
+    <string name="holiday_ramadan_button_clean">Alhamdulillah</string>
+    <string name="holiday_eid_fitr_title_clean">Selamat Hari Raya</string>
+    <string name="holiday_eid_fitr_subtitle_clean">Selamat Idul Fitri 1446H</string>
+    <string name="holiday_eid_fitr_button_clean">Taqabbalallahu Minna Wa Minkum</string>
+
     <!-- Holiday Motivational Messages -->
     <string name="holiday_christmas_motivation_1">Semoga kasih dan kehangatan Natal selalu menyertai
         harimu. Tetap semangat dan berbagi kebahagiaan! ❤️</string>

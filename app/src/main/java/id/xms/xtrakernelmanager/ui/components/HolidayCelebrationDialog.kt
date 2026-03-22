@@ -2,14 +2,21 @@ package id.xms.xtrakernelmanager.ui.components
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -24,12 +31,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-/** Celebration dialog for holidays with animations */
 @Composable
 fun HolidayCelebrationDialog(holiday: Holiday, year: Int, onDismiss: () -> Unit) {
   val context = LocalContext.current
 
-  // Get motivational message based on holiday
   val motivationalMessage =
       remember(holiday, year) {
         when (holiday) {
@@ -40,12 +45,44 @@ fun HolidayCelebrationDialog(holiday: Holiday, year: Int, onDismiss: () -> Unit)
         }
       }
 
+  val (gradientColors, icon, accentColor) = when (holiday) {
+    Holiday.CHRISTMAS -> Triple(
+      listOf(Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF388E3C)),
+      Icons.Rounded.Celebration,
+      Color(0xFFD32F2F)
+    )
+    Holiday.NEW_YEAR -> Triple(
+      listOf(Color(0xFF1A237E), Color(0xFF283593), Color(0xFF3949AB)),
+      Icons.Rounded.AutoAwesome,
+      Color(0xFFFFD700)
+    )
+    Holiday.RAMADAN -> Triple(
+      listOf(Color(0xFF0D47A1), Color(0xFF1565C0), Color(0xFF1976D2)),
+      Icons.Rounded.NightlightRound,
+      Color(0xFFFFD700)
+    )
+    Holiday.EID_FITR -> Triple(
+      listOf(Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF43A047)),
+      Icons.Rounded.Celebration,
+      Color(0xFFFFD700)
+    )
+  }
+
   Dialog(
       onDismissRequest = onDismiss,
-      properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true),
+      properties = DialogProperties(
+        dismissOnBackPress = true, 
+        dismissOnClickOutside = true,
+        usePlatformDefaultWidth = false
+      ),
   ) {
-    Box(modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
-      // Background confetti/particles animation
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(Color.Black.copy(alpha = 0.7f))
+        .padding(24.dp),
+      contentAlignment = Alignment.Center
+    ) {
       when (holiday) {
         Holiday.CHRISTMAS -> ChristmasAnimation()
         Holiday.NEW_YEAR -> FireworksAnimation()
@@ -53,115 +90,124 @@ fun HolidayCelebrationDialog(holiday: Holiday, year: Int, onDismiss: () -> Unit)
         Holiday.EID_FITR -> EidFitriAnimation()
       }
 
-      // Main card content
       Card(
-          modifier = Modifier.fillMaxWidth().padding(16.dp),
-          shape = RoundedCornerShape(24.dp),
-          colors =
-              CardDefaults.cardColors(
-                  containerColor =
-                      when (holiday) {
-                        Holiday.CHRISTMAS -> Color(0xFF1B5E20).copy(alpha = 0.95f)
-                        Holiday.NEW_YEAR -> Color(0xFF1A237E).copy(alpha = 0.95f)
-                        Holiday.RAMADAN -> Color(0xFF1A237E).copy(alpha = 0.95f)
-                        Holiday.EID_FITR -> Color(0xFF2E7D32).copy(alpha = 0.95f) // Green for Eid
-                      }
-              ),
-          elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+          modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(),
+          shape = RoundedCornerShape(32.dp),
+          colors = CardDefaults.cardColors(
+            containerColor = Color.White
+          ),
+          elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
       ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(24.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          // Emoji with animation
-          AnimatedEmoji(holiday)
-
-          // Main greeting
-          Text(
-              text =
-                  when (holiday) {
-                    Holiday.CHRISTMAS -> stringResource(R.string.holiday_christmas_title)
-                    Holiday.NEW_YEAR -> stringResource(R.string.holiday_newyear_title, year)
-                    Holiday.RAMADAN -> stringResource(R.string.holiday_ramadan_title)
-                    Holiday.EID_FITR -> stringResource(R.string.holiday_eid_fitr_title)
-                  },
-              fontSize = 24.sp,
-              fontWeight = FontWeight.Bold,
-              color = Color.White,
-              textAlign = TextAlign.Center,
-          )
-
-          Text(
-              text =
-                  when (holiday) {
-                    Holiday.CHRISTMAS -> stringResource(R.string.holiday_christmas_subtitle)
-                    Holiday.NEW_YEAR -> stringResource(R.string.holiday_newyear_subtitle)
-                    Holiday.RAMADAN -> stringResource(R.string.holiday_ramadan_subtitle)
-                    Holiday.EID_FITR -> stringResource(R.string.holiday_eid_fitr_subtitle)
-                  },
-              fontSize = 18.sp,
-              fontWeight = FontWeight.Medium,
-              color = Color.White.copy(alpha = 0.9f),
-              textAlign = TextAlign.Center,
-          )
-
-          Spacer(modifier = Modifier.height(8.dp))
-
-          // Motivational message
-          Text(
-              text = motivationalMessage,
-              fontSize = 14.sp,
-              color = Color.White.copy(alpha = 0.85f),
-              textAlign = TextAlign.Center,
-              lineHeight = 22.sp,
-          )
-
-          Spacer(modifier = Modifier.height(16.dp))
-
-          // OK Button with gradient
-          Button(
-              onClick = onDismiss,
-              modifier = Modifier.fillMaxWidth().height(48.dp),
-              shape = RoundedCornerShape(12.dp),
-              colors =
-                  ButtonDefaults.buttonColors(
-                      containerColor =
-                          when (holiday) {
-                            Holiday.CHRISTMAS -> Color(0xFFD32F2F)
-                            Holiday.NEW_YEAR -> Color(0xFFFFD700)
-                            Holiday.RAMADAN -> Color(0xFF4CAF50)
-                            Holiday.EID_FITR -> Color(0xFFFFD700) // Gold for Eid
-                          }
-                  ),
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .height(200.dp)
+              .background(
+                Brush.verticalGradient(gradientColors)
+              ),
+            contentAlignment = Alignment.Center
           ) {
-            Text(
-                text =
-                    when (holiday) {
-                      Holiday.CHRISTMAS -> stringResource(R.string.holiday_christmas_button)
-                      Holiday.NEW_YEAR -> stringResource(R.string.holiday_newyear_button)
-                      Holiday.RAMADAN -> stringResource(R.string.holiday_ramadan_button)
-                      Holiday.EID_FITR -> stringResource(R.string.holiday_eid_fitr_button)
-                    },
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color =
-                    when (holiday) {
-                      Holiday.CHRISTMAS -> Color.White
-                      Holiday.NEW_YEAR -> Color.Black
-                      Holiday.RAMADAN -> Color.White
-                      Holiday.EID_FITR -> Color.Black
-                    },
-            )
+            Column(
+              horizontalAlignment = Alignment.CenterHorizontally,
+              verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+              Box(
+                modifier = Modifier
+                  .size(80.dp)
+                  .clip(CircleShape)
+                  .background(Color.White.copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+              ) {
+                AnimatedIcon(icon, accentColor)
+              }
+
+              Text(
+                  text = when (holiday) {
+                    Holiday.CHRISTMAS -> stringResource(R.string.holiday_christmas_title_clean)
+                    Holiday.NEW_YEAR -> stringResource(R.string.holiday_newyear_title_clean, year)
+                    Holiday.RAMADAN -> stringResource(R.string.holiday_ramadan_title_clean)
+                    Holiday.EID_FITR -> stringResource(R.string.holiday_eid_fitr_title_clean)
+                  },
+                  fontSize = 28.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = Color.White,
+                  textAlign = TextAlign.Center,
+              )
+            }
           }
 
-          // From XKM
-          Text(
-              text = stringResource(R.string.holiday_from_xkm),
-              fontSize = 12.sp,
-              color = Color.White.copy(alpha = 0.6f),
-              textAlign = TextAlign.Center,
-          )
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+          ) {
+            Text(
+                text = when (holiday) {
+                  Holiday.CHRISTMAS -> stringResource(R.string.holiday_christmas_subtitle_clean)
+                  Holiday.NEW_YEAR -> stringResource(R.string.holiday_newyear_subtitle_clean)
+                  Holiday.RAMADAN -> stringResource(R.string.holiday_ramadan_subtitle_clean)
+                  Holiday.EID_FITR -> stringResource(R.string.holiday_eid_fitr_subtitle_clean)
+                },
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF1A1A1A),
+                textAlign = TextAlign.Center,
+            )
+
+            Divider(
+              modifier = Modifier.width(60.dp),
+              thickness = 3.dp,
+              color = accentColor
+            )
+
+            Text(
+                text = motivationalMessage,
+                fontSize = 15.sp,
+                color = Color(0xFF424242),
+                textAlign = TextAlign.Center,
+                lineHeight = 24.sp,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                  containerColor = gradientColors[1]
+                ),
+            ) {
+              Text(
+                  text = when (holiday) {
+                    Holiday.CHRISTMAS -> stringResource(R.string.holiday_christmas_button_clean)
+                    Holiday.NEW_YEAR -> stringResource(R.string.holiday_newyear_button_clean)
+                    Holiday.RAMADAN -> stringResource(R.string.holiday_ramadan_button_clean)
+                    Holiday.EID_FITR -> stringResource(R.string.holiday_eid_fitr_button_clean)
+                  },
+                  fontSize = 16.sp,
+                  fontWeight = FontWeight.Bold,
+                  color = Color.White,
+              )
+            }
+
+            Text(
+                text = stringResource(R.string.holiday_from_xkm),
+                fontSize = 13.sp,
+                color = Color(0xFF9E9E9E),
+                textAlign = TextAlign.Center,
+            )
+          }
         }
       }
     }
@@ -169,43 +215,24 @@ fun HolidayCelebrationDialog(holiday: Holiday, year: Int, onDismiss: () -> Unit)
 }
 
 @Composable
-private fun AnimatedEmoji(holiday: Holiday) {
-  val infiniteTransition = rememberInfiniteTransition(label = "emoji")
+private fun AnimatedIcon(icon: ImageVector, tintColor: Color) {
+  val infiniteTransition = rememberInfiniteTransition(label = "icon")
 
-  val scale by
-      infiniteTransition.animateFloat(
-          initialValue = 1f,
-          targetValue = 1.2f,
-          animationSpec =
-              infiniteRepeatable(
-                  animation = tween(500, easing = FastOutSlowInEasing),
-                  repeatMode = RepeatMode.Reverse,
-              ),
-          label = "scale",
-      )
+  val scale by infiniteTransition.animateFloat(
+      initialValue = 0.9f,
+      targetValue = 1.1f,
+      animationSpec = infiniteRepeatable(
+          animation = tween(1000, easing = FastOutSlowInEasing),
+          repeatMode = RepeatMode.Reverse,
+      ),
+      label = "scale",
+  )
 
-  val rotation by
-      infiniteTransition.animateFloat(
-          initialValue = -10f,
-          targetValue = 10f,
-          animationSpec =
-              infiniteRepeatable(
-                  animation = tween(300, easing = LinearEasing),
-                  repeatMode = RepeatMode.Reverse,
-              ),
-          label = "rotation",
-      )
-
-  Text(
-      text =
-          when (holiday) {
-            Holiday.CHRISTMAS -> "🎄🎅🎄"
-            Holiday.NEW_YEAR -> "🎆✨🎆"
-            Holiday.RAMADAN -> "🌙🕌🌙"
-            Holiday.EID_FITR -> "🎉🕌🎉"
-          },
-      fontSize = (48 * scale).sp,
-      modifier = Modifier.offset(x = (rotation / 5).dp),
+  Icon(
+    imageVector = icon,
+    contentDescription = null,
+    modifier = Modifier.size((48 * scale).dp),
+    tint = Color.White
   )
 }
 
@@ -218,34 +245,31 @@ private fun ChristmasAnimation() {
           y = Random.nextFloat() * 2f - 1f,
           size = Random.nextFloat() * 8f + 4f,
           speed = Random.nextFloat() * 0.5f + 0.3f,
-          color =
-              listOf(
-                      Color(0xFFFF0000), // Red
-                      Color(0xFF00FF00), // Green
-                      Color(0xFFFFFFFF), // White
-                      Color(0xFFFFD700), // Gold
-                  )
-                  .random(),
+          color = listOf(
+            Color(0xFFFF0000),
+            Color(0xFF00FF00),
+            Color(0xFFFFFFFF),
+            Color(0xFFFFD700),
+          ).random(),
       )
     }
   }
 
   val infiniteTransition = rememberInfiniteTransition(label = "snow")
-  val animProgress by
-      infiniteTransition.animateFloat(
-          initialValue = 0f,
-          targetValue = 1f,
-          animationSpec = infiniteRepeatable(animation = tween(3000, easing = LinearEasing)),
-          label = "progress",
-      )
+  val animProgress by infiniteTransition.animateFloat(
+      initialValue = 0f,
+      targetValue = 1f,
+      animationSpec = infiniteRepeatable(animation = tween(3000, easing = LinearEasing)),
+      label = "progress",
+  )
 
-  Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+  Canvas(modifier = Modifier.fillMaxSize()) {
     particles.forEach { particle ->
       val y = (particle.y + animProgress * particle.speed * 2) % 1.2f
       val x = particle.x + sin(animProgress * 6.28f + particle.x * 10) * 0.02f
 
       drawCircle(
-          color = particle.color.copy(alpha = 0.7f),
+          color = particle.color.copy(alpha = 0.6f),
           radius = particle.size,
           center = Offset(x = x * size.width, y = y * size.height),
       )
@@ -262,37 +286,34 @@ private fun FireworksAnimation() {
           y = Random.nextFloat(),
           size = Random.nextFloat() * 6f + 2f,
           speed = Random.nextFloat() * 2f + 1f,
-          color =
-              listOf(
-                      Color(0xFFFFD700), // Gold
-                      Color(0xFFFF6B6B), // Pink-red
-                      Color(0xFF4ECDC4), // Cyan
-                      Color(0xFFFFE66D), // Yellow
-                      Color(0xFF95E1D3), // Mint
-                      Color(0xFFDDA0DD), // Plum
-                  )
-                  .random(),
+          color = listOf(
+            Color(0xFFFFD700),
+            Color(0xFFFF6B6B),
+            Color(0xFF4ECDC4),
+            Color(0xFFFFE66D),
+            Color(0xFF95E1D3),
+            Color(0xFFDDA0DD),
+          ).random(),
       )
     }
   }
 
   val infiniteTransition = rememberInfiniteTransition(label = "fireworks")
-  val animProgress by
-      infiniteTransition.animateFloat(
-          initialValue = 0f,
-          targetValue = 1f,
-          animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing)),
-          label = "progress",
-      )
+  val animProgress by infiniteTransition.animateFloat(
+      initialValue = 0f,
+      targetValue = 1f,
+      animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing)),
+      label = "progress",
+  )
 
-  Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+  Canvas(modifier = Modifier.fillMaxSize()) {
     val centerX = size.width / 2
     val centerY = size.height / 2
 
     particles.forEachIndexed { index, particle ->
       val angle = (index.toFloat() / particles.size) * 6.28f
       val radius = animProgress * size.minDimension * 0.4f * particle.speed
-      val alpha = (1f - animProgress).coerceIn(0f, 0.8f)
+      val alpha = (1f - animProgress).coerceIn(0f, 0.7f)
 
       val x = centerX + cos(angle) * radius * particle.x
       val y = centerY + sin(angle) * radius * particle.y
@@ -308,7 +329,6 @@ private fun FireworksAnimation() {
 
 @Composable
 private fun RamadanAnimation() {
-  // Stars and crescent moon animation
   val particles = remember {
     List(40) {
       Particle(
@@ -316,32 +336,28 @@ private fun RamadanAnimation() {
           y = Random.nextFloat(),
           size = Random.nextFloat() * 4f + 2f,
           speed = Random.nextFloat() * 0.5f + 0.3f,
-          color =
-              listOf(
-                      Color(0xFFFFD700), // Gold
-                      Color(0xFFFFF8E1), // Light gold
-                      Color(0xFFFFFFFF), // White
-                      Color(0xFFFFC107), // Amber
-                  )
-                  .random(),
+          color = listOf(
+            Color(0xFFFFD700),
+            Color(0xFFFFF8E1),
+            Color(0xFFFFFFFF),
+            Color(0xFFFFC107),
+          ).random(),
       )
     }
   }
 
   val infiniteTransition = rememberInfiniteTransition(label = "ramadan")
-  val animProgress by
-      infiniteTransition.animateFloat(
-          initialValue = 0f,
-          targetValue = 1f,
-          animationSpec = infiniteRepeatable(animation = tween(2500, easing = LinearEasing)),
-          label = "progress",
-      )
+  val animProgress by infiniteTransition.animateFloat(
+      initialValue = 0f,
+      targetValue = 1f,
+      animationSpec = infiniteRepeatable(animation = tween(2500, easing = LinearEasing)),
+      label = "progress",
+  )
 
-  Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-    // Twinkling stars effect
+  Canvas(modifier = Modifier.fillMaxSize()) {
     particles.forEach { particle ->
       val twinkle = (sin(animProgress * 6.28f + particle.x * 20) + 1f) / 2f
-      val alpha = 0.3f + twinkle * 0.5f
+      val alpha = 0.3f + twinkle * 0.4f
 
       drawCircle(
           color = particle.color.copy(alpha = alpha),
@@ -354,7 +370,6 @@ private fun RamadanAnimation() {
 
 @Composable
 private fun EidFitriAnimation() {
-  // Festive celebration with confetti and sparkles
   val particles = remember {
     List(60) {
       Particle(
@@ -362,31 +377,27 @@ private fun EidFitriAnimation() {
           y = Random.nextFloat() * 2f - 0.5f,
           size = Random.nextFloat() * 6f + 3f,
           speed = Random.nextFloat() * 0.8f + 0.4f,
-          color =
-              listOf(
-                      Color(0xFFFFD700), // Gold
-                      Color(0xFF4CAF50), // Green
-                      Color(0xFFFFFFFF), // White
-                      Color(0xFFFFC107), // Amber
-                      Color(0xFF8BC34A), // Light green
-                      Color(0xFFFF9800), // Orange
-                  )
-                  .random(),
+          color = listOf(
+            Color(0xFFFFD700),
+            Color(0xFF4CAF50),
+            Color(0xFFFFFFFF),
+            Color(0xFFFFC107),
+            Color(0xFF8BC34A),
+            Color(0xFFFF9800),
+          ).random(),
       )
     }
   }
 
   val infiniteTransition = rememberInfiniteTransition(label = "eid")
-  val animProgress by
-      infiniteTransition.animateFloat(
-          initialValue = 0f,
-          targetValue = 1f,
-          animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing)),
-          label = "progress",
-      )
+  val animProgress by infiniteTransition.animateFloat(
+      initialValue = 0f,
+      targetValue = 1f,
+      animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing)),
+      label = "progress",
+  )
 
-  Canvas(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-    // Falling confetti with wave motion
+  Canvas(modifier = Modifier.fillMaxSize()) {
     particles.forEach { particle ->
       val y = (particle.y + animProgress * particle.speed) % 1.5f
       val wave = sin(animProgress * 6.28f * 2 + particle.x * 15) * 0.03f
@@ -394,7 +405,7 @@ private fun EidFitriAnimation() {
       val rotate = animProgress * 360f * particle.speed
 
       drawCircle(
-          color = particle.color.copy(alpha = 0.8f),
+          color = particle.color.copy(alpha = 0.7f),
           radius = particle.size * (0.7f + sin(rotate * 0.01f) * 0.3f),
           center = Offset(x = x * size.width, y = y * size.height),
       )

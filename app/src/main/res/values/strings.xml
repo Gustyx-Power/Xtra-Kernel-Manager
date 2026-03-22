@@ -550,6 +550,19 @@
     <string name="holiday_newyear_button">🚀 Let\'s Go!</string>
     <string name="holiday_from_xkm">– Xtra Kernel Manager –</string>
 
+    <string name="holiday_christmas_title_clean">Merry Christmas</string>
+    <string name="holiday_christmas_subtitle_clean">Wishing You Joy and Peace</string>
+    <string name="holiday_christmas_button_clean">Thank You</string>
+    <string name="holiday_newyear_title_clean">Happy New Year %1$d</string>
+    <string name="holiday_newyear_subtitle_clean">A Fresh Start Awaits</string>
+    <string name="holiday_newyear_button_clean">Let\'s Go!</string>
+    <string name="holiday_ramadan_title_clean">Ramadan Mubarak</string>
+    <string name="holiday_ramadan_subtitle_clean">Blessed Month of Fasting</string>
+    <string name="holiday_ramadan_button_clean">Alhamdulillah</string>
+    <string name="holiday_eid_fitr_title_clean">Eid Mubarak</string>
+    <string name="holiday_eid_fitr_subtitle_clean">Happy Eid al-Fitr</string>
+    <string name="holiday_eid_fitr_button_clean">Taqabbalallahu Minna Wa Minkum</string>
+
     <!-- Holiday Motivational Messages -->
     <string name="holiday_christmas_motivation_1">May the love and warmth of Christmas always be
         with you. Stay strong and spread happiness! ❤️</string>
