@@ -44,6 +44,8 @@ import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
 import id.xms.xtrakernelmanager.ui.screens.home.components.material.PowerMenuContent
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
+import id.xms.xtrakernelmanager.ui.screens.webview.MaterialWebViewScreen
+import id.xms.xtrakernelmanager.ui.screens.webview.FrostedWebViewScreen
 import id.xms.xtrakernelmanager.ui.screens.settings.SettingsScreen
 import id.xms.xtrakernelmanager.utils.RootShell
 import id.xms.xtrakernelmanager.ui.screens.misc.material.MaterialGameAppSelectorScreen
@@ -387,7 +389,45 @@ fun Navigation(preferencesManager: PreferencesManager) {
           )
         }
 
-        composable("info") { InfoScreen(preferencesManager) }
+        composable("info") { 
+          InfoScreen(
+              preferencesManager = preferencesManager,
+              onNavigateToWebView = { navController.navigate("webview") },
+              onNavigateToLicense = { navController.navigate("license_webview") }
+          )
+        }
+        
+        composable("webview") {
+          if (layoutStyle == "liquid") {
+            FrostedWebViewScreen(
+                url = "https://xtramanagersoftwares.tech/",
+                title = "XMS Website",
+                onNavigateBack = { navController.popBackStack() }
+            )
+          } else {
+            MaterialWebViewScreen(
+                url = "https://xtramanagersoftwares.tech/",
+                title = "XMS Website",
+                onNavigateBack = { navController.popBackStack() }
+            )
+          }
+        }
+        
+        composable("license_webview") {
+          if (layoutStyle == "liquid") {
+            FrostedWebViewScreen(
+                url = "https://raw.githubusercontent.com/Xtra-Computing/Xtra-Kernel-Manager/main/LICENSE",
+                title = "MIT License",
+                onNavigateBack = { navController.popBackStack() }
+            )
+          } else {
+            MaterialWebViewScreen(
+                url = "https://raw.githubusercontent.com/Xtra-Computing/Xtra-Kernel-Manager/main/LICENSE",
+                title = "MIT License",
+                onNavigateBack = { navController.popBackStack() }
+            )
+          }
+        }
         
         composable("settings") {
           SettingsScreen(
