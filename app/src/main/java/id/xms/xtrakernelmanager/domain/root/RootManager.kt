@@ -11,8 +11,8 @@ object RootManager {
   private const val TAG = "RootManager"
 
   // Debug bypass
-  // I2219 = iQOO, Android SDK built for x86_64 = AVD x86_64
-  private val DEBUG_BYPASS_DEVICES = setOf("I2219", "Android SDK built for x86_64")
+  // I2219 = iQOO Z9x, Android SDK built for x86_64, Pixel 9
+  private val DEBUG_BYPASS_DEVICES = setOf("I2219", "Android SDK built for x86_64", "sdk_gphone16k_x86_64")
 
   /** Check if current device is in debug bypass list. Only active in DEBUG builds. */
   fun isDebugBypassDevice(): Boolean {
