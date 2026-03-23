@@ -3,28 +3,21 @@ package id.xms.xtrakernelmanager.ui.screens.info
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalUriHandler
@@ -53,7 +46,7 @@ private val teamMembers =
             githubUrl = "https://github.com/Gustyx-Power",
             telegramUrl = "https://t.me/GustyxPower",
             githubUsername = "Gustyx-Power",
-            shapeIndex = 19, // Cookie9
+            shapeIndex = 19,
         ),
         TeamMember(
             R.drawable.logo_a,
@@ -62,7 +55,7 @@ private val teamMembers =
             githubUrl = "https://github.com/Pavelc4",
             telegramUrl = "https://t.me/Pavellc",
             githubUsername = "Pavelc4",
-            shapeIndex = 30, // Pixel Circle
+            shapeIndex = 30,
         ),
         TeamMember(
             R.drawable.logo_a,
@@ -71,14 +64,14 @@ private val teamMembers =
             githubUrl = "https://github.com/ziyu4",
             telegramUrl = "https://t.me/ziyu4",
             githubUsername = "ziyu4",
-            shapeIndex = 19, // Cookie6
+            shapeIndex = 19,
         ),
         TeamMember(
             R.drawable.team_contributor_rio,
             "Rio",
             "Contributor",
             telegramUrl = "https://t.me/hy6nies",
-            shapeIndex = 16, // Cookie4
+            shapeIndex = 16,
         ),
         TeamMember(
             R.drawable.team_contributor_shimoku,
@@ -86,7 +79,7 @@ private val teamMembers =
             "Contributor",
             githubUrl = "https://github.com/shimokuu",
             telegramUrl = "https://t.me/xdshimokuu",
-            shapeIndex = 3, // Burst
+            shapeIndex = 3,
         ),
         TeamMember(
             R.drawable.logo_a,
@@ -95,7 +88,7 @@ private val teamMembers =
             githubUrl = "https://github.com/Steambot12",
             telegramUrl = "https://t.me/Steambot12",
             githubUsername = "Steambot12",
-            shapeIndex = 20, // Cookie12
+            shapeIndex = 20,
         ),
         TeamMember(
             R.drawable.logo_a,
@@ -104,49 +97,49 @@ private val teamMembers =
             githubUrl = "https://github.com/juns37",
             telegramUrl = "https://t.me/juns37",
             githubUsername = "juns37",
-            shapeIndex = 20, // Cookie12
+            shapeIndex = 20,
         ),
         TeamMember(
             R.drawable.team_tester_achmad,
             "Achmadh",
             "Tester",
-            shapeIndex = 5, // Square
+            shapeIndex = 5,
         ),
         TeamMember(
             R.drawable.team_tester_hasan,
             "Hasan",
             "Tester",
-            shapeIndex = 16, // Cookie4
+            shapeIndex = 16,
         ),
         TeamMember(
             R.drawable.team_tester_reffan,
             "Reffan Lintang M",
             "Tester",
-            shapeIndex = 13, // Gem
+            shapeIndex = 13,
         ),
         TeamMember(
             R.drawable.team_tester_sleep,
             "Adi Suki",
             "Tester",
-            shapeIndex = 13, // Gem
+            shapeIndex = 13,
         ),
         TeamMember(
             R.drawable.team_tester_azhar,
             "Azhar",
             "Tester",
-            shapeIndex = 13, // Gem
+            shapeIndex = 13,
         ),
         TeamMember(
             R.drawable.logo_a,
             "NTT Rules",
             "Tester",
-            shapeIndex = 13, // Gem
+            shapeIndex = 13,
         ),
         TeamMember(
             R.drawable.team_sm_tester,
             "Muttahir",
             "Tester",
-            shapeIndex = 10, // Ghost
+            shapeIndex = 10,
         ),
     )
 
@@ -154,7 +147,6 @@ private val teamMembers =
 fun FrostedInfoScreen() {
     val uriHandler = LocalUriHandler.current
     
-    // Force dark/neon colors for Frosted UI consistency
     val frostedBlobColors = listOf(
         Color(0xFF4A9B8E), 
         Color(0xFF8BA8D8), 
@@ -167,175 +159,335 @@ fun FrostedInfoScreen() {
             colors = frostedBlobColors
         )
 
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(150.dp),
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 100.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalItemSpacing = 12.dp,
-        ) {
-            item(span = StaggeredGridItemSpan.FullLine) {
-                HeroSection()
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header with GlassmorphicCard
+            GlassmorphicCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    text = "About",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
             }
 
-            item(span = StaggeredGridItemSpan.FullLine) {
-                SectionHeader("Community & Info")
-            }
+            androidx.compose.foundation.lazy.LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            ) {
+                // Hero Card - ColorOS Style
+                item {
+                    ColorOSHeroCard()
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-            item(span = StaggeredGridItemSpan.FullLine) {
-                GlassmorphicCommunityCard(onClick = { uriHandler.openUri("https://t.me/CH_XtraManagerSoftware") })
-            }
-
-            item {
-                GlassmorphicBentoCard(
-                    title = "License",
-                    subtitle = "MIT License",
-                    icon = Icons.Rounded.Gavel,
-                    color = Color(0xFF5856D6), // Purple
-                    onClick = {
-                        uriHandler.openUri(
-                            "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/blob/main/LICENSE"
+                // Device Info Grid (2 columns)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ColorOSInfoCard(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Rounded.PhoneAndroid,
+                            label = "App Name",
+                            value = stringResource(R.string.app_name_short)
                         )
-                    },
-                )
-            }
+                        ColorOSInfoCard(
+                            modifier = Modifier.weight(1f),
+                            icon = Icons.Rounded.Storage,
+                            label = "Version",
+                            value = BuildConfig.VERSION_NAME
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-            item {
-                GlassmorphicBentoCard(
-                    title = "Website",
-                    subtitle = "Coming Soon",
-                    icon = Icons.Rounded.Language,
-                    color = Color(0xFF34C759), // Green
-                    onClick = {},
-                )
-            }
+                // Specifications List
+                item {
+                    ColorOSSpecItem(
+                        label = "Build Type",
+                        value = BuildConfig.BUILD_TYPE.uppercase()
+                    )
+                }
 
-            item {
-                GlassmorphicBentoCard(
-                    title = "Version",
-                    subtitle = BuildConfig.VERSION_NAME,
-                    icon = Icons.Rounded.Info,
-                    color = Color(0xFF007AFF), // Blue
-                    onClick = {},
-                )
-            }
+                item {
+                    ColorOSSpecItem(
+                        label = "License",
+                        value = "MIT License",
+                        onClick = {
+                            uriHandler.openUri(
+                                "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/blob/main/LICENSE"
+                            )
+                        }
+                    )
+                }
 
-            item {
-                GlassmorphicBentoCard(
-                    title = "Copyright",
-                    subtitle = "© 2025 XMS",
-                    icon = Icons.Rounded.Copyright,
-                    color = Color(0xFFFF9500), // Orange
-                    onClick = {},
-                )
-            }
+                item {
+                    ColorOSSpecItem(
+                        label = "Community",
+                        value = "Telegram Channel",
+                        onClick = { uriHandler.openUri("https://t.me/CH_XtraManagerSoftware") }
+                    )
+                }
 
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Spacer(modifier = Modifier.height(16.dp))
-                SectionHeader("Founders")
-            }
+                item {
+                    ColorOSSpecItem(
+                        label = "Website",
+                        value = "Coming Soon"
+                    )
+                }
 
-            item(span = StaggeredGridItemSpan.FullLine) {
-                val founders = teamMembers.filter { it.role.contains("Founder", ignoreCase = true) }
-                FrostedTeamCarousel(founders, uriHandler)
-            }
+                item {
+                    ColorOSSpecItem(
+                        label = "Copyright",
+                        value = "© 2025 XMS"
+                    )
+                }
 
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Spacer(modifier = Modifier.height(8.dp))
-                SectionHeader("Contributors")
-            }
+                // Team Section
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    SectionHeader("Team")
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-            item(span = StaggeredGridItemSpan.FullLine) {
-                val contributors = teamMembers.filter { it.role.contains("Contributor", ignoreCase = true) }
-                FrostedTeamCarousel(contributors, uriHandler)
-            }
-
-            item(span = StaggeredGridItemSpan.FullLine) {
-                Spacer(modifier = Modifier.height(8.dp))
-                SectionHeader("Testers")
-            }
-
-            item(span = StaggeredGridItemSpan.FullLine) {
-                val testers = teamMembers.filter { it.role.contains("Tester", ignoreCase = true) }
-                FrostedTeamCarousel(testers, uriHandler)
+                // Team Grid
+                items(teamMembers.chunked(2)) { rowMembers ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        rowMembers.forEach { member ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                FrostedTeamMemberCompactCard(member, uriHandler)
+                            }
+                        }
+                        // Fill empty space if odd number
+                        if (rowMembers.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
     }
 }
 
+// ColorOS Style Hero Card
 @Composable
-private fun HeroSection() {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+private fun ColorOSHeroCard() {
+    GlassmorphicCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        contentPadding = PaddingValues(0.dp)
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF6B4FBB),
+                            Color(0xFF3D5AFE),
+                            Color(0xFF1E88E5)
+                        )
+                    )
+                )
+        ) {
+            // Decorative circles (planet-like)
             Box(
                 modifier = Modifier
-                    .size(120.dp)
-                    .blur(30.dp)
+                    .size(200.dp)
+                    .offset(x = 180.dp, y = (-40).dp)
                     .background(
                         brush = Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF007AFF).copy(0.3f),
+                                Color(0xFFFF6B9D).copy(0.6f),
+                                Color(0xFFFF6B9D).copy(0.3f),
                                 Color.Transparent
                             )
-                        )
+                        ),
+                        shape = CircleShape
                     )
             )
-            GlassmorphicCard(
-                modifier = Modifier.size(100.dp),
-                shape = RoundedCornerShape(26.dp),
-                contentPadding = PaddingValues(20.dp)
+            
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .offset(x = (-30).dp, y = 200.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                Color(0xFF4FC3F7).copy(0.5f),
+                                Color(0xFF4FC3F7).copy(0.2f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+            )
+
+            // Content - Centered
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
+                // Logo
                 Icon(
                     painter = painterResource(R.drawable.logo_a),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.size(64.dp),
                     tint = Color.Unspecified
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // App name (like ColorOS branding)
+                Text(
+                    text = stringResource(R.string.app_name_short),
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 48.sp
+                    ),
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White.copy(0.9f),
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "${BuildConfig.VERSION_NAME} | ${BuildConfig.BUILD_TYPE.uppercase()}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(0.8f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bottom: Status
+                Text(
+                    text = "Version up to date",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(0.7f),
+                    textAlign = TextAlign.Center
                 )
             }
         }
-
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.displaySmall.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 32.sp
-            ),
-            color = Color.White
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Badge("v${BuildConfig.VERSION_NAME}", Color(0xFF007AFF))
-            Badge(BuildConfig.BUILD_TYPE.uppercase(), Color(0xFFAF52DE))
-        }
-
-        Text(
-            text = stringResource(R.string.info_tagline),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = Color.White.copy(0.7f),
-            modifier = Modifier.padding(horizontal = 32.dp)
-        )
     }
 }
 
+// ColorOS Style Info Card (2 column grid items)
 @Composable
-private fun Badge(text: String, color: Color) {
-    val isLight = !isSystemInDarkTheme()
-    Surface(
-        color = color.copy(if (isLight) 0.15f else 0.2f),
-        shape = CircleShape
+private fun ColorOSInfoCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    label: String,
+    value: String
+) {
+    GlassmorphicCard(
+        modifier = modifier.height(100.dp),
+        contentPadding = PaddingValues(16.dp)
     ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            color = color
-        )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White.copy(0.7f),
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(0.7f)
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
     }
+}
+
+// ColorOS Style Spec Item (list item)
+@Composable
+private fun ColorOSSpecItem(
+    label: String,
+    value: String,
+    onClick: (() -> Unit)? = null
+) {
+    GlassmorphicCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) Modifier.clickable(onClick = onClick)
+                else Modifier
+            ),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Medium
+            )
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(0.7f),
+                    textAlign = TextAlign.End
+                )
+                
+                if (onClick != null) {
+                    Icon(
+                        imageVector = Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                        tint = Color.White.copy(0.5f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(8.dp))
 }
 
 @Composable
@@ -349,251 +501,113 @@ private fun SectionHeader(title: String) {
     )
 }
 
+// Compact card for grid layout
 @Composable
-fun GlassmorphicCommunityCard(onClick: () -> Unit) {
-    val isLight = !isSystemInDarkTheme()
-    val containerColor = Color(0xFF007AFF) // Material Primary Container-ish but blue
-    val contentColor = Color.White
-
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth().height(140.dp)
-            .clickable(onClick = onClick),
-        contentPadding = PaddingValues(0.dp)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-                .background(containerColor.copy(alpha = 0.85f))
-        ) {
-            Icon(
-                Icons.Rounded.Groups,
-                contentDescription = null,
-                modifier = Modifier.size(120.dp).align(Alignment.BottomEnd).offset(x = 20.dp, y = 20.dp),
-                tint = contentColor.copy(alpha = 0.2f),
-            )
-
-            Column(modifier = Modifier.padding(20.dp).align(Alignment.TopStart)) {
-                Icon(
-                    Icons.Rounded.Groups,
-                    contentDescription = null,
-                    tint = contentColor,
-                    modifier = Modifier.size(32.dp),
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    "Join Community",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = contentColor,
-                )
-                Text(
-                    "Get help & updates",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor.copy(alpha = 0.8f),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun GlassmorphicBentoCard(
-    title: String,
-    subtitle: String,
-    icon: ImageVector,
-    color: Color,
-    onClick: () -> Unit,
-) {
-    val isLight = !isSystemInDarkTheme()
-    val contentColor = Color.White
-
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth().height(110.dp)
-            .clickable(onClick = onClick),
-        contentPadding = PaddingValues(0.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color.copy(alpha = 0.85f))
-        ) {
-            // Decorative background icon
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-                    .align(Alignment.BottomEnd)
-                    .offset(x = 16.dp, y = 16.dp),
-                tint = contentColor.copy(alpha = 0.15f)
-            )
-
-            Column(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Box(
-                     modifier = Modifier
-                         .size(32.dp)
-                         .clip(RoundedCornerShape(8.dp))
-                         .background(Color.White.copy(0.2f)),
-                     contentAlignment = Alignment.Center
-                 ) {
-                     Icon(icon, null, modifier = Modifier.size(18.dp), tint = contentColor)
-                 }
-                Column {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = contentColor.copy(alpha = 0.8f),
-                    )
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = contentColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun FrostedTeamCarousel(
-    members: List<TeamMember>,
-    uriHandler: androidx.compose.ui.platform.UriHandler,
-) {
-  LazyRow(
-      contentPadding = PaddingValues(vertical = 8.dp),
-      horizontalArrangement = Arrangement.spacedBy(16.dp),
-      modifier = Modifier.fillMaxWidth(),
-  ) {
-    items(members, key = { it.name }) { member -> FrostedTeamMemberCard(member, uriHandler) }
-  }
-}
-
-@Composable
-private fun FrostedTeamMemberCard(
+private fun FrostedTeamMemberCompactCard(
     member: TeamMember,
     uriHandler: androidx.compose.ui.platform.UriHandler,
 ) {
   val memberShape = remember(member.shapeIndex) { ExpressiveShapes.getShape(member.shapeIndex) }
   val hasSocial = member.githubUrl != null || member.telegramUrl != null
-  val isLight = !isSystemInDarkTheme()
-
-  // Determine card color based on role
-  val cardColor =
-      when {
-        member.role.contains("Founder", ignoreCase = true) -> Color(0xFF007AFF) // Blue
-        member.role.contains("Contributor", ignoreCase = true) -> Color(0xFF34C759) // Green
-        member.role.contains("Tester", ignoreCase = true) -> Color(0xFFFF2D55) // Pink
-        else -> Color(0xFF8E8E93) // Gray
-      }
-
   val contentColor = Color.White
   val socialIconTint = contentColor.copy(alpha = 0.8f)
 
   GlassmorphicCard(
-      modifier = Modifier.width(160.dp).height(240.dp),
-      contentPadding = PaddingValues(0.dp)
+      modifier = Modifier
+          .fillMaxWidth()
+          .height(140.dp),
+      contentPadding = PaddingValues(16.dp)
   ) {
-    Box(
-        modifier =
-            Modifier.fillMaxSize()
-                .background(cardColor.copy(alpha = 0.85f))
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-      Column(
-          modifier = Modifier.fillMaxSize().padding(16.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.Top,
+      // Avatar
+      Box(
+          modifier = Modifier
+              .size(80.dp)
+              .clip(memberShape)
+              .background(contentColor.copy(alpha = 0.2f))
       ) {
-            // Avatar
-            Box(
-                modifier =
-                    Modifier.size(90.dp)
-                        .clip(memberShape)
-                        .background(contentColor.copy(alpha = 0.2f))
-            ) {
-              if (member.githubUsername != null) {
-                AsyncImage(
-                    model = "https://github.com/${member.githubUsername}.png",
-                    contentDescription = "${member.name} avatar",
-                    placeholder = painterResource(member.imageRes),
-                    error = painterResource(member.imageRes),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-              } else {
-                Image(
-                    painter = painterResource(member.imageRes),
-                    contentDescription = "${member.name} avatar",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                )
-              }
-            }
+        if (member.githubUsername != null) {
+          AsyncImage(
+              model = "https://github.com/${member.githubUsername}.png",
+              contentDescription = "${member.name} avatar",
+              placeholder = painterResource(member.imageRes),
+              error = painterResource(member.imageRes),
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop,
+          )
+        } else {
+          Image(
+              painter = painterResource(member.imageRes),
+              contentDescription = "${member.name} avatar",
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop,
+          )
+        }
+      }
 
-            Spacer(modifier = Modifier.height(12.dp))
+      // Info
+      Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.Center
+      ) {
+        Text(
+            text = member.name,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
-            // Name
-            Text(
-                text = member.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
-                color = contentColor
-            )
+        Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = member.role,
+            style = MaterialTheme.typography.bodySmall,
+            color = contentColor.copy(alpha = 0.8f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
-            // Role
-            Text(
-                text = member.role,
-                style = MaterialTheme.typography.bodyMedium,
-                color = contentColor.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            // Social Icons
-            if (hasSocial) {
-              Spacer(modifier = Modifier.weight(1f))
-              Row(
-                  horizontalArrangement = Arrangement.Center,
-                  verticalAlignment = Alignment.CenterVertically,
-                  modifier = Modifier.fillMaxWidth(),
+        if (hasSocial) {
+          Spacer(modifier = Modifier.height(8.dp))
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+              verticalAlignment = Alignment.CenterVertically
+          ) {
+            member.githubUrl?.let { url ->
+              IconButton(
+                  onClick = { uriHandler.openUri(url) },
+                  modifier = Modifier.size(32.dp)
               ) {
-                member.githubUrl?.let { url ->
-                  IconButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.size(40.dp)) {
-                    Icon(
-                        imageVector = SimpleIcons.Github,
-                        contentDescription = "GitHub",
-                        tint = socialIconTint,
-                        modifier = Modifier.size(20.dp),
-                    )
-                  }
-                }
-
-                member.telegramUrl?.let { url ->
-                  IconButton(onClick = { uriHandler.openUri(url) }, modifier = Modifier.size(40.dp)) {
-                    Icon(
-                        imageVector = SimpleIcons.Telegram,
-                        contentDescription = "Telegram",
-                        tint = socialIconTint,
-                        modifier = Modifier.size(20.dp),
-                    )
-                  }
-                }
+                Icon(
+                    imageVector = SimpleIcons.Github,
+                    contentDescription = "GitHub",
+                    tint = socialIconTint,
+                    modifier = Modifier.size(16.dp),
+                )
               }
             }
+
+            member.telegramUrl?.let { url ->
+              IconButton(
+                  onClick = { uriHandler.openUri(url) },
+                  modifier = Modifier.size(32.dp)
+              ) {
+                Icon(
+                    imageVector = SimpleIcons.Telegram,
+                    contentDescription = "Telegram",
+                    tint = socialIconTint,
+                    modifier = Modifier.size(16.dp),
+                )
+              }
+            }
+          }
+        }
       }
     }
   }

@@ -5,9 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
@@ -16,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import compose.icons.SimpleIcons
 import compose.icons.simpleicons.Github
@@ -163,95 +163,109 @@ fun MaterialAboutScreen() {
         )
       },
   ) { paddingValues ->
-    LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Adaptive(150.dp),
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-        contentPadding =
-            PaddingValues(
-                top = paddingValues.calculateTopPadding() + 8.dp,
-                bottom = paddingValues.calculateBottomPadding() + 24.dp,
-            ),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalItemSpacing = 12.dp,
+    androidx.compose.foundation.lazy.LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = paddingValues.calculateTopPadding() + 8.dp,
+            bottom = paddingValues.calculateBottomPadding() + 24.dp
+        )
     ) {
-      item(span = StaggeredGridItemSpan.FullLine) { SectionHeader("Community & Info") }
+      // Hero Card - ColorOS Style
+      item {
+        MaterialColorOSHeroCard()
+        Spacer(modifier = Modifier.height(16.dp))
+      }
 
-      item(span = StaggeredGridItemSpan.FullLine) {
-        CommunityBentoCard(onClick = { uriHandler.openUri("https://t.me/CH_XtraManagerSoftware") })
+      // Device Info Grid (2 columns)
+      item {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+          MaterialColorOSInfoCard(
+              modifier = Modifier.weight(1f),
+              icon = Icons.Rounded.PhoneAndroid,
+              label = "App Name",
+              value = "XKM"
+          )
+          MaterialColorOSInfoCard(
+              modifier = Modifier.weight(1f),
+              icon = Icons.Rounded.Storage,
+              label = "Version",
+              value = BuildConfig.VERSION_NAME
+          )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+      }
+
+      // Specifications List
+      item {
+        MaterialColorOSSpecItem(
+            label = "Build Type",
+            value = BuildConfig.BUILD_TYPE.uppercase()
+        )
       }
 
       item {
-        BentoCard(
-            title = "License",
-            subtitle = "MIT License",
-            icon = Icons.Rounded.Gavel,
-            color = MaterialTheme.colorScheme.tertiaryContainer,
+        MaterialColorOSSpecItem(
+            label = "License",
+            value = "MIT License",
             onClick = {
               uriHandler.openUri(
                   "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/blob/main/LICENSE"
               )
-            },
+            }
         )
       }
 
       item {
-        BentoCard(
-            title = "Website",
-            subtitle = "Coming Soon",
-            icon = Icons.Rounded.Language,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            onClick = {},
+        MaterialColorOSSpecItem(
+            label = "Community",
+            value = "Telegram Channel",
+            onClick = { uriHandler.openUri("https://t.me/CH_XtraManagerSoftware") }
         )
       }
 
       item {
-        BentoCard(
-            title = "Version",
-            subtitle = BuildConfig.VERSION_NAME,
-            icon = Icons.Rounded.Info,
-            color = MaterialTheme.colorScheme.secondaryContainer,
-            onClick = {},
+        MaterialColorOSSpecItem(
+            label = "Website",
+            value = "Coming Soon"
         )
       }
 
       item {
-        BentoCard(
-            title = "Copyright",
-            subtitle = "© 2025 XMS",
-            icon = Icons.Rounded.Copyright,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            onClick = {},
+        MaterialColorOSSpecItem(
+            label = "Copyright",
+            value = "© 2025 XMS"
         )
       }
 
-      item(span = StaggeredGridItemSpan.FullLine) {
-        Spacer(modifier = Modifier.height(16.dp))
-        SectionHeader("Founders")
-      }
-
-      item(span = StaggeredGridItemSpan.FullLine) {
-        val founders = teamMembers.filter { it.role.contains("Founder", ignoreCase = true) }
-        TeamCarousel(founders, uriHandler)
-      }
-
-      item(span = StaggeredGridItemSpan.FullLine) {
+      // Team Section
+      item {
+        Spacer(modifier = Modifier.height(24.dp))
+        SectionHeader("Team")
         Spacer(modifier = Modifier.height(8.dp))
-        SectionHeader("Contributors")
       }
 
-      item(span = StaggeredGridItemSpan.FullLine) {
-        val contributors = teamMembers.filter { it.role.contains("Contributor", ignoreCase = true) }
-        TeamCarousel(contributors, uriHandler)
-      }
-
-      item(span = StaggeredGridItemSpan.FullLine) {
-        Spacer(modifier = Modifier.height(8.dp))
-        SectionHeader("Testers")
-      }
-
-      item(span = StaggeredGridItemSpan.FullLine) {
-        val testers = teamMembers.filter { it.role.contains("Tester", ignoreCase = true) }
-        TeamCarousel(testers, uriHandler)
+      // Team Grid
+      items(teamMembers.chunked(2)) { rowMembers ->
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+          rowMembers.forEach { member ->
+            Box(modifier = Modifier.weight(1f)) {
+              TeamMemberCompactCard(member, uriHandler)
+            }
+          }
+          // Fill empty space if odd number
+          if (rowMembers.size == 1) {
+            Spacer(modifier = Modifier.weight(1f))
+          }
+        }
+        Spacer(modifier = Modifier.height(12.dp))
       }
     }
   }
@@ -268,102 +282,225 @@ private fun SectionHeader(title: String) {
   )
 }
 
+// ColorOS Style Hero Card for Material Theme
 @Composable
-fun CommunityBentoCard(onClick: () -> Unit) {
-  val containerColor = MaterialTheme.colorScheme.primaryContainer
-  val contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-  val iconTint = remember(contentColor) { contentColor.copy(alpha = 0.1f) }
-  val subtitleColor = remember(contentColor) { contentColor.copy(alpha = 0.8f) }
-
-  Card(
-      onClick = onClick,
-      colors = CardDefaults.cardColors(containerColor = containerColor),
-      shape = RoundedCornerShape(28.dp),
-      modifier = Modifier.fillMaxWidth().height(140.dp),
-  ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-      Icon(
-          Icons.Rounded.Groups,
-          contentDescription = null,
-          modifier = Modifier.size(120.dp).align(Alignment.BottomEnd).offset(x = 20.dp, y = 20.dp),
-          tint = iconTint,
-      )
-
-      Column(modifier = Modifier.padding(20.dp).align(Alignment.TopStart)) {
-        Icon(
-            Icons.Rounded.Groups,
-            contentDescription = null,
-            tint = contentColor,
-            modifier = Modifier.size(32.dp),
+private fun MaterialColorOSHeroCard() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         )
-        Spacer(modifier = Modifier.weight(1f))
-        Text(
-            "Join Community",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = contentColor,
-        )
-        Text(
-            "Get help & updates",
-            style = MaterialTheme.typography.bodyMedium,
-            color = subtitleColor,
-        )
-      }
-    }
-  }
-}
-
-@Composable
-fun BentoCard(
-    title: String,
-    subtitle: String,
-    icon: ImageVector,
-    color: Color,
-    onClick: () -> Unit,
-) {
-  val contentColor = contentColorFor(color)
-  val labelColor = remember(contentColor) { contentColor.copy(alpha = 0.7f) }
-
-  Card(
-      onClick = onClick,
-      colors = CardDefaults.cardColors(containerColor = color),
-      shape = RoundedCornerShape(24.dp),
-      modifier = Modifier.fillMaxWidth().height(110.dp),
-  ) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-      Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(24.dp))
-      Column {
-        Text(
-            title,
-            style = MaterialTheme.typography.labelLarge,
-            color = labelColor,
-        )
-        Text(
-            subtitle,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = contentColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-      }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(0.8f),
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.tertiary
+                        )
+                    )
+                )
+        ) {
+            // Decorative circles (planet-like)
+            Box(
+                modifier = Modifier
+                    .size(200.dp)
+                    .offset(x = 180.dp, y = (-40).dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.secondary.copy(0.6f),
+                                MaterialTheme.colorScheme.secondary.copy(0.3f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+            )
+            
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .offset(x = (-30).dp, y = 200.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.tertiary.copy(0.5f),
+                                MaterialTheme.colorScheme.tertiary.copy(0.2f),
+                                Color.Transparent
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+            )
+
+            // Content - Centered
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                // Logo
+                Icon(
+                    painter = painterResource(R.drawable.logo_a),
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = Color.Unspecified
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // App name (like ColorOS branding)
+                Text(
+                    text = "XKM",
+                    style = MaterialTheme.typography.displayLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 48.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Xtra Kernel Manager",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(0.9f),
+                    textAlign = TextAlign.Center
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "${BuildConfig.VERSION_NAME} | ${BuildConfig.BUILD_TYPE.uppercase()}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(0.8f),
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Bottom: Status
+                Text(
+                    text = "Version up to date",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(0.7f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
-  }
 }
 
-@Immutable
-data class TeamMember(
-    val imageRes: Int,
-    val name: String,
-    val role: String,
-    val githubUrl: String? = null,
-    val telegramUrl: String? = null,
-    val githubUsername: String? = null,
-    val shapeIndex: Int = 0,
-)
+// ColorOS Style Info Card (2 column grid items) for Material Theme
+@Composable
+private fun MaterialColorOSInfoCard(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    label: String,
+    value: String
+) {
+    Card(
+        modifier = modifier.height(100.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
+// ColorOS Style Spec Item (list item) for Material Theme
+@Composable
+private fun MaterialColorOSSpecItem(
+    label: String,
+    value: String,
+    onClick: (() -> Unit)? = null
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        ),
+        onClick = onClick ?: {}
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Medium
+            )
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.End
+                )
+                
+                if (onClick != null) {
+                    Icon(
+                        imageVector = Icons.Rounded.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(8.dp))
+}
 
 @Composable
 private fun TeamCarousel(
@@ -376,6 +513,122 @@ private fun TeamCarousel(
       modifier = Modifier.fillMaxWidth(),
   ) {
     items(members, key = { it.name }) { member -> TeamMemberCarouselCard(member, uriHandler) }
+  }
+}
+
+// Compact card for grid layout
+@Composable
+private fun TeamMemberCompactCard(
+    member: TeamMember,
+    uriHandler: androidx.compose.ui.platform.UriHandler,
+) {
+  val memberShape = remember(member.shapeIndex) { ExpressiveShapes.getShape(member.shapeIndex) }
+  val hasSocial = member.githubUrl != null || member.telegramUrl != null
+  val iconTint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+
+  Card(
+      modifier = Modifier
+          .fillMaxWidth()
+          .height(140.dp),
+      shape = RoundedCornerShape(20.dp),
+      colors = CardDefaults.cardColors(
+          containerColor = MaterialTheme.colorScheme.surfaceContainer
+      )
+  ) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+      // Avatar
+      Box(
+          modifier = Modifier
+              .size(80.dp)
+              .clip(memberShape)
+              .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+      ) {
+        if (member.githubUsername != null) {
+          AsyncImage(
+              model = "https://github.com/${member.githubUsername}.png",
+              contentDescription = "${member.name} avatar",
+              placeholder = painterResource(member.imageRes),
+              error = painterResource(member.imageRes),
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop,
+          )
+        } else {
+          Image(
+              painter = painterResource(member.imageRes),
+              contentDescription = "${member.name} avatar",
+              modifier = Modifier.fillMaxSize(),
+              contentScale = ContentScale.Crop,
+          )
+        }
+      }
+
+      // Info
+      Column(
+          modifier = Modifier.weight(1f),
+          verticalArrangement = Arrangement.Center
+      ) {
+        Text(
+            text = member.name,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = member.role,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        if (hasSocial) {
+          Spacer(modifier = Modifier.height(8.dp))
+          Row(
+              horizontalArrangement = Arrangement.spacedBy(4.dp),
+              verticalAlignment = Alignment.CenterVertically
+          ) {
+            member.githubUrl?.let { url ->
+              IconButton(
+                  onClick = { uriHandler.openUri(url) },
+                  modifier = Modifier.size(32.dp)
+              ) {
+                Icon(
+                    imageVector = SimpleIcons.Github,
+                    contentDescription = "GitHub",
+                    tint = iconTint,
+                    modifier = Modifier.size(16.dp),
+                )
+              }
+            }
+
+            member.telegramUrl?.let { url ->
+              IconButton(
+                  onClick = { uriHandler.openUri(url) },
+                  modifier = Modifier.size(32.dp)
+              ) {
+                Icon(
+                    imageVector = SimpleIcons.Telegram,
+                    contentDescription = "Telegram",
+                    tint = iconTint,
+                    modifier = Modifier.size(16.dp),
+                )
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }
 
