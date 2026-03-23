@@ -37,16 +37,33 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 @Composable
 fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> Unit) {
     val persistedConfig by viewModel.preferencesManager.getRamConfig().collectAsState(initial = RAMConfig())
+    val zramStatus by viewModel.zramStatus.collectAsState()
+    val currentCompressionAlgo by viewModel.currentCompressionAlgorithm.collectAsState()
+    val initialZramSize = if (persistedConfig.zramSize > 0) {
+        persistedConfig.zramSize.toFloat()
+    } else if (zramStatus.isActive && zramStatus.totalMb > 0) {
+        zramStatus.totalMb.toFloat()
+    } else {
+        2048f
+    }
 
     var swappiness by remember { mutableFloatStateOf(persistedConfig.swappiness.toFloat()) }
-    var zramSize by remember { mutableFloatStateOf(if (persistedConfig.zramSize > 0) persistedConfig.zramSize.toFloat() else 2048f) }
+    var zramSize by remember { mutableFloatStateOf(initialZramSize) }
     var swapSize by remember { mutableFloatStateOf(if (persistedConfig.swapSize > 0) persistedConfig.swapSize.toFloat() else 2048f) }
     var dirtyRatio by remember { mutableFloatStateOf(persistedConfig.dirtyRatio.toFloat()) }
     var minFreeMem by remember { mutableFloatStateOf(persistedConfig.minFreeMem.toFloat()) }
-    var compressionAlgo by remember { mutableStateOf(persistedConfig.compressionAlgorithm) }
+    
+    // Use remember with key to properly react to changes
+    var compressionAlgo by remember(persistedConfig.compressionAlgorithm) { 
+        mutableStateOf(persistedConfig.compressionAlgorithm) 
+    }
 
-    var zramEnabled by remember { mutableStateOf(persistedConfig.zramSize > 0) }
-    var swapEnabled by remember { mutableStateOf(persistedConfig.swapSize > 0) }
+    var zramEnabled by remember(persistedConfig.zramSize, zramStatus.isActive) { 
+        mutableStateOf(persistedConfig.zramSize > 0 || zramStatus.isActive) 
+    }
+    var swapEnabled by remember(persistedConfig.swapSize) { 
+        mutableStateOf(persistedConfig.swapSize > 0) 
+    }
 
     var showZramDialog by remember { mutableStateOf(false) }
     var showSwapDialog by remember { mutableStateOf(false) }
@@ -105,15 +122,11 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
         }
     }
 
-    LaunchedEffect(persistedConfig) {
+    // Update only specific values when persistedConfig changes
+    LaunchedEffect(persistedConfig.swappiness, persistedConfig.dirtyRatio, persistedConfig.minFreeMem) {
         swappiness = persistedConfig.swappiness.toFloat()
-        zramSize = if (persistedConfig.zramSize > 0) persistedConfig.zramSize.toFloat() else 2048f
-        swapSize = if (persistedConfig.swapSize > 0) persistedConfig.swapSize.toFloat() else 2048f
         dirtyRatio = persistedConfig.dirtyRatio.toFloat()
         minFreeMem = persistedConfig.minFreeMem.toFloat()
-        compressionAlgo = persistedConfig.compressionAlgorithm
-        zramEnabled = persistedConfig.zramSize > 0
-        swapEnabled = persistedConfig.swapSize > 0
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -210,41 +223,39 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = zramEnabled,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
+                // Compression Algorithm - SEPARATE card, always visible
+                GlassmorphicCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(20.dp)
                 ) {
-                    GlassmorphicCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(20.dp)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Settings,
-                                    contentDescription = null,
-                                    tint = Color(0xFF84CC16),
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Text(
-                                    text = "Compression Algorithm",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = adaptiveTextColor()
-                                )
-                            }
-
-                            FrostedCompressionSelector(
-                                selectedAlgo = compressionAlgo,
-                                onAlgoSelected = { compressionAlgo = it }
+                            Icon(
+                                imageVector = Icons.Rounded.Settings,
+                                contentDescription = null,
+                                tint = Color(0xFF84CC16),
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Text(
+                                text = "Compression Algorithm",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = adaptiveTextColor()
                             )
                         }
+
+                        FrostedCompressionSelector(
+                            selectedAlgo = compressionAlgo,
+                            onAlgoSelected = { 
+                                compressionAlgo = it
+                                viewModel.setCompressionAlgorithm(it)
+                            }
+                        )
                     }
                 }
 
