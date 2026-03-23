@@ -100,7 +100,12 @@ android {
         abi {
             isEnable = true
             reset()
-            include("arm64-v8a")
+            // Release: arm64-v8a only, Debug: includes x86_64 for AVD
+            if (gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }) {
+                include("arm64-v8a")
+            } else {
+                include("arm64-v8a", "x86_64")
+            }
             isUniversalApk = false
         }
     }

@@ -10,8 +10,9 @@ object RootManager {
 
   private const val TAG = "RootManager"
 
-  // Debug bypass untuk device tertentu (tambahkan model lain jika diperlukan)
-  private val DEBUG_BYPASS_DEVICES = setOf("I2219")
+  // Debug bypass
+  // I2219 = iQOO, sdk_gphone_x86_64 = AVD x86_64, sdk_gphone64_x86_64 = AVD x86_64 (64-bit)
+  private val DEBUG_BYPASS_DEVICES = setOf("I2219", "sdk_gphone_x86_64", "sdk_gphone64_x86_64")
 
   /** Check if current device is in debug bypass list. Only active in DEBUG builds. */
   fun isDebugBypassDevice(): Boolean {
