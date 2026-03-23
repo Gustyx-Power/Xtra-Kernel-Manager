@@ -238,7 +238,8 @@ fun FrostedInfoScreen() {
                 item {
                     ColorOSSpecItem(
                         label = "Website",
-                        value = "Coming Soon"
+                        value = "xtramanagersoftwares.tech",
+                        onClick = { uriHandler.openUri("https://xtramanagersoftwares.tech/") }
                     )
                 }
 

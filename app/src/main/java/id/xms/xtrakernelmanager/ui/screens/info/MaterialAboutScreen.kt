@@ -231,7 +231,8 @@ fun MaterialAboutScreen() {
       item {
         MaterialColorOSSpecItem(
             label = "Website",
-            value = "Coming Soon"
+            value = "xtramanagersoftwares.tech",
+            onClick = { uriHandler.openUri("https://xtramanagersoftwares.tech/") }
         )
       }
 
