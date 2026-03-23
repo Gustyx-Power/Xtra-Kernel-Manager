@@ -83,20 +83,12 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Smartphone,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Rounded.Smartphone,
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color(0xFF06B6D4), // Cyan
+                        modifier = Modifier.size(40.dp)
+                    )
 
                     Column {
                         Text(
@@ -137,20 +129,12 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Wifi,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Rounded.Wifi,
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color(0xFF10B981), // Green
+                        modifier = Modifier.size(40.dp)
+                    )
 
                     Column {
                         Text(
@@ -191,20 +175,12 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.tertiaryContainer,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.Security,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Rounded.Security,
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color(0xFFF59E0B), // Orange
+                        modifier = Modifier.size(40.dp)
+                    )
 
                     Column {
                         Text(

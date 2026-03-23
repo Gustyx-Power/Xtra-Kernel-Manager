@@ -101,28 +101,12 @@ fun FrostedPerAppProfileCard(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Icon with gradient background
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.tertiary,
-                                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
-                                    )
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Apps,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Rounded.Apps,
+                        contentDescription = null,
+                        tint = androidx.compose.ui.graphics.Color(0xFFD946EF), // Magenta
+                        modifier = Modifier.size(40.dp)
+                    )
 
                     Column {
                         Text(
