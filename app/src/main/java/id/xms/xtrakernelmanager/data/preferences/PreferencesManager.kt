@@ -74,6 +74,7 @@ class PreferencesManager(private val context: Context) {
   private val RAM_SWAP_SIZE = intPreferencesKey("ram_swap_size")
   private val RAM_DIRTY_RATIO = intPreferencesKey("ram_dirty_ratio")
   private val RAM_MIN_FREE_MEM = intPreferencesKey("ram_min_free_mem")
+  private val RAM_COMPRESSION_ALGO = stringPreferencesKey("ram_compression_algo")
   private val RAM_SET_ON_BOOT = booleanPreferencesKey("ram_set_on_boot")
 
   // Additional/Network configuration keys
@@ -228,6 +229,7 @@ class PreferencesManager(private val context: Context) {
       prefs[RAM_SWAP_SIZE] = config.swapSize
       prefs[RAM_DIRTY_RATIO] = config.dirtyRatio
       prefs[RAM_MIN_FREE_MEM] = config.minFreeMem
+      prefs[RAM_COMPRESSION_ALGO] = config.compressionAlgorithm
     }
   }
 
@@ -239,6 +241,7 @@ class PreferencesManager(private val context: Context) {
             swapSize = prefs[RAM_SWAP_SIZE] ?: 0,
             dirtyRatio = prefs[RAM_DIRTY_RATIO] ?: 20,
             minFreeMem = prefs[RAM_MIN_FREE_MEM] ?: 0,
+            compressionAlgorithm = prefs[RAM_COMPRESSION_ALGO] ?: "lz4",
         )
       }
 
