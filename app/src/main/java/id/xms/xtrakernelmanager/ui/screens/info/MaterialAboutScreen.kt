@@ -169,7 +169,7 @@ fun MaterialAboutScreen() {
             start = 16.dp,
             end = 16.dp,
             top = paddingValues.calculateTopPadding() + 8.dp,
-            bottom = paddingValues.calculateBottomPadding() + 24.dp
+            bottom = paddingValues.calculateBottomPadding() + 96.dp // Extra padding for floating bottom bar
         )
     ) {
       // Hero Card - ColorOS Style

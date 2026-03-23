@@ -84,7 +84,7 @@ fun MaterialTuningScreen(
         modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp),
         verticalItemSpacing = 16.dp,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(bottom = 24.dp),
+        contentPadding = PaddingValues(bottom = 96.dp), // Extra padding for floating bottom bar
     ) {
       // 1. Hero Card
       item(span = StaggeredGridItemSpan.FullLine) { HeroDeviceCard(viewModel) }

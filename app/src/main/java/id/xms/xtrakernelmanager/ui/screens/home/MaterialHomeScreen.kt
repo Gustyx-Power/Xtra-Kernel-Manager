@@ -77,7 +77,7 @@ fun MaterialHomeScreen(
                     .padding(paddingValues) // Apply system padding for status bar
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 96.dp), // Extra padding for floating bottom bar
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     // Remove custom status bar - use system status bar instead
