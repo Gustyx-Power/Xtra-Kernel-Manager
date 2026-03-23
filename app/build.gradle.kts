@@ -146,7 +146,7 @@ kotlin {
 
 dependencies {
     // Core Android
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.core:core-ktx:1.18.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.activity:activity-compose:1.12.4")
     implementation("androidx.core:core-splashscreen:1.2.0")
