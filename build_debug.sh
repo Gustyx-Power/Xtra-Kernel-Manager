@@ -156,35 +156,55 @@ if [ "$INSTALL_TARGET" = "waydroid" ]; then
     echo -e "${GREEN}Done!${NC}"
     echo -e "${YELLOW}Tip: Use 'waydroid show-full-ui' to see the Waydroid window.${NC}"
 else
-    # Install to ADB device (original method)
+    # Install to ADB device
     APK_NAME=$(basename "$APK_PATH")
-    REMOTE_PATH="/data/local/tmp/$APK_NAME"
     
-    echo -e "${YELLOW}Pushing APK to device...${NC}"
-    adb push "$APK_PATH" "$REMOTE_PATH"
+    # Detect if device is an emulator
+    IS_EMULATOR=$(adb shell getprop ro.kernel.qemu 2>/dev/null)
+    DEVICE_MODEL=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
     
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Push Failed!${NC}"
-        exit 1
-    fi
-    
-    echo -e "${YELLOW}Installing via pm install (root)...${NC}"
-    adb shell "su -c 'pm install -r -d $REMOTE_PATH'"
-    
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Installation Failed!${NC}"
-        # Cleanup temp file
-        adb shell "rm -f $REMOTE_PATH"
-        exit 1
+    if [ "$IS_EMULATOR" = "1" ] || [[ "$DEVICE_MODEL" == *"SDK"* ]] || [[ "$DEVICE_MODEL" == *"Emulator"* ]]; then
+        echo -e "${GREEN}AVD Emulator detected: $DEVICE_MODEL${NC}"
+        echo -e "${YELLOW}Installing via standard adb install...${NC}"
+        
+        adb install -r -d "$APK_PATH"
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Installation Failed!${NC}"
+            exit 1
+        fi
     else
-        echo -e "${GREEN}Installed Successfully!${NC}"
+        # Physical device - use root method
+        echo -e "${GREEN}Physical device detected: $DEVICE_MODEL${NC}"
+        REMOTE_PATH="/data/local/tmp/$APK_NAME"
+        
+        echo -e "${YELLOW}Pushing APK to device...${NC}"
+        adb push "$APK_PATH" "$REMOTE_PATH"
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Push Failed!${NC}"
+            exit 1
+        fi
+        
+        echo -e "${YELLOW}Installing via pm install (root)...${NC}"
+        adb shell "su -c 'pm install -r -d $REMOTE_PATH'"
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${RED}Installation Failed!${NC}"
+            # Cleanup temp file
+            adb shell "rm -f $REMOTE_PATH"
+            exit 1
+        fi
+        
         # Cleanup temp file
         adb shell "rm -f $REMOTE_PATH"
-        
-        echo -e "${YELLOW}Launching App...${NC}"
-        # Try to launch using monkey (generic) or specific intent
-        adb shell monkey -p $PACKAGE_NAME -c android.intent.category.LAUNCHER 1
-        
-        echo -e "${GREEN}Done!${NC}"
     fi
+    
+    echo -e "${GREEN}Installed Successfully!${NC}"
+    
+    echo -e "${YELLOW}Launching App...${NC}"
+    # Try to launch using monkey (generic) or specific intent
+    adb shell monkey -p $PACKAGE_NAME -c android.intent.category.LAUNCHER 1
+    
+    echo -e "${GREEN}Done!${NC}"
 fi
