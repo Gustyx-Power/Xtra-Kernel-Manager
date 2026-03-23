@@ -36,6 +36,36 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // TCP Set on Boot Toggle - Compact version at the top
+        GlassmorphicCard(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.set_on_boot),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Apply TCP settings on startup",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                FrostedToggle(
+                    checked = tcpSetOnBoot,
+                    onCheckedChange = { viewModel.setTCPSetOnBoot(it) }
+                )
+            }
+        }
+
         // Hostname Card
         GlassmorphicCard(
             modifier = Modifier.fillMaxWidth(),
@@ -194,60 +224,6 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
                     imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        // TCP Set on Boot Toggle
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (tcpSetOnBoot) MaterialTheme.colorScheme.primaryContainer
-                               else MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                imageVector = Icons.Rounded.PowerSettingsNew,
-                                contentDescription = null,
-                                tint = if (tcpSetOnBoot) MaterialTheme.colorScheme.onPrimaryContainer
-                                       else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-
-                    Column {
-                        Text(
-                            text = stringResource(R.string.set_on_boot),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Apply TCP settings on startup",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                FrostedToggle(
-                    checked = tcpSetOnBoot,
-                    onCheckedChange = { viewModel.setTCPSetOnBoot(it) }
                 )
             }
         }
