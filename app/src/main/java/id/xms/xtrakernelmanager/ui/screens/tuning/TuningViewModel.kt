@@ -1183,6 +1183,17 @@ class TuningViewModel(
     }
   }
 
+  fun setCompressionAlgorithm(algorithm: String) {
+    viewModelScope.launch(Dispatchers.IO) {
+      val result = ramUseCase.setCompressionAlgorithm(algorithm)
+      if (result.isSuccess) {
+        _currentCompressionAlgorithm.value = algorithm
+        val currentConfig = preferencesManager.getRamConfig().first()
+        preferencesManager.setRamConfig(currentConfig.copy(compressionAlgorithm = algorithm))
+      }
+    }
+  }
+
   fun setPerfMode(mode: String) {
     viewModelScope.launch {
       Log.d("TuningViewModel", "Setting Performance Mode to: $mode")
