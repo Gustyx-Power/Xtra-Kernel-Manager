@@ -41,12 +41,22 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import kotlinx.coroutines.delay
 
 @Composable
-fun InfoScreen(preferencesManager: id.xms.xtrakernelmanager.data.preferences.PreferencesManager) {
+fun InfoScreen(
+    preferencesManager: id.xms.xtrakernelmanager.data.preferences.PreferencesManager,
+    onNavigateToWebView: () -> Unit = {},
+    onNavigateToLicense: () -> Unit = {}
+) {
   val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
   if (layoutStyle == "material") {
-    MaterialAboutScreen()
+    MaterialAboutScreen(
+        onNavigateToWebView = onNavigateToWebView,
+        onNavigateToLicense = onNavigateToLicense
+    )
   } else {
-    FrostedInfoScreen()
+    FrostedInfoScreen(
+        onNavigateToWebView = onNavigateToWebView,
+        onNavigateToLicense = onNavigateToLicense
+    )
   }
 }
 

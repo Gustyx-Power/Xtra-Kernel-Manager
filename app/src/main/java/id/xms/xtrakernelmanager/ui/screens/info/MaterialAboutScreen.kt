@@ -141,7 +141,10 @@ private val teamMembers =
     
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MaterialAboutScreen() {
+fun MaterialAboutScreen(
+    onNavigateToWebView: () -> Unit = {},
+    onNavigateToLicense: () -> Unit = {}
+) {
   val uriHandler = LocalUriHandler.current
 
   Scaffold(
@@ -212,11 +215,7 @@ fun MaterialAboutScreen() {
         MaterialColorOSSpecItem(
             label = "License",
             value = "MIT License",
-            onClick = {
-              uriHandler.openUri(
-                  "https://github.com/Xtra-Manager-Software/Xtra-Kernel-Manager/blob/main/LICENSE"
-              )
-            }
+            onClick = { onNavigateToLicense() }
         )
       }
 
@@ -232,7 +231,7 @@ fun MaterialAboutScreen() {
         MaterialColorOSSpecItem(
             label = "Website",
             value = "xtramanagersoftwares.tech",
-            onClick = { uriHandler.openUri("https://xtramanagersoftwares.tech/") }
+            onClick = { onNavigateToWebView() }
         )
       }
 
