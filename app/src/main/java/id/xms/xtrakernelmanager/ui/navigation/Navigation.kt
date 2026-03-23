@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,7 +24,7 @@ import id.xms.xtrakernelmanager.R
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.BottomNavItem
 import id.xms.xtrakernelmanager.ui.components.HolidayCelebrationDialog
-import id.xms.xtrakernelmanager.ui.components.ModernBottomBar
+import id.xms.xtrakernelmanager.ui.components.material.MaterialFloatingBottomBar
 import id.xms.xtrakernelmanager.ui.components.frosted.FrostedBottomTabs
 import id.xms.xtrakernelmanager.ui.components.frosted.FrostedBottomTab
 import id.xms.xtrakernelmanager.ui.components.classic.ClassicBottomBar
@@ -40,8 +42,10 @@ import id.xms.xtrakernelmanager.ui.screens.functionalrom.HideAccessibilitySettin
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.DisplaySizeScreen
 import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
+import id.xms.xtrakernelmanager.ui.screens.home.components.material.PowerMenuContent
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.settings.SettingsScreen
+import id.xms.xtrakernelmanager.utils.RootShell
 import id.xms.xtrakernelmanager.ui.screens.misc.material.MaterialGameAppSelectorScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscScreen
 import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
@@ -67,12 +71,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.CompositionLocalProvider
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Navigation(preferencesManager: PreferencesManager) {
   val navController = rememberNavController()
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = navBackStackEntry?.destination?.route
   val scope = rememberCoroutineScope()
+
+  // Power menu state for Material theme
+  var showPowerBottomSheet by remember { mutableStateOf(false) }
 
   // Holiday celebration state
   var showHolidayDialog by remember { mutableStateOf(false) }
@@ -173,14 +181,14 @@ fun Navigation(preferencesManager: PreferencesManager) {
 
   Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,  // ✅ Background normal
+        containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
       NavHost(
           navController = navController,
           startDestination = startDest,
           modifier = Modifier
               .padding(paddingValues)
-              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 64.dp),  // ✅ Sesuaikan dengan actual height
+              .padding(bottom = if (layoutStyle == "liquid") 0.dp else 0.dp),
       ) {
         composable("setup") {
           SetupScreen(
@@ -446,12 +454,31 @@ fun Navigation(preferencesManager: PreferencesManager) {
             modifier = Modifier.align(Alignment.BottomCenter)
         )
       } else {
-        ModernBottomBar(
+        MaterialFloatingBottomBar(
             currentRoute = currentRoute,
             onNavigate = navigateToRoute,
             items = bottomNavItems,
+            onPowerMenuClick = { showPowerBottomSheet = true },
             modifier = Modifier
                 .align(Alignment.BottomCenter),
+        )
+      }
+    }
+
+    // Power Menu Bottom Sheet for Material theme
+    if (layoutStyle != "liquid" && layoutStyle != "classic" && showPowerBottomSheet) {
+      ModalBottomSheet(
+          onDismissRequest = { showPowerBottomSheet = false },
+          containerColor = MaterialTheme.colorScheme.surface,
+          contentColor = MaterialTheme.colorScheme.onSurface,
+      ) {
+        PowerMenuContent(
+            onAction = { action ->
+              showPowerBottomSheet = false
+              scope.launch {
+                RootShell.execute(action.command)
+              }
+            }
         )
       }
     }

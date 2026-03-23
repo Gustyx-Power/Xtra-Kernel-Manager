@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.model.PowerAction
-import id.xms.xtrakernelmanager.ui.screens.home.components.ExpandablePowerFab
 import id.xms.xtrakernelmanager.ui.screens.home.components.material.*
 import kotlinx.coroutines.delay
 import java.util.Locale
@@ -71,9 +70,6 @@ fun MaterialHomeScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButton = {
-            ExpandablePowerFab(onPowerAction = { action -> onPowerAction(action) })
-        },
         content = { paddingValues ->
             Column(
                 modifier = Modifier
