@@ -604,14 +604,16 @@ fun FrostedConfigDropdownRow(
     var expanded by remember { mutableStateOf(false) }
     
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.weight(1f)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.weight(1f, fill = false)
         ) {
             Icon(
                 icon,
@@ -620,16 +622,19 @@ fun FrostedConfigDropdownRow(
                 modifier = Modifier.size(24.dp)
             )
             Text(
-                label,
+                text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
-                color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+                color = id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
         
         Box {
             GlassmorphicCard(
                 modifier = Modifier
+                    .wrapContentWidth()
                     .height(36.dp)
                     .clickable { expanded = true },
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
@@ -639,12 +644,13 @@ fun FrostedConfigDropdownRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        currentValue,
+                        text = currentValue,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = if(isModified) 
                             MaterialTheme.colorScheme.primary 
-                        else id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor()
+                        else id.xms.xtrakernelmanager.ui.screens.home.components.frosted.adaptiveTextColor(),
+                        maxLines = 1
                     )
                     Icon(
                         Icons.Rounded.ArrowDropDown,
