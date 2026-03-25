@@ -280,7 +280,7 @@ jobs:
           ./update_progress.sh "$MESSAGE_ID" "15" "Setting up Environment..."
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
 
 
