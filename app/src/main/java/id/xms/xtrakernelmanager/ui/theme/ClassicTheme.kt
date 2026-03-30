@@ -9,6 +9,9 @@ object ClassicColors {
     val SurfaceVariant = Color(0xFF19282c) // Active/Hover states (surface_container_highest)
     val SurfaceContainerLow = Color(0xFF0b1517) // Slightly recessed
     val SurfaceContainerLowest = Color(0xFF000000) // Deepest recessed areas
+    val SurfaceContainer = Color(0xFF101b1e) // Standard container
+    val SurfaceContainerHighest = Color(0xFF19282c) // Highest container
+    val SurfaceContainerHigh = Color(0xFF142225) // High container
     val SurfaceBright = Color(0xFF1d2f33) // Bright surfaces
     
     val Primary = Color(0xFFadf4ff) // Luminous cyan glow

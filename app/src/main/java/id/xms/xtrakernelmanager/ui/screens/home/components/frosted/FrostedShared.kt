@@ -3,7 +3,6 @@ package id.xms.xtrakernelmanager.ui.screens.home.components.frosted
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -21,32 +20,20 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 
 @Composable
 fun adaptiveTextColor(): Color {
-    val isDarkTheme = isSystemInDarkTheme()
-    return if (isDarkTheme) {
-        Color.White.copy(alpha = 0.95f)
-    } else {
-        Color(0xFF2C2C2C).copy(alpha = 0.85f)
-    }
+    // XKM is always dark mode
+    return Color.White.copy(alpha = 0.95f)
 }
 
 @Composable
 fun adaptiveTextColor(alpha: Float): Color {
-    val isDarkTheme = isSystemInDarkTheme()
-    return if (isDarkTheme) {
-        Color.White.copy(alpha = alpha * 0.95f)
-    } else {
-        Color(0xFF2C2C2C).copy(alpha = alpha * 0.85f)
-    }
+    // XKM is always dark mode
+    return Color.White.copy(alpha = alpha * 0.95f)
 }
 
 @Composable
 fun adaptiveSurfaceColor(alpha: Float = 0.1f): Color {
-    val isDarkTheme = isSystemInDarkTheme()
-    return if (isDarkTheme) {
-        Color(0xFF000000).copy(alpha = alpha)
-    } else {
-        Color.White.copy(alpha = alpha)
-    }
+    // XKM is always dark mode
+    return Color(0xFF000000).copy(alpha = alpha)
 }
 
 @Composable
@@ -67,13 +54,8 @@ fun FrostedSharedCard(
 
 @Composable
 fun FrostedBatterySilhouette(level: Float, isCharging: Boolean, color: Color) {
-    val isDarkTheme = isSystemInDarkTheme()
-    
-    val silhouetteColor = if (isDarkTheme) {
-        Color.White.copy(alpha = 0.5f)
-    } else {
-        Color(0xFF5A5A5A).copy(alpha = 0.6f)
-    }
+    // XKM is always dark mode
+    val silhouetteColor = Color.White.copy(alpha = 0.5f)
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
