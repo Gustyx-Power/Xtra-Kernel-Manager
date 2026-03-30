@@ -2,58 +2,116 @@ package id.xms.xtrakernelmanager.ui.screens.home.components.classic
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PowerSettingsNew
+import androidx.compose.material.icons.rounded.RestartAlt
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import id.xms.xtrakernelmanager.ui.model.PowerAction
 import id.xms.xtrakernelmanager.ui.model.getLocalizedLabel
 import id.xms.xtrakernelmanager.ui.theme.ClassicColors
 
 @Composable
 fun ClassicPowerMenu(onPowerAction: (PowerAction) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.PowerSettingsNew,
+                contentDescription = null,
+                tint = ClassicColors.OnSurface,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-            text = "Power Menu",
-            style = MaterialTheme.typography.titleMedium,
-            color = ClassicColors.Secondary,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+                text = "Power Menu",
+                style = MaterialTheme.typography.titleLarge,
+                color = ClassicColors.OnSurface,
+                fontWeight = FontWeight.Bold
+            )
+        }
         
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            val actions = PowerAction.values().toList().chunked(2)
-            actions.forEach { rowActions ->
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    rowActions.forEach { action ->
-                        Button(
-                            onClick = { onPowerAction(action) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = ClassicColors.Surface,
-                                contentColor = ClassicColors.OnSurface
-                            )
-                        ) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(vertical = 4.dp)) {
-                                Icon(
-                                    imageVector = action.icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = ClassicColors.Secondary
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(action.getLocalizedLabel(), style = MaterialTheme.typography.labelSmall, maxLines = 1)
-                            }
-                        }
-                    }
-                    if (rowActions.size < 2) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            PowerMenuItem(
+                icon = Icons.Rounded.RestartAlt,
+                label = "REBOOT",
+                onClick = { onPowerAction(PowerAction.Reboot) },
+                modifier = Modifier.weight(1f)
+            )
+            PowerMenuItem(
+                icon = Icons.Rounded.Refresh,
+                label = "FASTBOOT",
+                onClick = { onPowerAction(PowerAction.Bootloader) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            PowerMenuItem(
+                icon = Icons.Rounded.Build,
+                label = "RECOVERY",
+                onClick = { onPowerAction(PowerAction.Recovery) },
+                modifier = Modifier.weight(1f)
+            )
+            PowerMenuItem(
+                icon = Icons.Rounded.PowerSettingsNew,
+                label = "SHUTDOWN",
+                onClick = { onPowerAction(PowerAction.PowerOff) },
+                modifier = Modifier.weight(1f),
+                isDestructive = true
+            )
+        }
+    }
+}
+
+@Composable
+private fun PowerMenuItem(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    isDestructive: Boolean = false
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = ClassicColors.SurfaceVariant
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = if (isDestructive) ClassicColors.Critical else ClassicColors.OnSurface
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = ClassicColors.OnSurface,
+                letterSpacing = 1.5.sp
+            )
         }
     }
 }

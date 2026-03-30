@@ -14,29 +14,23 @@ import id.xms.xtrakernelmanager.ui.theme.ClassicColors
 @Composable
 fun ClassicHeader(onSettingsClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            Text(
-                text = "Xtra Kernel Manager",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = ClassicColors.OnSurface
-            )
-            Text(
-                text = "Classic Mode",
-                style = MaterialTheme.typography.labelMedium,
-                color = ClassicColors.Secondary
-            )
-        }
+        Text(
+            text = "Xtra Kernel Manager",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = ClassicColors.OnSurface
+        )
         
         IconButton(onClick = onSettingsClick) {
             Icon(
                 imageVector = Icons.Rounded.Settings,
                 contentDescription = "Settings",
-                tint = ClassicColors.OnSurface
+                tint = ClassicColors.OnSurface,
+                modifier = Modifier.size(24.dp)
             )
         }
     }

@@ -31,43 +31,37 @@ fun ClassicHomeScreen(
             .fillMaxSize()
             .background(ClassicColors.Background)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(bottom = 100.dp), // Extra padding untuk bottom bar
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // App Header
         ClassicHeader(onSettingsClick)
 
-        // Device Info
+        // Device Info - Compact
         ClassicDeviceCard(systemInfo)
 
-        // CPU Info
+        // CPU Status - Large prominent card
         ClassicCPUCard(cpuInfo)
         
-        // GPU Info
+        // GPU Load - Compact card
         ClassicGPUCard(gpuInfo)
 
-        // Memory (RAM & Storage)
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            // RAM
-            Box(modifier = Modifier.weight(1f)) {
-                ClassicRamCard(systemInfo)
-            }
-            
-            // Storage
-            Box(modifier = Modifier.weight(1f)) {
-                 ClassicStorageCard(systemInfo)
-            }
-        }
+        // RAM Usage - Compact with progress bar
+        ClassicRamCard(systemInfo)
 
-        // Battery
+        // Storage - Compact with progress bar  
+        ClassicStorageCard(systemInfo)
+
+        // Battery - Large prominent card with charging status
         ClassicBatteryCard(batteryInfo)
 
-        // Profile Selector
+        // Profile Selector - Compact chips
         ClassicProfileSelector(currentProfile, onProfileChange)
 
-        // Power Menu Grid
+        // Power Menu - Bottom buttons
         ClassicPowerMenu(onPowerAction)
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
