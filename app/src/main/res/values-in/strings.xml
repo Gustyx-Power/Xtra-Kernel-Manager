@@ -851,6 +851,9 @@
     <!-- Settings Screen -->
     <string name="settings_title">Pengaturan</string>
     <string name="settings_appearance">Tampilan</string>
+    <string name="settings_appearance_uppercase">TAMPILAN</string>
+    <string name="settings_interface_style">Gaya Antarmuka</string>
+    <string name="settings_interface_style_desc">Sesuaikan tampilan dan respons panel kontrol Anda.</string>
     <string name="settings_layout_material">Material</string>
     <string name="settings_layout_material_desc">Modern &amp; Bersih</string>
     <string name="settings_layout_frosted">Frosted</string>

@@ -1019,6 +1019,9 @@
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_appearance">Appearance</string>
+    <string name="settings_appearance_uppercase">APPEARANCE</string>
+    <string name="settings_interface_style">Interface Style</string>
+    <string name="settings_interface_style_desc">Customize how your control deck feels and responds.</string>
     <string name="settings_layout_material">Material</string>
     <string name="settings_layout_material_desc">Modern &amp; Clean</string>
     <string name="settings_layout_frosted">Frosted</string>

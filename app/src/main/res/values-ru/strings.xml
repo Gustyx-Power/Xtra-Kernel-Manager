@@ -438,6 +438,9 @@
     <!-- Settings Screen -->
     <string name="settings_title">Настройки</string>
     <string name="settings_appearance">Внешний вид</string>
+    <string name="settings_appearance_uppercase">ВНЕШНИЙ ВИД</string>
+    <string name="settings_interface_style">Стиль интерфейса</string>
+    <string name="settings_interface_style_desc">Настройте внешний вид и отклик панели управления.</string>
     <string name="settings_layout_material">Material</string>
     <string name="settings_layout_material_desc">Современный и чистый</string>
     <string name="settings_layout_frosted">Frosted</string>

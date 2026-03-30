@@ -1,9 +1,14 @@
 package id.xms.xtrakernelmanager.ui.screens.settings.components
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
@@ -11,8 +16,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -25,6 +32,7 @@ import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LocalBackdrop
 import id.xms.xtrakernelmanager.ui.components.utils.layerBackdrop
 import id.xms.xtrakernelmanager.ui.components.utils.rememberLayerBackdrop
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,11 +46,23 @@ fun FrostedSettingsContent(
     val haptic = LocalHapticFeedback.current
     val backdrop = rememberLayerBackdrop()
     val isAndroid10Plus = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+    
+    var isVisible by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(Unit) {
+        delay(100)
+        isVisible = true
+    }
+
+    val frostedBlobColors = listOf(
+        Color(0xFF4A9B8E), 
+        Color(0xFF8BA8D8), 
+        Color(0xFF6BC4E8)  
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Layer with gradient and wavy blob
+        // Background Layer
         Box(modifier = Modifier.fillMaxSize()) {
-            // Base gradient background
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -57,28 +77,25 @@ fun FrostedSettingsContent(
                     )
             )
 
-            // Wavy blob ornament overlay with Monet colors
             id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament(
                 modifier = Modifier.fillMaxSize(),
-                colors = listOf(
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.45f),
-                    MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
-                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-                ),
+                colors = frostedBlobColors,
                 strokeColor = Color.Black.copy(alpha = 0.6f),
                 blobAlpha = 0.55f
             )
 
-            // Capture layer for backdrop
             Box(modifier = Modifier.fillMaxSize().layerBackdrop(backdrop))
         }
 
         // Content Layer
         CompositionLocalProvider(LocalBackdrop provides backdrop) {
-            Scaffold(
-                topBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Top App Bar
+                AnimatedComponent(visible = isVisible, delayMillis = 0) {
                     GlassmorphicCard(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -90,10 +107,9 @@ fun FrostedSettingsContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // Back button
                             Surface(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 shape = CircleShape,
@@ -104,91 +120,121 @@ fun FrostedSettingsContent(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                         contentDescription = "Back",
                                         modifier = Modifier.size(18.dp),
-                                        tint = MaterialTheme.colorScheme.onSurface
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
                             }
-
-                            // Title
+                            
+                            Spacer(modifier = Modifier.width(16.dp))
+                            
                             Text(
                                 text = stringResource(R.string.settings_title),
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = (-0.5).sp
+                                ),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
+                ) {
+                    // Section Header
+                    AnimatedComponent(visible = isVisible, delayMillis = 100) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.settings_appearance_uppercase),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp
+                                ),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                                fontSize = 10.sp
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_interface_style),
+                                style = MaterialTheme.typography.displaySmall.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = (-1).sp
                                 ),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-
-                            // Spacer to balance the layout
-                            Spacer(modifier = Modifier.size(32.dp))
+                            Text(
+                                text = stringResource(R.string.settings_interface_style_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 14.sp
+                            )
                         }
                     }
-                },
-                containerColor = Color.Transparent
-            ) { paddingValues ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(horizontal = 24.dp)
-                        .padding(top = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Layout Selection Section
-                    Text(
-                        text = stringResource(R.string.settings_appearance),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        FrostedLayoutSettingItem(
-                            title = stringResource(R.string.settings_layout_material),
-                            description = stringResource(R.string.settings_layout_material_desc),
-                            isSelected = currentLayout == "material",
-                            isEnabled = isAndroid10Plus,
-                            onClick = {
-                                if (isAndroid10Plus) {
+                    // Theme Options
+                    Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                        AnimatedComponent(visible = isVisible, delayMillis = 200) {
+                            FrostedThemeCard(
+                                title = stringResource(R.string.settings_layout_material),
+                                subtitle = stringResource(R.string.settings_layout_material_desc),
+                                isSelected = currentLayout == "material",
+                                isEnabled = isAndroid10Plus,
+                                previewContent = { MaterialPreview() },
+                                onClick = {
+                                    if (isAndroid10Plus) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        scope.launch {
+                                            preferencesManager.setLayoutStyle("material")
+                                            onNavigateBack()
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        AnimatedComponent(visible = isVisible, delayMillis = 300) {
+                            FrostedThemeCard(
+                                title = stringResource(R.string.settings_layout_frosted),
+                                subtitle = stringResource(R.string.settings_layout_frosted_desc),
+                                isSelected = currentLayout == "liquid",
+                                isEnabled = isAndroid10Plus,
+                                previewContent = { FrostedPreview() },
+                                onClick = {
+                                    if (isAndroid10Plus) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        scope.launch {
+                                            preferencesManager.setLayoutStyle("liquid")
+                                            onNavigateBack()
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        AnimatedComponent(visible = isVisible, delayMillis = 400) {
+                            FrostedThemeCard(
+                                title = stringResource(R.string.settings_layout_classic),
+                                subtitle = stringResource(R.string.settings_layout_classic_desc),
+                                isSelected = currentLayout == "classic",
+                                isEnabled = true,
+                                previewContent = { ClassicPreview() },
+                                onClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     scope.launch {
-                                        preferencesManager.setLayoutStyle("material")
+                                        preferencesManager.setLayoutStyle("classic")
                                         onNavigateBack()
                                     }
                                 }
-                            }
-                        )
-
-                        FrostedLayoutSettingItem(
-                            title = stringResource(R.string.settings_layout_frosted),
-                            description = stringResource(R.string.settings_layout_frosted_desc),
-                            isSelected = currentLayout == "liquid",
-                            isEnabled = isAndroid10Plus,
-                            onClick = {
-                                if (isAndroid10Plus) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    scope.launch {
-                                        preferencesManager.setLayoutStyle("liquid")
-                                        onNavigateBack()
-                                    }
-                                }
-                            }
-                        )
-
-                        FrostedLayoutSettingItem(
-                            title = stringResource(R.string.settings_layout_classic),
-                            description = stringResource(R.string.settings_layout_classic_desc),
-                            isSelected = currentLayout == "classic",
-                            isEnabled = true,
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                scope.launch {
-                                    preferencesManager.setLayoutStyle("classic")
-                                    onNavigateBack()
-                                }
-                            }
-                        )
+                            )
+                        }
                     }
+
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
         }
@@ -196,82 +242,88 @@ fun FrostedSettingsContent(
 }
 
 @Composable
-fun FrostedLayoutSettingItem(
+private fun FrostedThemeCard(
     title: String,
-    description: String,
+    subtitle: String,
     isSelected: Boolean,
-    isEnabled: Boolean = true,
+    isEnabled: Boolean,
+    previewContent: @Composable () -> Unit,
     onClick: () -> Unit
 ) {
     GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (isSelected) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                } else {
+                    Modifier.border(
+                        width = 1.dp,
+                        color = Color.Transparent,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
+            )
+            .clickable(enabled = isEnabled) { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        contentPadding = PaddingValues(24.dp)
     ) {
-        Surface(
-            onClick = onClick,
-            color = if (isSelected)
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-            else
-                Color.Transparent,
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            enabled = isEnabled
+            verticalArrangement = Arrangement.spacedBy(48.dp)
         ) {
+            // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ) {
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (isEnabled)
-                                MaterialTheme.colorScheme.onSurface
-                            else
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp
-                        )
-                        if (!isEnabled) {
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "(Android 10+)",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                                fontSize = 11.sp
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
+                Column {
                     Text(
-                        text = description,
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = (-0.5).sp
+                        ),
+                        color = if (isSelected) 
+                            MaterialTheme.colorScheme.primary 
+                        else 
+                            MaterialTheme.colorScheme.onSurface,
+                        fontSize = 20.sp
+                    )
+                    Text(
+                        text = subtitle,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = if (isEnabled)
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        else
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                        fontSize = 13.sp,
-                        lineHeight = 18.sp
+                        color = if (isSelected) 
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) 
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
+                // Radio Button
                 Box(
                     modifier = Modifier
                         .size(24.dp)
                         .background(
-                            if (isSelected)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            if (isSelected) 
+                                MaterialTheme.colorScheme.primary 
+                            else 
+                                Color.Transparent,
                             CircleShape
+                        )
+                        .border(
+                            width = 2.dp,
+                            color = if (isSelected) 
+                                MaterialTheme.colorScheme.primary 
+                            else 
+                                MaterialTheme.colorScheme.outline,
+                            shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -280,11 +332,222 @@ fun FrostedLayoutSettingItem(
                             imageVector = Icons.Default.Check,
                             contentDescription = "Selected",
                             tint = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                 }
             }
+
+            // Visual Preview
+            previewContent()
         }
+    }
+}
+
+@Composable
+private fun MaterialPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(128.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
+        
+        Box(
+            modifier = Modifier
+                .padding(16.dp)
+                .width(48.dp)
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+        )
+        
+        Box(
+            modifier = Modifier
+                .padding(start = 16.dp, top = 32.dp)
+                .width(96.dp)
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.outlineVariant)
+        )
+        
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primary)
+                .graphicsLayer {
+                    shadowElevation = 30f
+                }
+        )
+    }
+}
+
+@Composable
+private fun FrostedPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(128.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+    ) {
+        // Background gradient
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF4A9B8E).copy(alpha = 0.4f),
+                            Color(0xFF8BA8D8).copy(alpha = 0.3f),
+                            Color(0xFF6BC4E8).copy(alpha = 0.35f)
+                        )
+                    )
+                )
+        )
+        
+        // Glassmorphic element
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(200.dp)
+                .height(48.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.1f))
+                .border(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp)
+                )
+        )
+    }
+}
+
+@Composable
+private fun ClassicPreview() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(128.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant,
+                shape = RoundedCornerShape(12.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                )
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                )
+            }
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+            )
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.66f)
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+            )
+        }
+    }
+}
+
+@Composable
+private fun AnimatedComponent(
+    visible: Boolean,
+    delayMillis: Int,
+    content: @Composable () -> Unit
+) {
+    var startAnimation by remember { mutableStateOf(false) }
+    
+    LaunchedEffect(visible) {
+        if (visible) {
+            delay(delayMillis.toLong())
+            startAnimation = true
+        }
+    }
+    
+    val alpha by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = 400,
+            easing = FastOutSlowInEasing
+        ),
+        label = "alpha"
+    )
+    
+    val scale by animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0.95f,
+        animationSpec = tween(
+            durationMillis = 400,
+            easing = FastOutSlowInEasing
+        ),
+        label = "scale"
+    )
+    
+    val translationY by animateFloatAsState(
+        targetValue = if (startAnimation) 0f else 30f,
+        animationSpec = tween(
+            durationMillis = 400,
+            easing = FastOutSlowInEasing
+        ),
+        label = "translationY"
+    )
+    
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                this.alpha = alpha
+                this.scaleX = scale
+                this.scaleY = scale
+                this.translationY = translationY
+            }
+    ) {
+        content()
     }
 }
