@@ -64,7 +64,7 @@ fun FrostedGameControlScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
 
     val gameAppsJson by viewModel.gameApps.collectAsState()
     var showAddGameDialog by remember { mutableStateOf(false) }

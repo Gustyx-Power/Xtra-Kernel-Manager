@@ -31,7 +31,7 @@ fun FrostedDialog(
     properties: DialogProperties = DialogProperties(),
     backgroundColor: Color? = null
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
 
     Dialog(
         onDismissRequest = onDismissRequest,

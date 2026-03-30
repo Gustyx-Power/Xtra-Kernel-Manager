@@ -301,7 +301,7 @@ fun FrostedSettingsRow(
     badge: String? = null,
     onClick: () -> Unit
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     Row(
         modifier = Modifier

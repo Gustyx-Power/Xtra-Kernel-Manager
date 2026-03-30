@@ -26,7 +26,7 @@ fun WavyBlobOrnament(
     strokeWidth: Dp = 0.dp,
     blobAlpha: Float = 0.85f
 ) {
-    val isDarkMode = isSystemInDarkTheme()
+    val isDarkMode = true // XKM is always dark mode
     
     val palette = colors ?: if (isDarkMode) {
         listOf(

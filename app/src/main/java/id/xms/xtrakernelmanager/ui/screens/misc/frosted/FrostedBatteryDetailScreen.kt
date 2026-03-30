@@ -39,7 +39,7 @@ fun FrostedBatteryDetailScreen(
 ) {
     val context = LocalContext.current.applicationContext
     val showBatteryNotif by viewModel.showBatteryNotif.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
 
     var hasNotificationPermission by remember {
         mutableStateOf(

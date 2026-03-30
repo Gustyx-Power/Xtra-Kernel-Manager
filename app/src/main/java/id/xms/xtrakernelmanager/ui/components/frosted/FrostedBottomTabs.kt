@@ -81,7 +81,7 @@ fun FrostedBottomTabs(
     content: @Composable FrostedBottomTabsScope.() -> Unit
 ) {
     val backdrop = LocalBackdrop.current
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     val containerColor =
         if (isLightTheme) Color(0xFFFAFAFA).copy(0.4f)
         else Color(0xFF121212).copy(0.4f)

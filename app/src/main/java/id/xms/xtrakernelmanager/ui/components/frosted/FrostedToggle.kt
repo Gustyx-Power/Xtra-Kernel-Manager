@@ -39,7 +39,7 @@ fun FrostedToggle(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     val accentColor = if (isLightTheme) Color(0xFF34C759) else Color(0xFF30D158)
     val trackColor = if (isLightTheme) Color(0xFF787878).copy(0.2f) else Color(0xFF787880).copy(0.36f)
     

@@ -33,7 +33,7 @@ fun FrostedDisplaySection(viewModel: MiscViewModel) {
     val currentSaturation by viewModel.displaySaturation.collectAsState()
     val isRootAvailable by viewModel.isRootAvailable.collectAsState()
     val applyStatus by viewModel.saturationApplyStatus.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     var expanded by remember { mutableStateOf(false) }
     var sliderValue by remember(currentSaturation) { mutableFloatStateOf(currentSaturation) }

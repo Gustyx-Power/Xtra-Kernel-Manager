@@ -57,7 +57,7 @@ fun FrostedSlider(
     modifier: Modifier = Modifier,
     onValueChangeFinished: (() -> Unit)? = null
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     val accentColor =
         if (isLightTheme) Color(0xFF0088FF)
         else Color(0xFF0091FF)

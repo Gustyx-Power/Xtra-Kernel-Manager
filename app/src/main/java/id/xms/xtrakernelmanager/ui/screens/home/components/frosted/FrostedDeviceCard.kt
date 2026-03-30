@@ -41,8 +41,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 
 @Composable
 fun FrostedDeviceCard(systemInfo: SystemInfo, modifier: Modifier = Modifier) {
-    // Detect system theme - OriginOS style
-    val isDarkTheme = isSystemInDarkTheme()
+    // XKM is always dark mode
+    val isDarkTheme = true
     
     // OriginOS-inspired frosted glass colors
     val glassBackground = if (isDarkTheme) {

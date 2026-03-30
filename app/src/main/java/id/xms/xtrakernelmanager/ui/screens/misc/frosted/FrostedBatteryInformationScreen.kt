@@ -48,7 +48,7 @@ fun FrostedBatteryInformationScreen(
 ) {
     val context = LocalContext.current.applicationContext
     val showBatteryNotif by viewModel.showBatteryNotif.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     var selectedTab by rememberSaveable { mutableStateOf(0) } // 0 = Monitor, 1 = Settings
 
@@ -153,7 +153,7 @@ fun IOSSegmentedControl(
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     GlassmorphicCard(
         modifier = modifier.fillMaxWidth(),
@@ -453,7 +453,7 @@ fun IOSSelectionDialog(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
         GlassmorphicCard(
@@ -674,7 +674,7 @@ private fun getRefreshRateLabel(rate: Long): String {
 @Composable
 fun BatteryMonitorContent(viewModel: MiscViewModel) {
     val context = LocalContext.current
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     // Load battery data when screen is opened
     LaunchedEffect(Unit) {
@@ -707,7 +707,7 @@ fun BatteryMonitorContent(viewModel: MiscViewModel) {
 @Composable
 fun IOSHistoryChartCard() {
     val state by id.xms.xtrakernelmanager.data.repository.HistoryRepository.hourlyStats.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     var showScreenOn by remember { mutableStateOf(true) }
 
     GlassmorphicCard(
@@ -841,7 +841,7 @@ fun IOSToggleButton(
     onClick: () -> Unit,
     color: Color
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     Box(
         modifier = Modifier
@@ -865,7 +865,7 @@ fun IOSToggleButton(
 @Composable
 fun IOSStatsGrid(viewModel: MiscViewModel) {
     val batteryState by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1006,7 +1006,7 @@ fun IOSCurrentSessionCard(viewModel: MiscViewModel) {
     val deepSleepTime by viewModel.deepSleepTime.collectAsState()
     val batteryInfo by viewModel.batteryInfo.collectAsState()
     val sessionState by id.xms.xtrakernelmanager.data.repository.BatteryRepository.batteryState.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
 
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth()
@@ -1137,7 +1137,7 @@ fun IOSStatRow(
 fun IOSAppBatteryUsageList(viewModel: MiscViewModel) {
     val appUsageList by viewModel.appBatteryUsage.collectAsState()
     val isLoading by viewModel.isLoadingAppUsage.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     var showSystem by rememberSaveable { mutableStateOf(false) }
 
     val filteredList = remember(appUsageList, showSystem) {
@@ -1217,7 +1217,7 @@ fun IOSFilterButton(
     onFilterChange: (Boolean) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
 
     Box {
         Surface(
@@ -1268,7 +1268,7 @@ fun IOSFilterButton(
 
 @Composable
 fun IOSAppUsageItem(app: AppBatteryStats) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     Row(
         modifier = Modifier.fillMaxWidth(),

@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 fun FrostedFunctionalRomCard(
     onNavigate: () -> Unit
 ) {
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     val scope = rememberCoroutineScope()
     val useCase = remember { FunctionalRomUseCase() }
     

@@ -40,7 +40,7 @@ fun FrostedHeader(
     showVersionBadge: Boolean = false,
     onPowerClick: (() -> Unit)? = null
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = true // XKM is always dark mode
     
     val textColor = if (isDarkTheme) {
         Color.White.copy(alpha = 0.95f)

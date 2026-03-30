@@ -24,7 +24,7 @@ fun FrostedActionCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = true // XKM is always dark mode
     
     val cardBackground = if (isDarkTheme) {
         Color(0xFF000000).copy(alpha = 0.35f)

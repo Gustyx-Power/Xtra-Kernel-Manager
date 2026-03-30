@@ -33,7 +33,7 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 fun FrostedBatterySection(viewModel: MiscViewModel) {
     val context = LocalContext.current.applicationContext
     val showBatteryNotif by viewModel.showBatteryNotif.collectAsState()
-    val isLightTheme = !isSystemInDarkTheme()
+    val isLightTheme = false // XKM is always dark mode
     
     var expanded by remember { mutableStateOf(false) }
 
