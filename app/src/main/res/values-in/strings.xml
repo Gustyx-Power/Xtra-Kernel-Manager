@@ -1337,4 +1337,28 @@
     
     <string name="setup_continue">Lanjutkan</string>
     <string name="setup_get_started">Mulai</string>
+    
+    <!-- Classic Tuning Hub -->
+    <string name="classic_system_tuning_title">System Tuning</string>
+    <string name="classic_performance_hub_title">Performance</string>
+    <string name="classic_performance_hub_subtitle">Hub</string>
+    <string name="classic_performance_hub_description">Parameter kernel lanjutan dan\nskala frekuensi inti untuk ekosistem\nNebula Core.</string>
+    
+    <string name="classic_cpu_tuning_title">Tuning CPU</string>
+    <string name="classic_cpu_tuning_description">Sesuaikan profil governor, parameter touchboost, dan batas frekuensi per-core.</string>
+    <string name="classic_cpu_tuning_status">Dioptimalkan</string>
+    
+    <string name="classic_gpu_tuning_title">Tuning GPU</string>
+    <string name="classic_gpu_tuning_description">Kelola level boost Adreno dan pipeline rendering daya untuk stabilitas frame maksimum.</string>
+    <string name="classic_gpu_tuning_status">Aktif</string>
+    
+    <string name="classic_memory_tuning_title">Tuning Memori</string>
+    <string name="classic_memory_tuning_description">Setel parameter LMK, konfigurasi swap, dan alokasi memori virtual.</string>
+    <string name="classic_memory_tuning_status">Stabil</string>
+    
+    <string name="classic_thermal_tuning_title">Tuning Thermal</string>
+    <string name="classic_thermal_tuning_description">Konfigurasi titik throttle dan strategi mitigasi thermal untuk keberlanjutan puncak.</string>
+    <string name="classic_thermal_tuning_status">Pendinginan</string>
+    
+    <string name="classic_view_details">LIHAT DETAIL</string>
 </resources>

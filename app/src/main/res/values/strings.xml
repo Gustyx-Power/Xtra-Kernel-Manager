@@ -1476,4 +1476,28 @@
     
     <string name="setup_continue">Continue</string>
     <string name="setup_get_started">Get Started</string>
+    
+    <!-- Classic Tuning Hub -->
+    <string name="classic_system_tuning_title">System Tuning</string>
+    <string name="classic_performance_hub_title">Performance</string>
+    <string name="classic_performance_hub_subtitle">Hub</string>
+    <string name="classic_performance_hub_description">Advanced kernel parameters and\ncore frequency scaling for the Nebula\nCore ecosystem.</string>
+    
+    <string name="classic_cpu_tuning_title">CPU Tuning</string>
+    <string name="classic_cpu_tuning_description">Adjust governor profiles, touchboost parameters, and per-core frequency limits.</string>
+    <string name="classic_cpu_tuning_status">Optimized</string>
+    
+    <string name="classic_gpu_tuning_title">GPU Tuning</string>
+    <string name="classic_gpu_tuning_description">Manage Adreno boost levels and power rendering pipelines for maximum frame stability.</string>
+    <string name="classic_gpu_tuning_status">Active</string>
+    
+    <string name="classic_memory_tuning_title">Memory Tuning</string>
+    <string name="classic_memory_tuning_description">Fine-tune LMK parameters, swap configuration, and virtual memory allocation.</string>
+    <string name="classic_memory_tuning_status">Stable</string>
+    
+    <string name="classic_thermal_tuning_title">Thermal Tuning</string>
+    <string name="classic_thermal_tuning_description">Configure throttle points and thermal mitigation strategies for peak sustainability.</string>
+    <string name="classic_thermal_tuning_status">Cooling</string>
+    
+    <string name="classic_view_details">VIEW DETAILS</string>
 </resources>
