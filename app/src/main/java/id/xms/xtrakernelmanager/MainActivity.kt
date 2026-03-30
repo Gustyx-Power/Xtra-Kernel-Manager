@@ -76,7 +76,11 @@ class MainActivity : ComponentActivity() {
     setContent {
       val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
       
-      XtraKernelManagerTheme(dynamicColor = layoutStyle != "liquid") {
+      // XKM default dark mode only
+      XtraKernelManagerTheme(
+        darkTheme = true,
+        dynamicColor = layoutStyle != "liquid"
+      ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
           Navigation(preferencesManager = preferencesManager)
         }
