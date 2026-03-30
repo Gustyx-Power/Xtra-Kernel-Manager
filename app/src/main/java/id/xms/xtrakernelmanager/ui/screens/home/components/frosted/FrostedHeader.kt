@@ -37,7 +37,7 @@ fun FrostedHeader(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier,
     title: String = stringResource(id.xms.xtrakernelmanager.R.string.frosted_header_title),
-    showVersionBadge: Boolean = true,
+    showVersionBadge: Boolean = false,
     onPowerClick: (() -> Unit)? = null
 ) {
     val isDarkTheme = isSystemInDarkTheme()
@@ -48,77 +48,26 @@ fun FrostedHeader(
         Color(0xFF2C2C2C).copy(alpha = 0.85f)
     }
     
-    val iconBackground = if (isDarkTheme) {
-        Color(0xFF1E3A8A).copy(alpha = 0.6f)
-    } else {
-        Color(0xFF3B82F6).copy(alpha = 0.6f)
-    }
-    
     val settingsBackground = if (isDarkTheme) {
         Color(0xFF000000).copy(alpha = 0.3f)
     } else {
         Color.White.copy(alpha = 0.4f)
     }
     
-    val badgeBackground = if (isDarkTheme) {
-        Color(0xFF000000).copy(alpha = 0.4f)
-    } else {
-        Color.White.copy(alpha = 0.6f)
-    }
-    
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 12.dp)
             .testTag("FrostedHeader"),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(iconBackground),
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = id.xms.xtrakernelmanager.R.drawable.ic_launcher_foreground),
-                    contentDescription = "App Logo",
-                    modifier = Modifier.size(32.dp),
-                    contentScale = ContentScale.Fit
-                )
-            }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    ),
-                    color = textColor
-                )
-                
-                if (showVersionBadge) {
-                    Surface(
-                        color = badgeBackground,
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text(
-                            text = "v${BuildConfig.VERSION_NAME}",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            color = textColor.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-            }
-        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
