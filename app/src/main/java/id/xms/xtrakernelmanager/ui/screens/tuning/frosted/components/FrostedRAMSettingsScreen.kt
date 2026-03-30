@@ -40,6 +40,10 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
     val zramStatus by viewModel.zramStatus.collectAsState()
     val currentCompressionAlgo by viewModel.currentCompressionAlgorithm.collectAsState()
     
+    android.util.Log.d("FrostedRAM", "=== Screen Recompose ===")
+    android.util.Log.d("FrostedRAM", "persistedConfig.compressionAlgorithm: ${persistedConfig.compressionAlgorithm}")
+    android.util.Log.d("FrostedRAM", "currentCompressionAlgo from ViewModel: $currentCompressionAlgo")
+    
     val initialZramSize = if (persistedConfig.zramSize > 0) {
         persistedConfig.zramSize.toFloat()
     } else if (zramStatus.isActive && zramStatus.totalMb > 0) {
@@ -54,9 +58,18 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
     var dirtyRatio by remember { mutableFloatStateOf(persistedConfig.dirtyRatio.toFloat()) }
     var minFreeMem by remember { mutableFloatStateOf(persistedConfig.minFreeMem.toFloat()) }
     
-    // Use remember with key to properly react to changes
-    var compressionAlgo by remember(persistedConfig.compressionAlgorithm) { 
-        mutableStateOf(persistedConfig.compressionAlgorithm) 
+    // Use currentCompressionAlgo from ViewModel (single source of truth)
+    var compressionAlgo by remember { mutableStateOf(currentCompressionAlgo) }
+    
+    android.util.Log.d("FrostedRAM", "compressionAlgo local state initialized: $compressionAlgo")
+    
+    // Update compressionAlgo when currentCompressionAlgo changes
+    LaunchedEffect(currentCompressionAlgo) {
+        android.util.Log.d("FrostedRAM", "LaunchedEffect triggered - currentCompressionAlgo changed to: $currentCompressionAlgo")
+        if (currentCompressionAlgo.isNotEmpty()) {
+            compressionAlgo = currentCompressionAlgo
+            android.util.Log.d("FrostedRAM", "Updated compressionAlgo to: $compressionAlgo")
+        }
     }
 
     // ZRAM enabled state - derived from config or system status
@@ -262,7 +275,11 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
                         FrostedCompressionSelector(
                             selectedAlgo = compressionAlgo,
                             onAlgoSelected = { 
+                                android.util.Log.d("FrostedRAM", "User selected compression algorithm: $it")
+                                android.util.Log.d("FrostedRAM", "Before change - compressionAlgo: $compressionAlgo")
                                 compressionAlgo = it
+                                android.util.Log.d("FrostedRAM", "After change - compressionAlgo: $compressionAlgo")
+                                android.util.Log.d("FrostedRAM", "Calling viewModel.setCompressionAlgorithm($it)")
                                 viewModel.setCompressionAlgorithm(it)
                             }
                         )

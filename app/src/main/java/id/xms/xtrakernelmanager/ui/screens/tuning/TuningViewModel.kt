@@ -471,6 +471,7 @@ class TuningViewModel(
   private var deviceInfoCache: Triple<String, String, String>? = null
 
   init {
+    Log.d("TuningViewModel", "=== ViewModel Init Started ===")
     viewModelScope.launch {
       _currentIOScheduler.value = preferencesManager.getIOScheduler().first()
       _currentTCPCongestion.value = preferencesManager.getTCPCongestion().first()
@@ -501,6 +502,7 @@ class TuningViewModel(
       checkRootAndLoadData()
       applySavedCoreStates()
       startAutoRefresh()
+      Log.d("TuningViewModel", "=== ViewModel Init Completed ===")
     }
   }
 
@@ -708,8 +710,12 @@ class TuningViewModel(
         }
 
         val currentComp = compAlgoDeferred.await()
+        Log.d("TuningViewModel", "loadSystemInfo - currentComp from system: $currentComp")
         if (currentComp.isNotEmpty()) {
           _currentCompressionAlgorithm.value = currentComp
+          Log.d("TuningViewModel", "loadSystemInfo - set _currentCompressionAlgorithm to: $currentComp")
+        } else {
+          Log.d("TuningViewModel", "loadSystemInfo - currentComp is empty, keeping default")
         }
 
         _availableCompressionAlgorithms.value = availableAlgorithmsDeferred.await()
@@ -1195,11 +1201,22 @@ class TuningViewModel(
 
   fun setCompressionAlgorithm(algorithm: String) {
     viewModelScope.launch(Dispatchers.IO) {
+      Log.d("TuningViewModel", "setCompressionAlgorithm called with: $algorithm")
+      
+      // Always update ViewModel state and save to config (user preference)
+      _currentCompressionAlgorithm.value = algorithm
+      Log.d("TuningViewModel", "Updated _currentCompressionAlgorithm to: $algorithm")
+      
+      val currentConfig = preferencesManager.getRamConfig().first()
+      Log.d("TuningViewModel", "Current config compressionAlgorithm: ${currentConfig.compressionAlgorithm}")
+      preferencesManager.setRamConfig(currentConfig.copy(compressionAlgorithm = algorithm))
+      Log.d("TuningViewModel", "Saved new config with compressionAlgorithm: $algorithm")
+      
+      // Try to apply to system (may fail if ZRAM not active, but that's okay)
       val result = ramUseCase.setCompressionAlgorithm(algorithm)
-      if (result.isSuccess) {
-        _currentCompressionAlgorithm.value = algorithm
-        val currentConfig = preferencesManager.getRamConfig().first()
-        preferencesManager.setRamConfig(currentConfig.copy(compressionAlgorithm = algorithm))
+      Log.d("TuningViewModel", "setCompressionAlgorithm system apply result: ${result.isSuccess}")
+      if (!result.isSuccess) {
+        Log.w("TuningViewModel", "Failed to apply compression algorithm to system (will be applied when ZRAM is activated): ${result.exceptionOrNull()?.message}")
       }
     }
   }
