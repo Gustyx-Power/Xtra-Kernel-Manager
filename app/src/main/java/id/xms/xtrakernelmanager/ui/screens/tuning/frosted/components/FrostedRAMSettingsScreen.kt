@@ -39,6 +39,7 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
     val persistedConfig by viewModel.preferencesManager.getRamConfig().collectAsState(initial = RAMConfig())
     val zramStatus by viewModel.zramStatus.collectAsState()
     val currentCompressionAlgo by viewModel.currentCompressionAlgorithm.collectAsState()
+    
     val initialZramSize = if (persistedConfig.zramSize > 0) {
         persistedConfig.zramSize.toFloat()
     } else if (zramStatus.isActive && zramStatus.totalMb > 0) {
@@ -48,7 +49,7 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
     }
 
     var swappiness by remember { mutableFloatStateOf(persistedConfig.swappiness.toFloat()) }
-    var zramSize by remember { mutableFloatStateOf(initialZramSize) }
+    var zramSize by remember(initialZramSize) { mutableFloatStateOf(initialZramSize) }
     var swapSize by remember { mutableFloatStateOf(if (persistedConfig.swapSize > 0) persistedConfig.swapSize.toFloat() else 2048f) }
     var dirtyRatio by remember { mutableFloatStateOf(persistedConfig.dirtyRatio.toFloat()) }
     var minFreeMem by remember { mutableFloatStateOf(persistedConfig.minFreeMem.toFloat()) }
@@ -58,9 +59,18 @@ fun FrostedRAMSettingsScreen(viewModel: TuningViewModel, onNavigateBack: () -> U
         mutableStateOf(persistedConfig.compressionAlgorithm) 
     }
 
-    var zramEnabled by remember(persistedConfig.zramSize, zramStatus.isActive) { 
-        mutableStateOf(persistedConfig.zramSize > 0 || zramStatus.isActive) 
+    // ZRAM enabled state - derived from config or system status
+    var zramEnabled by remember { mutableStateOf(false) }
+    
+    // Update zramEnabled based on config or system status
+    LaunchedEffect(persistedConfig.zramSize, zramStatus.isActive, zramStatus.totalMb) {
+        zramEnabled = persistedConfig.zramSize > 0 || (zramStatus.isActive && zramStatus.totalMb > 0)
+        // Also update zramSize if system has ZRAM but config doesn't
+        if (zramStatus.isActive && zramStatus.totalMb > 0 && persistedConfig.zramSize == 0) {
+            zramSize = zramStatus.totalMb.toFloat()
+        }
     }
+    
     var swapEnabled by remember(persistedConfig.swapSize) { 
         mutableStateOf(persistedConfig.swapSize > 0) 
     }

@@ -725,7 +725,17 @@ class TuningViewModel(
     launch { _currentSwappiness.value = ramUseCase.getSwappiness() }
     launch { _currentDirtyRatio.value = ramUseCase.getDirtyRatio() }
     launch { _currentMinFreeMem.value = ramUseCase.getMinFreeMem() }
-    launch { _zramStatus.value = ramUseCase.getZramStatus() }
+    launch { 
+      _zramStatus.value = ramUseCase.getZramStatus()
+      // Auto-initialize ZRAM config if ROM has ZRAM but config is empty
+      val currentConfig = preferencesManager.getRamConfig().first()
+      if (_zramStatus.value.isActive && _zramStatus.value.totalMb > 0 && currentConfig.zramSize == 0) {
+        // ROM already has ZRAM active, save it to config
+        preferencesManager.setRamConfig(
+          currentConfig.copy(zramSize = _zramStatus.value.totalMb)
+        )
+      }
+    }
     launch { _swapFileStatus.value = ramUseCase.getSwapFileStatus() }
     launch { _memoryStats.value = ramUseCase.getMemoryStats() }
   }
