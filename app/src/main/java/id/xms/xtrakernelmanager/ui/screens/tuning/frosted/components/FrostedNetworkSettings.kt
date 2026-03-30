@@ -39,7 +39,7 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
         // TCP Set on Boot Toggle - Compact version at the top
         GlassmorphicCard(
             modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(12.dp)
+            contentPadding = PaddingValues(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -49,12 +49,12 @@ fun FrostedNetworkSettings(viewModel: TuningViewModel) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.set_on_boot),
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "Apply TCP settings on startup",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
