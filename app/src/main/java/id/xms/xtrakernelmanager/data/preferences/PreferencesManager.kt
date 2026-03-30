@@ -36,8 +36,10 @@ class PreferencesManager(private val context: Context) {
       context.dataStore.data.map { prefs -> prefs[DPI_MODE] ?: "SMART" }
 
   // Theme and boot preference
-  private val THEME_MODE = intPreferencesKey("theme_mode")
+  private val THEME_MODE = intPreferencesKey("theme_mode") // 0 = System, 1 = Light, 2 = Dark
   private val SET_ON_BOOT = booleanPreferencesKey("set_on_boot")
+  
+
   
   // DPI Mode preference
   private val DPI_MODE = stringPreferencesKey("dpi_mode")
@@ -740,6 +742,8 @@ class PreferencesManager(private val context: Context) {
   
   // Banking Mode - Disable accessibility service for banking security
   private val BANKING_MODE_ENABLED = booleanPreferencesKey("banking_mode_enabled")
+  
+
 
   suspend fun setRingerMode(mode: Int) {
     context.dataStore.edit { prefs -> prefs[RINGER_MODE] = mode }
