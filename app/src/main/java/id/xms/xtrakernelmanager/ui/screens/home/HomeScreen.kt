@@ -63,6 +63,7 @@ import id.xms.xtrakernelmanager.data.model.CPUInfo
 import id.xms.xtrakernelmanager.data.preferences.PreferencesManager
 import id.xms.xtrakernelmanager.ui.components.GlassmorphicCard
 import id.xms.xtrakernelmanager.ui.components.LocalBackdrop
+import id.xms.xtrakernelmanager.ui.components.DonationDialog
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import java.io.DataOutputStream
@@ -82,6 +83,8 @@ fun HomeScreen(
         preferencesManager: PreferencesManager,
         viewModel: HomeViewModel = viewModel(),
         onNavigateToSettings: () -> Unit = {},
+        onNavigateToDonation: () -> Unit = {},
+        forceShowDonationDialog: Boolean = false,
         tuningViewModel: id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel = viewModel(
                 factory = id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel.Factory(preferencesManager)
         )
@@ -101,9 +104,64 @@ fun HomeScreen(
         var showPowerMenu by remember { mutableStateOf(false) }
         var activePowerAction by remember { mutableStateOf<PowerAction?>(null) }
 
+        // Donation Dialog State
+        var showDonationDialog by remember { mutableStateOf(false) }
+        var hasCheckedDonation by remember { mutableStateOf(false) }
+
+        // Check if donation dialog should be shown
+        LaunchedEffect(Unit) {
+                if (!hasCheckedDonation) {
+                        hasCheckedDonation = true
+                        android.util.Log.d("HomeScreen", "Checking donation dialog...")
+                        val shouldShow = preferencesManager.shouldShowDonationDialog()
+                        android.util.Log.d("HomeScreen", "shouldShow result: $shouldShow")
+                        if (shouldShow) {
+                                android.util.Log.d("HomeScreen", "Showing donation notification from HomeScreen...")
+                                // Show notification
+                                id.xms.xtrakernelmanager.utils.DonationNotificationHelper.showDonationNotification(context)
+                                android.util.Log.d("HomeScreen", "Showing donation dialog...")
+                                // Also show dialog
+                                showDonationDialog = true
+                        } else {
+                                android.util.Log.d("HomeScreen", "Not showing donation - not time yet")
+                        }
+                }
+        }
+        
+        // Force show donation dialog from notification
+        LaunchedEffect(forceShowDonationDialog) {
+                if (forceShowDonationDialog) {
+                        showDonationDialog = true
+                }
+        }
+
         LaunchedEffect(Unit) { viewModel.loadBatteryInfo(context) }
 
         // --- DIALOGS ---
+
+        // Donation Dialog
+        if (showDonationDialog) {
+                DonationDialog(
+                        onDismiss = {
+                                showDonationDialog = false
+                                scope.launch {
+                                        preferencesManager.setLastDonationDialogShown(System.currentTimeMillis())
+                                        preferencesManager.incrementDonationDialogDismissedCount()
+                                        // Don't cancel notification - let user dismiss it manually
+                                        // This way notification stays visible even after dialog is dismissed
+                                }
+                        },
+                        onSupportClick = {
+                                showDonationDialog = false
+                                scope.launch {
+                                        preferencesManager.setLastDonationDialogShown(System.currentTimeMillis())
+                                        // Cancel notification only when user clicks support
+                                        id.xms.xtrakernelmanager.utils.DonationNotificationHelper.cancelDonationNotification(context)
+                                }
+                                onNavigateToDonation()
+                        }
+                )
+        }
 
         // 1. Power Menu Selection
         if (showPowerMenu) {

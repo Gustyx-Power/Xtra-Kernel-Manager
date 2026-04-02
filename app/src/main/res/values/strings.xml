@@ -1500,4 +1500,30 @@
     <string name="classic_thermal_tuning_status">Cooling</string>
     
     <string name="classic_view_details">VIEW DETAILS</string>
+    
+    <!-- Donation Dialog -->
+    <string name="donation_dialog_title">Support Our Community</string>
+    <string name="donation_dialog_message">Enjoying Xtra Kernel Manager? Your support helps us continue developing and improving the app. Every contribution makes a difference!</string>
+    <string name="donation_support_button">Support Community</string>
+    <string name="donation_maybe_later">Maybe Later</string>
+    
+    <!-- Donation Notification -->
+    <string name="donation_notification_title">Support XKM Development</string>
+    <string name="donation_notification_message">Tap to see how you can support us</string>
+    <string name="donation_notification_channel_name">Donation Reminder</string>
+    <string name="donation_notification_channel_desc">Notifications to remind about supporting the app</string>
+    
+    <!-- Donation Screen -->
+    <string name="donation_screen_title">Support Development</string>
+    <string name="donation_screen_description">Your support helps us continue developing and improving Xtra Kernel Manager. Every contribution matters!</string>
+    <string name="donation_choose_platform">Choose Your Platform</string>
+    <string name="donation_paypal">PayPal</string>
+    <string name="donation_paypal_desc">Support via PayPal</string>
+    <string name="donation_buymeacoffee">Buy Me a Coffee</string>
+    <string name="donation_buymeacoffee_desc">Buy us a coffee to keep coding</string>
+    <string name="donation_github">GitHub Sponsors</string>
+    <string name="donation_github_desc">Sponsor us on GitHub</string>
+    <string name="donation_kofi">Ko-Fi</string>
+    <string name="donation_kofi_desc">Support us on Ko-Fi</string>
+    <string name="donation_thank_you">Thank you for your support! 💙</string>
 </resources>

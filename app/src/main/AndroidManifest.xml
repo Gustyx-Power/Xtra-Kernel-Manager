@@ -70,6 +70,15 @@
             </intent-filter>
         </receiver>
 
+        <!-- Date/Time Change Receiver for Donation Notification -->
+        <receiver android:name=".receiver.DateChangeReceiver" android:enabled="true" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Game Overlay Service -->
         <service android:name=".service.GameOverlayService" android:enabled="true" android:exported="false" android:foregroundServiceType="specialUse" android:description="@string/game_overlay_service_description">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Game overlay controls and performance monitoring during gameplay for enhanced gaming experience" />

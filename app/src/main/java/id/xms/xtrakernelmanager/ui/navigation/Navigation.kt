@@ -42,6 +42,7 @@ import id.xms.xtrakernelmanager.ui.screens.functionalrom.HideAccessibilitySettin
 import id.xms.xtrakernelmanager.ui.screens.functionalrom.DisplaySizeScreen
 import id.xms.xtrakernelmanager.data.model.HideAccessibilityConfig
 import id.xms.xtrakernelmanager.ui.screens.home.HomeScreen
+import id.xms.xtrakernelmanager.ui.screens.donation.DonationScreen
 import id.xms.xtrakernelmanager.ui.screens.home.components.material.PowerMenuContent
 import id.xms.xtrakernelmanager.ui.screens.info.InfoScreen
 import id.xms.xtrakernelmanager.ui.screens.webview.MaterialWebViewScreen
@@ -75,7 +76,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Navigation(preferencesManager: PreferencesManager) {
+fun Navigation(
+    preferencesManager: PreferencesManager,
+    shouldShowDonationDialog: Boolean = false
+) {
   val navController = rememberNavController()
   val navBackStackEntry by navController.currentBackStackEntryAsState()
   val currentRoute = navBackStackEntry?.destination?.route
@@ -96,6 +100,24 @@ fun Navigation(preferencesManager: PreferencesManager) {
   val newYearShownYear by preferencesManager.getNewYearShownYear().collectAsState(initial = 0)
   val ramadanShownYear by preferencesManager.getRamadanShownYear().collectAsState(initial = 0)
   val eidFitrShownYear by preferencesManager.getEidFitrShownYear().collectAsState(initial = 0)
+  
+  // Handle donation dialog from notification
+  LaunchedEffect(shouldShowDonationDialog) {
+    if (shouldShowDonationDialog) {
+      // Wait for NavHost to be composed and ready
+      delay(200)
+      try {
+        // Navigate to home if not already there
+        if (navController.currentDestination?.route != "home") {
+          navController.navigate("home") {
+            popUpTo(navController.graph.startDestinationId) { inclusive = false }
+          }
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("Navigation", "Error navigating to home from notification", e)
+      }
+    }
+  }
 
   // Check for holidays on launch - only once
   LaunchedEffect(Unit) {
@@ -206,7 +228,9 @@ fun Navigation(preferencesManager: PreferencesManager) {
         composable("home") { 
           HomeScreen(
               preferencesManager = preferencesManager,
-              onNavigateToSettings = { navController.navigate("settings") }
+              onNavigateToSettings = { navController.navigate("settings") },
+              onNavigateToDonation = { navController.navigate("donation") },
+              forceShowDonationDialog = shouldShowDonationDialog
           ) 
         }
         composable("tuning") {
@@ -432,6 +456,12 @@ fun Navigation(preferencesManager: PreferencesManager) {
         composable("settings") {
           SettingsScreen(
               preferencesManager = preferencesManager,
+              onNavigateBack = { navController.popBackStack() }
+          )
+        }
+        
+        composable("donation") {
+          DonationScreen(
               onNavigateBack = { navController.popBackStack() }
           )
         }

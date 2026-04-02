@@ -34,6 +34,7 @@ class MainActivity : ComponentActivity() {
   private val preferencesManager by lazy { PreferencesManager(this) }
   private var isDCDimmingActive = false
   private var isLowBrightnessMode = false
+  private var shouldShowDonationDialog = false
 
   companion object {
     private const val TARGET_DENSITY_DPI = 410
@@ -41,6 +42,17 @@ class MainActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    
+    // Request notification permission for Android 13+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+      if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != 
+          android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
+      }
+    }
+    
+    // Check if opened from donation notification
+    shouldShowDonationDialog = intent?.getBooleanExtra("show_donation_dialog", false) ?: false
     
     CoroutineScope(Dispatchers.IO).launch {
         isDCDimmingActive = DisplayHelper.isDCDimmingEnabled(this@MainActivity)
@@ -73,6 +85,9 @@ class MainActivity : ComponentActivity() {
     checkGameMonitorServiceStatus()
     startService(Intent(this, id.xms.xtrakernelmanager.service.AppProfileService::class.java))
     
+    // Schedule donation reminder
+    id.xms.xtrakernelmanager.utils.DonationReminderScheduler.scheduleDonationReminder(this)
+    
     setContent {
       val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "liquid")
       
@@ -82,10 +97,19 @@ class MainActivity : ComponentActivity() {
         dynamicColor = layoutStyle != "liquid"
       ) {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-          Navigation(preferencesManager = preferencesManager)
+          Navigation(
+              preferencesManager = preferencesManager,
+              shouldShowDonationDialog = shouldShowDonationDialog
+          )
         }
       }
     }
+  }
+  
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    // Handle new intent when app is already running
+    shouldShowDonationDialog = intent.getBooleanExtra("show_donation_dialog", false)
   }
   
   private fun setupWindowForDCDimming() {

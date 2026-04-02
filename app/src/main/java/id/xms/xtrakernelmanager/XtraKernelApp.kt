@@ -43,6 +43,9 @@ class XtraKernelApp : Application() {
     // Initialize root shell in background with callback
     // This is important for Magisk 28+ compatibility
     initializeRootShell()
+    
+    // Schedule donation reminder notification
+    scheduleDonationReminder()
   }
 
   /**
@@ -56,6 +59,20 @@ class XtraKernelApp : Application() {
       } else {
         Log.w(TAG, "Root access not available or denied")
       }
+    }
+  }
+  
+  /**
+   * Schedule donation reminder notification
+   * Will check every 6 hours if 3 days have passed since last shown
+   */
+  private fun scheduleDonationReminder() {
+    try {
+      Log.d(TAG, "Scheduling Donation Reminder")
+      id.xms.xtrakernelmanager.utils.DonationReminderScheduler.scheduleDonationReminder(this)
+      Log.d(TAG, "Donation reminder scheduled")
+    } catch (e: Exception) {
+      Log.e(TAG, "Error scheduling donation reminder: ${e.message}", e)
     }
   }
 

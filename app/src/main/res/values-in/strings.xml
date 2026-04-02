@@ -1361,4 +1361,30 @@
     <string name="classic_thermal_tuning_status">Pendinginan</string>
     
     <string name="classic_view_details">LIHAT DETAIL</string>
+    
+    <!-- Donation Dialog -->
+    <string name="donation_dialog_title">Dukung Komunitas Kami</string>
+    <string name="donation_dialog_message">Menikmati Xtra Kernel Manager? Dukungan Anda membantu kami terus mengembangkan dan meningkatkan aplikasi. Setiap kontribusi sangat berarti!</string>
+    <string name="donation_support_button">Dukung Komunitas</string>
+    <string name="donation_maybe_later">Mungkin Nanti</string>
+    
+    <!-- Donation Notification -->
+    <string name="donation_notification_title">Dukung Pengembangan XKM</string>
+    <string name="donation_notification_message">Ketuk untuk melihat cara mendukung kami</string>
+    <string name="donation_notification_channel_name">Pengingat Donasi</string>
+    <string name="donation_notification_channel_desc">Notifikasi untuk mengingatkan tentang dukungan aplikasi</string>
+    
+    <!-- Donation Screen -->
+    <string name="donation_screen_title">Dukung Pengembangan</string>
+    <string name="donation_screen_description">Dukungan Anda membantu kami terus mengembangkan dan meningkatkan Xtra Kernel Manager. Setiap kontribusi sangat berarti!</string>
+    <string name="donation_choose_platform">Pilih Platform Anda</string>
+    <string name="donation_paypal">PayPal</string>
+    <string name="donation_paypal_desc">Dukung via PayPal</string>
+    <string name="donation_buymeacoffee">Buy Me a Coffee</string>
+    <string name="donation_buymeacoffee_desc">Belikan kami kopi untuk terus coding</string>
+    <string name="donation_github">GitHub Sponsors</string>
+    <string name="donation_github_desc">Sponsori kami di GitHub</string>
+    <string name="donation_kofi">Ko-Fi</string>
+    <string name="donation_kofi_desc">Dukung kami di Ko-Fi</string>
+    <string name="donation_thank_you">Terima kasih atas dukungan Anda! 💙</string>
 </resources>

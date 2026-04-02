@@ -58,6 +58,9 @@ class BootReceiver : BroadcastReceiver() {
 
           // Apply additional RAM configuration if enabled
           applyAdditionalRAMConfigOnBoot(context)
+          
+          // Schedule donation reminder check
+          scheduleDonationReminderOnBoot(context)
         } finally {
           pendingResult.finish()
         }
@@ -465,6 +468,38 @@ class BootReceiver : BroadcastReceiver() {
       Log.d("BootReceiver", "Swap file activated successfully")
     } else {
       Log.e("BootReceiver", "Failed to activate swap file: ${result.exceptionOrNull()?.message}")
+    }
+  }
+  
+  private fun scheduleDonationReminderOnBoot(context: Context) {
+    try {
+      Log.d(TAG, "Scheduling donation reminder on boot...")
+      
+      // Schedule WorkManager for periodic checks
+      id.xms.xtrakernelmanager.utils.DonationReminderScheduler.scheduleDonationReminder(context)
+      
+      // Also check immediately if should show notification
+      Handler(Looper.getMainLooper()).postDelayed({
+        CoroutineScope(Dispatchers.IO).launch {
+          try {
+            val preferencesManager = PreferencesManager(context)
+            val shouldShow = preferencesManager.shouldShowDonationDialog()
+            
+            if (shouldShow) {
+              Log.d(TAG, "Showing donation notification on boot")
+              id.xms.xtrakernelmanager.utils.DonationNotificationHelper.showDonationNotification(context)
+            } else {
+              Log.d(TAG, "Not time to show donation notification yet")
+            }
+          } catch (e: Exception) {
+            Log.e(TAG, "Failed to check donation reminder: ${e.message}")
+          }
+        }
+      }, 5000L) // Delay 5 seconds after boot
+      
+      Log.d(TAG, "Donation reminder scheduled successfully")
+    } catch (e: Exception) {
+      Log.e(TAG, "Failed to schedule donation reminder on boot: ${e.message}")
     }
   }
 }

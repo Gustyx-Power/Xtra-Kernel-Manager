@@ -17,6 +17,7 @@ import id.xms.xtrakernelmanager.data.model.OriginalFreqConfig
 import id.xms.xtrakernelmanager.data.model.RAMConfig
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 
 private val Context.dataStore: DataStore<Preferences> by
@@ -634,6 +635,10 @@ class PreferencesManager(private val context: Context) {
   private val LOCK_BRIGHTNESS_ENABLED = booleanPreferencesKey("lock_brightness_enabled")
   private val QUICK_APPS_INITIALIZED = booleanPreferencesKey("quick_apps_initialized")
 
+  // Donation Dialog preferences
+  private val LAST_DONATION_DIALOG_SHOWN = longPreferencesKey("last_donation_dialog_shown")
+  private val DONATION_DIALOG_DISMISSED_COUNT = intPreferencesKey("donation_dialog_dismissed_count")
+
   /** Get quick apps package names as JSON array string */
   fun getQuickApps(): Flow<List<String>> =
       context.dataStore.data.map { prefs ->
@@ -1013,4 +1018,55 @@ class PreferencesManager(private val context: Context) {
   /** Get SoC name from DataStore */
   fun getSocName(): Flow<String> =
       context.dataStore.data.map { prefs -> prefs[SOC_NAME] ?: "" }
+
+  // ==================== Donation Dialog Preferences ====================
+  
+  /** Get last time donation dialog was shown (in milliseconds) */
+  fun getLastDonationDialogShown(): Flow<Long> =
+      context.dataStore.data.map { prefs -> prefs[LAST_DONATION_DIALOG_SHOWN] ?: 0L }
+
+  /** Set last time donation dialog was shown */
+  suspend fun setLastDonationDialogShown(timestamp: Long) {
+    context.dataStore.edit { prefs -> prefs[LAST_DONATION_DIALOG_SHOWN] = timestamp }
+  }
+
+  /** Get number of times donation dialog was dismissed */
+  fun getDonationDialogDismissedCount(): Flow<Int> =
+      context.dataStore.data.map { prefs -> prefs[DONATION_DIALOG_DISMISSED_COUNT] ?: 0 }
+
+  /** Increment donation dialog dismissed count */
+  suspend fun incrementDonationDialogDismissedCount() {
+    context.dataStore.edit { prefs ->
+      val currentCount = prefs[DONATION_DIALOG_DISMISSED_COUNT] ?: 0
+      prefs[DONATION_DIALOG_DISMISSED_COUNT] = currentCount + 1
+    }
+  }
+
+  /** Check if donation dialog should be shown (first install or 3 days passed) */
+  suspend fun shouldShowDonationDialog(): Boolean {
+    val lastShown = getLastDonationDialogShown().map { it }.first()
+    val currentTime = System.currentTimeMillis()
+    val threeDaysInMillis = 3 * 24 * 60 * 60 * 1000L // 3 days
+    
+    val shouldShow = lastShown == 0L || (currentTime - lastShown) >= threeDaysInMillis
+    
+    // Log untuk debugging
+    android.util.Log.d("DonationPrefs", "shouldShowDonationDialog check:")
+    android.util.Log.d("DonationPrefs", "  lastShown: $lastShown")
+    android.util.Log.d("DonationPrefs", "  currentTime: $currentTime")
+    android.util.Log.d("DonationPrefs", "  difference: ${currentTime - lastShown} ms")
+    android.util.Log.d("DonationPrefs", "  threeDaysInMillis: $threeDaysInMillis ms")
+    android.util.Log.d("DonationPrefs", "  shouldShow: $shouldShow")
+    
+    return shouldShow
+  }
+  
+  /** Reset donation dialog timestamp (for testing) */
+  suspend fun resetDonationDialogTimestamp() {
+    context.dataStore.edit { prefs -> 
+      prefs[LAST_DONATION_DIALOG_SHOWN] = 0L
+      prefs[DONATION_DIALOG_DISMISSED_COUNT] = 0
+    }
+    android.util.Log.d("DonationPrefs", "Donation dialog timestamp reset")
+  }
 }
