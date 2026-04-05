@@ -37,7 +37,8 @@ import kotlinx.coroutines.launch
 fun ClassicSettingsContent(
     preferencesManager: PreferencesManager,
     currentLayout: String,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToDonation: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
@@ -138,6 +139,59 @@ fun ClassicSettingsContent(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Donation Button
+            AnimatedComponent(visible = isVisible, delayMillis = 500) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onNavigateToDonation()
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFDC2626),
+                    tonalElevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Support Development",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = (-0.3).sp
+                                ),
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Help keep XKM free and updated",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 13.sp
+                            )
+                        }
+                        
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Donate",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .graphicsLayer { rotationZ = 180f }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             // Theme Options
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 AnimatedComponent(visible = isVisible, delayMillis = 200) {
@@ -210,106 +264,144 @@ private fun ClassicThemeCard(
     previewContent: @Composable () -> Unit,
     onClick: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (isSelected) {
-                    Modifier
-                        .border(
-                            width = 2.dp,
-                            color = ClassicColors.Primary,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                        .graphicsLayer {
-                            shadowElevation = 30f
-                        }
-                } else {
-                    Modifier.border(
-                        width = 1.dp,
-                        color = Color.Transparent,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                }
-            )
-            .clickable(enabled = isEnabled) { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) 
-            ClassicColors.SurfaceContainerHighest 
-        else 
-            ClassicColors.SurfaceContainer,
-        tonalElevation = 0.dp
-    ) {
-        Column(
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(48.dp)
-        ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = (-0.5).sp
-                        ),
-                        color = if (isSelected) 
-                            ClassicColors.Primary 
-                        else 
-                            ClassicColors.OnSurface,
-                        fontSize = 20.sp
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (isSelected) 
-                            ClassicColors.Primary.copy(alpha = 0.7f) 
-                        else 
-                            ClassicColors.OnSurfaceVariant,
-                        fontSize = 14.sp
-                    )
-                }
-
-                // Radio Button
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .background(
-                            if (isSelected) 
-                                ClassicColors.Primary 
-                            else 
-                                Color.Transparent,
-                            CircleShape
+                .then(
+                    if (isSelected) {
+                        Modifier
+                            .border(
+                                width = 2.dp,
+                                color = ClassicColors.Primary,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .graphicsLayer {
+                                shadowElevation = 30f
+                            }
+                    } else {
+                        Modifier.border(
+                            width = 1.dp,
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(16.dp)
                         )
-                        .border(
-                            width = 2.dp,
+                    }
+                )
+                .clickable(enabled = isEnabled) { onClick() },
+            shape = RoundedCornerShape(16.dp),
+            color = if (isSelected) 
+                ClassicColors.SurfaceContainerHighest 
+            else 
+                ClassicColors.SurfaceContainer,
+            tonalElevation = 0.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .then(
+                        if (!isEnabled) {
+                            Modifier.graphicsLayer { alpha = 0.4f }
+                        } else {
+                            Modifier
+                        }
+                    ),
+                verticalArrangement = Arrangement.spacedBy(48.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Column {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = (-0.5).sp
+                            ),
                             color = if (isSelected) 
                                 ClassicColors.Primary 
                             else 
-                                ClassicColors.Outline,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isSelected) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Selected",
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
+                                ClassicColors.OnSurface,
+                            fontSize = 20.sp
+                        )
+                        Text(
+                            text = subtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (isSelected) 
+                                ClassicColors.Primary.copy(alpha = 0.7f) 
+                            else 
+                                ClassicColors.OnSurfaceVariant,
+                            fontSize = 14.sp
                         )
                     }
+
+                    // Radio Button
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(
+                                if (isSelected) 
+                                    ClassicColors.Primary 
+                                else 
+                                    Color.Transparent,
+                                CircleShape
+                            )
+                            .border(
+                                width = 2.dp,
+                                color = if (isSelected) 
+                                    ClassicColors.Primary 
+                                else 
+                                    ClassicColors.Outline,
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Visual Preview
+                previewContent()
+            }
+        }
+        
+        // Android 10+ Only overlay for disabled cards
+        if (!isEnabled) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFFDC2626),
+                    tonalElevation = 4.dp
+                ) {
+                    Text(
+                        text = "Android 10+ Only",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
+                        ),
+                        color = Color.White,
+                        fontSize = 12.sp
+                    )
                 }
             }
-
-            // Visual Preview
-            previewContent()
         }
     }
 }
