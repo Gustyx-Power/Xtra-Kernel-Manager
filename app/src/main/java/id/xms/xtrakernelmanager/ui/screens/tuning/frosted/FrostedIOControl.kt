@@ -1,6 +1,9 @@
 package id.xms.xtrakernelmanager.ui.screens.tuning.frosted
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
@@ -9,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -21,19 +25,22 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 
 @Composable
 fun FrostedIOControl(viewModel: TuningViewModel) {
-    val ioSchedulers by viewModel.availableIOSchedulers.collectAsState()
-    val currentIO by viewModel.currentIOScheduler.collectAsState()
-    var showIODialog by remember { mutableStateOf(false) }
+    val blockDeviceStates by viewModel.blockDeviceStates.collectAsState()
+    var expanded by remember { mutableStateOf(false) }
 
-    if (ioSchedulers.isNotEmpty()) {
-        GlassmorphicCard(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = { showIODialog = true }
+    GlassmorphicCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        onClick = { expanded = !expanded }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Header
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -64,7 +71,7 @@ fun FrostedIOControl(viewModel: TuningViewModel) {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = currentIO.ifEmpty { "Not Set" },
+                            text = if (expanded) "Tap to collapse" else "${blockDeviceStates.size} devices",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -72,32 +79,136 @@ fun FrostedIOControl(viewModel: TuningViewModel) {
                 }
 
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    imageVector = if (expanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // Expanded Device List
+            if (expanded) {
+                if (blockDeviceStates.isEmpty()) {
+                    Text(
+                        text = "No block devices detected",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        blockDeviceStates.forEach { state ->
+                            FrostedDeviceIOSection(
+                                deviceName = state.name.uppercase(),
+                                currentScheduler = state.currentScheduler,
+                                availableSchedulers = state.availableSchedulers,
+                                onSchedulerChange = { scheduler ->
+                                    viewModel.setDeviceIOScheduler(state.name, scheduler)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FrostedDeviceIOSection(
+    deviceName: String,
+    currentScheduler: String,
+    availableSchedulers: List<String>,
+    onSchedulerChange: (String) -> Unit
+) {
+    var showSchedulerDialog by remember { mutableStateOf(false) }
+
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(16.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Device Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                    )
+                    Text(
+                        text = deviceName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            // Scheduler Selector
+            Text(
+                text = "SCHEDULER",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Surface(
+                onClick = { showSchedulerDialog = true },
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = currentScheduler,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Icon(
+                        Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
     }
 
-    // IO Scheduler Dialog
-    if (showIODialog) {
+    // Scheduler Selection Dialog
+    if (showSchedulerDialog) {
         FrostedDialog(
-            onDismissRequest = { showIODialog = false },
-            title = "I/O Scheduler",
+            onDismissRequest = { showSchedulerDialog = false },
+            title = "Select Scheduler for $deviceName",
             content = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val dialogContentColor = LocalContentColor.current
-                    ioSchedulers.forEach { scheduler ->
-                        val isSelected = scheduler == currentIO
+                    availableSchedulers.forEach { scheduler ->
+                        val isSelected = scheduler == currentScheduler
 
                         Surface(
                             onClick = {
-                                viewModel.setIOScheduler(scheduler)
-                                showIODialog = false
+                                onSchedulerChange(scheduler)
+                                showSchedulerDialog = false
                             },
                             shape = RoundedCornerShape(12.dp),
                             color = if (isSelected) {
@@ -118,7 +229,10 @@ fun FrostedIOControl(viewModel: TuningViewModel) {
                                     text = scheduler,
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else dialogContentColor
+                                    color = if (isSelected) 
+                                        MaterialTheme.colorScheme.onPrimaryContainer 
+                                    else 
+                                        MaterialTheme.colorScheme.onSurface
                                 )
 
                                 if (isSelected) {
@@ -137,10 +251,11 @@ fun FrostedIOControl(viewModel: TuningViewModel) {
             confirmButton = {
                 FrostedDialogButton(
                     text = stringResource(R.string.frosted_dialog_close),
-                    onClick = { showIODialog = false },
+                    onClick = { showSchedulerDialog = false },
                     isPrimary = true
                 )
             }
         )
     }
 }
+
