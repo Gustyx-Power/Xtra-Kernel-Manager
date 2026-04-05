@@ -74,8 +74,6 @@ fun FrostedHomeScreen(
     val dimens = rememberResponsiveDimens()
     val isCompact = dimens.screenSizeClass == ScreenSizeClass.COMPACT
     
-    var showAccessibilityDialog by remember { mutableStateOf(false) }
-    var hasCheckedAccessibility by remember { mutableStateOf(false) }
     var showPowerDialog by remember { mutableStateOf(false) }
     
     // uptime
@@ -94,17 +92,6 @@ fun FrostedHomeScreen(
             deepSleep = "${hours}h ${minutes}m"
             
             delay(60000)
-        }
-    }
-    
-    LaunchedEffect(Unit) {
-        if (!hasCheckedAccessibility) {
-            delay(1000)
-            val isEnabled = viewModel.isAccessibilityServiceEnabled(context)
-            if (!isEnabled) {
-                showAccessibilityDialog = true
-            }
-            hasCheckedAccessibility = true
         }
     }
 
@@ -234,45 +221,6 @@ fun FrostedHomeScreen(
             Spacer(modifier = Modifier.height(100.dp))
         }
 
-        if (showAccessibilityDialog) {
-            id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog(
-                onDismissRequest = { showAccessibilityDialog = false },
-                title = "Accessibility Service Required",
-                content = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "This app requires accessibility service to function properly.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f)
-                        )
-                        Text(
-                            text = "Please enable the accessibility service in settings.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        )
-                    }
-                },
-                confirmButton = {
-                    id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
-                        text = "Enable",
-                        onClick = {
-                            showAccessibilityDialog = false
-                            val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                            context.startActivity(intent)
-                        },
-                        isPrimary = true
-                    )
-                },
-                dismissButton = {
-                    id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton(
-                        text = "Later",
-                        onClick = { showAccessibilityDialog = false },
-                        isPrimary = false
-                    )
-                }
-            )
-        }
-        
         if (showPowerDialog) {
             FrostedPowerMenuDialog(
                 onDismissRequest = { showPowerDialog = false },

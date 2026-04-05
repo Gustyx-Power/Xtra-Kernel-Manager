@@ -43,21 +43,6 @@ fun MaterialHomeScreen(
     // Bottom Sheet State
     val powerSheetState = rememberModalBottomSheetState()
     var showPowerBottomSheet by remember { mutableStateOf(false) }
-    
-    // Check accessibility service status
-    var showAccessibilityDialog by remember { mutableStateOf(false) }
-    var hasCheckedAccessibility by remember { mutableStateOf(false) }
-    
-    LaunchedEffect(Unit) {
-        if (!hasCheckedAccessibility) {
-            delay(1000) // Wait 1 second after screen loads
-            val isEnabled = viewModel.isAccessibilityServiceEnabled(context)
-            if (!isEnabled) {
-                showAccessibilityDialog = true
-            }
-            hasCheckedAccessibility = true
-        }
-    }
 
     // Data State
     val cpuInfo by viewModel.cpuInfo.collectAsState()
@@ -168,50 +153,6 @@ fun MaterialHomeScreen(
                 }
             )
         }
-    }
-    
-    // Accessibility Service Dialog
-    if (showAccessibilityDialog) {
-        AlertDialog(
-            onDismissRequest = { showAccessibilityDialog = false },
-            icon = {
-                Icon(
-                    Icons.Rounded.Accessibility,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            title = {
-                Text(
-                    stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_disabled),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text(
-                    stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_message),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showAccessibilityDialog = false
-                        val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                        context.startActivity(intent)
-                    }
-                ) {
-                    Text(stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_enable))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showAccessibilityDialog = false }
-                ) {
-                    Text(stringResource(id.xms.xtrakernelmanager.R.string.accessibility_service_later))
-                }
-            }
-        )
     }
 }
 

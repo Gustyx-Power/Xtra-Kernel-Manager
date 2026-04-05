@@ -39,7 +39,6 @@ fun SetupScreen(onSetupComplete: (String) -> Unit) {
   var hasNotificationPermission by remember { mutableStateOf(false) }
   
   val allPermissionsGranted = hasRootAccess && 
-    hasAccessibilityPermission && 
     hasUsagePermission && 
     hasOverlayPermission && 
     hasBatteryOptimization && 
