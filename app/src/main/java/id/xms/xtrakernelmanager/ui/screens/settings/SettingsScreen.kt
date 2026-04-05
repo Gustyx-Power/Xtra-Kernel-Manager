@@ -16,7 +16,8 @@ import id.xms.xtrakernelmanager.ui.screens.settings.components.MaterialSettingsC
 @Composable
 fun SettingsScreen(
     preferencesManager: PreferencesManager,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToDonation: () -> Unit = {}
 ) {
     val layoutStyle by preferencesManager.getLayoutStyle().collectAsState(initial = "material")
     
@@ -24,17 +25,20 @@ fun SettingsScreen(
         "classic" -> ClassicSettingsContent(
             preferencesManager = preferencesManager,
             currentLayout = layoutStyle,
-            onNavigateBack = onNavigateBack
+            onNavigateBack = onNavigateBack,
+            onNavigateToDonation = onNavigateToDonation
         )
         "liquid" -> FrostedSettingsContent(
             preferencesManager = preferencesManager,
             currentLayout = layoutStyle,
-            onNavigateBack = onNavigateBack
+            onNavigateBack = onNavigateBack,
+            onNavigateToDonation = onNavigateToDonation
         )
         else -> MaterialSettingsContent(
             preferencesManager = preferencesManager,
             currentLayout = layoutStyle,
-            onNavigateBack = onNavigateBack
+            onNavigateBack = onNavigateBack,
+            onNavigateToDonation = onNavigateToDonation
         )
     }
 }
