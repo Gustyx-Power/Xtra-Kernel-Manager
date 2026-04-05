@@ -148,7 +148,7 @@ fun ClassicTuningScreen(
             descriptionRes = R.string.classic_thermal_tuning_description,
             statusLabelRes = R.string.classic_thermal_tuning_status,
             statusColor = ClassicColors.Accent,
-            onClick = { onNavigate("material_thermal_settings") }
+            onClick = { onNavigate("classic_thermal_settings") }
         )
         
         Spacer(modifier = Modifier.height(80.dp))
