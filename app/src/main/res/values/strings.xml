@@ -1481,7 +1481,7 @@
     <string name="classic_system_tuning_title">System Tuning</string>
     <string name="classic_performance_hub_title">Performance</string>
     <string name="classic_performance_hub_subtitle">Hub</string>
-    <string name="classic_performance_hub_description">Advanced kernel parameters and\ncore frequency scaling for the Nebula\nCore ecosystem.</string>
+    <string name="classic_performance_hub_description">Advanced kernel parameters and\ncore frequency scaling for the Xtra\nKernel Manager ecosystem.</string>
     
     <string name="classic_cpu_tuning_title">CPU Tuning</string>
     <string name="classic_cpu_tuning_description">Adjust governor profiles, touchboost parameters, and per-core frequency limits.</string>
