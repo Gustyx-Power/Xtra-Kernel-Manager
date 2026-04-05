@@ -13,8 +13,14 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.*
@@ -33,7 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import id.xms.xtrakernelmanager.R
+import id.xms.xtrakernelmanager.data.model.GPUInfo
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import kotlinx.coroutines.launch
 import java.lang.Math.PI
 import java.lang.Math.sin
 
@@ -41,6 +49,7 @@ import java.lang.Math.sin
 fun ExpandableGPUCard(viewModel: TuningViewModel) {
   // Get real GPU data from ViewModel
   val gpuInfo by viewModel.gpuInfo.collectAsState()
+  val coroutineScope = rememberCoroutineScope()
 
   var expanded by remember { mutableStateOf(false) }
   var sliderValue by remember { mutableFloatStateOf(0.7f) }
@@ -48,6 +57,20 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
   var minFreq by remember { mutableStateOf("305 MHz") }
   var maxFreq by remember { mutableStateOf("680 MHz") }
   var rendererValue by remember { mutableStateOf("SkiaGL (Vulkan)") }
+  
+  // Renderer dialog states
+  var showRendererDialog by remember { mutableStateOf(false) }
+  var showRebootDialog by remember { mutableStateOf(false) }
+  var showVerificationDialog by remember { mutableStateOf(false) }
+  var pendingRenderer by remember { mutableStateOf("") }
+  var verificationSuccess by remember { mutableStateOf(false) }
+  var verificationMessage by remember { mutableStateOf("") }
+  var isProcessing by remember { mutableStateOf(false) }
+  var selectedRenderer by remember { mutableStateOf(gpuInfo.rendererType) }
+
+  LaunchedEffect(gpuInfo.rendererType) { 
+    selectedRenderer = gpuInfo.rendererType 
+  }
 
   // Extract GPU model from renderer (e.g., "Adreno (TM) 725" -> "Adreno 725")
   val gpuModel =
@@ -344,15 +367,101 @@ fun ExpandableGPUCard(viewModel: TuningViewModel) {
           }
 
           // Renderer
-          GpuControlRow(
-              label = stringResource(R.string.material_gpu_renderer),
-              value = gpuInfo.rendererType,
-              options = listOf("skiavk", "skiagl", "opengl"),
-              onValueChange = { viewModel.setGPURenderer(it) },
-          )
+          Surface(
+              modifier = Modifier.fillMaxWidth().clickable { showRendererDialog = true },
+              color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+              shape = RoundedCornerShape(12.dp),
+          ) {
+            Row(
+                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+              Text(
+                  stringResource(R.string.material_gpu_renderer),
+                  style = MaterialTheme.typography.bodyMedium,
+                  color = MaterialTheme.colorScheme.onSurface,
+              )
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    selectedRenderer,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Icon(
+                    Icons.Rounded.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+              }
+            }
+          }
         }
       }
     }
+  }
+  
+  // Renderer Selection Dialog
+  if (showRendererDialog) {
+    MaterialRendererSelectionDialog(
+        selectedRenderer = selectedRenderer,
+        onDismiss = { showRendererDialog = false },
+        onSelect = { renderer ->
+          if (renderer != selectedRenderer) {
+            pendingRenderer = renderer
+            showRendererDialog = false
+            showRebootDialog = true
+          } else {
+            showRendererDialog = false
+          }
+        }
+    )
+  }
+  
+  // Reboot Confirmation Dialog
+  if (showRebootDialog) {
+    MaterialRebootConfirmationDialog(
+        gpuInfo = gpuInfo,
+        pendingRenderer = pendingRenderer,
+        onDismiss = { showRebootDialog = false },
+        onConfirm = {
+          showRebootDialog = false
+          isProcessing = true
+          showVerificationDialog = true
+          coroutineScope.launch {
+            try {
+              viewModel.setGPURenderer(pendingRenderer)
+              kotlinx.coroutines.delay(2000)
+              val verified = viewModel.verifyRendererChange(pendingRenderer)
+              verificationSuccess = verified
+              if (!verified) {
+                verificationMessage = "Property set but verification uncertain."
+              }
+            } catch (e: Exception) {
+              verificationSuccess = false
+              verificationMessage = e.message ?: "Unknown error"
+            } finally {
+              isProcessing = false
+            }
+          }
+        }
+    )
+  }
+  
+  // Verification Dialog
+  if (showVerificationDialog) {
+    MaterialVerificationDialog(
+        isProcessing = isProcessing,
+        verificationSuccess = verificationSuccess,
+        verificationMessage = verificationMessage,
+        pendingRenderer = pendingRenderer,
+        onDismiss = { if (!isProcessing) showVerificationDialog = false },
+        onReboot = {
+          coroutineScope.launch { viewModel.performReboot() }
+          showVerificationDialog = false
+        }
+    )
   }
 }
 
@@ -596,4 +705,421 @@ fun WavySlider(
       )
     }
   }
+}
+
+
+@Composable
+private fun MaterialRendererSelectionDialog(
+    selectedRenderer: String,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    val renderers = listOf(
+        "OpenGL" to "Traditional graphics API",
+        "Vulkan" to "Modern low-level API",
+        "ANGLE" to "OpenGL ES over Vulkan/D3D",
+        "SkiaGL" to "Skia with OpenGL backend",
+        "SkiaVulkan" to "Skia with Vulkan backend"
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = stringResource(R.string.gpu_renderer_select_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.gpu_renderer_select_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                renderers.forEach { (renderer, description) ->
+                    val isSelected = renderer == selectedRenderer
+                    
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(renderer) },
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (isSelected)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else
+                            MaterialTheme.colorScheme.surface,
+                        tonalElevation = if (isSelected) 0.dp else 1.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = renderer,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) 
+                                        MaterialTheme.colorScheme.onPrimaryContainer 
+                                    else 
+                                        MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (isSelected)
+                                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (isSelected) {
+                                Icon(
+                                    Icons.Filled.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+        shape = RoundedCornerShape(28.dp)
+    )
+}
+
+@Composable
+private fun MaterialRebootConfirmationDialog(
+    gpuInfo: GPUInfo,
+    pendingRenderer: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        icon = {
+            Icon(
+                Icons.Filled.Warning,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.gpu_change_renderer_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.gpu_change_renderer_intro),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                // Current -> New Renderer Display
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.gpu_current),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = gpuInfo.rendererType,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        
+                        Icon(
+                            Icons.Filled.ArrowDownward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.gpu_new),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = pendingRenderer,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+                
+                HorizontalDivider()
+                
+                // Warning
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.gpu_important),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.gpu_change_warnings),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            FilledTonalButton(onClick = onConfirm) {
+                Text(stringResource(R.string.gpu_apply_changes))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.gpu_cancel))
+            }
+        },
+        shape = RoundedCornerShape(28.dp)
+    )
+}
+
+@Composable
+private fun MaterialVerificationDialog(
+    isProcessing: Boolean,
+    verificationSuccess: Boolean,
+    verificationMessage: String,
+    pendingRenderer: String,
+    onDismiss: () -> Unit,
+    onReboot: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { if (!isProcessing) onDismiss() },
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        title = {
+            Text(
+                text = when {
+                    isProcessing -> stringResource(R.string.gpu_applying_changes)
+                    verificationSuccess -> stringResource(R.string.gpu_changes_applied)
+                    else -> stringResource(R.string.gpu_warning)
+                },
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Status Icon/Progress
+                Box(
+                    modifier = Modifier.size(72.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isProcessing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(56.dp),
+                            strokeWidth = 4.dp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = if (verificationSuccess) Icons.Filled.CheckCircle else Icons.Filled.Error,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = if (verificationSuccess) 
+                                MaterialTheme.colorScheme.primary 
+                            else 
+                                MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+                
+                when {
+                    isProcessing -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.gpu_writing_system_files),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    verificationSuccess -> {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Success Card
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            Icons.Filled.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.gpu_runtime_property_updated),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.gpu_renderer_label, pendingRenderer),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                            
+                            // Reboot Required Card
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.errorContainer
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            Icons.Outlined.Refresh,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.gpu_reboot_required),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.gpu_reboot_required_desc),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.errorContainer
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.gpu_failed_apply),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                if (verificationMessage.isNotBlank()) {
+                                    Text(
+                                        text = verificationMessage,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.7f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (!isProcessing) {
+                if (verificationSuccess) {
+                    FilledTonalButton(onClick = onReboot) {
+                        Text(stringResource(R.string.gpu_reboot_now))
+                    }
+                } else {
+                    FilledTonalButton(onClick = onDismiss) {
+                        Text(stringResource(R.string.gpu_close))
+                    }
+                }
+            }
+        },
+        dismissButton = if (!isProcessing && verificationSuccess) {
+            {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.gpu_reboot_later))
+                }
+            }
+        } else null,
+        shape = RoundedCornerShape(28.dp)
+    )
 }
