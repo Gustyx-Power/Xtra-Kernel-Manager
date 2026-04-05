@@ -56,6 +56,7 @@ import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicCPUTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicGPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicSmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedCPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.SmartFrequencyLockScreen
@@ -298,6 +299,21 @@ fun Navigation(
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
           MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
+        }
+        composable("gpu_tuning") {
+          val factory = TuningViewModel.Factory(preferencesManager)
+          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
+          
+          // Use Classic GPU Tuning Screen for classic layout
+          if (layoutStyle == "classic") {
+            ClassicGPUTuningScreen(
+                viewModel = tuningViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+          } else {
+            // For other layouts, navigate back for now (can add material/frosted GPU screens later)
+            navController.popBackStack()
+          }
         }
         composable("material_thermal_settings") {
           val factory = TuningViewModel.Factory(preferencesManager)

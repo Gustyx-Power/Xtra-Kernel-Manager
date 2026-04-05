@@ -128,7 +128,7 @@ fun ClassicTuningScreen(
             descriptionRes = R.string.classic_gpu_tuning_description,
             statusLabelRes = R.string.classic_gpu_tuning_status,
             statusColor = ClassicColors.Good,
-            onClick = { /* GPU detail screen - to be implemented */ }
+            onClick = { onNavigate("gpu_tuning") }
         )
         
         // Memory Tuning Feature Card
