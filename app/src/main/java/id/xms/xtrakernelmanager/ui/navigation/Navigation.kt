@@ -55,6 +55,8 @@ import id.xms.xtrakernelmanager.ui.screens.misc.MiscViewModel
 import id.xms.xtrakernelmanager.ui.screens.setup.SetupScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicCPUTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicSmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedCPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.SmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
@@ -259,19 +261,38 @@ fun Navigation(
         composable("cpu_tuning") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          CPUTuningScreen(
-              viewModel = tuningViewModel,
-              onNavigateBack = { navController.popBackStack() },
-              onNavigateToSmartLock = { navController.navigate("material_smart_frequency_lock") }
-          )
+          
+          // Use Classic CPU Tuning Screen for classic layout
+          if (layoutStyle == "classic") {
+            ClassicCPUTuningScreen(
+                viewModel = tuningViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSmartLock = { navController.navigate("material_smart_frequency_lock") }
+            )
+          } else {
+            CPUTuningScreen(
+                viewModel = tuningViewModel,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToSmartLock = { navController.navigate("material_smart_frequency_lock") }
+            )
+          }
         }
         composable("material_smart_frequency_lock") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          MaterialSmartFrequencyLockScreen(
-              viewModel = tuningViewModel,
-              onNavigateBack = { navController.popBackStack() }
-          )
+          
+          // Use Classic Smart Frequency Lock for classic layout
+          if (layoutStyle == "classic") {
+            ClassicSmartFrequencyLockScreen(
+                viewModel = tuningViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+          } else {
+            MaterialSmartFrequencyLockScreen(
+                viewModel = tuningViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+          }
         }
         composable("memory_tuning") {
           val factory = TuningViewModel.Factory(preferencesManager)
