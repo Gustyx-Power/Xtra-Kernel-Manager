@@ -19,7 +19,26 @@ import java.util.Locale
 
 @Composable
 fun ClassicBatteryCard(batteryInfo: BatteryInfo) {
-    val isCharging = batteryInfo.status.contains("Charging", ignoreCase = true)
+    // Detect charging status - use equals instead of contains to avoid false positives
+    val isCharging = batteryInfo.status.equals("Charging", ignoreCase = true) || 
+                     batteryInfo.status.equals("Full", ignoreCase = true)
+    
+    // Fast charging detection: current > 1000mA while charging
+    val isFastCharging = isCharging && batteryInfo.currentNow > 1000
+    
+    // Calculate estimated time to full charge
+    val estimatedTime = if (isCharging && batteryInfo.currentNow > 0 && batteryInfo.totalCapacity > 0) {
+        val remainingCapacity = batteryInfo.totalCapacity * (100 - batteryInfo.level) / 100
+        val hoursToFull = remainingCapacity.toFloat() / batteryInfo.currentNow
+        val minutesToFull = (hoursToFull * 60).toInt()
+        
+        when {
+            minutesToFull <= 0 -> null
+            minutesToFull < 60 -> "${minutesToFull}m to full"
+            minutesToFull < 120 -> "1h ${minutesToFull % 60}m to full"
+            else -> "${minutesToFull / 60}h ${minutesToFull % 60}m to full"
+        }
+    } else null
     
     ClassicCard(title = "", icon = Icons.Rounded.BatteryFull, isLarge = true, hideHeader = true) {
         Column(
@@ -64,15 +83,19 @@ fun ClassicBatteryCard(batteryInfo: BatteryInfo) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = if (isCharging) "Fast Charging" else batteryInfo.status,
+                    text = when {
+                        isFastCharging -> "Fast Charging"
+                        isCharging -> "Charging"
+                        else -> batteryInfo.status
+                    },
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = ClassicColors.OnSurface
                 )
                 
-                if (isCharging) {
+                if (estimatedTime != null) {
                     Text(
-                        text = "Estimated 42m to full",
+                        text = "Estimated $estimatedTime",
                         style = MaterialTheme.typography.bodyMedium,
                         color = ClassicColors.OnSurfaceVariant
                     )
@@ -116,7 +139,7 @@ fun ClassicBatteryCard(batteryInfo: BatteryInfo) {
                     )
                     BatteryStatItem(
                         label = "TEMP",
-                        value = "${String.format(Locale.US, "%.1f", batteryInfo.temperature / 10f)}°C",
+                        value = "${String.format(Locale.US, "%.1f", batteryInfo.temperature)}°C",
                         modifier = Modifier.weight(1f),
                         isHighlight = true,
                         align = Alignment.End
