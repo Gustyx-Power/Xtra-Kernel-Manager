@@ -57,6 +57,7 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicCPUTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicGPUTuningScreen
+import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicMemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicSmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedCPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.SmartFrequencyLockScreen
@@ -298,7 +299,17 @@ fun Navigation(
         composable("memory_tuning") {
           val factory = TuningViewModel.Factory(preferencesManager)
           val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
+          
+          // Use Classic Memory Tuning Screen for classic layout
+          if (layoutStyle == "classic") {
+            ClassicMemoryTuningScreen(
+                viewModel = tuningViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+          } else {
+            // Use Material Memory Tuning Screen for other layouts
+            MemoryTuningScreen(viewModel = tuningViewModel, navController = navController)
+          }
         }
         composable("gpu_tuning") {
           val factory = TuningViewModel.Factory(preferencesManager)
