@@ -456,7 +456,8 @@ fun Navigation(
         composable("settings") {
           SettingsScreen(
               preferencesManager = preferencesManager,
-              onNavigateBack = { navController.popBackStack() }
+              onNavigateBack = { navController.popBackStack() },
+              onNavigateToDonation = { navController.navigate("donation") }
           )
         }
         

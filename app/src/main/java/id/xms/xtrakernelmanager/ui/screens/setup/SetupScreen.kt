@@ -27,7 +27,9 @@ fun SetupScreen(onSetupComplete: (String) -> Unit) {
   val scope = rememberCoroutineScope()
   val context = androidx.compose.ui.platform.LocalContext.current
   
-  var selectedLayout by remember { mutableStateOf("material") }
+  // Default to "classic" for Android 8 and 9 (API < 29), "material" for Android 10+
+  val defaultLayout = if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) "classic" else "material"
+  var selectedLayout by remember { mutableStateOf(defaultLayout) }
   
   var hasRootAccess by remember { mutableStateOf(false) }
   var hasAccessibilityPermission by remember { mutableStateOf(false) }
@@ -137,7 +139,20 @@ fun SetupScreen(onSetupComplete: (String) -> Unit) {
               containerColor = Color(0xFF38BDF8)
             ),
             shape = RoundedCornerShape(16.dp),
-            enabled = if (pagerState.currentPage == 4) allPermissionsGranted else true
+            enabled = when (pagerState.currentPage) {
+              4 -> allPermissionsGranted // Page 4: Permissions must be granted
+              5 -> {
+                // Page 5: Style selection - validate based on Android version
+                if (isAndroid10Plus) {
+                  // Android 10+ can choose any style
+                  true
+                } else {
+                  // Android 8-9 must choose "classic"
+                  selectedLayout == "classic"
+                }
+              }
+              else -> true
+            }
           ) {
             Text(
               text = stringResource(R.string.setup_continue),
