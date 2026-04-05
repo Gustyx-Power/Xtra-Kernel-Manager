@@ -30,7 +30,6 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedGPUS
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedRAMSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.ThermalIndexSelectionScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.ThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedAdditionalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicTuningScreen
@@ -41,7 +40,6 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.MaterialTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalIndexSelectionScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.screens.tuning.ImportResult
 import kotlinx.coroutines.delay
@@ -220,8 +218,7 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
               "liquid_thermal_settings" -> FrostedThermalSettingsScreen(
                   viewModel = viewModel,
                   onNavigateBack = { currentRoute = "main" },
-                  onNavigateToIndexSelection = { currentRoute = "thermal_index_selection" },
-                  onNavigateToPolicySelection = { currentRoute = "thermal_policy_selection" }
+                  onNavigateToIndexSelection = { currentRoute = "thermal_index_selection" }
               )
               "thermal_index_selection" -> {
                   val currentIndex by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
@@ -232,22 +229,6 @@ fun TuningScreen(preferencesManager: PreferencesManager, onNavigate: (String) ->
                       onNavigateBack = { currentRoute = "liquid_thermal_settings" },
                       onIndexSelected = { index ->
                           viewModel.setThermalPreset(index, currentOnBoot)
-                          // Add small delay to ensure state is saved before navigation
-                          scope.launch {
-                              delay(100)
-                              currentRoute = "liquid_thermal_settings"
-                          }
-                      }
-                  )
-              }
-              "thermal_policy_selection" -> {
-                  val currentPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
-                  ThermalPolicySelectionScreen(
-                      viewModel = viewModel,
-                      currentPolicy = currentPolicy,
-                      onNavigateBack = { currentRoute = "liquid_thermal_settings" },
-                      onPolicySelected = { policy ->
-                          viewModel.setCpuLockThermalPolicy(policy)
                           // Add small delay to ensure state is saved before navigation
                           scope.launch {
                               delay(100)

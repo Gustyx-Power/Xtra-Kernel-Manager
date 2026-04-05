@@ -34,6 +34,7 @@ fun ClassicSmartFrequencyLockScreen(
     onNavigateBack: () -> Unit
 ) {
     val clusters by viewModel.cpuClusters.collectAsState()
+    val currentThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState()
     
     // State for each cluster's frequency
     val clusterFrequencies = remember {
@@ -203,7 +204,7 @@ fun ClassicSmartFrequencyLockScreen(
                                 viewModel.lockCpuFrequencies(
                                     clusterConfigs = lockConfigs,
                                     policyType = selectedPolicy,
-                                    thermalPolicy = "Policy B (Balanced)"
+                                    thermalPolicy = currentThermalPolicy
                                 )
                                 
                                 onNavigateBack()

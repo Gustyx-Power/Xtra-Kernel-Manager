@@ -11,14 +11,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import id.xms.xtrakernelmanager.R
-import id.xms.xtrakernelmanager.data.model.ThermalPolicyPresets
 import id.xms.xtrakernelmanager.ui.screens.home.components.classic.ClassicCard
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 import id.xms.xtrakernelmanager.ui.theme.ClassicColors
 
 @Composable
 fun ClassicThermalTuningCard(viewModel: TuningViewModel) {
-    val selectedThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
     val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
     val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
 
@@ -32,7 +30,6 @@ fun ClassicThermalTuningCard(viewModel: TuningViewModel) {
     )
     
     val thermalOptions = presetMap.keys.toList()
-    val policies = ThermalPolicyPresets.getAllPolicies().map { it.name }
 
     ClassicCard(title = "Thermal Tuning", icon = Icons.Rounded.Thermostat) {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -48,7 +45,7 @@ fun ClassicThermalTuningCard(viewModel: TuningViewModel) {
             ClassicDropdown(
                 label = "Current Profile",
                 options = thermalOptions,
-                selectedOption = prefsThermal, // Ideally verify if it's in the list
+                selectedOption = prefsThermal,
                 onOptionSelected = { newProfile ->
                     viewModel.setThermalPreset(newProfile, prefsOnBoot)
                 }
@@ -76,34 +73,6 @@ fun ClassicThermalTuningCard(viewModel: TuningViewModel) {
                     )
                 )
             }
-            
-            Divider(color = ClassicColors.SurfaceVariant)
-
-            // Thermal Policy
-            Text(
-                text = "Thermal Policy (CPU Lock)",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = ClassicColors.Secondary
-            )
-            
-            ClassicDropdown(
-                label = "Current Policy",
-                options = policies,
-                selectedOption = selectedThermalPolicy,
-                onOptionSelected = { newPolicyName ->
-                    // Logic to set policy. Liquid uses a dialog.
-                    // Here we'll just set it. 
-                    // TuningViewModel doesn't seem to have a direct 'setCpuLockThermalPolicy' that takes a name?
-                    // Let's check viewModel.setCpuLockThermalPolicy(name)
-                    // I will assume it exists or I need to find the method.
-                    // Liquid calls `viewModel.setCpuLockThermalPolicy(policyName)` in `ModernThermalPolicyCard`?
-                    // No, `ModernThermalPolicyCard` opens a dialog.
-                    // I'll check `ThermalPolicySelectionDialog` logic.
-                    // Assuming viewModel.setCpuLockThermalPolicy exists.
-                    viewModel.setCpuLockThermalPolicy(newPolicyName)
-                }
-            )
         }
     }
 }

@@ -38,10 +38,8 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 fun FrostedThermalSettingsScreen(
     viewModel: TuningViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToIndexSelection: () -> Unit,
-    onNavigateToPolicySelection: () -> Unit
+    onNavigateToIndexSelection: () -> Unit
 ) {
-    val selectedThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
     val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
     val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
 
@@ -67,8 +65,7 @@ fun FrostedThermalSettingsScreen(
                 // Hero Section
                 item {
                     HeroThermalCard(
-                        prefsThermal = prefsThermal,
-                        selectedPolicy = selectedThermalPolicy
+                        prefsThermal = prefsThermal
                     )
                 }
                 
@@ -79,14 +76,6 @@ fun FrostedThermalSettingsScreen(
                         prefsOnBoot = prefsOnBoot,
                         onShowDialog = onNavigateToIndexSelection,
                         viewModel = viewModel
-                    )
-                }
-                
-                // Thermal Policy Section
-                item {
-                    ModernThermalPolicyCard(
-                        selectedPolicy = selectedThermalPolicy,
-                        onShowDialog = onNavigateToPolicySelection
                     )
                 }
             }
@@ -131,8 +120,7 @@ private fun ModernTopBar(
 
 @Composable
 private fun HeroThermalCard(
-    prefsThermal: String,
-    selectedPolicy: String
+    prefsThermal: String
 ) {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
@@ -156,18 +144,10 @@ private fun HeroThermalCard(
                 fontWeight = FontWeight.Bold
             )
             
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                StatusChip(
-                    label = stringResource(R.string.thermal_index_label),
-                    value = prefsThermal
-                )
-                StatusChip(
-                    label = stringResource(R.string.thermal_policy_label),
-                    value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else ""
-                )
-            }
+            StatusChip(
+                label = stringResource(R.string.thermal_index_label),
+                value = prefsThermal
+            )
         }
     }
 }

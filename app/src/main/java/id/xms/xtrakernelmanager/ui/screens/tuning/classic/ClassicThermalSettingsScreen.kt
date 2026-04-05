@@ -29,10 +29,8 @@ import id.xms.xtrakernelmanager.ui.theme.ClassicColors
 fun ClassicThermalSettingsScreen(
     viewModel: TuningViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToIndexSelection: () -> Unit,
-    onNavigateToPolicySelection: () -> Unit
+    onNavigateToIndexSelection: () -> Unit
 ) {
-    val selectedThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
     val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
     val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
 
@@ -78,8 +76,7 @@ fun ClassicThermalSettingsScreen(
             // Hero Section
             item(key = "hero_card") {
                 ClassicHeroThermalCard(
-                    prefsThermal = prefsThermal,
-                    selectedPolicy = selectedThermalPolicy
+                    prefsThermal = prefsThermal
                 )
             }
             
@@ -93,14 +90,6 @@ fun ClassicThermalSettingsScreen(
                 )
             }
             
-            // Thermal Policy Section
-            item(key = "thermal_policy") {
-                ClassicThermalPolicyCard(
-                    selectedPolicy = selectedThermalPolicy,
-                    onShowDialog = onNavigateToPolicySelection
-                )
-            }
-            
             item(key = "bottom_spacer") {
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -110,8 +99,7 @@ fun ClassicThermalSettingsScreen(
 
 @Composable
 private fun ClassicHeroThermalCard(
-    prefsThermal: String,
-    selectedPolicy: String
+    prefsThermal: String
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -148,21 +136,12 @@ private fun ClassicHeroThermalCard(
                 color = ClassicColors.OnSurface
             )
             
-            // Status indicators
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                ClassicStatusChip(
-                    label = "Index",
-                    value = prefsThermal,
-                    color = ClassicColors.Error
-                )
-                ClassicStatusChip(
-                    label = "Policy",
-                    value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else "",
-                    color = ClassicColors.Primary
-                )
-            }
+            // Status indicator
+            ClassicStatusChip(
+                label = "Index",
+                value = prefsThermal,
+                color = ClassicColors.Error
+            )
         }
     }
 }

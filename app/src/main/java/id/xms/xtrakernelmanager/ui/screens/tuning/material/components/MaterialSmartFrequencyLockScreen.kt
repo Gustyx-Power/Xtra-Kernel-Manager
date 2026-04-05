@@ -36,6 +36,7 @@ fun MaterialSmartFrequencyLockScreen(
     onNavigateBack: () -> Unit
 ) {
     val clusters by viewModel.cpuClusters.collectAsState()
+    val currentThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState()
     
     // State for each cluster's frequency
     val clusterFrequencies = remember {
@@ -47,7 +48,6 @@ fun MaterialSmartFrequencyLockScreen(
     }
     
     var selectedPolicy by remember { mutableStateOf(LockPolicyType.SMART) }
-    var selectedThermalPolicy by remember { mutableStateOf("Policy B (Balanced)") }
     var selectedClusterForFreq by remember { mutableStateOf<ClusterInfo?>(null) }
     var isSelectingMin by remember { mutableStateOf(true) }
     
@@ -187,9 +187,7 @@ fun MaterialSmartFrequencyLockScreen(
                             viewModel.lockCpuFrequencies(
                                 clusterConfigs = lockConfigs,
                                 policyType = selectedPolicy,
-                                thermalPolicy = if (selectedPolicy == LockPolicyType.SMART) {
-                                    selectedThermalPolicy
-                                } else "Policy B (Balanced)"
+                                thermalPolicy = currentThermalPolicy
                             )
                             
                             onNavigateBack()

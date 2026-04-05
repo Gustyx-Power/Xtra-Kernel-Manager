@@ -1873,13 +1873,11 @@ class TuningViewModel(
 
   fun getCpuLockThermalPolicy(): StateFlow<String> {
     return preferencesManager.getCpuLockThermalPolicy()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "Policy B (Balanced)")
   }
 
-  fun setCpuLockThermalPolicy(policy: String) {
-    viewModelScope.launch {
-      preferencesManager.setCpuLockThermalPolicy(policy)
-    }
+  suspend fun setCpuLockThermalPolicy(policy: String) {
+    preferencesManager.setCpuLockThermalPolicy(policy)
   }
 
   fun getCpuLockRetryCount(): StateFlow<Int> {

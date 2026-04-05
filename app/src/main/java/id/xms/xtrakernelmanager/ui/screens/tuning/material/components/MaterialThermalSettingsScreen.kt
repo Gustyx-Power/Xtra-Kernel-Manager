@@ -31,10 +31,8 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
 fun MaterialThermalSettingsScreen(
     viewModel: TuningViewModel,
     onNavigateBack: () -> Unit,
-    onNavigateToIndexSelection: () -> Unit,
-    onNavigateToPolicySelection: () -> Unit
+    onNavigateToIndexSelection: () -> Unit
 ) {
-    val selectedThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
     val prefsThermal by viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
     val prefsOnBoot by viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
 
@@ -73,8 +71,7 @@ fun MaterialThermalSettingsScreen(
             // Hero Section
             item(key = "hero_card") {
                 MaterialHeroThermalCard(
-                    prefsThermal = prefsThermal,
-                    selectedPolicy = selectedThermalPolicy
+                    prefsThermal = prefsThermal
                 )
             }
             
@@ -87,22 +84,13 @@ fun MaterialThermalSettingsScreen(
                     viewModel = viewModel
                 )
             }
-            
-            // Thermal Policy Section
-            item(key = "thermal_policy") {
-                MaterialThermalPolicyCard(
-                    selectedPolicy = selectedThermalPolicy,
-                    onShowDialog = onNavigateToPolicySelection
-                )
-            }
         }
     }
 }
 
 @Composable
 private fun MaterialHeroThermalCard(
-    prefsThermal: String,
-    selectedPolicy: String
+    prefsThermal: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -141,21 +129,12 @@ private fun MaterialHeroThermalCard(
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             
-            // Status indicators
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                MaterialStatusChip(
-                    label = "Index",
-                    value = prefsThermal,
-                    color = MaterialTheme.colorScheme.error
-                )
-                MaterialStatusChip(
-                    label = "Policy",
-                    value = selectedPolicy.take(8) + if (selectedPolicy.length > 8) "..." else "",
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            // Status indicator
+            MaterialStatusChip(
+                label = "Index",
+                value = prefsThermal,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }

@@ -61,7 +61,6 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicMemoryTuningScr
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicSmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.ClassicThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.classic.components.ClassicThermalIndexSelectionScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.classic.components.ClassicThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.FrostedCPUSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.frosted.components.SmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.CPUTuningScreen
@@ -69,7 +68,6 @@ import id.xms.xtrakernelmanager.ui.screens.tuning.material.MemoryTuningScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialSmartFrequencyLockScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalSettingsScreen
 import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalIndexSelectionScreen
-import id.xms.xtrakernelmanager.ui.screens.tuning.material.components.MaterialThermalPolicySelectionScreen
 import id.xms.xtrakernelmanager.utils.Holiday
 import id.xms.xtrakernelmanager.utils.HolidayChecker
 import kotlinx.coroutines.delay
@@ -335,8 +333,7 @@ fun Navigation(
           ClassicThermalSettingsScreen(
               viewModel = tuningViewModel,
               onNavigateBack = { navController.popBackStack() },
-              onNavigateToIndexSelection = { navController.navigate("classic_thermal_index_selection") },
-              onNavigateToPolicySelection = { navController.navigate("classic_thermal_policy_selection") }
+              onNavigateToIndexSelection = { navController.navigate("classic_thermal_index_selection") }
           )
         }
         composable("classic_thermal_index_selection") {
@@ -351,26 +348,6 @@ fun Navigation(
               onNavigateBack = { navController.popBackStack() },
               onIndexSelected = { index ->
                   tuningViewModel.setThermalPreset(index, currentOnBoot)
-                  // Add small delay to ensure state is saved before navigation
-                  scope.launch {
-                      delay(100)
-                      navController.popBackStack()
-                  }
-              }
-          )
-        }
-        composable("classic_thermal_policy_selection") {
-          val factory = TuningViewModel.Factory(preferencesManager)
-          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          val currentPolicy by tuningViewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
-          val scope = rememberCoroutineScope()
-          ClassicThermalPolicySelectionScreen(
-              viewModel = tuningViewModel,
-              currentPolicy = currentPolicy,
-              onNavigateBack = { navController.popBackStack() },
-              onPolicySelected = { policy ->
-                  tuningViewModel.setCpuLockThermalPolicy(policy)
-                  // Add small delay to ensure state is saved before navigation
                   scope.launch {
                       delay(100)
                       navController.popBackStack()
@@ -384,8 +361,7 @@ fun Navigation(
           MaterialThermalSettingsScreen(
               viewModel = tuningViewModel,
               onNavigateBack = { navController.popBackStack() },
-              onNavigateToIndexSelection = { navController.navigate("material_thermal_index_selection") },
-              onNavigateToPolicySelection = { navController.navigate("material_thermal_policy_selection") }
+              onNavigateToIndexSelection = { navController.navigate("material_thermal_index_selection") }
           )
         }
         composable("material_thermal_index_selection") {
@@ -400,26 +376,6 @@ fun Navigation(
               onNavigateBack = { navController.popBackStack() },
               onIndexSelected = { index ->
                   tuningViewModel.setThermalPreset(index, currentOnBoot)
-                  // Add small delay to ensure state is saved before navigation
-                  scope.launch {
-                      delay(100)
-                      navController.popBackStack()
-                  }
-              }
-          )
-        }
-        composable("material_thermal_policy_selection") {
-          val factory = TuningViewModel.Factory(preferencesManager)
-          val tuningViewModel: TuningViewModel = viewModel(factory = factory)
-          val currentPolicy by tuningViewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
-          val scope = rememberCoroutineScope()
-          MaterialThermalPolicySelectionScreen(
-              viewModel = tuningViewModel,
-              currentPolicy = currentPolicy,
-              onNavigateBack = { navController.popBackStack() },
-              onPolicySelected = { policy ->
-                  tuningViewModel.setCpuLockThermalPolicy(policy)
-                  // Add small delay to ensure state is saved before navigation
                   scope.launch {
                       delay(100)
                       navController.popBackStack()
@@ -546,7 +502,7 @@ fun Navigation(
             )
           } else {
             MaterialWebViewScreen(
-                url = "https://raw.githubusercontent.com/Xtra-Computing/Xtra-Kernel-Manager/main/LICENSE",
+                url = "https://raw.githubusercontent.com/Xtra-Manager-Software/Xtra-Kernel-Manager/staging-version-3.1/LICENSE",
                 title = "MIT License",
                 onNavigateBack = { navController.popBackStack() }
             )

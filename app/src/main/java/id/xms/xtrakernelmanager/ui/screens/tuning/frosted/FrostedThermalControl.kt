@@ -32,6 +32,7 @@ import id.xms.xtrakernelmanager.ui.components.WavyBlobOrnament
 import id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialog
 import id.xms.xtrakernelmanager.ui.components.frosted.FrostedDialogButton
 import id.xms.xtrakernelmanager.ui.screens.tuning.TuningViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,12 +41,10 @@ fun FrostedThermalControl(viewModel: TuningViewModel) {
       viewModel.preferencesManager.getThermalPreset().collectAsState(initial = "Not Set")
   val prefsOnBoot by
       viewModel.preferencesManager.getThermalSetOnBoot().collectAsState(initial = false)
-  val selectedThermalPolicy by viewModel.getCpuLockThermalPolicy().collectAsState(initial = "Policy B (Balanced)")
+  val scope = rememberCoroutineScope()
 
   var expanded by remember { mutableStateOf(false) }
   var showDialog by remember { mutableStateOf(false) }
-  var showThermalPolicySection by remember { mutableStateOf(false) }
-  var showThermalPolicyDialog by remember { mutableStateOf(false) }
 
   // Box container with WavyBlobOrnament background
   Box(modifier = Modifier.fillMaxSize()) {
@@ -191,153 +190,6 @@ fun FrostedThermalControl(viewModel: TuningViewModel) {
           }
         }
         
-        // Smart Thermal Policy Section
-        item {
-          GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-              // Header
-              Row(
-                  modifier = Modifier.fillMaxWidth(),
-                  horizontalArrangement = Arrangement.SpaceBetween,
-                  verticalAlignment = Alignment.CenterVertically,
-              ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.weight(1f),
-                ) {
-                  Box(
-                      modifier =
-                          Modifier.size(48.dp)
-                              .clip(RoundedCornerShape(12.dp))
-                              .background(
-                                  Brush.linearGradient(
-                                      colors =
-                                          listOf(
-                                              MaterialTheme.colorScheme.primary,
-                                              MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                                          )
-                                  )
-                              ),
-                      contentAlignment = Alignment.Center,
-                  ) {
-                    Icon(
-                        imageVector = Icons.Default.Psychology,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(28.dp),
-                    )
-                  }
-
-                  Column {
-                    Text(
-                        text = stringResource(R.string.smart_thermal_policy),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = stringResource(R.string.smart_thermal_policy_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                  }
-                }
-
-                Box(
-                    modifier =
-                        Modifier.size(56.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
-                            .clickable { showThermalPolicySection = !showThermalPolicySection },
-                    contentAlignment = Alignment.Center,
-                ) {
-                  Icon(
-                      imageVector = if (showThermalPolicySection) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                      contentDescription = if (showThermalPolicySection) "Collapse" else "Expand",
-                      modifier = Modifier.size(32.dp),
-                      tint = MaterialTheme.colorScheme.primary,
-                  )
-                }
-              }
-
-              // Collapsible Thermal Policy Content
-              AnimatedVisibility(
-                  visible = showThermalPolicySection,
-                  enter = fadeIn() + expandVertically(),
-                  exit = fadeOut() + shrinkVertically(),
-              ) {
-                Column(
-                    modifier = Modifier.padding(top = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                  // Current Policy Display
-                  Card(
-                      modifier = Modifier.fillMaxWidth(),
-                      colors = CardDefaults.cardColors(
-                          containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-                      )
-                  ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                      Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = stringResource(R.string.current_policy),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = selectedThermalPolicy,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                      }
-                      
-                      val currentPolicy = remember(selectedThermalPolicy) { 
-                          ThermalPolicyPresets.getPolicyByName(selectedThermalPolicy) 
-                      }
-                      currentPolicy?.let { policy ->
-                        Column(horizontalAlignment = Alignment.End) {
-                          Text(
-                              text = "${policy.emergencyThreshold}°C",
-                              style = MaterialTheme.typography.bodySmall,
-                              color = MaterialTheme.colorScheme.error,
-                              fontWeight = FontWeight.Medium
-                          )
-                          Text(
-                              text = stringResource(R.string.emergency_temp),
-                              style = MaterialTheme.typography.labelSmall,
-                              color = MaterialTheme.colorScheme.onSurfaceVariant
-                          )
-                        }
-                      }
-                    }
-                  }
-                  
-                  // Change Policy Button
-                  Button(
-                      onClick = { 
-                          showThermalPolicyDialog = true
-                      },
-                      modifier = Modifier.fillMaxWidth(),
-                      shape = RoundedCornerShape(12.dp)
-                  ) {
-                      Icon(
-                          imageVector = Icons.Default.Tune,
-                          contentDescription = null,
-                          modifier = Modifier.size(20.dp)
-                      )
-                      Spacer(modifier = Modifier.width(8.dp))
-                      Text("Change Thermal Policy")
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -349,18 +201,6 @@ fun FrostedThermalControl(viewModel: TuningViewModel) {
       prefsOnBoot = prefsOnBoot,
       onDismiss = { showDialog = false },
       viewModel = viewModel
-    )
-  }
-  
-  // ===== THERMAL POLICY DIALOG =====
-  if (showThermalPolicyDialog) {
-    ThermalPolicySelectionDialog(
-      selectedPolicy = selectedThermalPolicy,
-      onPolicySelected = { policyName ->
-        viewModel.setCpuLockThermalPolicy(policyName)
-        showThermalPolicyDialog = false
-      },
-      onDismiss = { showThermalPolicyDialog = false }
     )
   }
 }
