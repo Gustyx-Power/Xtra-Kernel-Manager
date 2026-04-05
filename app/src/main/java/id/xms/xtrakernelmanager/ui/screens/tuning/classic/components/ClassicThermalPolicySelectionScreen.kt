@@ -37,6 +37,9 @@ fun ClassicThermalPolicySelectionScreen(
     onPolicySelected: (String) -> Unit
 ) {
     val allPolicies = remember { ThermalPolicyPresets.getAllPolicies() }
+    
+    // Stabilize currentPolicy to prevent glitches during state updates
+    val stableCurrentPolicy by remember { derivedStateOf { currentPolicy } }
 
     Scaffold(
         containerColor = ClassicColors.Background,
@@ -100,7 +103,10 @@ fun ClassicThermalPolicySelectionScreen(
                 key = { index -> allPolicies[index].name }
             ) { index ->
                 val policy = allPolicies[index]
-                val isSelected = policy.name == currentPolicy
+                // Use stable state for isSelected to prevent glitches
+                val isSelected = remember(stableCurrentPolicy, policy.name) {
+                    policy.name == stableCurrentPolicy
+                }
                 
                 ClassicThermalPolicyCard(
                     policy = policy,
@@ -178,8 +184,11 @@ private fun ClassicThermalPolicyCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // Stabilize isSelected state to prevent unnecessary recompositions
+    val stableIsSelected by remember { derivedStateOf { isSelected } }
+    
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.02f else 1f,
+        targetValue = if (stableIsSelected) 1.02f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "thermal_policy_card_scale"
     )
@@ -190,14 +199,14 @@ private fun ClassicThermalPolicyCard(
             .scale(scale)
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) 
+        color = if (stableIsSelected) 
             ClassicColors.Primary.copy(alpha = 0.15f)
         else 
             ClassicColors.Surface,
-        border = if (isSelected) 
+        border = if (stableIsSelected) 
             androidx.compose.foundation.BorderStroke(2.dp, ClassicColors.Primary)
         else null,
-        shadowElevation = if (isSelected) 4.dp else 1.dp
+        shadowElevation = if (stableIsSelected) 4.dp else 1.dp
     ) {
         Column(
             modifier = Modifier
@@ -221,7 +230,7 @@ private fun ClassicThermalPolicyCard(
                             .size(56.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(
-                                if (isSelected) ClassicColors.Primary
+                                if (stableIsSelected) ClassicColors.Primary
                                 else ClassicColors.Primary.copy(alpha = 0.2f)
                             ),
                         contentAlignment = Alignment.Center
@@ -229,7 +238,7 @@ private fun ClassicThermalPolicyCard(
                         Icon(
                             imageVector = Icons.Default.Psychology,
                             contentDescription = null,
-                            tint = if (isSelected) ClassicColors.Background
+                            tint = if (stableIsSelected) ClassicColors.Background
                             else ClassicColors.Primary,
                             modifier = Modifier.size(28.dp)
                         )
@@ -245,7 +254,7 @@ private fun ClassicThermalPolicyCard(
                 
                 // Selection indicator
                 AnimatedVisibility(
-                    visible = isSelected,
+                    visible = stableIsSelected,
                     enter = scaleIn(
                         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
                     ) + fadeIn(),
@@ -274,7 +283,7 @@ private fun ClassicThermalPolicyCard(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = if (isSelected) 
+                color = if (stableIsSelected) 
                     ClassicColors.Primary.copy(alpha = 0.1f)
                 else 
                     ClassicColors.Background

@@ -36,6 +36,9 @@ fun MaterialThermalPolicySelectionScreen(
     onPolicySelected: (String) -> Unit
 ) {
     val allPolicies = remember { ThermalPolicyPresets.getAllPolicies() }
+    
+    // Stabilize currentPolicy to prevent glitches during state updates
+    val stableCurrentPolicy by remember { derivedStateOf { currentPolicy } }
 
     Scaffold(
         topBar = {
@@ -92,7 +95,10 @@ fun MaterialThermalPolicySelectionScreen(
                 key = { index -> allPolicies[index].name }
             ) { index ->
                 val policy = allPolicies[index]
-                val isSelected = policy.name == currentPolicy
+                // Use stable state for isSelected to prevent glitches
+                val isSelected = remember(stableCurrentPolicy, policy.name) {
+                    policy.name == stableCurrentPolicy
+                }
                 
                 MaterialThermalPolicyCard(
                     policy = policy,
@@ -172,8 +178,11 @@ private fun MaterialThermalPolicyCard(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    // Stabilize isSelected state to prevent unnecessary recompositions
+    val stableIsSelected by remember { derivedStateOf { isSelected } }
+    
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.02f else 1f,
+        targetValue = if (stableIsSelected) 1.02f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "thermal_policy_card_scale"
     )
@@ -184,15 +193,15 @@ private fun MaterialThermalPolicyCard(
             .scale(scale)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) 
+            containerColor = if (stableIsSelected) 
                 MaterialTheme.colorScheme.primaryContainer
             else 
                 MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 8.dp else 2.dp
+            defaultElevation = if (stableIsSelected) 8.dp else 2.dp
         ),
-        border = if (isSelected) 
+        border = if (stableIsSelected) 
             androidx.compose.foundation.BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
         else null
     ) {
@@ -218,7 +227,7 @@ private fun MaterialThermalPolicyCard(
                             .size(56.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
+                                if (stableIsSelected) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.surfaceVariant
                             ),
                         contentAlignment = Alignment.Center
@@ -226,7 +235,7 @@ private fun MaterialThermalPolicyCard(
                         Icon(
                             imageVector = Icons.Default.Psychology,
                             contentDescription = null,
-                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary
+                            tint = if (stableIsSelected) MaterialTheme.colorScheme.onPrimary
                             else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(28.dp)
                         )
@@ -236,14 +245,14 @@ private fun MaterialThermalPolicyCard(
                         text = policy.name,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        color = if (stableIsSelected) MaterialTheme.colorScheme.onPrimaryContainer
                         else MaterialTheme.colorScheme.onSurface
                     )
                 }
                 
                 // Selection indicator
                 AnimatedVisibility(
-                    visible = isSelected,
+                    visible = stableIsSelected,
                     enter = scaleIn(
                         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
                     ) + fadeIn(),
@@ -272,7 +281,7 @@ private fun MaterialThermalPolicyCard(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected) 
+                    containerColor = if (stableIsSelected) 
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     else 
                         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
