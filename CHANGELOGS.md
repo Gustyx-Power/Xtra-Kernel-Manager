@@ -48,9 +48,18 @@ All notable changes to this project will be documented in here.
   - OpenGL - Traditional graphics API
   - Vulkan - Modern low-level API
   - ANGLE - OpenGL ES over Vulkan/D3D
-  - SkiaGL - Skia with OpenGL backend
-  - SkiaVulkan - Skia with Vulkan backend
-- **Safety Features**
+  - SkiaGL - Skia rendering with OpenGL backend
+  - SkiaVulkan - Skia rendering with Vulkan backend
+
+### Removed Features
+- **Thermal Policy** - Removed from all layouts due to persistent issues
+  - UI state synchronization problems across navigation
+  - Checkmark display inconsistencies
+  - Flickering when selecting policies
+  - ViewModel instance conflicts between screens
+  - Feature caused crashes on back navigation in Classic and Material layouts
+
+### Safety Features
   - Reboot confirmation dialog with current → new renderer display
   - Warning about compatibility issues
   - Verification dialog with processing state
