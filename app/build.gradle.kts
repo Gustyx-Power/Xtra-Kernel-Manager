@@ -226,7 +226,7 @@ dependencies {
     // Lottie for animations - REMOVED (not used anymore, replaced with Material3 Switch)
     // implementation("com.airbnb.android:lottie-compose:6.4.0")
 
-    implementation("com.patrykandpatrick.vico:compose-m3:3.0.0-beta.3")
+    implementation("com.patrykandpatrick.vico:compose-m3:3.1.0")
 
     // Backdrop (Frosted Glass)
     implementation("io.github.kyant0:backdrop:1.0.5")
