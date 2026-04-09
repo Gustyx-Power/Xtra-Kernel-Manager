@@ -77,17 +77,17 @@ fun FrostedBottomTabs(
     selectedTabIndex: () -> Int,
     onTabSelected: (index: Int) -> Unit,
     tabsCount: Int,
+    backdrop: LayerBackdrop,
     modifier: Modifier = Modifier,
     content: @Composable FrostedBottomTabsScope.() -> Unit
 ) {
-    val backdrop = LocalBackdrop.current
     val isLightTheme = false // XKM is always dark mode
     val containerColor =
-        if (isLightTheme) Color(0xFFFAFAFA).copy(0.4f)
-        else Color(0xFF121212).copy(0.4f)
+        if (isLightTheme) Color(0xFFFAFAFA).copy(0.7f)
+        else Color(0xFF1A1A1A).copy(0.7f)
     val glassBorder = 
-        if (isLightTheme) Color.White.copy(alpha = 0.3f) 
-        else Color.White.copy(alpha = 0.15f)
+        if (isLightTheme) Color.White.copy(alpha = 0.6f) 
+        else Color.White.copy(alpha = 0.3f)
 
     val tabsBackdrop = rememberLayerBackdrop()
     val shape = RoundedCornerShape(percent = 50)
@@ -180,7 +180,6 @@ fun FrostedBottomTabs(
             )
         }
 
-        // Build container modifier
         var containerModifier = Modifier
             .graphicsLayer {
                 translationX = panelOffset
@@ -189,15 +188,13 @@ fun FrostedBottomTabs(
             .fillMaxWidth()
             .padding(4f.dp)
             .clip(shape)
-
-        if (backdrop != null) {
-            containerModifier = containerModifier.drawBackdrop(
+            .drawBackdrop(
                 backdrop = backdrop,
                 shape = { shape },
                 effects = {
-                    colorControls(saturation = 1.0f)
-                    blur(8f.dp.toPx())
-                    lens(24f.dp.toPx(), 24f.dp.toPx())
+                    colorControls(saturation = 1.5f, brightness = 1.1f)
+                    blur(48f.dp.toPx())
+                    lens(64f.dp.toPx(), 80f.dp.toPx())
                 },
                 layerBlock = {
                     val progress = dampedDragAnimation.pressProgress
@@ -205,15 +202,15 @@ fun FrostedBottomTabs(
                     scaleX = scale
                     scaleY = scale
                 },
-                onDrawSurface = { drawRect(containerColor) }
+                onDrawSurface = { 
+                    drawRect(containerColor)
+                    drawRect(Color.White.copy(alpha = 0.05f))
+                }
             )
-        } else {
-            containerModifier = containerModifier.background(containerColor)
-        }
 
         Row(
             containerModifier
-                .border(1.5.dp, glassBorder, shape)
+                .border(2.dp, glassBorder, shape)
                 .then(interactiveHighlight.modifier),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -224,7 +221,6 @@ fun FrostedBottomTabs(
             scope.content()
         }
 
-        // Hidden tabs layer for combined backdrop effect
         CompositionLocalProvider(
             LocalFrostedBottomTabScale provides {
                 lerp(1f, 1.2f, dampedDragAnimation.pressProgress)
@@ -241,27 +237,27 @@ fun FrostedBottomTabs(
                 .fillMaxWidth()
                 .padding(horizontal = 4f.dp)
                 .clip(shape)
-
-            if (backdrop != null) {
-                hiddenRowModifier = hiddenRowModifier.drawBackdrop(
+                .drawBackdrop(
                     backdrop = backdrop,
                     shape = { shape },
                     effects = {
                         val progress = dampedDragAnimation.pressProgress
-                        colorControls(saturation = 1.0f)
-                        blur(8f.dp.toPx())
+                        colorControls(saturation = 1.5f, brightness = 1.1f)
+                        blur(48f.dp.toPx())
                         lens(
-                            24f.dp.toPx() * progress,
-                            24f.dp.toPx() * progress
+                            64f.dp.toPx() * progress,
+                            80f.dp.toPx() * progress
                         )
                     },
                     highlight = {
                         val progress = dampedDragAnimation.pressProgress
                         Highlight.Default.copy(alpha = progress)
                     },
-                    onDrawSurface = { drawRect(containerColor) }
+                    onDrawSurface = { 
+                        drawRect(containerColor)
+                        drawRect(Color.White.copy(alpha = 0.05f))
+                    }
                 )
-            }
 
             Row(
                 hiddenRowModifier.then(interactiveHighlight.modifier),
@@ -275,11 +271,10 @@ fun FrostedBottomTabs(
             }
         }
 
-        // Pill indicator
-        val pillSurfaceColor = if (isLightTheme) Color.Black.copy(0.1f) else Color.White.copy(0.1f)
-        val combinedBackdrop = if (backdrop != null) rememberCombinedBackdrop(backdrop, tabsBackdrop) else null
+        val pillSurfaceColor = if (isLightTheme) Color.Black.copy(0.2f) else Color.White.copy(0.2f)
+        val combinedBackdrop = rememberCombinedBackdrop(backdrop, tabsBackdrop)
 
-        var pillModifier = Modifier
+        val pillModifier = Modifier
             .padding(horizontal = 4f.dp)
             .graphicsLayer {
                 translationX =
@@ -297,16 +292,16 @@ fun FrostedBottomTabs(
             .height(56f.dp)
             .fillMaxWidth(1f / tabsCount)
             .clip(shape)
-
-        if (combinedBackdrop != null) {
-            pillModifier = pillModifier.drawBackdrop(
+            .drawBackdrop(
                 backdrop = combinedBackdrop,
                 shape = { shape },
                 effects = {
                     val progress = dampedDragAnimation.pressProgress
+                    colorControls(saturation = 1.5f, brightness = 1.1f)
+                    blur(24f.dp.toPx())
                     lens(
-                        16f.dp.toPx() * progress,
-                        24f.dp.toPx() * progress,
+                        48f.dp.toPx() * progress,
+                        64f.dp.toPx() * progress,
                         chromaticAberration = true
                     )
                 },
@@ -321,20 +316,17 @@ fun FrostedBottomTabs(
                 innerShadow = {
                     val progress = dampedDragAnimation.pressProgress
                     InnerShadow(
-                        radius = 8f.dp * progress,
+                        radius = 16f.dp * progress,
                         alpha = progress
                     )
                 },
                 layerBlock = {},
                 onDrawSurface = {
                     val progress = dampedDragAnimation.pressProgress
-                    drawRect(pillSurfaceColor, alpha = 1f - progress)
-                    drawRect(Color.Black.copy(alpha = 0.03f * progress))
+                    drawRect(pillSurfaceColor, alpha = 1f - progress * 0.3f)
+                    drawRect(Color.White.copy(alpha = 0.1f * progress))
                 }
             )
-        } else {
-            pillModifier = pillModifier.background(pillSurfaceColor)
-        }
 
         Box(pillModifier)
     }

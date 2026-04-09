@@ -92,6 +92,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.CompositionLocalProvider
+import id.xms.xtrakernelmanager.ui.components.LocalBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.layerBackdrop
+import id.xms.xtrakernelmanager.ui.components.utils.rememberLayerBackdrop
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -254,17 +257,26 @@ fun Navigation(
   val functionalRomFactory = remember { FunctionalRomViewModel.Companion.Factory(preferencesManager, context.applicationContext) }
   val sharedFunctionalRomViewModel: FunctionalRomViewModel = viewModel(factory = functionalRomFactory)
 
-  Box(modifier = Modifier.fillMaxSize()) {
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-    ) { paddingValues ->
-      NavHost(
-          navController = navController,
-          startDestination = startDest,
-          modifier = Modifier
-              .padding(paddingValues)
-              .padding(bottom = if (layoutStyle == "frosted") 0.dp else 0.dp),
-      ) {
+  // Setup backdrop for frosted glass effect (like temanmu's code)
+  val backgroundColor = MaterialTheme.colorScheme.background
+  val backdrop = rememberLayerBackdrop {
+    drawRect(backgroundColor)
+    drawContent()
+  }
+
+  Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
+    CompositionLocalProvider(LocalBackdrop provides backdrop) {
+      Scaffold(
+          containerColor = Color.Transparent
+      ) { paddingValues ->
+        NavHost(
+            navController = navController,
+            startDestination = startDest,
+            modifier = Modifier
+                .layerBackdrop(backdrop)
+                .padding(paddingValues)
+                .padding(bottom = if (layoutStyle == "frosted") 0.dp else 0.dp),
+        ) {
         composable("setup") {
           SetupScreen(
               onSetupComplete = { layoutStyle ->
@@ -661,6 +673,7 @@ fun Navigation(
         }
       }
     }
+    } // Close CompositionLocalProvider
 
     // Floating Bottom Dock
     if (currentRoute != "setup" && currentRoute != "root_access") {
@@ -684,6 +697,7 @@ fun Navigation(
             selectedTabIndex = { selectedIndex },
             onTabSelected = { index -> navigateToRoute(bottomNavItems[index].route) },
             tabsCount = bottomNavItems.size,
+            backdrop = backdrop,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()

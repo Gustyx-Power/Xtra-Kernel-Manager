@@ -242,7 +242,8 @@ fun HomeScreen(
                         }
                         else -> {
                                 // Frosted Home Screen (Formerly Legacy/Glass UI)
-                                val backdrop = rememberLayerBackdrop()
+                                // Use backdrop from parent Navigation instead of creating new one
+                                val backdrop = LocalBackdrop.current
 
                                 Box(modifier = Modifier.fillMaxSize()) {
                                         // Background Layer - Captures content for glass effect
@@ -283,16 +284,12 @@ fun HomeScreen(
                                                         strokeColor = Color.Black.copy(alpha = 0.6f),
                                                         blobAlpha = 0.55f
                                                 )
-                                                
-                                                // Capture layer for backdrop
-                                                Box(modifier = Modifier.fillMaxSize().layerBackdrop(backdrop))
                                         }
 
 
-                                        // Content Layer
-                                        CompositionLocalProvider(LocalBackdrop provides backdrop) {
-                                                Scaffold(
-                                                        containerColor = Color.Transparent, 
+                                        // Content Layer (no need to provide backdrop again, use from parent)
+                                        Scaffold(
+                                                containerColor = Color.Transparent, 
                                                 ) { paddingValues ->
                                                         // Apply system padding for status bar
                                                         Box(Modifier.fillMaxSize().padding(paddingValues)) {
@@ -310,7 +307,6 @@ fun HomeScreen(
                 )
                                                         }
                                                 }
-                                        }
                                 }
                         }
                 }
