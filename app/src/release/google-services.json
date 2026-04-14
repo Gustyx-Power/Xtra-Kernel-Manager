@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "234012707950",
+    "firebase_url": "https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "xtrakernelmanager",
+    "storage_bucket": "xtrakernelmanager.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:234012707950:android:c4e3a64566e834515fea7f",
+        "android_client_info": {
+          "package_name": "id.xms.xtrakernelmanager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAA9l6eKBgLmLO9R8woNuKU1E_Xps3Fb6o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

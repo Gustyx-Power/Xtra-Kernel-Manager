@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "411675796401",
+    "firebase_url": "https://xkm-debug-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "xkm-debug",
+    "storage_bucket": "xkm-debug.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411675796401:android:eb444772b7301fa0599390",
+        "android_client_info": {
+          "package_name": "id.xms.xtrakernelmanager.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvrLwap3VC2XRj1BXu5-yF-j0TX4APk-M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
