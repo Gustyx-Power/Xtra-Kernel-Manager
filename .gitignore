@@ -78,9 +78,6 @@ buildsuccess-log.txt
 rust_build.log
 gradle_build.log
 
-# Firebase (if contains sensitive data)
-google-services.json
-
 # IDE specific
 .idea
 .vscode
