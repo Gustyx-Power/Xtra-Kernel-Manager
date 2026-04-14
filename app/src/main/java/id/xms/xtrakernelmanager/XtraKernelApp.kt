@@ -33,6 +33,13 @@ class XtraKernelApp : Application() {
 
   override fun onCreate() {
     super.onCreate()
+    
+    Log.d(TAG, "XtraKernelApp onCreate() called")
+
+    // Initialize Firebase with manual configuration for debug/release
+    initializeFirebaseManually()
+    
+    Log.d(TAG, "After Firebase initialization")
 
     // Check for app update and clear data if needed
     checkAndHandleAppUpdate()
@@ -49,6 +56,70 @@ class XtraKernelApp : Application() {
     
     // Schedule donation reminder notification
     scheduleDonationReminder()
+    
+    // Schedule update check notification
+    scheduleUpdateCheck()
+  }
+  
+  /**
+   * Initialize Firebase manually with proper configuration
+   */
+  private fun initializeFirebaseManually() {
+    try {
+      Log.d(TAG, "Starting Firebase initialization...")
+      
+      // Check if Firebase is already initialized
+      val existingApps = com.google.firebase.FirebaseApp.getApps(this)
+      Log.d(TAG, "Existing Firebase apps: ${existingApps.size}")
+      
+      if (existingApps.isNotEmpty()) {
+        Log.d(TAG, "Firebase already initialized")
+        val app = com.google.firebase.FirebaseApp.getInstance()
+        val options = app.options
+        Log.d(TAG, "Firebase - Project: ${options.projectId}, Database: ${options.databaseUrl}")
+        return
+      }
+      
+      // Try to initialize with default first (from google-services.json)
+      Log.d(TAG, "Trying to initialize Firebase from google-services.json...")
+      var app = com.google.firebase.FirebaseApp.initializeApp(this)
+      
+      // If default initialization failed, initialize manually
+      if (app == null) {
+        Log.w(TAG, "Default Firebase initialization failed, trying manual initialization...")
+        
+        // Manual initialization for debug build
+        val options = com.google.firebase.FirebaseOptions.Builder()
+            .setProjectId(if (BuildConfig.DEBUG) "xkm-debug" else "xtrakernelmanager")
+            .setApplicationId(if (BuildConfig.DEBUG) "1:411675796401:android:eb444772b7301fa0599390" else "1:234012707950:android:c4e3a64566e834515fea7f")
+            .setApiKey(if (BuildConfig.DEBUG) "AIzaSyDvrLwap3VC2XRj1BXu5-yF-j0TX4APk-M" else "AIzaSyAA9l6eKBgLmLO9R8woNuKU1E_Xps3Fb6o")
+            .setDatabaseUrl(if (BuildConfig.DEBUG) "https://xkm-debug-default-rtdb.asia-southeast1.firebasedatabase.app" else "https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app")
+            .setStorageBucket(if (BuildConfig.DEBUG) "xkm-debug.firebasestorage.app" else "xtrakernelmanager.firebasestorage.app")
+            .build()
+        
+        app = com.google.firebase.FirebaseApp.initializeApp(this, options)
+        Log.d(TAG, "Manual Firebase initialization completed")
+      }
+      
+      if (app != null) {
+        val options = app.options
+        Log.d(TAG, "Firebase initialized successfully!")
+        Log.d(TAG, "  Project ID: ${options.projectId}")
+        Log.d(TAG, "  Database URL: ${options.databaseUrl}")
+        Log.d(TAG, "  API Key: ${options.apiKey}")
+        Log.d(TAG, "  App ID: ${options.applicationId}")
+        
+        // Configure Realtime Database
+        val database = com.google.firebase.database.FirebaseDatabase.getInstance()
+        database.setPersistenceEnabled(false)
+        Log.d(TAG, "Firebase Realtime Database configured successfully")
+      } else {
+        Log.e(TAG, "Firebase initialization still returned null after manual attempt!")
+      }
+    } catch (e: Exception) {
+      Log.e(TAG, "CRITICAL ERROR initializing Firebase: ${e.message}", e)
+      e.printStackTrace()
+    }
   }
   
   /**
@@ -103,6 +174,34 @@ class XtraKernelApp : Application() {
       Log.d(TAG, "Donation reminder scheduled")
     } catch (e: Exception) {
       Log.e(TAG, "Error scheduling donation reminder: ${e.message}", e)
+    }
+  }
+  
+  /**
+   * Schedule update check notification
+   * Will check every 6 hours for new release or beta updates
+   */
+  private fun scheduleUpdateCheck() {
+    try {
+      Log.d(TAG, "Scheduling Update Check")
+      val workRequest = androidx.work.PeriodicWorkRequestBuilder<id.xms.xtrakernelmanager.domain.worker.UpdateCheckWorker>(
+          6, java.util.concurrent.TimeUnit.HOURS
+      )
+          .setConstraints(
+              androidx.work.Constraints.Builder()
+                  .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                  .build()
+          )
+          .build()
+      
+      androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+          "update_check_worker",
+          androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+          workRequest
+      )
+      Log.d(TAG, "Update check scheduled successfully")
+    } catch (e: Exception) {
+      Log.e(TAG, "Error scheduling update check: ${e.message}", e)
     }
   }
 

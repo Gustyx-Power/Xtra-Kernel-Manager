@@ -101,6 +101,7 @@ import id.xms.xtrakernelmanager.ui.components.utils.rememberLayerBackdrop
 fun Navigation(
     preferencesManager: PreferencesManager,
     shouldShowDonationDialog: Boolean = false,
+    shouldOpenSystemInfo: Boolean = false,
     updateViewModel: UpdateViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
   val navController = rememberNavController()
@@ -147,6 +148,22 @@ fun Navigation(
         }
       } catch (e: Exception) {
         android.util.Log.e("Navigation", "Error navigating to home from notification", e)
+      }
+    }
+  }
+  
+  // Handle update notification - navigate to system info screen
+  LaunchedEffect(shouldOpenSystemInfo) {
+    if (shouldOpenSystemInfo) {
+      // Wait for NavHost to be composed and ready
+      delay(200)
+      try {
+        // Navigate to system info screen
+        navController.navigate("system_info") {
+          popUpTo(navController.graph.startDestinationId) { inclusive = false }
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("Navigation", "Error navigating to system info from notification", e)
       }
     }
   }

@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
   private var isDCDimmingActive = false
   private var isLowBrightnessMode = false
   private var shouldShowDonationDialog = false
+  private var shouldOpenSystemInfo = false
 
   companion object {
     private const val TARGET_DENSITY_DPI = 410
@@ -53,6 +54,9 @@ class MainActivity : ComponentActivity() {
     
     // Check if opened from donation notification
     shouldShowDonationDialog = intent?.getBooleanExtra("show_donation_dialog", false) ?: false
+    
+    // Check if opened from update notification
+    shouldOpenSystemInfo = intent?.getBooleanExtra("open_system_info", false) ?: false
     
     CoroutineScope(Dispatchers.IO).launch {
         isDCDimmingActive = DisplayHelper.isDCDimmingEnabled(this@MainActivity)
@@ -99,7 +103,8 @@ class MainActivity : ComponentActivity() {
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
           Navigation(
               preferencesManager = preferencesManager,
-              shouldShowDonationDialog = shouldShowDonationDialog
+              shouldShowDonationDialog = shouldShowDonationDialog,
+              shouldOpenSystemInfo = shouldOpenSystemInfo
           )
         }
       }
@@ -108,8 +113,10 @@ class MainActivity : ComponentActivity() {
   
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
+    setIntent(intent)
     // Handle new intent when app is already running
     shouldShowDonationDialog = intent.getBooleanExtra("show_donation_dialog", false)
+    shouldOpenSystemInfo = intent.getBooleanExtra("open_system_info", false)
   }
   
   private fun setupWindowForDCDimming() {
