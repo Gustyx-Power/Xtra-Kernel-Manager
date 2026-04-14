@@ -96,59 +96,89 @@ fun isInternetAvailable(context: Context): Boolean {
 }
 
 suspend fun fetchUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { continuation ->
-    val database = FirebaseDatabase.getInstance(
-        "https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app"
-    )
-    val myRef = database.getReference("update/release")
-    val listener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            try {
-                val versionRaw = snapshot.child("version").value
-                val version = versionRaw?.toString() ?: ""
-                
-                // Parse changelog as array or fallback to single string
-                val changelog = mutableListOf<String>()
-                val changelogSnapshot = snapshot.child("changelog")
-                if (changelogSnapshot.hasChildren()) {
-                    // It's an array
-                    changelogSnapshot.children.forEach { child ->
-                        child.getValue(String::class.java)?.let { changelog.add(it) }
+    try {
+        android.util.Log.d("OTAUpdate", "Fetching update config...")
+        
+        // Use default Firebase instance (configured via google-services.json)
+        val database = FirebaseDatabase.getInstance()
+        android.util.Log.d("OTAUpdate", "Firebase Database instance: ${database.reference.database.app.options.databaseUrl}")
+        
+        val myRef = database.getReference("update/release")
+        android.util.Log.d("OTAUpdate", "Reference path: ${myRef.path}")
+        
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    android.util.Log.d("OTAUpdate", "Release update data received: ${snapshot.exists()}")
+                    
+                    val versionRaw = snapshot.child("version").value
+                    val version = versionRaw?.toString() ?: ""
+                    android.util.Log.d("OTAUpdate", "Version: $version")
+                    
+                    // Parse changelog as array or fallback to single string
+                    val changelog = mutableListOf<String>()
+                    val changelogSnapshot = snapshot.child("changelog")
+                    if (changelogSnapshot.hasChildren()) {
+                        // It's an array
+                        changelogSnapshot.children.forEach { child ->
+                            child.getValue(String::class.java)?.let { changelog.add(it) }
+                        }
+                    } else {
+                        // It's a single string, split by newlines
+                        val changelogStr = changelogSnapshot.getValue(String::class.java) ?: ""
+                        if (changelogStr.isNotEmpty()) {
+                            // Handle both actual newlines and literal \n strings
+                            val lines = changelogStr
+                                .replace("\\n", "\n") // Replace literal \n with actual newline
+                                .split("\n")
+                                .map { it.trim() }
+                                .filter { it.isNotBlank() }
+                            changelog.addAll(lines)
+                        }
                     }
-                } else {
-                    // It's a single string, split by newlines
-                    val changelogStr = changelogSnapshot.getValue(String::class.java) ?: ""
-                    if (changelogStr.isNotEmpty()) {
-                        changelog.addAll(changelogStr.split("\n").filter { it.isNotBlank() })
-                    }
+                    
+                    val url = snapshot.child("url").getValue(String::class.java) ?: ""
+                    val force = snapshot.child("force").getValue(Boolean::class.java) ?: false
+                    if (continuation.isActive)
+                        continuation.resume(UpdateConfig(version, changelog, url, force, "release"))
+                } catch (e: Exception) {
+                    android.util.Log.e("OTAUpdate", "Error parsing release update: ${e.message}", e)
+                    if (continuation.isActive) continuation.resume(null)
                 }
-                
-                val url = snapshot.child("url").getValue(String::class.java) ?: ""
-                val force = snapshot.child("force").getValue(Boolean::class.java) ?: false
-                if (continuation.isActive)
-                    continuation.resume(UpdateConfig(version, changelog, url, force, "release"))
-            } catch (e: Exception) {
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                android.util.Log.e("OTAUpdate", "Release update fetch cancelled: ${error.message}")
                 if (continuation.isActive) continuation.resume(null)
             }
         }
-
-        override fun onCancelled(error: DatabaseError) {
-            if (continuation.isActive) continuation.resume(null)
-        }
+        myRef.addListenerForSingleValueEvent(listener)
+        continuation.invokeOnCancellation { myRef.removeEventListener(listener) }
+    } catch (e: Exception) {
+        android.util.Log.e("OTAUpdate", "Error in fetchUpdateConfig: ${e.message}", e)
+        if (continuation.isActive) continuation.resume(null)
     }
-    myRef.addListenerForSingleValueEvent(listener)
-    continuation.invokeOnCancellation { myRef.removeEventListener(listener) }
 }
 
 suspend fun fetchBetaUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine { continuation ->
-    val database = FirebaseDatabase.getInstance(
-        "https://xtrakernelmanager-default-rtdb.asia-southeast1.firebasedatabase.app"
-    )
-    val myRef = database.getReference("update/beta")
-    val listener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            try {
-                val versionRaw = snapshot.child("version").value
-                val version = versionRaw?.toString() ?: ""
+    try {
+        android.util.Log.d("OTAUpdate", "Fetching beta update config...")
+        
+        // Use default Firebase instance (configured via google-services.json)
+        val database = FirebaseDatabase.getInstance()
+        android.util.Log.d("OTAUpdate", "Firebase Database instance: ${database.reference.database.app.options.databaseUrl}")
+        
+        val myRef = database.getReference("update/beta")
+        android.util.Log.d("OTAUpdate", "Reference path: ${myRef.path}")
+        
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                try {
+                    android.util.Log.d("OTAUpdate", "Beta update data received: ${snapshot.exists()}")
+                    
+                    val versionRaw = snapshot.child("version").value
+                    val version = versionRaw?.toString() ?: ""
+                    android.util.Log.d("OTAUpdate", "Beta version: $version")
                 
                 // Parse changelog as array or fallback to single string
                 val changelog = mutableListOf<String>()
@@ -162,7 +192,13 @@ suspend fun fetchBetaUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine
                     // It's a single string, split by newlines
                     val changelogStr = changelogSnapshot.getValue(String::class.java) ?: ""
                     if (changelogStr.isNotEmpty()) {
-                        changelog.addAll(changelogStr.split("\n").filter { it.isNotBlank() })
+                        // Handle both actual newlines and literal \n strings
+                        val lines = changelogStr
+                            .replace("\\n", "\n") // Replace literal \n with actual newline
+                            .split("\n")
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                        changelog.addAll(lines)
                     }
                 }
                 
@@ -171,16 +207,22 @@ suspend fun fetchBetaUpdateConfig(): UpdateConfig? = suspendCancellableCoroutine
                 if (continuation.isActive)
                     continuation.resume(UpdateConfig(version, changelog, url, force, "beta"))
             } catch (e: Exception) {
+                android.util.Log.e("OTAUpdate", "Error parsing beta update: ${e.message}", e)
                 if (continuation.isActive) continuation.resume(null)
             }
         }
 
         override fun onCancelled(error: DatabaseError) {
+            android.util.Log.e("OTAUpdate", "Beta update fetch cancelled: ${error.message}")
             if (continuation.isActive) continuation.resume(null)
         }
     }
     myRef.addListenerForSingleValueEvent(listener)
     continuation.invokeOnCancellation { myRef.removeEventListener(listener) }
+    } catch (e: Exception) {
+        android.util.Log.e("OTAUpdate", "Error in fetchBetaUpdateConfig: ${e.message}", e)
+        if (continuation.isActive) continuation.resume(null)
+    }
 }
 
 fun isUpdateAvailable(currentVersion: String, remoteVersion: String): Boolean {
