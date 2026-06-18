@@ -42,7 +42,7 @@ jobs:
       commit_count: ${{ steps.check.outputs.commit_count }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -130,7 +130,7 @@ jobs:
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -366,7 +366,7 @@ jobs:
         if: |
           (github.event_name == 'push') || 
           (github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' && inputs.sign_apk == true)
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: Xtra-Manager-Software/XMS-Keystore-Apps
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
