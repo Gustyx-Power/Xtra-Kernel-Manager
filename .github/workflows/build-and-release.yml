@@ -48,7 +48,7 @@ jobs:
 
       - name: Restore last build commit
         id: cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: .last-build-commit
           key: last-build-commit-${{ github.ref_name }}
@@ -301,7 +301,7 @@ jobs:
         run: cargo install cargo-ndk
 
       - name: Cache Rust dependencies
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry
@@ -679,7 +679,7 @@ jobs:
 
       - name: Update cache with new commit
         if: success()
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: .last-build-commit
           key: last-build-commit-${{ github.ref_name }}-${{ github.sha }}
